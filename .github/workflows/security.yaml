@@ -3,9 +3,11 @@ name: Security
 on:
   push:
     branches: [main]
+    paths:
+      - "package.json"
   pull_request:
-    # The branches below must be a subset of the branches above
-    branches: [main]
+    paths:
+      - "package.json"
   schedule:
     # Runs every Monday morning PST
     - cron: "17 15 * * 1"
