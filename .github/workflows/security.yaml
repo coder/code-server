@@ -3,6 +3,8 @@ name: Security
 on:
   push:
     branches: [main]
+    paths:
+      - "package.json"
   pull_request:
     paths:
       - "package.json"
