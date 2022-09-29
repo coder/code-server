@@ -75,7 +75,7 @@
     "vfile-message": "^2.0.2",
     "tar": "^6.1.9",
     "path-parse": "^1.0.7",
-    "vm2": "^3.9.6",
+    "vm2": "^3.9.11",
     "follow-redirects": "^1.14.8",
     "node-fetch": "^2.6.7",
     "nanoid": "^3.1.31",
