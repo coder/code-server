@@ -25,7 +25,7 @@ copy-bin-script() {
   sed -i.bak 's/ROOT\/out/VSROOT\/out/g' "$dest"
   # We do not want expansion here; this text should make it to the file as-is.
   # shellcheck disable=SC2016
-  sed -i.bak 's/$ROOT\/node/${NODE_EXEC_PATH:-ROOT\/lib\/node}/g' "$dest"
+  sed -i.bak 's/$ROOT\/node/${NODE_EXEC_PATH:-$ROOT\/lib\/node}/g' "$dest"
 
   # Fix Node path on Windows.
   sed -i.bak 's/^set ROOT_DIR=\(.*\)$/set ROOT_DIR=%~dp0..\\..\\..\\..\r\nset VSROOT_DIR=\1/g' "$dest"
