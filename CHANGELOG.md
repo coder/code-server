@@ -30,7 +30,8 @@ Code v1.71.2
 
 ### Fixed
 
-- Added RPM upgrade flag to install script
+- Fixed install script not upgrading code-server when already installed on RPM-based machines
+- Fixed install script failing to gain root permissions on FreeBSD
 
 ## [4.7.0](https://github.com/coder/code-server/releases/tag/v4.7.0) - 2022-09-09
 
