@@ -141,7 +141,7 @@ changelog](https://github.com/emacs-mirror/emacs/blob/master/etc/NEWS).
 
 1. Create a new branch called `release/v0.0.0` (replace 0s with actual version aka v4.5.0)
    1. If you don't do this, the `npm-brew` GitHub workflow will fail. It looks for the release artifacts under the branch pattern.
-1. Run `yarn release:prep <version>` (e.g., `yarn release:prep 3.8.1`)
+1. Run `yarn release:prep`
 1. Bump chart version in `Chart.yaml`.
 1. Summarize the major changes in the `CHANGELOG.md`
 1. Download CI artifacts and make sure code-server works locally.

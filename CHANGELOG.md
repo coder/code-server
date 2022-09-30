@@ -20,6 +20,19 @@ Code v99.99.999
 
 -->
 
+## [4.7.1](https://github.com/coder/code-server/releases/tag/v4.7.1) - 2022-09-30
+
+Code v1.71.2
+
+### Changed
+
+- Updated Code to 1.71.2
+
+### Fixed
+
+- Fixed install script not upgrading code-server when already installed on RPM-based machines
+- Fixed install script failing to gain root permissions on FreeBSD
+
 ## [4.7.0](https://github.com/coder/code-server/releases/tag/v4.7.0) - 2022-09-09
 
 Code v1.71.0
