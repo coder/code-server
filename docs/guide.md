@@ -1,3 +1,4 @@
+<!-- prettier-ignore-start -->
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 # Setup Guide
@@ -22,6 +23,7 @@
   - [Option 2: ngrok tunnel](#option-2-ngrok-tunnel)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
+<!-- prettier-ignore-end -->
 
 This article will walk you through exposing code-server securely once you've
 completed the [installation process](install.md).
@@ -89,11 +91,10 @@ we recommend using another method, such as [Let's Encrypt](#let-encrypt) instead
    using [mutagen](https://mutagen.io/documentation/introduction/installation)
    to do so. Once you've installed mutagen, you can port forward as follows:
 
-   ```console
+   ```shell
    # This is the same as the above SSH command, but it runs in the background
    # continuously. Be sure to add `mutagen daemon start` to your ~/.bashrc to
    # start the mutagen daemon when you open a shell.
-   
    mutagen forward create --name=code-server tcp:127.0.0.1:8080 < instance-ip > :tcp:127.0.0.1:8080
    ```
 

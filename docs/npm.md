@@ -1,3 +1,4 @@
+<!-- prettier-ignore-start -->
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 # npm Install Requirements
@@ -15,6 +16,7 @@
   - [Debugging install issues with npm](#debugging-install-issues-with-npm)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
+<!-- prettier-ignore-end -->
 
 If you're installing code-server via `npm`, you'll need to install additional
 dependencies required to build the native modules used by VS Code. This article
