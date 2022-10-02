@@ -417,20 +417,20 @@ sudo passwd {user} # replace user with your code-server user
 
 [![Cloudflared](https://img.shields.io/badge/Cloudflared-E4863B?style=for-the-badge&logo=cloudflare&logoColor=ffffff)](https://github.com/cloudflare/cloudflared)
 
-1.  Install [cloudflared](https://github.com/cloudflare/cloudflared#installing-cloudflared) on your local computer
-2.  Then go to `~/.ssh/config` and add the following:
+1.  Install [cloudflared](https://github.com/cloudflare/cloudflared#installing-cloudflared) on your local computer and remote server
+2.  Then go to `~/.ssh/config` and add the following on your local computer:
 
 ```shell
 Host *.trycloudflare.com
 HostName %h
-User root
+User user
 Port 22
 ProxyCommand "cloudflared location" access ssh --hostname %h
 ```
 
 3. Run `cloudflared tunnel --url ssh://localhost:22` on the remote server
 
-4. Finally on VS Code or any IDE that supports SSH, run `ssh coder@https://your-link.trycloudflare.com` or `ssh coder@your-link.trycloudflare.com`
+4. Finally on VS Code or any IDE that supports SSH, run `ssh user@https://your-link.trycloudflare.com` or `ssh user@your-link.trycloudflare.com`
 
 ### Option 2: ngrok tunnel
 
