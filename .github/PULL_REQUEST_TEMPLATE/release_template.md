@@ -12,5 +12,6 @@ Follow "Publishing a release" steps in `ci/README.md`
 
 <!-- Note some of these steps below are redundant since they're listed in the "Publishing a release" docs -->
 
-- [ ] publish release and merge PR
-- [ ] update the AUR package
+- [ ] update `CHANGELOG.md`
+- [ ] manually run "Draft release" workflow after merging this PR
+- [ ] merge PR opened in [code-server-aur](https://github.com/coder/code-server-aur)
