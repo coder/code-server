@@ -553,6 +553,8 @@ sh_c() {
 sudo_sh_c() {
   if [ "$(id -u)" = 0 ]; then
     sh_c "$@"
+  elif command_exists doas; then
+    sh_c "doas $*"
   elif command_exists sudo; then
     sh_c "sudo $*"
   elif command_exists su; then
@@ -561,7 +563,7 @@ sudo_sh_c() {
     echoh
     echoerr "This script needs to run the following command as root."
     echoerr "  $*"
-    echoerr "Please install sudo or su."
+    echoerr "Please install doas, sudo, or su."
     exit 1
   fi
 }
