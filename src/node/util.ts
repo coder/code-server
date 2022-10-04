@@ -482,6 +482,15 @@ export const isFile = async (path: string): Promise<boolean> => {
   }
 }
 
+export const isDirectory = async (path: string): Promise<boolean> => {
+  try {
+    const stat = await fs.stat(path)
+    return stat.isDirectory()
+  } catch (error) {
+    return false
+  }
+}
+
 /**
  * Escapes any HTML string special characters, like &, <, >, ", and '.
  *
