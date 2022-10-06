@@ -110,7 +110,7 @@ Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench.ts
  
  interface ICredential {
  	service: string;
-@@ -507,6 +508,22 @@ function doCreateUri(path: string, query
+@@ -507,6 +508,23 @@ function doCreateUri(path: string, query
  		} : undefined,
  		workspaceProvider: WorkspaceProvider.create(config),
  		urlCallbackProvider: new LocalStorageURLCallbackProvider(config.callbackRoute),
@@ -123,10 +123,11 @@ Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench.ts
 +			if (localhostMatch) {
 +				let baseUrl = `${window.location.protocol}//${window.location.host}`
 +				if (config.productConfiguration && config.productConfiguration.proxyEndpointTemplate) {
-+					baseUrl = new URL(config.productConfiguration.proxyEndpointTemplate.replace('{{port}}', localhostMatch.port.toString()), window.location.href).toString()
++					resolvedUri = URI.parse(new URL(config.productConfiguration.proxyEndpointTemplate.replace('{{port}}', localhostMatch.port.toString()), window.location.href).toString())
++				} else {
++					// Manually use code-server's built in /proxy/<port>
++					resolvedUri = URI.parse(`${baseUrl}/proxy/${localhostMatch.port}`)
 +				}
-+				// Use code-server's built in /proxy/<port>
-+				resolvedUri = URI.parse(`${baseUrl}/proxy/${localhostMatch.port}`)
 +			}
 +
 +			// If not localhost, return unmodified
