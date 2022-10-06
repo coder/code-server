@@ -457,14 +457,37 @@ describe("isFile", () => {
   afterEach(async () => {
     await fs.rm(testDir, { recursive: true, force: true })
   })
-  it("should return false if the path doesn't exist", async () => {
+  it("should return false if is directory", async () => {
     expect(await util.isFile(testDir)).toBe(false)
   })
   it("should return true if is file", async () => {
     expect(await util.isFile(pathToFile)).toBe(true)
   })
-  it("should return false if error", async () => {
+  it("should return false if the path doesn't exist", async () => {
     expect(await util.isFile("fakefile.txt")).toBe(false)
+  })
+})
+
+describe("isDirectory", () => {
+  const testDir = path.join(tmpdir, "tests", "isDirectory")
+  let pathToFile = ""
+
+  beforeEach(async () => {
+    pathToFile = path.join(testDir, "foo.txt")
+    await fs.mkdir(testDir, { recursive: true })
+    await fs.writeFile(pathToFile, "hello")
+  })
+  afterEach(async () => {
+    await fs.rm(testDir, { recursive: true, force: true })
+  })
+  it("should return false if is a file", async () => {
+    expect(await util.isDirectory(pathToFile)).toBe(false)
+  })
+  it("should return true if is directory", async () => {
+    expect(await util.isDirectory(testDir)).toBe(true)
+  })
+  it("should return false if the path doesn't exist", async () => {
+    expect(await util.isDirectory("fakefile.txt")).toBe(false)
   })
 })
 
