@@ -106,7 +106,7 @@ Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench.ts
  import { create, ICredentialsProvider, IURLCallbackProvider, IWorkbenchConstructionOptions, IWorkspace, IWorkspaceProvider } from 'vs/workbench/workbench.web.main';
  import { posix } from 'vs/base/common/path';
  import { ltrim } from 'vs/base/common/strings';
-+import { relativeRoot } from 'vs/server/node/webClientServer';
++import { extractLocalHostUriMetaDataForPortMapping } from 'vs/platform/tunnel/common/tunnel';
  
  interface ICredential {
  	service: string;
@@ -127,33 +127,23 @@ Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench.ts
  
  	// Create workbench
  	create(document.body, {
-@@ -506,6 +508,32 @@ function doCreateUri(path: string, query
+@@ -506,6 +508,22 @@ function doCreateUri(path: string, query
  		} : undefined,
  		workspaceProvider: WorkspaceProvider.create(config),
  		urlCallbackProvider: new LocalStorageURLCallbackProvider(config.callbackRoute),
 -		credentialsProvider: config.remoteAuthority ? undefined : new LocalStorageCredentialsProvider() // with a remote, we don't use a local credentials provider
 +		credentialsProvider: config.remoteAuthority ? undefined : new LocalStorageCredentialsProvider(), // with a remote, we don't use a local credentials provider
 +		resolveExternalUri: (uri: URI): Promise<URI> => {
-+			// TODO@jsjoeio - how do we make it relative to work when hosted on subpath?
-+			const baseUrl = `${window.location.protocol}//${window.location.host}`
 +			let resolvedUri = uri
++			const localhostMatch = extractLocalHostUriMetaDataForPortMapping(uri)
 +
-+			// NOTE@jsjoeio - this isn't exhaustive
-+			// also doesn't handle if not http or https i.e. ws
-+			const localhostMatch = uri.toString().includes("localhost")
 +			if (localhostMatch) {
-+				// Source: extractLocalHostUriMetaDataForPortMapping
-+				const matches = /^(localhost|127\.0\.0\.1|0\.0\.0\.0):(\d+)$/.exec(uri.authority)
-+				const port = matches && +matches[2]
-+				if (port) {
-+					// Use code-server's built in /proxy/<port>
-+					resolvedUri = URI.parse(`${baseUrl}/proxy/${port}`)
-+				} else {
-+					// If here probably means no port found
-+					// Assume 80 for HTTP and 443 for HTTPS
-+					const isHttps = uri.scheme === "https"
-+					resolvedUri = URI.parse(`${baseUrl}/proxy/${isHttps ? "443" : "80"}`)
++				let baseUrl = `${window.location.protocol}//${window.location.host}`
++				if (config.productConfiguration && config.productConfiguration.proxyEndpointTemplate) {
++					baseUrl = new URL(config.productConfiguration.proxyEndpointTemplate.replace('{{port}}', localhostMatch.port.toString()), window.location.href).toString()
 +				}
++				// Use code-server's built in /proxy/<port>
++				resolvedUri = URI.parse(`${baseUrl}/proxy/${localhostMatch.port}`)
 +			}
 +
 +			// If not localhost, return unmodified
