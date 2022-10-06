@@ -110,24 +110,7 @@ Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench.ts
  
  interface ICredential {
  	service: string;
-@@ -485,6 +486,7 @@ function doCreateUri(path: string, query
- 		});
- 	}
- 
-+	path = (window.location.pathname + "/" + path).replace(/\/\/+/g, "/")
- 	return URI.parse(window.location.href).with({ path, query });
- }
- 
-@@ -496,7 +498,7 @@ function doCreateUri(path: string, query
- 	if (!configElement || !configElementAttribute) {
- 		throw new Error('Missing web configuration element');
- 	}
--	const config: IWorkbenchConstructionOptions & { folderUri?: UriComponents; workspaceUri?: UriComponents; callbackRoute: string } = JSON.parse(configElementAttribute);
-+	const config: IWorkbenchConstructionOptions & { folderUri?: UriComponents; workspaceUri?: UriComponents; callbackRoute: string } = { ...JSON.parse(configElementAttribute), remoteAuthority: location.host }
- 
- 	// Create workbench
- 	create(document.body, {
-@@ -506,6 +508,22 @@ function doCreateUri(path: string, query
+@@ -507,6 +508,22 @@ function doCreateUri(path: string, query
  		} : undefined,
  		workspaceProvider: WorkspaceProvider.create(config),
  		urlCallbackProvider: new LocalStorageURLCallbackProvider(config.callbackRoute),
