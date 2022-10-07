@@ -17,21 +17,6 @@ Index: code-server/lib/vscode/src/vs/base/common/product.ts
  
  	readonly version: string;
  	readonly date?: string;
-Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-===================================================================
---- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
-+++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -319,6 +319,10 @@ export class WebClientServer {
- 				updateEndpoint: !this._environmentService.args['disable-update-check'] ? base + '/update/check' : undefined,
- 				logoutEndpoint: this._environmentService.args['auth'] && this._environmentService.args['auth'] !== "none" ? base + '/logout' : undefined,
- 				proxyEndpointTemplate: base + '/proxy/{{port}}',
-+				serviceWorker: {
-+					scope: vscodeBase + '/',
-+					path: base + '/_static/out/browser/serviceWorker.js',
-+				},
- 				embedderIdentifier: 'server-distro',
- 				extensionsGallery: this._productService.extensionsGallery,
- 			},
 Index: code-server/lib/vscode/src/vs/workbench/browser/client.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/browser/client.ts
