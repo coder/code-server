@@ -9,7 +9,7 @@ import { AuthType, DefaultedArgs, Feature, SpawnCodeCli, toCodeArgs, UserProvide
 import { coderCloudBind } from "./coder_cloud"
 import { commit, version } from "./constants"
 import { register } from "./routes"
-import { humanPath, isFile, loadAMDModule, open } from "./util"
+import { humanPath, isDirectory, loadAMDModule, open } from "./util"
 
 /**
  * Return true if the user passed an extension-related VS Code flag.
@@ -69,14 +69,15 @@ export const openInExistingInstance = async (args: DefaultedArgs, socketPath: st
     fileURIs: [],
     forceReuseWindow: args["reuse-window"],
     forceNewWindow: args["new-window"],
+    gotoLineMode: true,
   }
   const paths = args._ || []
   for (let i = 0; i < paths.length; i++) {
     const fp = path.resolve(paths[i])
-    if (await isFile(fp)) {
-      pipeArgs.fileURIs.push(fp)
-    } else {
+    if (await isDirectory(fp)) {
       pipeArgs.folderURIs.push(fp)
+    } else {
+      pipeArgs.fileURIs.push(fp)
     }
   }
   if (pipeArgs.forceNewWindow && pipeArgs.fileURIs.length > 0) {
