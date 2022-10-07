@@ -8,6 +8,7 @@ import path from "path"
 //   yarn test:e2e --workers 1        # Run with one worker
 //   yarn test:e2e --project Chromium # Only run on Chromium
 //   yarn test:e2e --grep login       # Run tests matching "login"
+//   PWDEBUG=1 yarn test:e2e          # Run Playwright inspector
 const config: PlaywrightTestConfig = {
   testDir: path.join(__dirname, "e2e"), // Search for tests in this directory.
   timeout: 60000, // Each test is given 60 seconds.
