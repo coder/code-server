@@ -100,7 +100,7 @@ node -v
 
 you will get node version `v16.15.0`
 
-5. Now install code-server following our guide on [installing with npm][./npm.md](./npm.md)
+5. Now install code-server following our guide on [installing with npm](./npm.md)
 
 6. Congratulation code-server is installed on your device using the following command.
 
