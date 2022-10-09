@@ -84,6 +84,8 @@ export interface UserProvidedArgs extends UserProvidedCodeArgs {
   "ignore-last-opened"?: boolean
   link?: OptionalString
   verbose?: boolean
+  "app-name"?: string
+  "welcome-text"?: string
   /* Positional arguments. */
   _?: string[]
 }
@@ -233,7 +235,16 @@ export const options: Options<Required<UserProvidedArgs>> = {
 
   log: { type: LogLevel },
   verbose: { type: "boolean", short: "vvv", description: "Enable verbose logging." },
-
+  "app-name": {
+    type: "string",
+    short: "an",
+    description: "The name to use in branding. Will be shown in titlebar and welcome message",
+  },
+  "welcome-text": {
+    type: "string",
+    short: "w",
+    description: "Text to show on login page",
+  },
   link: {
     type: OptionalString,
     description: `
