@@ -5,7 +5,7 @@ import util from "util"
 import { clean, getMaybeProxiedCodeServer, tmpdir } from "../utils/helpers"
 import { describe, expect, test } from "./baseFixture"
 
-describe("Integrated Terminal", [], {}, () => {
+describe("Integrated Terminal", ["--disable-workspace-trust"], {}, () => {
   const testName = "integrated-terminal"
   test.beforeAll(async () => {
     await clean(testName)

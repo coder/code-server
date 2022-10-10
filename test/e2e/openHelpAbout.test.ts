@@ -1,7 +1,7 @@
 import { version } from "../../src/node/constants"
 import { describe, test, expect } from "./baseFixture"
 
-describe("Open Help > About", [], {}, () => {
+describe("Open Help > About", ["--disable-workspace-trust"], {}, () => {
   test("should see code-server version in about dialog", async ({ codeServerPage }) => {
     // Open using the menu.
     await codeServerPage.navigateMenus(["Help", "About"])
