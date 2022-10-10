@@ -55,7 +55,7 @@
     "@typescript-eslint/eslint-plugin": "^5.23.0",
     "@typescript-eslint/parser": "^5.23.0",
     "audit-ci": "^6.0.0",
-    "doctoc": "^2.0.0",
+    "doctoc": "2.0.0",
     "eslint": "^7.7.0",
     "eslint-config-prettier": "^8.5.0",
     "eslint-import-resolver-typescript": "^2.5.0",
