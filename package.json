@@ -23,7 +23,7 @@
     "test:native": "./ci/dev/test-native.sh",
     "test:scripts": "./ci/dev/test-scripts.sh",
     "package": "./ci/build/build-packages.sh",
-    "prettier": "prettier --write --loglevel=warn .",
+    "prettier": "prettier --write --loglevel=warn --cache .",
     "postinstall": "./ci/dev/postinstall.sh",
     "publish:npm": "./ci/steps/publish-npm.sh",
     "publish:docker": "./ci/steps/docker-buildx-push.sh",
