@@ -114,5 +114,16 @@ describe("login", () => {
       expect(resp.status).toBe(200)
       expect(htmlContent).toContain(welcomeText)
     })
+
+    it("should return correct welcome text when none is set but app-name is", async () => {
+      process.env.PASSWORD = previousEnvPassword
+      const appName = "testnäme"
+      const codeServer = await integration.setup([`--app-name=${appName}`], "")
+      const resp = await codeServer.fetch("/login", { method: "GET" })
+
+      const htmlContent = await resp.text()
+      expect(resp.status).toBe(200)
+      expect(htmlContent).toContain(`Welcome to ${appName}`)
+    })
   })
 })
