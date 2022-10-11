@@ -101,7 +101,20 @@ describe("login", () => {
 
       const htmlContent = await resp.text()
       expect(resp.status).toBe(200)
-      expect(htmlContent).toContain(appName)
+      expect(htmlContent).toContain(`${appName}</h1>`)
+      expect(htmlContent).toContain(`<title>${appName} login</title>`)
+    })
+
+    it("should return correct app-name when unset", async () => {
+      process.env.PASSWORD = previousEnvPassword
+      const appName = "code-server"
+      const codeServer = await integration.setup([], "")
+      const resp = await codeServer.fetch("/login", { method: "GET" })
+
+      const htmlContent = await resp.text()
+      expect(resp.status).toBe(200)
+      expect(htmlContent).toContain(`${appName}</h1>`)
+      expect(htmlContent).toContain(`<title>${appName} login</title>`)
     })
 
     it("should return correct welcome text", async () => {
