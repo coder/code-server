@@ -92,5 +92,27 @@ describe("login", () => {
 
       expect(htmlContent).toContain("Incorrect password")
     })
+
+    it("should return correct app-name", async () => {
+      process.env.PASSWORD = previousEnvPassword
+      const appName = "testnäme"
+      const codeServer = await integration.setup([`--app-name=${appName}`], "")
+      const resp = await codeServer.fetch("/login", { method: "GET" })
+
+      const htmlContent = await resp.text()
+      expect(resp.status).toBe(200)
+      expect(htmlContent).toContain(appName)
+    })
+
+    it("should return correct welcome text", async () => {
+      process.env.PASSWORD = previousEnvPassword
+      const welcomeText = "Welcome to your code workspace! öäü🔐"
+      const codeServer = await integration.setup([`--welcome-text=${welcomeText}`], "")
+      const resp = await codeServer.fetch("/login", { method: "GET" })
+
+      const htmlContent = await resp.text()
+      expect(resp.status).toBe(200)
+      expect(htmlContent).toContain(welcomeText)
+    })
   })
 })
