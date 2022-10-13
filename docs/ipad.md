@@ -1,3 +1,4 @@
+<!-- prettier-ignore-start -->
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 # iPad
@@ -13,6 +14,7 @@
   - [Sharing a self-signed certificate with an iPad](#sharing-a-self-signed-certificate-with-an-ipad)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
+<!-- prettier-ignore-end -->
 
 Once you've installed code-server, you can access it from an iPad.
 
