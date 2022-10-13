@@ -50,6 +50,7 @@ export interface UserProvidedCodeArgs {
   "github-auth"?: string
   "disable-update-check"?: boolean
   "disable-file-downloads"?: boolean
+  "disable-workspace-trust"?: boolean
 }
 
 /**
@@ -164,6 +165,10 @@ export const options: Options<Required<UserProvidedArgs>> = {
     type: "boolean",
     description:
       "Disable file downloads from Code. This can also be set with CS_DISABLE_FILE_DOWNLOADS set to 'true' or '1'.",
+  },
+  "disable-workspace-trust": {
+    type: "boolean",
+    description: "Disable Workspace Trust feature. This switch only affects the current session.",
   },
   // --enable can be used to enable experimental features. These features
   // provide no guarantees.
