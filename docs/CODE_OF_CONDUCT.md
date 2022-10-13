@@ -1,5 +1,18 @@
+<!-- prettier-ignore-start -->
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+# Contributor Covenant Code of Conduct
+
+- [Contributor Covenant Code of Conduct](#contributor-covenant-code-of-conduct)
+  - [Our Pledge](#our-pledge)
+  - [Our Standards](#our-standards)
+  - [Our Responsibilities](#our-responsibilities)
+  - [Scope](#scope)
+  - [Enforcement](#enforcement)
+  - [Attribution](#attribution)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+<!-- prettier-ignore-end -->
 
 # Contributor Covenant Code of Conduct
 

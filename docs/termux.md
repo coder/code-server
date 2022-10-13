@@ -1,3 +1,4 @@
+<!-- prettier-ignore-start -->
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 # Termux
@@ -14,6 +15,7 @@
   - [Working with PRoot](#working-with-proot)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
+<!-- prettier-ignore-end -->
 
 ## Install
 
