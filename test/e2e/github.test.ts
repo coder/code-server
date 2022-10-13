@@ -2,7 +2,7 @@ import { test as base } from "@playwright/test"
 import { describe, expect, test } from "./baseFixture"
 
 if (process.env.GITHUB_TOKEN) {
-  describe("GitHub token", [], {}, () => {
+  describe("GitHub token", ["--disable-workspace-trust"], {}, () => {
     test("should be logged in to pull requests extension", async ({ codeServerPage }) => {
       await codeServerPage.exec("git init")
       await codeServerPage.exec("git remote add origin https://github.com/coder/code-server")
@@ -16,7 +16,7 @@ if (process.env.GITHUB_TOKEN) {
     })
   })
 
-  describe("No GitHub token", [], { GITHUB_TOKEN: "" }, () => {
+  describe("No GitHub token", ["--disable-workspace-trust"], { GITHUB_TOKEN: "" }, () => {
     test("should not be logged in to pull requests extension", async ({ codeServerPage }) => {
       await codeServerPage.exec("git init")
       await codeServerPage.exec("git remote add origin https://github.com/coder/code-server")

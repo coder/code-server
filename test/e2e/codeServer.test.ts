@@ -4,7 +4,7 @@ import { getMaybeProxiedCodeServer } from "../utils/helpers"
 import { describe, test, expect } from "./baseFixture"
 import { CodeServer } from "./models/CodeServer"
 
-describe("code-server", [], {}, () => {
+describe("code-server", ["--disable-workspace-trust"], {}, () => {
   // TODO@asher: Generalize this?  Could be nice if we were to ever need
   // multiple migration tests in other suites.
   const instances = new Map<string, CodeServer>()
