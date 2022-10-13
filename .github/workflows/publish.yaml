@@ -8,6 +8,10 @@ on:
   release:
     types: [released]
 
+permissions:
+  id-token: write
+  contents: read
+
 # Cancel in-progress runs for pull requests when developers push
 # additional changes, and serialize builds in branches.
 # https://docs.github.com/en/actions/using-jobs/using-concurrency#example-using-concurrency-to-cancel-any-in-progress-job-or-run
