@@ -19,7 +19,7 @@ function runTestExtensionTests() {
   })
 }
 
-const flags = ["--extensions-dir", path.join(__dirname, "./extensions")]
+const flags = ["--disable-workspace-trust", "--extensions-dir", path.join(__dirname, "./extensions")]
 
 describe("Extensions", flags, {}, () => {
   runTestExtensionTests()
