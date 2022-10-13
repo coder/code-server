@@ -10,6 +10,15 @@ extensions, use --extensions-dir, or symlink it).
 
 This has e2e tests.
 
+For the `asExternalUri` changes, you'll need to test manually by:
+1. running code-server with the test extension
+2. Command Palette > code-server: asExternalUri test
+3. input a url like http://localhost:3000
+4. it should show a notification and show output as <code-server>/proxy/3000
+
+Do the same thing but set `VSCODE_PROXY_URI: "https://{{port}}-main-workspace-name-user-name.coder.com"`
+and the output should replace `{{port}}` with port used in input url.
+
 Index: code-server/lib/vscode/src/vs/base/common/product.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/base/common/product.ts
