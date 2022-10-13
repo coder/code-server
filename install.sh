@@ -563,7 +563,7 @@ sudo_sh_c() {
     echoh
     echoerr "This script needs to run the following command as root."
     echoerr "  $*"
-    echoerr "Please install doas, sudo, or su."
+    echoerr "Please install doas, sudo or su."
     exit 1
   fi
 }
