@@ -43,21 +43,12 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
  			remoteAuthority,
 +			webviewEndpoint: vscodeBase + this._staticRoute + '/out/vs/workbench/contrib/webview/browser/pre',
  			_wrapWebWorkerExtHostInIframe,
- 			developmentOptions: { enableSmokeTestDriver: this._environmentService.args['enable-smoke-test-driver'] ? true : undefined },
+ 			developmentOptions: { enableSmokeTestDriver: this._environmentService.args['enable-smoke-test-driver'] ? true : undefined, logLevel: this._logService.getLevel() },
  			settingsSyncOptions: !this._environmentService.isBuilt && this._environmentService.args['enable-sync'] ? { enabled: true } : undefined,
 Index: code-server/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/index.html
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/index.html
 +++ code-server/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/index.html
-@@ -5,7 +5,7 @@
- 	<meta charset="UTF-8">
- 
- 	<meta http-equiv="Content-Security-Policy"
--		content="default-src 'none'; script-src 'sha256-JpX/ganPoxpavjxWCz9DUZgwVZ59o2lwSYTQrziPsdU=' 'self'; frame-src 'self'; style-src 'unsafe-inline';">
-+		content="default-src 'none'; script-src 'sha256-BRi/ZOLWtsisl3jAheglVzKmoA1T6n2Mmf2NM4UnIXE=' 'self'; frame-src 'self'; style-src 'unsafe-inline';">
- 
- 	<!-- Disable pinch zooming -->
- 	<meta name="viewport"
 @@ -331,6 +331,12 @@
  
  				const hostname = location.hostname;
@@ -70,7 +61,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/index
 +
  				if (!crypto.subtle) {
  					// cannot validate, not running in a secure context
- 					throw new Error(`Cannot validate in current context!`);
+ 					throw new Error(`'crypto.subtle' is not available so webviews will not work. This is likely because the editor is not running in a secure context (https://developer.mozilla.org/en-US/docs/Web/Security/Secure_Contexts).`);
 Index: code-server/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/index-no-csp.html
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/index-no-csp.html
@@ -87,7 +78,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/index
 +
  				if (!crypto.subtle) {
  					// cannot validate, not running in a secure context
- 					throw new Error(`Cannot validate in current context!`);
+ 					throw new Error(`'crypto.subtle' is not available so webviews will not work. This is likely because the editor is not running in a secure context (https://developer.mozilla.org/en-US/docs/Web/Security/Secure_Contexts).`);
 Index: code-server/lib/vscode/src/vs/workbench/services/extensions/worker/webWorkerExtensionHostIframe.html
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/services/extensions/worker/webWorkerExtensionHostIframe.html
