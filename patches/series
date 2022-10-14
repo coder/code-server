@@ -10,7 +10,6 @@ logout.diff
 store-socket.diff
 proxy-uri.diff
 github-auth.diff
-log-level.diff
 local-storage.diff
 service-worker.diff
 sourcemaps.diff
