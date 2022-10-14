@@ -26,13 +26,13 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
  			webviewEndpoint: vscodeBase + this._staticRoute + '/out/vs/workbench/contrib/webview/browser/pre',
 +			userDataPath: this._environmentService.userDataPath,
  			_wrapWebWorkerExtHostInIframe,
- 			developmentOptions: {
- 				enableSmokeTestDriver: this._environmentService.args['enable-smoke-test-driver'] ? true : undefined,
+ 			developmentOptions: { enableSmokeTestDriver: this._environmentService.args['enable-smoke-test-driver'] ? true : undefined, logLevel: this._logService.getLevel() },
+ 			settingsSyncOptions: !this._environmentService.isBuilt && this._environmentService.args['enable-sync'] ? { enabled: true } : undefined,
 Index: code-server/lib/vscode/src/vs/workbench/browser/web.api.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/browser/web.api.ts
 +++ code-server/lib/vscode/src/vs/workbench/browser/web.api.ts
-@@ -262,6 +262,11 @@ export interface IWorkbenchConstructionO
+@@ -266,6 +266,11 @@ export interface IWorkbenchConstructionO
  	 */
  	readonly configurationDefaults?: Record<string, any>;
  
