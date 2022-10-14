@@ -26,7 +26,7 @@ RUN apt-get update \
   && rm -rf /var/lib/apt/lists/*
 
 # flytekit
-RUN pip install flytekit
+RUN pip install git+https://github.com/flyteorg/flytekit.git@b1dbab951e4d5562facf913e77b6d64c0da527e4#egg=flytekit
 
 # flytectl
 RUN curl -sL https://ctl.flyte.org/install | bash

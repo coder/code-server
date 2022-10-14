@@ -81,7 +81,8 @@ main() {
     "tipsAndTricksUrl": "https://go.microsoft.com/fwlink/?linkid=852118",
     "newsletterSignupUrl": "https://www.research.net/r/vsc-newsletter",
     "linkProtectionTrustedDomains": [
-      "https://open-vsx.org"
+      "https://open-vsx.org",
+      "https://*.union.ai"
     ],
     "aiConfig": {
       "ariaKey": "code-server"
