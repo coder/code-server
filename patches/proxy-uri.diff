@@ -98,7 +98,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/terminal/common/terminalE
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/contrib/terminal/common/terminalEnvironment.ts
 +++ code-server/lib/vscode/src/vs/workbench/contrib/terminal/common/terminalEnvironment.ts
-@@ -388,7 +388,7 @@ export async function createTerminalEnvi
+@@ -392,7 +392,7 @@ export async function createTerminalEnvi
  
  		// Sanitize the environment, removing any undesirable VS Code and Electron environment
  		// variables
@@ -111,15 +111,15 @@ Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/code/browser/workbench/workbench.ts
 +++ code-server/lib/vscode/src/vs/code/browser/workbench/workbench.ts
-@@ -17,6 +17,7 @@ import { isFolderToOpen, isWorkspaceToOp
- import { create, ICredentialsProvider, IURLCallbackProvider, IWorkbenchConstructionOptions, IWorkspace, IWorkspaceProvider } from 'vs/workbench/workbench.web.main';
- import { posix } from 'vs/base/common/path';
- import { ltrim } from 'vs/base/common/strings';
+@@ -21,6 +21,7 @@ import type { ICredentialsProvider } fro
+ import type { IURLCallbackProvider } from 'vs/workbench/services/url/browser/urlService';
+ import type { IWorkbenchConstructionOptions } from 'vs/workbench/browser/web.api';
+ import type { IWorkspace, IWorkspaceProvider } from 'vs/workbench/services/host/browser/browserHostService';
 +import { extractLocalHostUriMetaDataForPortMapping } from 'vs/platform/tunnel/common/tunnel';
  
  interface ICredential {
  	service: string;
-@@ -507,6 +508,21 @@ function doCreateUri(path: string, query
+@@ -511,6 +512,21 @@ function doCreateUri(path: string, query
  		} : undefined,
  		workspaceProvider: WorkspaceProvider.create(config),
  		urlCallbackProvider: new LocalStorageURLCallbackProvider(config.callbackRoute),
