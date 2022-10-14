@@ -19,7 +19,7 @@ Index: code-server/lib/vscode/src/vs/server/node/serverServices.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/serverServices.ts
 +++ code-server/lib/vscode/src/vs/server/node/serverServices.ts
-@@ -212,6 +212,9 @@ export async function setupServerService
+@@ -209,6 +209,9 @@ export async function setupServerService
  		const channel = new ExtensionManagementChannel(extensionManagementService, (ctx: RemoteAgentConnectionContext) => getUriTransformer(ctx.remoteAuthority));
  		socketServer.registerChannel('extensions', channel);
  
@@ -39,11 +39,11 @@ Index: code-server/lib/vscode/src/vs/base/common/platform.ts
   *--------------------------------------------------------------------------------------------*/
 -import * as nls from 'vs/nls';
 -
- const LANGUAGE_DEFAULT = 'en';
+ export const LANGUAGE_DEFAULT = 'en';
  
  let _isWindows = false;
-@@ -81,17 +79,19 @@ if (typeof navigator === 'object' && !is
- 	_isLinux = _userAgent.indexOf('Linux') >= 0;
+@@ -83,17 +81,19 @@ if (typeof navigator === 'object' && !is
+ 	_isMobile = _userAgent?.indexOf('Mobi') >= 0;
  	_isWeb = true;
  
 -	const configuredLocale = nls.getConfiguredDefaultLocale(
@@ -216,7 +216,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
  
  		const workbenchWebConfiguration = {
  			remoteAuthority,
-@@ -339,6 +342,7 @@ export class WebClientServer {
+@@ -336,6 +339,7 @@ export class WebClientServer {
  			WORKBENCH_NLS_BASE_URL: vscodeBase + (nlsBaseUrl ? `${nlsBaseUrl}${!nlsBaseUrl.endsWith('/') ? '/' : ''}${this._productService.commit}/${this._productService.version}/` : ''),
  			BASE: base,
  			VS_BASE: vscodeBase,
@@ -236,7 +236,7 @@ Index: code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
  
  	/* ----- server setup ----- */
  
-@@ -97,6 +98,7 @@ export interface ServerParsedArgs {
+@@ -96,6 +97,7 @@ export interface ServerParsedArgs {
  	'disable-update-check'?: boolean;
  	'auth'?: string
  	'disable-file-downloads'?: boolean;
@@ -248,7 +248,7 @@ Index: code-server/lib/vscode/src/vs/workbench/workbench.web.main.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/workbench.web.main.ts
 +++ code-server/lib/vscode/src/vs/workbench/workbench.web.main.ts
-@@ -122,8 +122,9 @@ import 'vs/workbench/contrib/logs/browse
+@@ -123,8 +123,9 @@ import 'vs/workbench/contrib/logs/browse
  // Explorer
  import 'vs/workbench/contrib/files/browser/files.web.contribution';
  
@@ -314,19 +314,3 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/localization/electron-san
  		await this.jsonEditingService.write(this.environmentService.argvResource, [{ path: ['locale'], value: locale }], true);
  		return true;
  	}
-Index: code-server/lib/vscode/src/vs/base/node/languagePacks.js
-===================================================================
---- code-server.orig/lib/vscode/src/vs/base/node/languagePacks.js
-+++ code-server/lib/vscode/src/vs/base/node/languagePacks.js
-@@ -73,7 +73,10 @@
- 		function getLanguagePackConfigurations(userDataPath) {
- 			const configFile = path.join(userDataPath, 'languagepacks.json');
- 			try {
--				return nodeRequire(configFile);
-+				// This must not use Node's require otherwise it will be cached forever.
-+				// Code can get away with this since the process actually restarts but
-+				// that is not currently the case with code-server.
-+				return JSON.parse(fs.readFileSync(configFile, "utf8"));
- 			} catch (err) {
- 				// Do nothing. If we can't read the file we have no
- 				// language pack config.
