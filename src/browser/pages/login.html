@@ -10,7 +10,7 @@
       http-equiv="Content-Security-Policy"
       content="style-src 'self'; script-src 'self' 'unsafe-inline'; manifest-src 'self'; img-src 'self' data:; font-src 'self' data:;"
     />
-    <title>code-server login</title>
+    <title>{{APP_NAME}} login</title>
     <link rel="icon" href="{{CS_STATIC_BASE}}/src/browser/media/favicon-dark-support.svg" />
     <link rel="alternate icon" href="{{CS_STATIC_BASE}}/src/browser/media/favicon.ico" />
     <link rel="manifest" href="{{BASE}}/manifest.json" crossorigin="use-credentials" />
@@ -24,7 +24,7 @@
     <div class="center-container">
       <div class="card-box">
         <div class="header">
-          <h1 class="main">Welcome to code-server</h1>
+          <h1 class="main">{{WELCOME_TEXT}}</h1>
           <div class="sub">Please log in below. {{PASSWORD_MSG}}</div>
         </div>
         <div class="content">

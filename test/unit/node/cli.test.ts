@@ -67,6 +67,8 @@ describe("parser", () => {
 
           "1",
           "--verbose",
+          ["--app-name", "custom instance name"],
+          ["--welcome-text", "welcome to code"],
           "2",
 
           ["--locale", "ja"],
@@ -123,6 +125,8 @@ describe("parser", () => {
       socket: path.resolve("mumble"),
       "socket-mode": "777",
       verbose: true,
+      "app-name": "custom instance name",
+      "welcome-text": "welcome to code",
       version: true,
       "bind-addr": "192.169.0.1:8080",
     })

@@ -28,6 +28,8 @@ export class RateLimiter {
 
 const getRoot = async (req: Request, error?: Error): Promise<string> => {
   const content = await fs.readFile(path.join(rootPath, "src/browser/pages/login.html"), "utf8")
+  const appName = req.args["app-name"] || "code-server"
+  const welcomeText = req.args["welcome-text"] || `Welcome to ${appName}`
   let passwordMsg = `Check the config file at ${humanPath(os.homedir(), req.args.config)} for the password.`
   if (req.args.usingEnvPassword) {
     passwordMsg = "Password was set from $PASSWORD."
@@ -38,6 +40,8 @@ const getRoot = async (req: Request, error?: Error): Promise<string> => {
   return replaceTemplates(
     req,
     content
+      .replace(/{{APP_NAME}}/g, appName)
+      .replace(/{{WELCOME_TEXT}}/g, welcomeText)
       .replace(/{{PASSWORD_MSG}}/g, passwordMsg)
       .replace(/{{ERROR}}/, error ? `<div class="error">${escapeHtml(error.message)}</div>` : ""),
   )
