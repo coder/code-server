@@ -58,7 +58,7 @@ jobs:
           cache: "yarn"
 
       - name: Install doctoc
-        run: yarn global add doctoc@2.0.0
+        run: yarn global add doctoc@2.2.1
 
       - name: Run doctoc
         if: steps.changed-files.outputs.any_changed == 'true'
