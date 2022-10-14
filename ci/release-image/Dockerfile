@@ -22,7 +22,6 @@ RUN apt-get update \
   sudo \
   vim.tiny \
   lsb-release \
-  jq \
   && git lfs install \
   && rm -rf /var/lib/apt/lists/*
 
