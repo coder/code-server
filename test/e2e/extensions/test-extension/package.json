@@ -17,6 +17,11 @@
         "command": "codeServerTest.proxyUri",
         "title": "Get proxy URI",
         "category": "code-server"
+      },
+      {
+        "command": "codeServerTest.asExternalUri",
+        "title": "asExternalUri test",
+        "category": "code-server"
       }
     ]
   },

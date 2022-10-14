@@ -10,6 +10,15 @@ extensions, use --extensions-dir, or symlink it).
 
 This has e2e tests.
 
+For the `asExternalUri` changes, you'll need to test manually by:
+1. running code-server with the test extension
+2. Command Palette > code-server: asExternalUri test
+3. input a url like http://localhost:3000
+4. it should show a notification and show output as <code-server>/proxy/3000
+
+Do the same thing but set `VSCODE_PROXY_URI: "https://{{port}}-main-workspace-name-user-name.coder.com"`
+and the output should replace `{{port}}` with port used in input url.
+
 Index: code-server/lib/vscode/src/vs/base/common/product.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/base/common/product.ts
@@ -68,7 +77,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
  				rootEndpoint: base,
  				updateEndpoint: !this._environmentService.args['disable-update-check'] ? base + '/update/check' : undefined,
  				logoutEndpoint: this._environmentService.args['auth'] && this._environmentService.args['auth'] !== "none" ? base + '/logout' : undefined,
-+				proxyEndpointTemplate: base + '/proxy/{{port}}',
++				proxyEndpointTemplate: process.env.VSCODE_PROXY_URI ?? base + '/proxy/{{port}}',
  				embedderIdentifier: 'server-distro',
  				extensionsGallery: this._productService.extensionsGallery,
  			},
@@ -98,3 +107,38 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/terminal/common/terminalE
  
  		// Merge config (settings) and ShellLaunchConfig environments
  		mergeEnvironments(env, allowedEnvFromConfig);
+Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/code/browser/workbench/workbench.ts
++++ code-server/lib/vscode/src/vs/code/browser/workbench/workbench.ts
+@@ -17,6 +17,7 @@ import { isFolderToOpen, isWorkspaceToOp
+ import { create, ICredentialsProvider, IURLCallbackProvider, IWorkbenchConstructionOptions, IWorkspace, IWorkspaceProvider } from 'vs/workbench/workbench.web.main';
+ import { posix } from 'vs/base/common/path';
+ import { ltrim } from 'vs/base/common/strings';
++import { extractLocalHostUriMetaDataForPortMapping } from 'vs/platform/tunnel/common/tunnel';
+ 
+ interface ICredential {
+ 	service: string;
+@@ -507,6 +508,21 @@ function doCreateUri(path: string, query
+ 		} : undefined,
+ 		workspaceProvider: WorkspaceProvider.create(config),
+ 		urlCallbackProvider: new LocalStorageURLCallbackProvider(config.callbackRoute),
+-		credentialsProvider: config.remoteAuthority ? undefined : new LocalStorageCredentialsProvider() // with a remote, we don't use a local credentials provider
++		credentialsProvider: config.remoteAuthority ? undefined : new LocalStorageCredentialsProvider(), // with a remote, we don't use a local credentials provider
++		resolveExternalUri: (uri: URI): Promise<URI> => {
++			let resolvedUri = uri
++			const localhostMatch = extractLocalHostUriMetaDataForPortMapping(uri)
++
++			if (localhostMatch) {
++				if (config.productConfiguration && config.productConfiguration.proxyEndpointTemplate) {
++					resolvedUri = URI.parse(new URL(config.productConfiguration.proxyEndpointTemplate.replace('{{port}}', localhostMatch.port.toString()), window.location.href).toString())
++				} else {
++					throw new Error(`Failed to resolve external URI: ${uri.toString()}. Could not determine base url because productConfiguration missing.`)
++				}
++			}
++
++			// If not localhost, return unmodified
++			return Promise.resolve(resolvedUri)
++		}
+ 	});
+ })();
