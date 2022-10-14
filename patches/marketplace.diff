@@ -19,22 +19,22 @@ Index: code-server/lib/vscode/src/vs/platform/product/common/product.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/platform/product/common/product.ts
 +++ code-server/lib/vscode/src/vs/platform/product/common/product.ts
-@@ -45,7 +45,14 @@ else if (typeof require?.__$__nodeRequir
+@@ -50,7 +50,14 @@ else if (typeof require?.__$__nodeRequir
+ 		const pkg = require.__$__nodeRequire(joinPath(rootPath, 'package.json').fsPath) as { version: string };
+ 
+ 		Object.assign(product, {
+-			version: pkg.version
++			version: pkg.version,
++			extensionsGallery: env.EXTENSIONS_GALLERY ? JSON.parse(env.EXTENSIONS_GALLERY) : (product.extensionsGallery || {
++				serviceUrl: "https://open-vsx.org/vscode/gallery",
++				itemUrl: "https://open-vsx.org/vscode/item",
++				resourceUrlTemplate: "https://open-vsx.org/vscode/asset/{publisher}/{name}/{version}/Microsoft.VisualStudio.Code.WebResources/{path}",
++				controlUrl: "",
++				recommendationsUrl: "",
++			}),
+ 		});
  	}
- 
- 	Object.assign(product, {
--		version: pkg.version
-+		version: pkg.version,
-+		extensionsGallery: env.EXTENSIONS_GALLERY ? JSON.parse(env.EXTENSIONS_GALLERY) : (product.extensionsGallery || {
-+			serviceUrl: "https://open-vsx.org/vscode/gallery",
-+			itemUrl: "https://open-vsx.org/vscode/item",
-+			resourceUrlTemplate: "https://open-vsx.org/vscode/asset/{publisher}/{name}/{version}/Microsoft.VisualStudio.Code.WebResources/{path}",
-+			controlUrl: "",
-+			recommendationsUrl: "",
-+		}),
- 	});
  }
- 
 Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
