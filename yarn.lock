@@ -1704,10 +1704,10 @@ has@^1.0.3:
   dependencies:
     function-bind "^1.1.1"
 
-hosted-git-info@^5.0.0:
-  version "5.0.0"
-  resolved "https://registry.yarnpkg.com/hosted-git-info/-/hosted-git-info-5.0.0.tgz#df7a06678b4ebd722139786303db80fdf302ea56"
-  integrity sha512-rRnjWu0Bxj+nIfUOkz0695C0H6tRrN5iYIzYejb0tDEefe2AekHu/U5Kn9pEie5vsJqpNQU02az7TGSH3qpz4Q==
+hosted-git-info@^6.0.0:
+  version "6.0.0"
+  resolved "https://registry.yarnpkg.com/hosted-git-info/-/hosted-git-info-6.0.0.tgz#2e9b726a8ac0d68a907c6a8dc4abecac5e0ed69a"
+  integrity sha512-NURrKJX36ihI69iCqcvN4uuIk9fHcc1C+uax/5fPh4Tr5WJnATir+QM/CMJNKrcOOvxQDsAdS5C9oJliM80X7g==
   dependencies:
     lru-cache "^7.5.1"
 
@@ -2473,12 +2473,12 @@ nopt@^5.0.0:
   dependencies:
     abbrev "1"
 
-normalize-package-data@^2.3.2, normalize-package-data@^4.0.0:
-  version "4.0.0"
-  resolved "https://registry.yarnpkg.com/normalize-package-data/-/normalize-package-data-4.0.0.tgz#1122d5359af21d4cd08718b92b058a658594177c"
-  integrity sha512-m+GL22VXJKkKbw62ZaBBjv8u6IE3UI4Mh5QakIqs3fWiKe0Xyi6L97hakwZK41/LD4R/2ly71Bayx0NLMwLA/g==
+normalize-package-data@^2.3.2, normalize-package-data@^5.0.0:
+  version "5.0.0"
+  resolved "https://registry.yarnpkg.com/normalize-package-data/-/normalize-package-data-5.0.0.tgz#abcb8d7e724c40d88462b84982f7cbf6859b4588"
+  integrity sha512-h9iPVIfrVZ9wVYQnxFgtw1ugSvGEMOlyPWWtm8BMJhnwyEL/FLbYbTY3V3PpjI/BUK67n9PEWDu6eHzu1fB15Q==
   dependencies:
-    hosted-git-info "^5.0.0"
+    hosted-git-info "^6.0.0"
     is-core-module "^2.8.1"
     semver "^7.3.5"
     validate-npm-package-license "^3.0.4"
