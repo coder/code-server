@@ -61,6 +61,8 @@ USER 1000
 ENV USER=coder
 
 RUN mkdir -p /home/coder/flyte
+COPY flyte /home/coder/flyte/
+
 WORKDIR /home/coder/flyte
 RUN git clone https://github.com/flyteorg/flytesnacks
 
