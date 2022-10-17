@@ -40,12 +40,12 @@ Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench-dev.html
  		<meta id="vscode-workbench-builtin-extensions" data-settings="{{WORKBENCH_BUILTIN_EXTENSIONS}}">
  
  		<!-- Workbench Icon/Manifest/CSS -->
-- 		<link rel="icon" href="/_static/src/browser/media/favicon-dark-support.svg" />
-- 		<link rel="alternate icon" href="/_static/src/browser/media/favicon.ico" type="image/x-icon" />
-- 		<link rel="manifest" href="/manifest.json" crossorigin="use-credentials" />
-+ 		<link rel="icon" href="{{BASE}}/_static/src/browser/media/favicon-dark-support.svg" />
-+ 		<link rel="alternate icon" href="{{BASE}}/_static/src/browser/media/favicon.ico" type="image/x-icon" />
-+ 		<link rel="manifest" href="{{VS_BASE}}/manifest.json" crossorigin="use-credentials" />
+-		<link rel="icon" href="/_static/src/browser/media/favicon-dark-support.svg" />
+-		<link rel="alternate icon" href="/_static/src/browser/media/favicon.ico" type="image/x-icon" />
+-		<link rel="manifest" href="/manifest.json" crossorigin="use-credentials" />
++		<link rel="icon" href="{{BASE}}/_static/src/browser/media/favicon-dark-support.svg" />
++		<link rel="alternate icon" href="{{BASE}}/_static/src/browser/media/favicon.ico" type="image/x-icon" />
++		<link rel="manifest" href="{{VS_BASE}}/manifest.json" crossorigin="use-credentials" />
  	</head>
  
  	<body aria-label="">
