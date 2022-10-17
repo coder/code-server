@@ -31,7 +31,7 @@ Index: code-server/lib/vscode/src/vs/platform/product/common/product.ts
 +			resourceUrlTemplate: "https://open-vsx.org/vscode/asset/{publisher}/{name}/{version}/Microsoft.VisualStudio.Code.WebResources/{path}",
 +			controlUrl: "",
 +			recommendationsUrl: "",
-+		}),
++		})
 +	});
  }
  
