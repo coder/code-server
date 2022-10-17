@@ -126,7 +126,7 @@ Index: code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
  
  	/* ----- server setup ----- */
  
-@@ -89,6 +91,8 @@ export const serverOptions: OptionDescri
+@@ -88,6 +90,8 @@ export const serverOptions: OptionDescri
  };
  
  export interface ServerParsedArgs {

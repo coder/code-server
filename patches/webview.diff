@@ -20,6 +20,11 @@ webview host is separate by default but we serve on the same host).
 
 To test, open a few types of webviews (images, markdown, extension details, etc).
 
+Make sure to update the hash. To do so:
+1. run code-server 
+2. open any webview (i.e. preview Markdown)
+3. see error in console and copy hash
+
 Index: code-server/lib/vscode/src/vs/workbench/services/environment/browser/environmentService.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/services/environment/browser/environmentService.ts
@@ -43,21 +48,12 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
  			remoteAuthority,
 +			webviewEndpoint: vscodeBase + this._staticRoute + '/out/vs/workbench/contrib/webview/browser/pre',
  			_wrapWebWorkerExtHostInIframe,
- 			developmentOptions: { enableSmokeTestDriver: this._environmentService.args['enable-smoke-test-driver'] ? true : undefined },
+ 			developmentOptions: { enableSmokeTestDriver: this._environmentService.args['enable-smoke-test-driver'] ? true : undefined, logLevel: this._logService.getLevel() },
  			settingsSyncOptions: !this._environmentService.isBuilt && this._environmentService.args['enable-sync'] ? { enabled: true } : undefined,
 Index: code-server/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/index.html
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/index.html
 +++ code-server/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/index.html
-@@ -5,7 +5,7 @@
- 	<meta charset="UTF-8">
- 
- 	<meta http-equiv="Content-Security-Policy"
--		content="default-src 'none'; script-src 'sha256-JpX/ganPoxpavjxWCz9DUZgwVZ59o2lwSYTQrziPsdU=' 'self'; frame-src 'self'; style-src 'unsafe-inline';">
-+		content="default-src 'none'; script-src 'sha256-BRi/ZOLWtsisl3jAheglVzKmoA1T6n2Mmf2NM4UnIXE=' 'self'; frame-src 'self'; style-src 'unsafe-inline';">
- 
- 	<!-- Disable pinch zooming -->
- 	<meta name="viewport"
 @@ -331,6 +331,12 @@
  
  				const hostname = location.hostname;
@@ -70,7 +66,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/index
 +
  				if (!crypto.subtle) {
  					// cannot validate, not running in a secure context
- 					throw new Error(`Cannot validate in current context!`);
+ 					throw new Error(`'crypto.subtle' is not available so webviews will not work. This is likely because the editor is not running in a secure context (https://developer.mozilla.org/en-US/docs/Web/Security/Secure_Contexts).`);
 Index: code-server/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/index-no-csp.html
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/index-no-csp.html
@@ -87,7 +83,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/index
 +
  				if (!crypto.subtle) {
  					// cannot validate, not running in a secure context
- 					throw new Error(`Cannot validate in current context!`);
+ 					throw new Error(`'crypto.subtle' is not available so webviews will not work. This is likely because the editor is not running in a secure context (https://developer.mozilla.org/en-US/docs/Web/Security/Secure_Contexts).`);
 Index: code-server/lib/vscode/src/vs/workbench/services/extensions/worker/webWorkerExtensionHostIframe.html
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/services/extensions/worker/webWorkerExtensionHostIframe.html
@@ -97,7 +93,7 @@ Index: code-server/lib/vscode/src/vs/workbench/services/extensions/worker/webWor
  			default-src 'none';
  			child-src 'self' data: blob:;
 -			script-src 'self' 'unsafe-eval' 'sha256-/r7rqQ+yrxt57sxLuQ6AMYcy/lUpvAIzHjIJt/OeLWU=' https:;
-+			script-src 'self' 'unsafe-eval' 'sha256-TkIM/TmudlFEe0ZRp0ptvN54LClwk30Rql4ZPE0hm/I=' https:;
++			script-src 'self' 'unsafe-eval' 'sha256-wwaDxsm1+SKIUb5YJXiZlYMyV7QPB8+zd6HPcTjigZs=' https:;
  			connect-src 'self' https: wss: http://localhost:* http://127.0.0.1:* ws://localhost:* ws://127.0.0.1:*;"/>
  	</head>
  	<body>

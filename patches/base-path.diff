@@ -104,7 +104,7 @@ Index: code-server/lib/vscode/src/vs/platform/remote/browser/browserSocketFactor
  	connect(host: string, port: number, path: string, query: string, debugLabel: string, callback: IConnectCallback): void {
  		const webSocketSchema = (/^https:/.test(window.location.href) ? 'wss' : 'ws');
 +		path = (window.location.pathname + "/" + path).replace(/\/\/+/g, "/")
- 		const socket = this._webSocketFactory.create(`${webSocketSchema}://${/:/.test(host) ? `[${host}]` : host}:${port}${path}?${query}&skipWebSocketFrames=false`, debugLabel);
+ 		const socket = this._webSocketFactory.create(`${webSocketSchema}://${(/:/.test(host) && !/\[/.test(host)) ? `[${host}]` : host}:${port}${path}?${query}&skipWebSocketFrames=false`, debugLabel);
  		const errorListener = socket.onError((err) => callback(err, undefined));
  		socket.onOpen(() => {
 @@ -282,6 +283,3 @@ export class BrowserSocketFactory implem
@@ -262,7 +262,7 @@ Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/code/browser/workbench/workbench.ts
 +++ code-server/lib/vscode/src/vs/code/browser/workbench/workbench.ts
-@@ -485,6 +485,7 @@ function doCreateUri(path: string, query
+@@ -489,6 +489,7 @@ function doCreateUri(path: string, query
  		});
  	}
  
@@ -270,7 +270,7 @@ Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench.ts
  	return URI.parse(window.location.href).with({ path, query });
  }
  
-@@ -496,7 +497,7 @@ function doCreateUri(path: string, query
+@@ -500,7 +501,7 @@ function doCreateUri(path: string, query
  	if (!configElement || !configElementAttribute) {
  		throw new Error('Missing web configuration element');
  	}
