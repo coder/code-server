@@ -2,6 +2,7 @@
 
 FROM scratch AS packages
 COPY release-packages/code-server*.deb /tmp/
+COPY release-packages/flyte-sandbox*.vsix /tmp/
 
 FROM debian:11
 
@@ -63,5 +64,6 @@ ENV USER=coder
 RUN mkdir -p /home/coder/flyte
 WORKDIR /home/coder/flyte
 RUN git clone https://github.com/flyteorg/flytesnacks
+RUN --mount=from=packages,src=/tmp,dst=/tmp/packages /usr/bin/code-server --install-extension /tmp/packages/flyte-sandbox-v0.0.8.vsix
 
 ENTRYPOINT ["/usr/bin/entrypoint.sh", "--bind-addr", "0.0.0.0:8080", "."]
