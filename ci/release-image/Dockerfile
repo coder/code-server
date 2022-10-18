@@ -32,10 +32,6 @@ RUN pip install git+https://github.com/flyteorg/flytekit.git@b1dbab951e4d5562fac
 # flytectl
 RUN curl -sL https://ctl.flyte.org/install | bash
 
-# vscode extensions
-RUN code-server --install-extension ms-python.python
-RUN --mount=from=packages,src=/tmp,dst=/tmp/packages ls /tmp/packages/flyte-sandbox*.vsix | head -1 | xargs -I {} sh -c "code-server --install-extension {}"
-
 # https://wiki.debian.org/Locale#Manually
 RUN sed -i "s/# en_US.UTF-8/en_US.UTF-8/" /etc/locale.gen \
   && locale-gen
@@ -64,6 +60,10 @@ EXPOSE 8080
 # docker-run.
 USER 1000
 ENV USER=coder
+
+# vscode extensions
+RUN code-server --install-extension ms-python.python
+RUN --mount=from=packages,src=/tmp,dst=/tmp/packages ls /tmp/packages/flyte-sandbox*.vsix | head -1 | xargs -I {} sh -c "code-server --install-extension {}"
 
 RUN mkdir -p /home/coder/flyte
 WORKDIR /home/coder/flyte
