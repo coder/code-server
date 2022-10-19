@@ -159,7 +159,7 @@ jobs:
         uses: robinraju/release-downloader@v1.5
         with:
           repository: "unionai/vscode-extensions"
-          tag: flyte-sandbox-0.0.9
+          tag: flyte-sandbox-0.0.10
           fileName: "flyte-sandbox*.vsix"
           out-file-path: "release-packages"
           token: ${{ secrets.CI_BOT_PAT }}
