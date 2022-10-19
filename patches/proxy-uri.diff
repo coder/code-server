@@ -118,16 +118,15 @@ Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/code/browser/workbench/workbench.ts
 +++ code-server/lib/vscode/src/vs/code/browser/workbench/workbench.ts
-@@ -17,6 +17,8 @@ import { isFolderToOpen, isWorkspaceToOp
+@@ -17,6 +17,7 @@ import { isFolderToOpen, isWorkspaceToOp
  import { create, ICredentialsProvider, IURLCallbackProvider, IWorkbenchConstructionOptions, IWorkspace, IWorkspaceProvider } from 'vs/workbench/workbench.web.main';
  import { posix } from 'vs/base/common/path';
  import { ltrim } from 'vs/base/common/strings';
-+import { extractLocalHostUriMetaDataForPortMapping, TunnelOptions } from 'vs/platform/tunnel/common/tunnel';
-+import { TunnelCreationOptions } from 'vs/workbench/browser/web.api';
++import { extractLocalHostUriMetaDataForPortMapping, TunnelOptions, TunnelCreationOptions } from 'vs/platform/tunnel/common/tunnel';
  
  interface ICredential {
  	service: string;
-@@ -507,6 +509,39 @@ function doCreateUri(path: string, query
+@@ -507,6 +508,39 @@ function doCreateUri(path: string, query
  		} : undefined,
  		workspaceProvider: WorkspaceProvider.create(config),
  		urlCallbackProvider: new LocalStorageURLCallbackProvider(config.callbackRoute),
