@@ -21,6 +21,11 @@ and the output should replace `{{port}}` with port used in input url.
 
 This also enables the forwared ports view panel by default.
 
+Lastly, it adds a tunnelProvider so that ports are forwarded using code-server's
+built-in proxy. You can test this by starting a server i.e. `python3 -m
+http.server` and it should show a notification and show up in the ports panel
+using the /proxy/port.
+
 Index: code-server/lib/vscode/src/vs/base/common/product.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/base/common/product.ts
@@ -113,15 +118,16 @@ Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/code/browser/workbench/workbench.ts
 +++ code-server/lib/vscode/src/vs/code/browser/workbench/workbench.ts
-@@ -21,6 +21,7 @@ import type { ICredentialsProvider } fro
- import type { IURLCallbackProvider } from 'vs/workbench/services/url/browser/urlService';
- import type { IWorkbenchConstructionOptions } from 'vs/workbench/browser/web.api';
- import type { IWorkspace, IWorkspaceProvider } from 'vs/workbench/services/host/browser/browserHostService';
-+import { extractLocalHostUriMetaDataForPortMapping } from 'vs/platform/tunnel/common/tunnel';
+@@ -17,6 +17,8 @@ import { isFolderToOpen, isWorkspaceToOp
+ import { create, ICredentialsProvider, IURLCallbackProvider, IWorkbenchConstructionOptions, IWorkspace, IWorkspaceProvider } from 'vs/workbench/workbench.web.main';
+ import { posix } from 'vs/base/common/path';
+ import { ltrim } from 'vs/base/common/strings';
++import { extractLocalHostUriMetaDataForPortMapping, TunnelOptions } from 'vs/platform/tunnel/common/tunnel';
++import { TunnelCreationOptions } from 'vs/workbench/browser/web.api';
  
  interface ICredential {
  	service: string;
-@@ -511,6 +512,21 @@ function doCreateUri(path: string, query
+@@ -507,6 +509,39 @@ function doCreateUri(path: string, query
  		} : undefined,
  		workspaceProvider: WorkspaceProvider.create(config),
  		urlCallbackProvider: new LocalStorageURLCallbackProvider(config.callbackRoute),
@@ -141,6 +147,24 @@ Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench.ts
 +
 +			// If not localhost, return unmodified
 +			return Promise.resolve(resolvedUri)
++		},
++		tunnelProvider: {
++			tunnelFactory: (tunnelOptions: TunnelOptions, tunnelCreationOptions: TunnelCreationOptions) => {
++				const onDidDispose: Emitter<void> = new Emitter();
++				let isDisposed = false;
++				return Promise.resolve({
++					remoteAddress: tunnelOptions.remoteAddress,
++					//The complete local address(ex. localhost:1234)
++					localAddress: `localhost:${tunnelOptions.remoteAddress.port}`,
++					onDidDispose: onDidDispose.event,
++					dispose: () => {
++						if (!isDisposed) {
++							isDisposed = true;
++							onDidDispose.fire();
++						}
++					}
++				})
++			}
 +		}
  	});
  })();
