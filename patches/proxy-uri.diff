@@ -19,6 +19,8 @@ For the `asExternalUri` changes, you'll need to test manually by:
 Do the same thing but set `VSCODE_PROXY_URI: "https://{{port}}-main-workspace-name-user-name.coder.com"`
 and the output should replace `{{port}}` with port used in input url.
 
+This also enables the forwared ports view panel by default.
+
 Index: code-server/lib/vscode/src/vs/base/common/product.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/base/common/product.ts
@@ -142,3 +144,16 @@ Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench.ts
 +		}
  	});
  })();
+Index: code-server/lib/vscode/src/vs/workbench/contrib/remote/browser/remoteExplorer.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/workbench/contrib/remote/browser/remoteExplorer.ts
++++ code-server/lib/vscode/src/vs/workbench/contrib/remote/browser/remoteExplorer.ts
+@@ -73,7 +73,7 @@ export class ForwardedPortsView extends 
+ 			this.contextKeyListener = undefined;
+ 		}
+ 
+-		const viewEnabled: boolean = !!forwardedPortsViewEnabled.getValue(this.contextKeyService);
++		const viewEnabled: boolean = true;
+ 
+ 		if (this.environmentService.remoteAuthority && viewEnabled) {
+ 			const viewContainer = await this.getViewContainer();
