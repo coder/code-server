@@ -49,14 +49,10 @@ RUN --mount=from=packages,src=/tmp,dst=/tmp/packages dpkg -i /tmp/packages/code-
 ENV ENTRYPOINTD=${HOME}/entrypoint.d
 
 EXPOSE 8080
-# This way, if someone sets $DOCKER_USER, docker-exec will still work as
-# the uid will remain the same. note: only relevant if -u isn't passed to
-# docker-run.
-USER 1000
-ENV USER=coder
+
+
 
 RUN mkdir -p /home/coder/flyte
-WORKDIR /home/coder/flyte
 
 # flyte demo
 RUN git clone https://github.com/flyteorg/flyte-vscode-demo.git /tmp/flyte-vscode-demo \
@@ -73,5 +69,13 @@ RUN curl -sL https://ctl.flyte.org/install | bash
 # vscode extensions
 RUN code-server --install-extension ms-python.python
 RUN --mount=from=packages,src=/tmp,dst=/tmp/packages ls /tmp/packages/flyte-demo*.vsix | head -1 | xargs -I {} sh -c "code-server --install-extension {}"
+
+# This way, if someone sets $DOCKER_USER, docker-exec will still work as
+# the uid will remain the same. note: only relevant if -u isn't passed to
+# docker-run.
+USER 1000
+ENV USER=coder
+
+WORKDIR /home/coder/flyte
 
 ENTRYPOINT ["/usr/bin/entrypoint.sh", "--bind-addr", "0.0.0.0:8080", "."]
