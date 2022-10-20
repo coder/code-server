@@ -59,7 +59,7 @@ RUN git clone https://github.com/flyteorg/flyte-vscode-demo.git /tmp/flyte-vscod
   && rm -rf /tmp/flyte-vscode-demo
 
 # flytekit
-RUN pip install git+https://github.com/flyteorg/flytekit.git@b1dbab951e4d5562facf913e77b6d64c0da527e4#egg=flytekit
+RUN pip install git+https://github.com/flyteorg/flytekit.git@1fa73a0426c4f015e9a4a80868c70fc173794c4c#egg=flytekit
 
 # flytectl
 RUN curl -sL https://ctl.flyte.org/install | bash
