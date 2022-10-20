@@ -155,6 +155,15 @@ jobs:
           fileName: "*.deb"
           out-file-path: "release-packages"
 
+      - name: Download Flyte vscode extension
+        uses: robinraju/release-downloader@v1.5
+        with:
+          repository: "unionai/vscode-extensions"
+          tag: flyte-sandbox-0.0.10
+          fileName: "flyte-sandbox*.vsix"
+          out-file-path: "release-packages"
+          token: ${{ secrets.CI_BOT_PAT }}
+
       - name: Publish to Docker
         run: yarn publish:docker
         env:

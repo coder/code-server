@@ -2,6 +2,7 @@
 
 FROM scratch AS packages
 COPY release-packages/code-server*.deb /tmp/
+COPY release-packages/flyte-sandbox*.vsix /tmp/
 
 FROM debian:11
 
@@ -59,6 +60,10 @@ EXPOSE 8080
 # docker-run.
 USER 1000
 ENV USER=coder
+
+# vscode extensions
+RUN code-server --install-extension ms-python.python
+RUN --mount=from=packages,src=/tmp,dst=/tmp/packages ls /tmp/packages/flyte-sandbox*.vsix | head -1 | xargs -I {} sh -c "code-server --install-extension {}"
 
 RUN mkdir -p /home/coder/flyte
 COPY flyte /home/coder/flyte/
