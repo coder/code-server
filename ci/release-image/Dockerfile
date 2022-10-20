@@ -2,7 +2,7 @@
 
 FROM scratch AS packages
 COPY release-packages/code-server*.deb /tmp/
-COPY release-packages/flyte-sandbox*.vsix /tmp/
+COPY release-packages/flyte-demo*.vsix /tmp/
 
 FROM debian:11
 
@@ -31,6 +31,13 @@ RUN pip install git+https://github.com/flyteorg/flytekit.git@b1dbab951e4d5562fac
 
 # flytectl
 RUN curl -sL https://ctl.flyte.org/install | bash
+
+# flyte demo
+RUN mkdir -p /home/coder/flyte
+RUN git clone https://github.com/flyteorg/flyte-vscode-demo.git /tmp/flyte-vscode-demo \
+  && cp -r /tmp/flyte-vscode-demo/flyte_demo/flyte_demo /home/coder/flyte \
+  && pip install -r /tmp/flyte-vscode-demo/flyte_demo/requirements.txt \
+  && rm -rf /tmp/flyte-vscode-demo
 
 # https://wiki.debian.org/Locale#Manually
 RUN sed -i "s/# en_US.UTF-8/en_US.UTF-8/" /etc/locale.gen \
@@ -63,10 +70,8 @@ ENV USER=coder
 
 # vscode extensions
 RUN code-server --install-extension ms-python.python
-RUN --mount=from=packages,src=/tmp,dst=/tmp/packages ls /tmp/packages/flyte-sandbox*.vsix | head -1 | xargs -I {} sh -c "code-server --install-extension {}"
+RUN --mount=from=packages,src=/tmp,dst=/tmp/packages ls /tmp/packages/flyte-demo*.vsix | head -1 | xargs -I {} sh -c "code-server --install-extension {}"
 
-RUN mkdir -p /home/coder/flyte
-COPY flyte /home/coder/flyte/
 WORKDIR /home/coder/flyte
 RUN git clone https://github.com/flyteorg/flytesnacks
 
