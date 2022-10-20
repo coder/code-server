@@ -32,13 +32,6 @@ RUN pip install git+https://github.com/flyteorg/flytekit.git@b1dbab951e4d5562fac
 # flytectl
 RUN curl -sL https://ctl.flyte.org/install | bash
 
-# flyte demo
-RUN mkdir -p /home/coder/flyte
-RUN git clone https://github.com/flyteorg/flyte-vscode-demo.git /tmp/flyte-vscode-demo \
-  && cp -r /tmp/flyte-vscode-demo/flyte_demo/flyte_demo /home/coder/flyte \
-  && pip install -r /tmp/flyte-vscode-demo/flyte_demo/requirements.txt \
-  && rm -rf /tmp/flyte-vscode-demo
-
 # https://wiki.debian.org/Locale#Manually
 RUN sed -i "s/# en_US.UTF-8/en_US.UTF-8/" /etc/locale.gen \
   && locale-gen
@@ -68,11 +61,17 @@ EXPOSE 8080
 USER 1000
 ENV USER=coder
 
+RUN mkdir -p /home/coder/flyte
+WORKDIR /home/coder/flyte
+
+# flyte demo
+RUN git clone https://github.com/flyteorg/flyte-vscode-demo.git /tmp/flyte-vscode-demo \
+  && cp -r /tmp/flyte-vscode-demo/flyte_demo/flyte_demo /home/coder/flyte \
+  && pip install -r /tmp/flyte-vscode-demo/flyte_demo/requirements.txt \
+  && rm -rf /tmp/flyte-vscode-demo
+
 # vscode extensions
 RUN code-server --install-extension ms-python.python
 RUN --mount=from=packages,src=/tmp,dst=/tmp/packages ls /tmp/packages/flyte-demo*.vsix | head -1 | xargs -I {} sh -c "code-server --install-extension {}"
-
-WORKDIR /home/coder/flyte
-RUN git clone https://github.com/flyteorg/flytesnacks
 
 ENTRYPOINT ["/usr/bin/entrypoint.sh", "--bind-addr", "0.0.0.0:8080", "."]
