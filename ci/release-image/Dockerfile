@@ -26,12 +26,6 @@ RUN apt-get update \
   && git lfs install \
   && rm -rf /var/lib/apt/lists/*
 
-# flytekit
-RUN pip install git+https://github.com/flyteorg/flytekit.git@b1dbab951e4d5562facf913e77b6d64c0da527e4#egg=flytekit
-
-# flytectl
-RUN curl -sL https://ctl.flyte.org/install | bash
-
 # https://wiki.debian.org/Locale#Manually
 RUN sed -i "s/# en_US.UTF-8/en_US.UTF-8/" /etc/locale.gen \
   && locale-gen
@@ -69,6 +63,12 @@ RUN git clone https://github.com/flyteorg/flyte-vscode-demo.git /tmp/flyte-vscod
   && cp -r /tmp/flyte-vscode-demo/flyte_demo/flyte_demo /home/coder/flyte \
   && pip install -r /tmp/flyte-vscode-demo/flyte_demo/requirements.txt \
   && rm -rf /tmp/flyte-vscode-demo
+
+# flytekit
+RUN pip install git+https://github.com/flyteorg/flytekit.git@b1dbab951e4d5562facf913e77b6d64c0da527e4#egg=flytekit
+
+# flytectl
+RUN curl -sL https://ctl.flyte.org/install | bash
 
 # vscode extensions
 RUN code-server --install-extension ms-python.python
