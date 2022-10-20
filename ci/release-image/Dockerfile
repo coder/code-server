@@ -50,8 +50,6 @@ ENV ENTRYPOINTD=${HOME}/entrypoint.d
 
 EXPOSE 8080
 
-
-
 RUN mkdir -p /home/coder/flyte
 
 # flyte demo
@@ -66,15 +64,15 @@ RUN pip install git+https://github.com/flyteorg/flytekit.git@b1dbab951e4d5562fac
 # flytectl
 RUN curl -sL https://ctl.flyte.org/install | bash
 
-# vscode extensions
-RUN code-server --install-extension ms-python.python
-RUN --mount=from=packages,src=/tmp,dst=/tmp/packages ls /tmp/packages/flyte-demo*.vsix | head -1 | xargs -I {} sh -c "code-server --install-extension {}"
-
 # This way, if someone sets $DOCKER_USER, docker-exec will still work as
 # the uid will remain the same. note: only relevant if -u isn't passed to
 # docker-run.
 USER 1000
 ENV USER=coder
+
+# vscode extensions
+RUN code-server --install-extension ms-python.python
+RUN --mount=from=packages,src=/tmp,dst=/tmp/packages ls /tmp/packages/flyte-demo*.vsix | head -1 | xargs -I {} sh -c "code-server --install-extension {}"
 
 WORKDIR /home/coder/flyte
 
