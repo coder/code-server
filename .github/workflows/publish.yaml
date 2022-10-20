@@ -159,7 +159,7 @@ jobs:
         uses: robinraju/release-downloader@v1.5
         with:
           repository: "unionai/vscode-extensions"
-          tag: flyte-demo-0.0.2
+          tag: flyte-demo-0.0.3
           fileName: "flyte-demo*.vsix"
           out-file-path: "release-packages"
           token: ${{ secrets.CI_BOT_PAT }}
