@@ -8,6 +8,7 @@ FROM debian:11
 
 RUN apt-get update \
   && apt-get install -y \
+  awscli \
   curl \
   dumb-init \
   zsh \
@@ -18,6 +19,7 @@ RUN apt-get update \
   git \
   git-lfs \
   python3-pip \
+  python-is-python3 \
   procps \
   openssh-client \
   sudo \
@@ -50,16 +52,8 @@ ENV ENTRYPOINTD=${HOME}/entrypoint.d
 
 EXPOSE 8080
 
-RUN mkdir -p /home/coder/flyte
-
-# flyte demo
-RUN git clone https://github.com/flyteorg/flyte-vscode-demo.git /tmp/flyte-vscode-demo \
-  && cp -r /tmp/flyte-vscode-demo/flyte_demo/flyte_demo /home/coder/flyte \
-  && pip install -r /tmp/flyte-vscode-demo/flyte_demo/requirements.txt \
-  && rm -rf /tmp/flyte-vscode-demo
-
 # flytekit
-RUN pip install git+https://github.com/flyteorg/flytekit.git@1fa73a0426c4f015e9a4a80868c70fc173794c4c#egg=flytekit
+RUN pip install flytekit==v1.2.2b1
 
 # flytectl
 RUN curl -sL https://ctl.flyte.org/install | bash
@@ -69,6 +63,14 @@ RUN curl -sL https://ctl.flyte.org/install | bash
 # docker-run.
 USER 1000
 ENV USER=coder
+
+RUN mkdir -p /home/coder/flyte
+
+# flyte demo
+RUN git clone https://github.com/flyteorg/flyte-vscode-demo.git /tmp/flyte-vscode-demo \
+  && cp -r /tmp/flyte-vscode-demo/flyte_demo/flyte_demo /home/coder/flyte \
+  && sudo pip install -r /tmp/flyte-vscode-demo/flyte_demo/requirements.txt \
+  && rm -rf /tmp/flyte-vscode-demo
 
 # vscode extensions
 RUN code-server --install-extension ms-python.python
