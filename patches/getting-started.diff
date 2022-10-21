@@ -1,0 +1,39 @@
+Index: code-server/lib/vscode/src/vs/workbench/contrib/welcomeGettingStarted/browser/gettingStarted.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/workbench/contrib/welcomeGettingStarted/browser/gettingStarted.ts
++++ code-server/lib/vscode/src/vs/workbench/contrib/welcomeGettingStarted/browser/gettingStarted.ts
+@@ -755,7 +755,13 @@ export class GettingStartedPage extends 
+ 
+ 		const header = $('.header', {},
+ 			$('h1.product-name.caption', {}, this.productService.nameLong),
+-			$('p.subtitle.description', {}, localize({ key: 'gettingStarted.editingEvolved', comment: ['Shown as subtitle on the Welcome page.'] }, "Editing evolved"))
++			$('p.subtitle.description.coder', {},
++				"Using code-server on a team?",
++			),
++			$('p.subtitle.description.coder-coder', {},
++				"Check out: ",
++				$('a', { href: "https://github.com/coder/coder" }, "coder/coder")
++			),
+ 		);
+ 
+ 
+Index: code-server/lib/vscode/src/vs/workbench/contrib/welcomeGettingStarted/browser/media/gettingStarted.css
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/workbench/contrib/welcomeGettingStarted/browser/media/gettingStarted.css
++++ code-server/lib/vscode/src/vs/workbench/contrib/welcomeGettingStarted/browser/media/gettingStarted.css
+@@ -60,6 +60,15 @@
+ 	display: block;
+ }
+ 
++.monaco-workbench .part.editor > .content .gettingStartedContainer .coder {
++	margin-bottom: 0.2em;
++}
++
++.monaco-workbench .part.editor>.content .gettingStartedContainer .coder-coder {
++	font-size: 1em;
++	margin-top: 0.2em;
++}
++
+ .monaco-workbench.hc-black .part.editor>.content .gettingStartedContainer .subtitle,
+ .monaco-workbench.hc-light .part.editor>.content .gettingStartedContainer .subtitle {
+ 	font-weight: 200;
