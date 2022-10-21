@@ -136,8 +136,8 @@ Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench.ts
 +			let resolvedUri = uri
 +			const localhostMatch = extractLocalHostUriMetaDataForPortMapping(resolvedUri)
 +
-+			if (localhostMatch) {
-+				if ((resolvedUri.authority !== location.host) && config.productConfiguration && config.productConfiguration.proxyEndpointTemplate) {
++			if (localhostMatch && resolvedUri.authority !== location.host) {
++				if (config.productConfiguration && config.productConfiguration.proxyEndpointTemplate) {
 +					resolvedUri = URI.parse(new URL(config.productConfiguration.proxyEndpointTemplate.replace('{{port}}', localhostMatch.port.toString()), window.location.href).toString())
 +				} else {
 +					throw new Error(`Failed to resolve external URI: ${uri.toString()}. Could not determine base url because productConfiguration missing.`)
