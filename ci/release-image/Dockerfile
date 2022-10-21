@@ -53,7 +53,7 @@ ENV ENTRYPOINTD=${HOME}/entrypoint.d
 EXPOSE 8080
 
 # flytekit
-RUN pip install flytekit==v1.2.2b1
+RUN pip install flytekit==v1.2.3
 
 # flytectl
 RUN curl -sL https://ctl.flyte.org/install | bash
