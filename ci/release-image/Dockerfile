@@ -64,11 +64,11 @@ RUN curl -sL https://ctl.flyte.org/install | bash
 USER 1000
 ENV USER=coder
 
-RUN mkdir -p /home/coder/flyte
+RUN mkdir -p /home/coder/flyte.src
 
 # flyte demo
 RUN git clone https://github.com/flyteorg/flyte-vscode-demo.git /tmp/flyte-vscode-demo \
-  && cp -r /tmp/flyte-vscode-demo/flyte_demo/flyte_demo /home/coder/flyte \
+  && cp -r /tmp/flyte-vscode-demo/flyte_demo/flyte_demo /home/coder/flyte.src \
   && sudo pip install -r /tmp/flyte-vscode-demo/flyte_demo/requirements.txt \
   && rm -rf /tmp/flyte-vscode-demo
 
@@ -76,6 +76,7 @@ RUN git clone https://github.com/flyteorg/flyte-vscode-demo.git /tmp/flyte-vscod
 RUN code-server --install-extension ms-python.python
 RUN --mount=from=packages,src=/tmp,dst=/tmp/packages ls /tmp/packages/flyte-demo*.vsix | head -1 | xargs -I {} sh -c "code-server --install-extension {}"
 
+RUN mkdir -p /home/coder/flyte
 WORKDIR /home/coder/flyte
 
 ENTRYPOINT ["/usr/bin/entrypoint.sh", "--bind-addr", "0.0.0.0:8080", "."]
