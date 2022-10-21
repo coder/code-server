@@ -17,6 +17,10 @@ vscode_version() {
   jq -r .version lib/vscode/package.json
 }
 
+git_commit() {
+  git rev-parse HEAD
+}
+
 os() {
   osname=$(uname | tr '[:upper:]' '[:lower:]')
   case $osname in
@@ -48,7 +52,7 @@ rsync() {
   command rsync -a --del "$@"
 }
 
-VERSION="$(pkg_json_version)"
+VERSION="$(git_commit)"
 export VERSION
 ARCH="$(arch)"
 export ARCH

@@ -2,12 +2,13 @@
 
 FROM scratch AS packages
 COPY release-packages/code-server*.deb /tmp/
-COPY release-packages/flyte-sandbox*.vsix /tmp/
+COPY release-packages/flyte-demo*.vsix /tmp/
 
 FROM debian:11
 
 RUN apt-get update \
   && apt-get install -y \
+  awscli \
   curl \
   dumb-init \
   zsh \
@@ -18,6 +19,7 @@ RUN apt-get update \
   git \
   git-lfs \
   python3-pip \
+  python-is-python3 \
   procps \
   openssh-client \
   sudo \
@@ -25,12 +27,6 @@ RUN apt-get update \
   lsb-release \
   && git lfs install \
   && rm -rf /var/lib/apt/lists/*
-
-# flytekit
-RUN pip install git+https://github.com/flyteorg/flytekit.git@b1dbab951e4d5562facf913e77b6d64c0da527e4#egg=flytekit
-
-# flytectl
-RUN curl -sL https://ctl.flyte.org/install | bash
 
 # https://wiki.debian.org/Locale#Manually
 RUN sed -i "s/# en_US.UTF-8/en_US.UTF-8/" /etc/locale.gen \
@@ -55,19 +51,31 @@ RUN --mount=from=packages,src=/tmp,dst=/tmp/packages dpkg -i /tmp/packages/code-
 ENV ENTRYPOINTD=${HOME}/entrypoint.d
 
 EXPOSE 8080
+
+# flytekit
+RUN pip install flytekit==v1.2.2b1
+
+# flytectl
+RUN curl -sL https://ctl.flyte.org/install | bash
+
 # This way, if someone sets $DOCKER_USER, docker-exec will still work as
 # the uid will remain the same. note: only relevant if -u isn't passed to
 # docker-run.
 USER 1000
 ENV USER=coder
 
+RUN mkdir -p /home/coder/flyte
+
+# flyte demo
+RUN git clone https://github.com/flyteorg/flyte-vscode-demo.git /tmp/flyte-vscode-demo \
+  && cp -r /tmp/flyte-vscode-demo/flyte_demo/flyte_demo /home/coder/flyte \
+  && sudo pip install -r /tmp/flyte-vscode-demo/flyte_demo/requirements.txt \
+  && rm -rf /tmp/flyte-vscode-demo
+
 # vscode extensions
 RUN code-server --install-extension ms-python.python
-RUN --mount=from=packages,src=/tmp,dst=/tmp/packages ls /tmp/packages/flyte-sandbox*.vsix | head -1 | xargs -I {} sh -c "code-server --install-extension {}"
+RUN --mount=from=packages,src=/tmp,dst=/tmp/packages ls /tmp/packages/flyte-demo*.vsix | head -1 | xargs -I {} sh -c "code-server --install-extension {}"
 
-RUN mkdir -p /home/coder/flyte
-COPY flyte /home/coder/flyte/
 WORKDIR /home/coder/flyte
-RUN git clone https://github.com/flyteorg/flytesnacks
 
 ENTRYPOINT ["/usr/bin/entrypoint.sh", "--bind-addr", "0.0.0.0:8080", "."]
