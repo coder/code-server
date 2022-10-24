@@ -20,6 +20,31 @@ Code v99.99.999
 
 -->
 
+## [4.8.0](https://github.com/coder/code-server/releases/tag/v4.8.0) - 2022-10-24
+
+Code v1.72.1
+
+### Added
+
+- Support for the Ports panel which leverages code-server's built-in proxy. It
+  also uses `VSCODE_PROXY_URI` where `{{port}}` is replace when forwarding a port.
+  Example: `VSCODE_PROXY_URI=https://{{port}}.kyle.dev` would forward an
+  application running on localhost:3000 to https://3000.kyle.dev
+- Support for `--disable-workspace-trust` CLI flag
+- Support for `--goto` flag to open file @ line:column
+- Added Ubuntu-based images for Docker releases. If you run into issues with
+  `PATH` being overwritten in Docker please try the Ubuntu image as this is a
+  problem in the Debian base image.
+
+### Changed
+
+- Updated Code to 1.72.1
+
+### Fixed
+
+- Enabled `BROWSER` environment variable
+- Patched `asExternalUri` to work so now extensions run inside code-server can use it
+
 ## [4.7.1](https://github.com/coder/code-server/releases/tag/v4.7.1) - 2022-09-30
 
 Code v1.71.2
