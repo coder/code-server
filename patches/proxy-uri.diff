@@ -19,6 +19,13 @@ For the `asExternalUri` changes, you'll need to test manually by:
 Do the same thing but set `VSCODE_PROXY_URI: "https://{{port}}-main-workspace-name-user-name.coder.com"`
 and the output should replace `{{port}}` with port used in input url.
 
+This also enables the forwared ports view panel by default.
+
+Lastly, it adds a tunnelProvider so that ports are forwarded using code-server's
+built-in proxy. You can test this by starting a server i.e. `python3 -m
+http.server` and it should show a notification and show up in the ports panel
+using the /proxy/port.
+
 Index: code-server/lib/vscode/src/vs/base/common/product.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/base/common/product.ts
@@ -77,7 +84,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
  				rootEndpoint: base,
  				updateEndpoint: !this._environmentService.args['disable-update-check'] ? base + '/update/check' : undefined,
  				logoutEndpoint: this._environmentService.args['auth'] && this._environmentService.args['auth'] !== "none" ? base + '/logout' : undefined,
-+				proxyEndpointTemplate: process.env.VSCODE_PROXY_URI ?? base + '/proxy/{{port}}',
++				proxyEndpointTemplate: process.env.VSCODE_PROXY_URI ?? base + '/proxy/{{port}}/',
  				embedderIdentifier: 'server-distro',
  				extensionsGallery: this._productService.extensionsGallery,
  			},
@@ -115,11 +122,11 @@ Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench.ts
  import type { IURLCallbackProvider } from 'vs/workbench/services/url/browser/urlService';
  import type { IWorkbenchConstructionOptions } from 'vs/workbench/browser/web.api';
  import type { IWorkspace, IWorkspaceProvider } from 'vs/workbench/services/host/browser/browserHostService';
-+import { extractLocalHostUriMetaDataForPortMapping } from 'vs/platform/tunnel/common/tunnel';
++import { extractLocalHostUriMetaDataForPortMapping, TunnelOptions, TunnelCreationOptions } from 'vs/platform/tunnel/common/tunnel';
  
  interface ICredential {
  	service: string;
-@@ -511,6 +512,21 @@ function doCreateUri(path: string, query
+@@ -511,6 +512,38 @@ function doCreateUri(path: string, query
  		} : undefined,
  		workspaceProvider: WorkspaceProvider.create(config),
  		urlCallbackProvider: new LocalStorageURLCallbackProvider(config.callbackRoute),
@@ -127,9 +134,9 @@ Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench.ts
 +		credentialsProvider: config.remoteAuthority ? undefined : new LocalStorageCredentialsProvider(), // with a remote, we don't use a local credentials provider
 +		resolveExternalUri: (uri: URI): Promise<URI> => {
 +			let resolvedUri = uri
-+			const localhostMatch = extractLocalHostUriMetaDataForPortMapping(uri)
++			const localhostMatch = extractLocalHostUriMetaDataForPortMapping(resolvedUri)
 +
-+			if (localhostMatch) {
++			if (localhostMatch && resolvedUri.authority !== location.host) {
 +				if (config.productConfiguration && config.productConfiguration.proxyEndpointTemplate) {
 +					resolvedUri = URI.parse(new URL(config.productConfiguration.proxyEndpointTemplate.replace('{{port}}', localhostMatch.port.toString()), window.location.href).toString())
 +				} else {
@@ -139,6 +146,36 @@ Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench.ts
 +
 +			// If not localhost, return unmodified
 +			return Promise.resolve(resolvedUri)
++		},
++		tunnelProvider: {
++			tunnelFactory: (tunnelOptions: TunnelOptions, tunnelCreationOptions: TunnelCreationOptions) => {
++				const onDidDispose: Emitter<void> = new Emitter();
++				let isDisposed = false;
++				return Promise.resolve({
++					remoteAddress: tunnelOptions.remoteAddress,
++					localAddress: `localhost:${tunnelOptions.remoteAddress.port}`,
++					onDidDispose: onDidDispose.event,
++					dispose: () => {
++						if (!isDisposed) {
++							isDisposed = true;
++							onDidDispose.fire();
++						}
++					}
++				})
++			}
 +		}
  	});
  })();
+Index: code-server/lib/vscode/src/vs/workbench/contrib/remote/browser/remoteExplorer.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/workbench/contrib/remote/browser/remoteExplorer.ts
++++ code-server/lib/vscode/src/vs/workbench/contrib/remote/browser/remoteExplorer.ts
+@@ -73,7 +73,7 @@ export class ForwardedPortsView extends 
+ 			this.contextKeyListener = undefined;
+ 		}
+ 
+-		const viewEnabled: boolean = !!forwardedPortsViewEnabled.getValue(this.contextKeyService);
++		const viewEnabled: boolean = true;
+ 
+ 		if (this.environmentService.remoteAuthority && viewEnabled) {
+ 			const viewContainer = await this.getViewContainer();

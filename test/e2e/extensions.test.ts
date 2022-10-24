@@ -15,7 +15,7 @@ function runTestExtensionTests() {
     const text = await codeServerPage.page.locator("text=proxyUri").first().textContent()
     // Remove end slash in address
     const normalizedAddress = address.replace(/\/+$/, "")
-    expect(text).toBe(`Info: proxyUri: ${normalizedAddress}/proxy/{{port}}`)
+    expect(text).toBe(`Info: proxyUri: ${normalizedAddress}/proxy/{{port}}/`)
   })
 }
 
