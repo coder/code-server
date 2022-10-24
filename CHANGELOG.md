@@ -30,8 +30,11 @@ Code v1.72.1
   also uses `VSCODE_PROXY_URI` where `{{port}}` is replace when forwarding a port.
   Example: `VSCODE_PROXY_URI=https://{{port}}.kyle.dev` would forward an
   application running on localhost:3000 to https://3000.kyle.dev
-- support for `--disable-workspace-trust` CLI flag
-- support for `--goto` flag to open file @ line:column
+- Support for `--disable-workspace-trust` CLI flag
+- Support for `--goto` flag to open file @ line:column
+- Added Ubuntu-based images for Docker releases. If you run into issues with
+  `PATH` being overwritten in Docker please try the Ubuntu image as this is a
+  problem in the Debian base image.
 
 ### Changed
 
@@ -39,9 +42,8 @@ Code v1.72.1
 
 ### Fixed
 
-- Fixed bug in code-server (run with Docker) where PATH was always overwritten
 - Enabled `BROWSER` environment variable
-- Patched `asExternalUri` to work so now extensions running inside code-server can use it
+- Patched `asExternalUri` to work so now extensions run inside code-server can use it
 
 ## [4.7.1](https://github.com/coder/code-server/releases/tag/v4.7.1) - 2022-09-30
 
