@@ -1,9 +1,10 @@
 # syntax=docker/dockerfile:experimental
 
+ARG BASE=debian:11
 FROM scratch AS packages
 COPY release-packages/code-server*.deb /tmp/
 
-FROM debian:11
+FROM $BASE
 
 RUN apt-get update \
   && apt-get install -y \
