@@ -41,7 +41,7 @@ Code v1.72.1
 
 - Fixed bug in code-server (run with Docker) where PATH was always overwritten
 - Enabled `BROWSER` environment variable
-- Patched `asExternalUri` to work so now extensions run inside code-server can use it
+- Patched `asExternalUri` to work so now extensions running inside code-server can use it
 
 ## [4.7.1](https://github.com/coder/code-server/releases/tag/v4.7.1) - 2022-09-30
 
