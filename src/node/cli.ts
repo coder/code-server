@@ -1,6 +1,6 @@
 import { field, Level, logger } from "@coder/logger"
 import { promises as fs } from "fs"
-import yaml from "js-yaml"
+import { load } from "js-yaml"
 import * as os from "os"
 import * as path from "path"
 import { canConnect, generateCertificate, generatePassword, humanPath, paths, isNodeJSErrnoException } from "./util"
@@ -657,7 +657,7 @@ export function parseConfigFile(configFile: string, configPath: string): ConfigA
     return { config: configPath }
   }
 
-  const config = yaml.load(configFile, {
+  const config = load(configFile, {
     filename: configPath,
   })
   if (!config || typeof config === "string") {
