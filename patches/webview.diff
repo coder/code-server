@@ -25,6 +25,11 @@ Make sure to update the hash. To do so:
 2. open any webview (i.e. preview Markdown)
 3. see error in console and copy hash
 
+That will test the hash change in pre/index.html
+
+Double-check the console to make sure there are no console errors for the webWorkerExtensionHostIframe
+which also requires a hash change.
+
 Index: code-server/lib/vscode/src/vs/workbench/services/environment/browser/environmentService.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/services/environment/browser/environmentService.ts
@@ -54,6 +59,15 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/index
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/index.html
 +++ code-server/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/index.html
+@@ -5,7 +5,7 @@
+ 	<meta charset="UTF-8">
+ 
+ 	<meta http-equiv="Content-Security-Policy"
+-		content="default-src 'none'; script-src 'sha256-wwaDxsm1+SKIUb5YJXiZlYMyV7QPB8+zd6HPcTjigZs=' 'self'; frame-src 'self'; style-src 'unsafe-inline';">
++		content="default-src 'none'; script-src 'sha256-IZkGO4jZeUn7pzM6pBZCZc9bUYm8oVNV3z8zEa8gxlk=' 'self'; frame-src 'self'; style-src 'unsafe-inline';">
+ 
+ 	<!-- Disable pinch zooming -->
+ 	<meta name="viewport"
 @@ -331,6 +331,12 @@
  
  				const hostname = location.hostname;
@@ -93,7 +107,7 @@ Index: code-server/lib/vscode/src/vs/workbench/services/extensions/worker/webWor
  			default-src 'none';
  			child-src 'self' data: blob:;
 -			script-src 'self' 'unsafe-eval' 'sha256-/r7rqQ+yrxt57sxLuQ6AMYcy/lUpvAIzHjIJt/OeLWU=' https:;
-+			script-src 'self' 'unsafe-eval' 'sha256-wwaDxsm1+SKIUb5YJXiZlYMyV7QPB8+zd6HPcTjigZs=' https:;
++			script-src 'self' 'unsafe-eval' 'sha256-TkIM/TmudlFEe0ZRp0ptvN54LClwk30Rql4ZPE0hm/I=' https:;
  			connect-src 'self' https: wss: http://localhost:* http://127.0.0.1:* ws://localhost:* ws://127.0.0.1:*;"/>
  	</head>
  	<body>
