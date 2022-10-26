@@ -30,6 +30,13 @@ That will test the hash change in pre/index.html
 Double-check the console to make sure there are no console errors for the webWorkerExtensionHostIframe
 which also requires a hash change.
 
+parentOriginHash changes
+
+This fixes webviews from not working properly due to a change upstream.
+Upstream added a check to ensure parent authority is encoded into the webview
+origin. Since our webview origin is the parent authority, we can bypass this
+check.
+
 Index: code-server/lib/vscode/src/vs/workbench/services/environment/browser/environmentService.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/services/environment/browser/environmentService.ts
