@@ -1,3 +1,11 @@
+Modify Help: Getting Started
+
+This modifies some text on the Getting Started page and adds text about using
+code-server on a team.
+
+It is enabled by default but can be overriden using the cli flag
+`--disable-getting-started-override`.
+
 Index: code-server/lib/vscode/src/vs/workbench/contrib/welcomeGettingStarted/browser/gettingStarted.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/contrib/welcomeGettingStarted/browser/gettingStarted.ts
