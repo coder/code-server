@@ -382,6 +382,30 @@ describe("parser", () => {
     })
   })
 
+  it("should use env var CS_DISABLE_GETTING_STARTED_OVERRIDE", async () => {
+    process.env.CS_DISABLE_GETTING_STARTED_OVERRIDE = "1"
+    const args = parse([])
+    expect(args).toEqual({})
+
+    const defaultArgs = await setDefaults(args)
+    expect(defaultArgs).toEqual({
+      ...defaults,
+      "disable-getting-started-override": true,
+    })
+  })
+
+  it("should use env var CS_DISABLE_GETTING_STARTED_OVERRIDE set to true", async () => {
+    process.env.CS_DISABLE_GETTING_STARTED_OVERRIDE = "true"
+    const args = parse([])
+    expect(args).toEqual({})
+
+    const defaultArgs = await setDefaults(args)
+    expect(defaultArgs).toEqual({
+      ...defaults,
+      "disable-getting-started-override": true,
+    })
+  })
+
   it("should error if password passed in", () => {
     expect(() => parse(["--password", "supersecret123"])).toThrowError(
       "--password can only be set in the config file or passed in via $PASSWORD",
