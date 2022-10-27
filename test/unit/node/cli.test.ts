@@ -98,6 +98,8 @@ describe("parser", () => {
 
           "--disable-file-downloads",
 
+          "--disable-getting-started-override",
+
           ["--host", "0.0.0.0"],
           "4",
           "--",
