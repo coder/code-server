@@ -43,6 +43,7 @@ describe("parser", () => {
     delete process.env.LOG_LEVEL
     delete process.env.PASSWORD
     delete process.env.CS_DISABLE_FILE_DOWNLOADS
+    delete process.env.CS_GETTING_STARTED_OVERRIDE
     console.log = jest.fn()
   })
 
@@ -114,6 +115,7 @@ describe("parser", () => {
         value: path.resolve("path/to/cert"),
       },
       "disable-file-downloads": true,
+      "disable-getting-started-override": true,
       enable: ["feature1", "feature2"],
       help: true,
       host: "0.0.0.0",
