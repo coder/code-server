@@ -1,4 +1,7 @@
 lib/vscode
+lib/vscode-reh-web-linux-x64
+release-standalone
+release
 helm-chart
 test/scripts
 test/e2e/extensions/test-extension
