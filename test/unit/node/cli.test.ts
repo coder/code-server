@@ -43,7 +43,7 @@ describe("parser", () => {
     delete process.env.LOG_LEVEL
     delete process.env.PASSWORD
     delete process.env.CS_DISABLE_FILE_DOWNLOADS
-    delete process.env.CS_GETTING_STARTED_OVERRIDE
+    delete process.env.CS_DISABLE_GETTING_STARTED_OVERRIDE
     console.log = jest.fn()
   })
 
