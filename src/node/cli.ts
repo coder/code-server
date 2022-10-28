@@ -51,6 +51,7 @@ export interface UserProvidedCodeArgs {
   "disable-update-check"?: boolean
   "disable-file-downloads"?: boolean
   "disable-workspace-trust"?: boolean
+  "disable-getting-started-override"?: boolean
 }
 
 /**
@@ -169,6 +170,10 @@ export const options: Options<Required<UserProvidedArgs>> = {
   "disable-workspace-trust": {
     type: "boolean",
     description: "Disable Workspace Trust feature. This switch only affects the current session.",
+  },
+  "disable-getting-started-override": {
+    type: "boolean",
+    description: "Disable the coder/coder override in the Help: Getting Started page.",
   },
   // --enable can be used to enable experimental features. These features
   // provide no guarantees.
@@ -561,6 +566,10 @@ export async function setDefaults(cliArgs: UserProvidedArgs, configArgs?: Config
 
   if (process.env.CS_DISABLE_FILE_DOWNLOADS?.match(/^(1|true)$/)) {
     args["disable-file-downloads"] = true
+  }
+
+  if (process.env.CS_DISABLE_GETTING_STARTED_OVERRIDE?.match(/^(1|true)$/)) {
+    args["disable-getting-started-override"] = true
   }
 
   const usingEnvHashedPassword = !!process.env.HASHED_PASSWORD

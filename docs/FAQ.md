@@ -32,6 +32,7 @@
 - [Does code-server have any security login validation?](#does-code-server-have-any-security-login-validation)
 - [Are there community projects involving code-server?](#are-there-community-projects-involving-code-server)
 - [How do I change the port?](#how-do-i-change-the-port)
+- [How do I hide the coder/coder promotion?](#how-do-i-hide-the-codercoder-promotion)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 <!-- prettier-ignore-end -->
@@ -418,3 +419,7 @@ There are two ways to change the port on which code-server runs:
 
 1. with an environment variable e.g. `PORT=3000 code-server`
 2. using the flag `--bind-addr` e.g. `code-server --bind-addr localhost:3000`
+
+## How do I hide the coder/coder promotion?
+
+You can pass the flag `--disable-getting-started-override` to `code-server`.

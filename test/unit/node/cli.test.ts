@@ -43,6 +43,7 @@ describe("parser", () => {
     delete process.env.LOG_LEVEL
     delete process.env.PASSWORD
     delete process.env.CS_DISABLE_FILE_DOWNLOADS
+    delete process.env.CS_DISABLE_GETTING_STARTED_OVERRIDE
     console.log = jest.fn()
   })
 
@@ -97,6 +98,8 @@ describe("parser", () => {
 
           "--disable-file-downloads",
 
+          "--disable-getting-started-override",
+
           ["--host", "0.0.0.0"],
           "4",
           "--",
@@ -114,6 +117,7 @@ describe("parser", () => {
         value: path.resolve("path/to/cert"),
       },
       "disable-file-downloads": true,
+      "disable-getting-started-override": true,
       enable: ["feature1", "feature2"],
       help: true,
       host: "0.0.0.0",
@@ -375,6 +379,30 @@ describe("parser", () => {
     expect(defaultArgs).toEqual({
       ...defaults,
       "disable-file-downloads": true,
+    })
+  })
+
+  it("should use env var CS_DISABLE_GETTING_STARTED_OVERRIDE", async () => {
+    process.env.CS_DISABLE_GETTING_STARTED_OVERRIDE = "1"
+    const args = parse([])
+    expect(args).toEqual({})
+
+    const defaultArgs = await setDefaults(args)
+    expect(defaultArgs).toEqual({
+      ...defaults,
+      "disable-getting-started-override": true,
+    })
+  })
+
+  it("should use env var CS_DISABLE_GETTING_STARTED_OVERRIDE set to true", async () => {
+    process.env.CS_DISABLE_GETTING_STARTED_OVERRIDE = "true"
+    const args = parse([])
+    expect(args).toEqual({})
+
+    const defaultArgs = await setDefaults(args)
+    expect(defaultArgs).toEqual({
+      ...defaults,
+      "disable-getting-started-override": true,
     })
   })
 
