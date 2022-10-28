@@ -269,4 +269,4 @@ jobs:
         with:
           draft: true
           discussion_category_name: "📣 Announcements"
-          files: ./npm-package
+          files: ./package.tar.gz
