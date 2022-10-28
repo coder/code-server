@@ -20,6 +20,15 @@ Code v99.99.999
 
 -->
 
+## [4.8.1](https://github.com/coder/code-server/releases/tag/v4.8.1) - 2022-10-28
+
+Code v1.72.1
+
+### Fixed
+
+- Fixed CSP error introduced in 4.8.0 that caused issues with webviews and most
+  extensions.
+
 ## [4.8.0](https://github.com/coder/code-server/releases/tag/v4.8.0) - 2022-10-24
 
 Code v1.72.1
