@@ -83,9 +83,8 @@ jobs:
 
       - name: Install helm
         if: steps.changed-files.outputs.any_changed == 'true'
-        uses: azure/setup-helm@v3.3
+        uses: azure/setup-helm@v3.4
         with:
-          version: "v3.10.1"
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install helm kubeval plugin
