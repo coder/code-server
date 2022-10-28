@@ -97,6 +97,12 @@ jobs:
           token: ${{ secrets.HOMEBREW_GITHUB_API_TOKEN }}
           ref: "master"
 
+      - name: Merge in master
+        run: |
+          git remote add upstream https://github.com/coder/code-server-aur.git
+          git fetch upstream
+          git merge upstream/master
+
       - name: Configure git
         run: |
           git config --global user.name cdrci
