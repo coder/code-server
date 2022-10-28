@@ -3,7 +3,7 @@
   "name": "test-plugin",
   "version": "1.0.0",
   "engines": {
-    "code-server": "*"
+    "code-server": "^4.8.1"
   },
   "main": "out/index.js",
   "devDependencies": {
