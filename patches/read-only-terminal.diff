@@ -1,0 +1,13 @@
+Index: code-server/lib/vscode/src/vs/workbench/common/theme.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/workbench/common/theme.ts
++++ code-server/lib/vscode/src/vs/workbench/common/theme.ts
+@@ -61,7 +61,7 @@ export const TAB_ACTIVE_FOREGROUND = registerColor('ta
+ //#region Tab Foreground
+ 
+ export const TAB_ACTIVE_FOREGROUND = registerColor('tab.activeForeground', {
+-	dark: Color.white,
++	dark: Color.cyan,
+ 	light: '#333333',
+ 	hcDark: Color.white,
+ 	hcLight: '#292929'
