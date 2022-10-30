@@ -1,5 +1,6 @@
 integration.diff
 base-path.diff
+read-only-terminal.diff
 proposed-api.diff
 marketplace.diff
 webview.diff
