@@ -227,7 +227,7 @@ export class PluginAPI {
 `)
     }
     if (!semver.satisfies(version, packageJSON.engines["code-server"])) {
-      throw new Error(
+      this.logger.warn(
         `plugin range ${q(packageJSON.engines["code-server"])} incompatible` + ` with code-server version ${version}`,
       )
     }
