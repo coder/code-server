@@ -15,6 +15,7 @@
   - [Changelog](#changelog)
 - [Releases](#releases)
   - [Publishing a release](#publishing-a-release)
+    - [Release Candidates](#release-candidates)
     - [AUR](#aur)
     - [Docker](#docker)
     - [Homebrew](#homebrew)
@@ -151,6 +152,14 @@ changelog](https://github.com/emacs-mirror/emacs/blob/master/etc/NEWS).
 1. Add the release notes from the `CHANGELOG.md` and publish release. CI will automatically grab the
    artifacts, publish the NPM package from `npm-package`, and publish the Docker
    Hub image from `release-images`.
+
+#### Release Candidates
+
+We prefer to do release candidates so the community can test things before a full-blown release. To do this follow the same steps as above but:
+
+1. Only bump version in `package.json`
+1. use `0.0.0-rc.0`
+1. When you publish the release, select "pre-release"
 
 #### AUR
 
