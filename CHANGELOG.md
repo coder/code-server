@@ -20,6 +20,18 @@ Code v99.99.999
 
 -->
 
+## [4.8.2](https://github.com/coder/code-server/releases/tag/v4.8.2) - 2022-11-02
+
+Code v1.72.1
+
+### Added
+
+- New text in the Getting Started page with info about
+  `coder/coder`. This is enabled by default but can be disabled by passing the CLI
+  flag `--disable-getting-started-override` or setting
+  `CS_DISABLE_GETTING_STARTED_OVERRIDE=1` or
+  `CS_DISABLE_GETTING_STARTED_OVERRIDE=true`.
+
 ## [4.8.1](https://github.com/coder/code-server/releases/tag/v4.8.1) - 2022-10-28
 
 Code v1.72.1
