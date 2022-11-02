@@ -20,7 +20,7 @@ Code v99.99.999
 
 -->
 
-## [4.8.2-rc.1](https://github.com/coder/code-server/releases/tag/v4.8.2-rc.1) - 2022-11-01
+## [4.8.2](https://github.com/coder/code-server/releases/tag/v4.8.2) - 2022-11-02
 
 Code v1.72.1
 
