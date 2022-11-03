@@ -14,17 +14,15 @@ describe("Webviews", ["--disable-workspace-trust"], {}, () => {
     // Open Preview
     await codeServerPage.executeCommandViaMenus("Markdown: Open Preview to the Side")
     // Wait for the iframe to open and load
-    await codeServerPage.page.waitForTimeout(2000)
     await codeServerPage.waitForTab(`Preview ${file}`)
 
-    let totalCount = 0
-    for (const frame of codeServerPage.page.frames()) {
-      // Check for heading in frames
-      const count = await frame.locator(`text=${heading}`).count()
-      totalCount += count
-    }
+    // It's an iframe within an iframe
+    // so we have to do .frameLocator twice
+    const renderedText = await codeServerPage.page
+      .frameLocator("iframe.webview.ready")
+      .frameLocator("#active-frame")
+      .locator("text=Hello world")
 
-    // One in the file and one in the preview
-    expect(totalCount).toBe(2)
+    expect(renderedText).toBeVisible
   })
 })
