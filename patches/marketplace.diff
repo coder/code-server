@@ -65,10 +65,10 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
  			},
  			callbackRoute: this._callbackRoute
  		};
-Index: code-server/lib/vscode/src/vs/workbench/services/extensionResourceLoader/common/extensionResourceLoader.ts
+Index: code-server/lib/vscode/src/vs/platform/extensionResourceLoader/common/extensionResourceLoader.ts
 ===================================================================
---- code-server.orig/lib/vscode/src/vs/workbench/services/extensionResourceLoader/common/extensionResourceLoader.ts
-+++ code-server/lib/vscode/src/vs/workbench/services/extensionResourceLoader/common/extensionResourceLoader.ts
+--- code-server.orig/lib/vscode/src/vs/platform/extensionResourceLoader/common/extensionResourceLoader.ts
++++ code-server/lib/vscode/src/vs/platform/extensionResourceLoader/common/extensionResourceLoader.ts
 @@ -16,7 +16,6 @@ import { getServiceMachineId } from 'vs/
  import { IStorageService } from 'vs/platform/storage/common/storage';
  import { TelemetryLevel } from 'vs/platform/telemetry/common/telemetry';
@@ -82,7 +82,7 @@ Index: code-server/lib/vscode/src/vs/workbench/services/extensionResourceLoader/
  		private readonly _configurationService: IConfigurationService,
  	) {
 -		this._webExtensionResourceEndPoint = `${getRemoteServerRootPath(_productService)}/${WEB_EXTENSION_RESOURCE_END_POINT}/`;
-+		this._webExtensionResourceEndPoint = `/${WEB_EXTENSION_RESOURCE_END_POINT}/`;
++		this._webExtensionResourceEndPoint = `/${WEB_EXTENSION_RESOURCE_END_POINT}`;
  		if (_productService.extensionsGallery) {
  			this._extensionGalleryResourceUrlTemplate = _productService.extensionsGallery.resourceUrlTemplate;
  			this._extensionGalleryAuthority = this._extensionGalleryResourceUrlTemplate ? this._getExtensionGalleryAuthority(URI.parse(this._extensionGalleryResourceUrlTemplate)) : undefined;
