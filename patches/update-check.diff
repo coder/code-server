@@ -120,7 +120,7 @@ Index: code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
 @@ -11,6 +11,8 @@ import { refineServiceDecorator } from '
  import { IEnvironmentService, INativeEnvironmentService } from 'vs/platform/environment/common/environment';
  
- export const serverOptions: OptionDescriptions<ServerParsedArgs> = {
+ export const serverOptions: OptionDescriptions<Required<ServerParsedArgs>> = {
 +	/* ----- code-server ----- */
 +	'disable-update-check': { type: 'boolean' },
  
