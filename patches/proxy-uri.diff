@@ -92,7 +92,7 @@ Index: code-server/lib/vscode/src/vs/workbench/browser/web.main.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/browser/web.main.ts
 +++ code-server/lib/vscode/src/vs/workbench/browser/web.main.ts
-@@ -247,7 +247,7 @@ export class BrowserMain extends Disposa
+@@ -248,7 +248,7 @@ export class BrowserMain extends Disposa
  
  		// Remote
  		const connectionToken = environmentService.options.connectionToken || getCookieValue(connectionTokenCookieName);
@@ -105,7 +105,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/terminal/common/terminalE
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/contrib/terminal/common/terminalEnvironment.ts
 +++ code-server/lib/vscode/src/vs/workbench/contrib/terminal/common/terminalEnvironment.ts
-@@ -392,7 +392,7 @@ export async function createTerminalEnvi
+@@ -381,7 +381,7 @@ export async function createTerminalEnvi
  
  		// Sanitize the environment, removing any undesirable VS Code and Electron environment
  		// variables
