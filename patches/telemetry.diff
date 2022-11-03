@@ -18,8 +18,8 @@ Index: code-server/lib/vscode/src/vs/server/node/serverServices.ts
 +import { TelemetryClient } from "vs/server/node/telemetryClient";
  import { NullPolicyService } from 'vs/platform/policy/common/policy';
  import { OneDataSystemAppender } from 'vs/platform/telemetry/node/1dsAppender';
- 
-@@ -133,10 +134,13 @@ export async function setupServerService
+ import { LoggerService } from 'vs/platform/log/node/loggerService';
+@@ -139,10 +140,13 @@ export async function setupServerService
  	const machineId = await getMachineId();
  	const isInternal = isInternalTelemetry(productService, configurationService);
  	if (supportsTelemetry(productService, environmentService)) {
