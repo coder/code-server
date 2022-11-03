@@ -19,7 +19,7 @@ Index: code-server/lib/vscode/src/vs/server/node/serverServices.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/serverServices.ts
 +++ code-server/lib/vscode/src/vs/server/node/serverServices.ts
-@@ -209,6 +209,9 @@ export async function setupServerService
+@@ -216,6 +216,9 @@ export async function setupServerService
  		const channel = new ExtensionManagementChannel(extensionManagementService, (ctx: RemoteAgentConnectionContext) => getUriTransformer(ctx.remoteAuthority));
  		socketServer.registerChannel('extensions', channel);
  
@@ -125,7 +125,7 @@ Index: code-server/lib/vscode/src/vs/platform/environment/common/environmentServ
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/platform/environment/common/environmentService.ts
 +++ code-server/lib/vscode/src/vs/platform/environment/common/environmentService.ts
-@@ -105,7 +105,7 @@ export abstract class AbstractNativeEnvi
+@@ -110,7 +110,7 @@ export abstract class AbstractNativeEnvi
  			return URI.file(join(vscodePortable, 'argv.json'));
  		}
  
@@ -248,7 +248,7 @@ Index: code-server/lib/vscode/src/vs/workbench/workbench.web.main.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/workbench.web.main.ts
 +++ code-server/lib/vscode/src/vs/workbench/workbench.web.main.ts
-@@ -123,8 +123,9 @@ import 'vs/workbench/contrib/logs/browse
+@@ -119,8 +119,9 @@ import 'vs/workbench/contrib/logs/browse
  // Explorer
  import 'vs/workbench/contrib/files/browser/files.web.contribution';
  
@@ -264,27 +264,35 @@ Index: code-server/lib/vscode/src/vs/platform/languagePacks/browser/languagePack
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/platform/languagePacks/browser/languagePacks.ts
 +++ code-server/lib/vscode/src/vs/platform/languagePacks/browser/languagePacks.ts
-@@ -4,10 +4,23 @@
-  *--------------------------------------------------------------------------------------------*/
- 
- import { ILanguagePackItem, LanguagePackBaseService } from 'vs/platform/languagePacks/common/languagePacks';
+@@ -6,18 +6,24 @@
+ import { CancellationTokenSource } from 'vs/base/common/cancellation';
+ import { Language } from 'vs/base/common/platform';
+ import { URI } from 'vs/base/common/uri';
 +import { ProxyChannel } from 'vs/base/parts/ipc/common/ipc';
-+import { ILanguagePackService } from 'vs/platform/languagePacks/common/languagePacks';
+ import { IExtensionGalleryService } from 'vs/platform/extensionManagement/common/extensionManagement';
+ import { IExtensionResourceLoaderService } from 'vs/platform/extensionResourceLoader/common/extensionResourceLoader';
+-import { ILanguagePackItem, LanguagePackBaseService } from 'vs/platform/languagePacks/common/languagePacks';
++import { ILanguagePackItem, ILanguagePackService, LanguagePackBaseService } from 'vs/platform/languagePacks/common/languagePacks';
+ import { ILogService } from 'vs/platform/log/common/log';
 +import { IRemoteAgentService } from 'vs/workbench/services/remote/common/remoteAgentService';
-+import { IExtensionGalleryService } from 'vs/platform/extensionManagement/common/extensionManagement';
  
  export class WebLanguagePacksService extends LanguagePackBaseService {
--	// Web doesn't have a concept of language packs, so we just return an empty array
 +	private readonly languagePackService: ILanguagePackService;
 +
-+	constructor(
+ 	constructor(
 +		@IRemoteAgentService remoteAgentService: IRemoteAgentService,
-+		@IExtensionGalleryService extensionGalleryService: IExtensionGalleryService
-+	) {
-+		super(extensionGalleryService)
-+		this.languagePackService = ProxyChannel.toService<ILanguagePackService>(remoteAgentService.getConnection()!.getChannel('languagePacks'));
-+	}
-+
+ 		@IExtensionResourceLoaderService private readonly extensionResourceLoaderService: IExtensionResourceLoaderService,
+ 		@IExtensionGalleryService extensionGalleryService: IExtensionGalleryService,
+ 		@ILogService private readonly logService: ILogService
+ 	) {
+ 		super(extensionGalleryService);
++		this.languagePackService = ProxyChannel.toService<ILanguagePackService>(remoteAgentService.getConnection()!.getChannel('languagePacks'))
+ 	}
+ 
+ 	async getBuiltInExtensionTranslationsUri(id: string): Promise<URI | undefined> {
+@@ -73,6 +79,6 @@ export class WebLanguagePacksService ext
+ 
+ 	// Web doesn't have a concept of language packs, so we just return an empty array
  	getInstalledLanguages(): Promise<ILanguagePackItem[]> {
 -		return Promise.resolve([]);
 +		return this.languagePackService.getInstalledLanguages()
