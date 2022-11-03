@@ -48,8 +48,8 @@ Index: code-server/lib/vscode/src/vs/workbench/services/environment/browser/envi
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/services/environment/browser/environmentService.ts
 +++ code-server/lib/vscode/src/vs/workbench/services/environment/browser/environmentService.ts
-@@ -53,7 +53,14 @@ export class BrowserWorkbenchEnvironment
- 	get logFile(): URI { return joinPath(this.logsHome, 'window.log'); }
+@@ -78,7 +78,14 @@ export class BrowserWorkbenchEnvironment
+ 	get logFile(): URI { return joinPath(this.windowLogsPath, 'window.log'); }
  
  	@memoize
 -	get userRoamingDataHome(): URI { return URI.file('/User').with({ scheme: Schemas.vscodeUserData }); }
