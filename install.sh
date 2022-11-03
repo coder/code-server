@@ -286,6 +286,9 @@ main() {
       npm_fallback install_standalone
       ;;
   esac
+
+  echoh
+  echoh "Deploy code-server for your team with Coder: https://github.com/coder/coder"
 }
 
 parse_arg() {
