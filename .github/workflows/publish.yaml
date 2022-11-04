@@ -38,16 +38,14 @@ jobs:
           out-file-path: "release-npm-package"
 
       - name: Get and set VERSION
-        id: version
         run: |
           TAG="${{ github.event.inputs.version || github.ref_name }}"
-          VERSION="${TAG#v}"
-          echo "{version}={$VERSION}" >> $GITHUB_OUTPUT
+          echo "VERSION=${TAG#v}" >> $GITHUB_ENV
 
       - name: Publish npm package and tag with "latest"
         run: yarn publish:npm
         env:
-          VERSION: ${{ steps.version.outputs.version }}
+          VERSION: ${{ env.VERSION }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           NPM_ENVIRONMENT: "production"
@@ -72,15 +70,13 @@ jobs:
           git config --global user.email opensource@coder.com
 
       - name: Get and set VERSION
-        id: version
         run: |
           TAG="${{ github.event.inputs.version || github.ref_name }}"
-          VERSION="${TAG#v}"
-          echo "{version}={$VERSION}" >> $GITHUB_OUTPUT
+          echo "VERSION=${TAG#v}" >> $GITHUB_ENV
 
       - name: Bump code-server homebrew version
         env:
-          VERSION: ${{ steps.version.outputs.version }}
+          VERSION: ${{ env.VERSION }}
           HOMEBREW_GITHUB_API_TOKEN: ${{secrets.HOMEBREW_GITHUB_API_TOKEN}}
 
         run: ./ci/steps/brew-bump.sh
@@ -120,16 +116,14 @@ jobs:
           git config --global user.email opensource@coder.com
 
       - name: Get and set VERSION
-        id: version
         run: |
           TAG="${{ github.event.inputs.version || github.ref_name }}"
-          VERSION="${TAG#v}"
-          echo "{version}={$VERSION}" >> $GITHUB_OUTPUT
+          echo "VERSION=${TAG#v}" >> $GITHUB_ENV
 
       - name: Validate package
         uses: hapakaien/archlinux-package-action@v2
         with:
-          pkgver: ${{ steps.version.outputs.version }}
+          pkgver: ${{ env.VERSION }}
           updpkgsums: true
           srcinfo: true
 
@@ -168,17 +162,15 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Get and set VERSION
-        id: version
         run: |
           TAG="${{ github.event.inputs.version || github.ref_name }}"
-          VERSION="${TAG#v}"
-          echo "{version}={$VERSION}" >> $GITHUB_OUTPUT
+          echo "VERSION=${TAG#v}" >> $GITHUB_ENV
 
       - name: Download release artifacts
         uses: robinraju/release-downloader@v1.5
         with:
           repository: "coder/code-server"
-          tag: v${{ steps.version.outputs.version }}
+          tag: v${{ env.VERSION }}
           fileName: "*.deb"
           out-file-path: "release-packages"
 
