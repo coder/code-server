@@ -63,9 +63,17 @@ jobs:
           git config --global user.name cdrci
           git config --global user.email opensource@coder.com
 
+      - name: Get and set VERSION
+        run: |
+          TAG="${{ github.event.inputs.version || github.ref_name }}"
+          VERSION="${TAG#v}"
+          echo "{version}={$VERSION}" >> $GITHUB_OUTPUT
+
       - name: Bump code-server homebrew version
         env:
+          VERSION: ${{ steps.version.outputs.version }}
           HOMEBREW_GITHUB_API_TOKEN: ${{secrets.HOMEBREW_GITHUB_API_TOKEN}}
+
         run: ./ci/steps/brew-bump.sh
 
   aur:
@@ -74,6 +82,8 @@ jobs:
     timeout-minutes: 10
     env:
       GH_TOKEN: ${{ secrets.HOMEBREW_GITHUB_API_TOKEN }}
+      VERSION: ${{ github.event.inputs.version || github.ref_name }}
+
     steps:
       # We need to checkout code-server so we can get the version
       - name: Checkout code-server
