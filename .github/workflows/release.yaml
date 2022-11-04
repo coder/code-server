@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: The version to publish (don't include the "v").
+        description: The version to publish (include "v", i.e. "v4.9.1").
         type: string
         required: true
 
@@ -92,7 +92,16 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
         if: success()
 
+      - name: Get and set VERSION
+        id: version
+        run: |
+          TAG="${{ github.event.inputs.version || github.ref_name }}"
+          VERSION="${TAG#v}"
+          echo "{version}={$VERSION}" >> $GITHUB_OUTPUT
+
       - name: Build packages with nfpm
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
         run: yarn package
 
       - uses: softprops/action-gh-release@v1
@@ -178,7 +187,16 @@ jobs:
           tar -xf node-${NODE_VERSION}-linux-${NPM_CONFIG_ARCH}.tar.xz node-${NODE_VERSION}-linux-${NPM_CONFIG_ARCH}/bin/node --strip-components=2
           mv ./node ./release-standalone/lib/node
 
+      - name: Get and set VERSION
+        id: version
+        run: |
+          TAG="${{ github.event.inputs.version || github.ref_name }}"
+          VERSION="${TAG#v}"
+          echo "{version}={$VERSION}" >> $GITHUB_OUTPUT
+
       - name: Build packages with nfpm
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
         run: yarn package ${NPM_CONFIG_ARCH}
 
       - uses: softprops/action-gh-release@v1
@@ -234,7 +252,16 @@ jobs:
       - name: Run native module tests on standalone release
         run: yarn test:native
 
+      - name: Get and set VERSION
+        id: version
+        run: |
+          TAG="${{ github.event.inputs.version || github.ref_name }}"
+          VERSION="${TAG#v}"
+          echo "{version}={$VERSION}" >> $GITHUB_OUTPUT
+
       - name: Build packages with nfpm
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
         run: yarn package
 
       - uses: softprops/action-gh-release@v1
@@ -296,5 +323,3 @@ jobs:
         with:
           name: npm-release-package
           path: ./package.tar.gz
-
-      # upload here or separate job
