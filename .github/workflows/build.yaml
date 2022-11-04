@@ -257,6 +257,12 @@ jobs:
       - name: Run ./ci/steps/publish-npm.sh
         run: yarn publish:npm
         env:
+          # NOTE@jsjoeio
+          # This is because npm enforces semantic versioning
+          # so it has to be a valid version. We only use this
+          # to publish dev versions from prs
+          # and beta versions from main.
+          VERSION: "0.0.0"
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           # NOTE@jsjoeio

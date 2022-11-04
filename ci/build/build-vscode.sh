@@ -47,6 +47,7 @@ main() {
   # as it is a submodule.
   export VSCODE_DISTRO_COMMIT
   VSCODE_DISTRO_COMMIT=$(git rev-parse HEAD)
+  VERSION=$(jq -r .version package.json)
 
   # Add the date, our name, links, and enable telemetry (this just makes
   # telemetry available; telemetry can still be disabled by flag or setting).
