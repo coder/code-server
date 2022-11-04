@@ -131,6 +131,11 @@ Or, if you don't want/need a background service you can run:
 EOF
 }
 
+echo_coder_postinstall() {
+  echoh
+  echoh "Deploy code-server for your team with Coder: https://github.com/coder/coder"
+}
+
 main() {
   if [ "${TRACE-}" ]; then
     set -x
@@ -243,6 +248,7 @@ main() {
   if [ "$METHOD" = standalone ]; then
     if has_standalone; then
       install_standalone
+      echo_coder_postinstall
       exit 0
     else
       echoerr "There are no standalone releases for $ARCH"
@@ -287,8 +293,7 @@ main() {
       ;;
   esac
 
-  echoh
-  echoh "Deploy code-server for your team with Coder: https://github.com/coder/coder"
+  echo_coder_postinstall
 }
 
 parse_arg() {

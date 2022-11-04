@@ -10,15 +10,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/welcomeGettingStarted/bro
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/contrib/welcomeGettingStarted/browser/gettingStarted.ts
 +++ code-server/lib/vscode/src/vs/workbench/contrib/welcomeGettingStarted/browser/gettingStarted.ts
-@@ -20,6 +20,7 @@ import { IKeybindingService } from 'vs/p
- import { firstSessionDateStorageKey, ITelemetryService, TelemetryLevel } from 'vs/platform/telemetry/common/telemetry';
- import { DomScrollableElement } from 'vs/base/browser/ui/scrollbar/scrollableElement';
- import { gettingStartedCheckedCodicon, gettingStartedUncheckedCodicon } from 'vs/workbench/contrib/welcomeGettingStarted/browser/gettingStartedIcons';
-+import { Codicon } from 'vs/base/common/codicons';
- import { IOpenerService, matchesScheme } from 'vs/platform/opener/common/opener';
- import { URI } from 'vs/base/common/uri';
- import { EditorPane } from 'vs/workbench/browser/parts/editor/editorPane';
-@@ -62,7 +63,7 @@ import { GettingStartedIndexList } from
+@@ -62,7 +62,7 @@ import { GettingStartedIndexList } from
  import { StandardKeyboardEvent } from 'vs/base/browser/keyboardEvent';
  import { KeyCode } from 'vs/base/common/keyCodes';
  import { getTelemetryLevel } from 'vs/platform/telemetry/common/telemetryUtils';
@@ -27,7 +19,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/welcomeGettingStarted/bro
  import { OpenFolderViaWorkspaceAction } from 'vs/workbench/browser/actions/workspaceActions';
  import { OpenRecentAction } from 'vs/workbench/browser/actions/windowActions';
  import { Toggle } from 'vs/base/browser/ui/toggle/toggle';
-@@ -758,6 +759,65 @@ export class GettingStartedPage extends
+@@ -758,6 +758,65 @@ export class GettingStartedPage extends
  			$('p.subtitle.description', {}, localize({ key: 'gettingStarted.editingEvolved', comment: ['Shown as subtitle on the Welcome page.'] }, "Editing evolved"))
  		);
  
@@ -93,7 +85,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/welcomeGettingStarted/bro
  
  		const leftColumn = $('.categories-column.categories-column-left', {},);
  		const rightColumn = $('.categories-column.categories-column-right', {},);
-@@ -775,13 +835,13 @@ export class GettingStartedPage extends
+@@ -775,13 +834,13 @@ export class GettingStartedPage extends
  		const layoutLists = () => {
  			if (gettingStartedList.itemCount) {
  				this.container.classList.remove('noWalkthroughs');

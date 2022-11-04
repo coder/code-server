@@ -12,7 +12,7 @@
         in {
           devShells.default = pkgs.mkShell {
             nativeBuildInputs = with pkgs; [
-              nodejs yarn' python pkg-config git rsync jq moreutils quilt
+              nodejs yarn' python pkg-config git rsync jq moreutils quilt bats
             ];
             buildInputs = with pkgs; (lib.optionals (!stdenv.isDarwin) [ libsecret ]
                           ++ (with xorg; [ libX11 libxkbfile ])
