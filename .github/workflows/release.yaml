@@ -285,7 +285,7 @@ jobs:
 
           echo "Updating version in lib/vscode/product.json"
           tmp=$(mktemp) 
-          jq '.codeServerVersion = ${{ github.event.inputs.version || github.ref_name }}' release/lib/vscode/product.json > "$tmp" && mv "$tmp" release/lib/vscode/product.json
+          jq '.codeServerVersion = "${{ github.event.inputs.version || github.ref_name }}"' release/lib/vscode/product.json > "$tmp" && mv "$tmp" release/lib/vscode/product.json
 
       # TODO@jsjoeio - will it throw error if it already exists?
       - name: Compress release package
