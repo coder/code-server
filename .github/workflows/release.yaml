@@ -96,12 +96,10 @@ jobs:
         id: version
         run: |
           TAG="${{ github.event.inputs.version || github.ref_name }}"
-          VERSION="${TAG#v}"
-          echo "{version}={$VERSION}" >> $GITHUB_OUTPUT
+          VERSION_FROM_TAG="${TAG#v}"
+          echo "{VERSION}={$VERSION_FROM_TAG}" >> $GITHUB_OUTPUT
 
       - name: Build packages with nfpm
-        env:
-          VERSION: ${{ steps.version.outputs.version }}
         run: yarn package
 
       - uses: softprops/action-gh-release@v1
@@ -191,8 +189,8 @@ jobs:
         id: version
         run: |
           TAG="${{ github.event.inputs.version || github.ref_name }}"
-          VERSION="${TAG#v}"
-          echo "{version}={$VERSION}" >> $GITHUB_OUTPUT
+          VERSION_FROM_TAG="${TAG#v}"
+          echo "{VERSION}={$VERSION_FROM_TAG}" >> $GITHUB_OUTPUT
 
       - name: Build packages with nfpm
         env:
@@ -256,8 +254,8 @@ jobs:
         id: version
         run: |
           TAG="${{ github.event.inputs.version || github.ref_name }}"
-          VERSION="${TAG#v}"
-          echo "{version}={$VERSION}" >> $GITHUB_OUTPUT
+          VERSION_FROM_TAG="${TAG#v}"
+          echo "{VERSION}={$VERSION_FROM_TAG}" >> $GITHUB_OUTPUT
 
       - name: Build packages with nfpm
         env:
