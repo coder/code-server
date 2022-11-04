@@ -28,15 +28,13 @@ jobs:
         id: version
         run: echo "::set-output name=version::$(jq -r .version package.json)"
 
-      - name: Download artifact
-        uses: dawidd6/action-download-artifact@v2
-        id: download
+      - name: Download npm package from release artifacts
+        uses: robinraju/release-downloader@v1.5
         with:
-          branch: release/v${{ steps.version.outputs.version }}
-          workflow: build.yaml
-          workflow_conclusion: completed
-          name: "npm-package"
-          path: release-npm-package
+          repository: "coder/code-server"
+          tag: v${{ steps.version.outputs.version }}
+          fileName: "package.tar.gz"
+          out-file-path: "release-npm-package"
 
       - name: Publish npm package and tag with "latest"
         run: yarn publish:npm
