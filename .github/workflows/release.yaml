@@ -258,6 +258,8 @@ jobs:
           echo "{VERSION}={$VERSION_FROM_TAG}" >> $GITHUB_OUTPUT
 
       - name: Build packages with nfpm
+        env:
+          VERSION: ${{ env.VERSION }}
         run: yarn package
 
       - uses: softprops/action-gh-release@v1
