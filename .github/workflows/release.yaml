@@ -94,7 +94,7 @@ jobs:
 
       - name: Get and set VERSION
         run: |
-          TAG="${{ github.event.inputs.version || github.ref_name }}"
+          TAG="${{ inputs.version || github.ref_name }}"
           echo "VERSION=${TAG#v}" >> $GITHUB_ENV
 
       - name: Build packages with nfpm
@@ -187,7 +187,7 @@ jobs:
 
       - name: Get and set VERSION
         run: |
-          TAG="${{ github.event.inputs.version || github.ref_name }}"
+          TAG="${{ inputs.version || github.ref_name }}"
           echo "VERSION=${TAG#v}" >> $GITHUB_ENV
 
       - name: Build packages with nfpm
@@ -250,7 +250,7 @@ jobs:
 
       - name: Get and set VERSION
         run: |
-          TAG="${{ github.event.inputs.version || github.ref_name }}"
+          TAG="${{ inputs.version || github.ref_name }}"
           echo "VERSION=${TAG#v}" >> $GITHUB_ENV
 
       - name: Build packages with nfpm
@@ -302,11 +302,11 @@ jobs:
       - name: Modify version
         run: |
           echo "Updating version in root package.json"
-          npm version --prefix release ${{ github.event.inputs.version || github.ref_name }}
+          npm version --prefix release ${{ inputs.version || github.ref_name }}
 
           echo "Updating version in lib/vscode/product.json"
           tmp=$(mktemp) 
-          jq '.codeServerVersion = "${{ github.event.inputs.version || github.ref_name }}"' release/lib/vscode/product.json > "$tmp" && mv "$tmp" release/lib/vscode/product.json
+          jq '.codeServerVersion = "${{ inputs.version || github.ref_name }}"' release/lib/vscode/product.json > "$tmp" && mv "$tmp" release/lib/vscode/product.json
 
       # TODO@jsjoeio - will it throw error if it already exists?
       - name: Compress release package
