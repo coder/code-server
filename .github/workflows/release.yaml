@@ -354,6 +354,21 @@ jobs:
           VERSION: ${{ github.events.inputs.version || github.ref_name }}
         run: VERSION=${VERSION#v} yarn publish
 
+  asher4:
+    name: testing asher's fourth method
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Download artifacts
+        run: |
+          TAG="${{ github.event.inputs.version || github.ref_name }}"
+          echo "VERSION=${TAG#v}" >> $GITHUB_ENV
+
+      - name: Build packages with nfpm
+        env:
+          VERSION: ${{ env.VERSION }}
+        run: echo "$VERSION hello there"
+
   joe:
     name: testing joe's first method
     runs-on: ubuntu-latest
@@ -362,7 +377,7 @@ jobs:
       - name: Download artifacts
         run: |
           TAG="${{ github.event.inputs.version || github.ref_name }}"
-          echo "VERSION="${TAG#v}" >> $GITHUB_ENV
+          echo "VERSION=${TAG#v}" >> $GITHUB_ENV
 
       - name: Build packages with nfpm
         env:
