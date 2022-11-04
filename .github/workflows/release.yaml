@@ -362,8 +362,7 @@ jobs:
       - name: Download artifacts
         run: |
           TAG="${{ github.event.inputs.version || github.ref_name }}"
-          VERSION_FROM_TAG="${TAG#v}"
-          echo "VERSION=$VERSION_FROM_TAG" >> $GITHUB_OUTPUT
+          echo "VERSION="${TAG#v}" >> $GITHUB_ENV
 
       - name: Build packages with nfpm
         env:
