@@ -37,9 +37,17 @@ jobs:
           fileName: "package.tar.gz"
           out-file-path: "release-npm-package"
 
+      - name: Get and set VERSION
+        id: version
+        run: |
+          TAG="${{ github.event.inputs.version || github.ref_name }}"
+          VERSION="${TAG#v}"
+          echo "{version}={$VERSION}" >> $GITHUB_OUTPUT
+
       - name: Publish npm package and tag with "latest"
         run: yarn publish:npm
         env:
+          VERSION: ${{ steps.version.outputs.version }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           NPM_ENVIRONMENT: "production"
@@ -64,6 +72,7 @@ jobs:
           git config --global user.email opensource@coder.com
 
       - name: Get and set VERSION
+        id: version
         run: |
           TAG="${{ github.event.inputs.version || github.ref_name }}"
           VERSION="${TAG#v}"
@@ -92,13 +101,6 @@ jobs:
           fetch-depth: 0
           path: "./code-server"
 
-      - name: Get code-server version
-        id: version
-        run: |
-          pushd code-server
-          echo "::set-output name=version::$(jq -r .version package.json)"
-          popd
-
       - name: Checkout code-server-aur repo
         uses: actions/checkout@v3
         with:
@@ -116,6 +118,13 @@ jobs:
         run: |
           git config --global user.name cdrci
           git config --global user.email opensource@coder.com
+
+      - name: Get and set VERSION
+        id: version
+        run: |
+          TAG="${{ github.event.inputs.version || github.ref_name }}"
+          VERSION="${TAG#v}"
+          echo "{version}={$VERSION}" >> $GITHUB_OUTPUT
 
       - name: Validate package
         uses: hapakaien/archlinux-package-action@v2
@@ -158,9 +167,12 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Get version
+      - name: Get and set VERSION
         id: version
-        run: echo "::set-output name=version::$(jq -r .version package.json)"
+        run: |
+          TAG="${{ github.event.inputs.version || github.ref_name }}"
+          VERSION="${TAG#v}"
+          echo "{version}={$VERSION}" >> $GITHUB_OUTPUT
 
       - name: Download release artifacts
         uses: robinraju/release-downloader@v1.5
@@ -173,4 +185,5 @@ jobs:
       - name: Publish to Docker
         run: yarn publish:docker
         env:
+          VERSION: ${{ steps.version.outputs.version }}
           GITHUB_TOKEN: ${{ github.token }}
