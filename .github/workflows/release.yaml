@@ -321,3 +321,51 @@ jobs:
         with:
           name: npm-release-package
           path: ./package.tar.gz
+
+  asher:
+    name: testing asher's method
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: first
+        env:
+          VERSION: "${${{ github.events.inputs.version || github.ref_name }}#v}"
+        run: echo "$VERSION is the version"
+
+  asher2:
+    name: testing asher's second method
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: second
+        env:
+          VERSION: ${{ github.events.inputs.version || github.ref_name }}
+        run: |
+          echo "$VERSION is the version"
+          VERSION=${VERSION#v} echo "$VERSION strippeddddd"
+
+  asher3:
+    name: testing asher's third method
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Download artifacts
+        env:
+          VERSION: ${{ github.events.inputs.version || github.ref_name }}
+        run: VERSION=${VERSION#v} yarn publish
+
+  joe:
+    name: testing joe's first method
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Download artifacts
+        run: |
+          TAG="${{ github.event.inputs.version || github.ref_name }}"
+          VERSION_FROM_TAG="${TAG#v}"
+          echo "VERSION=$VERSION_FROM_TAG" >> $GITHUB_OUTPUT
+
+      - name: Build packages with nfpm
+        env:
+          VERSION: ${{ env.VERSION }}
+        run: echo "$VERSION hello there"
