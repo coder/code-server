@@ -27,7 +27,7 @@ Code v1.72.1
 ### Added
 
 - install script now supports arch-like (i.e. manjaro, endeavourous, etc.)
-architectures
+  architectures
 
 ### Changed
 
