@@ -10,7 +10,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/welcomeGettingStarted/bro
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/contrib/welcomeGettingStarted/browser/gettingStarted.ts
 +++ code-server/lib/vscode/src/vs/workbench/contrib/welcomeGettingStarted/browser/gettingStarted.ts
-@@ -62,7 +62,7 @@ import { GettingStartedIndexList } from 
+@@ -62,7 +62,7 @@ import { GettingStartedIndexList } from
  import { StandardKeyboardEvent } from 'vs/base/browser/keyboardEvent';
  import { KeyCode } from 'vs/base/common/keyCodes';
  import { getTelemetryLevel } from 'vs/platform/telemetry/common/telemetryUtils';
@@ -19,32 +19,106 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/welcomeGettingStarted/bro
  import { OpenFolderViaWorkspaceAction } from 'vs/workbench/browser/actions/workspaceActions';
  import { OpenRecentAction } from 'vs/workbench/browser/actions/windowActions';
  import { Toggle } from 'vs/base/browser/ui/toggle/toggle';
-@@ -753,11 +753,24 @@ export class GettingStartedPage extends 
- 			onShowOnStartupChanged();
- 		}));
- 
--		const header = $('.header', {},
-+		let header = $('.header', {},
- 			$('h1.product-name.caption', {}, this.productService.nameLong),
+@@ -758,6 +758,72 @@ export class GettingStartedPage extends
  			$('p.subtitle.description', {}, localize({ key: 'gettingStarted.editingEvolved', comment: ['Shown as subtitle on the Welcome page.'] }, "Editing evolved"))
  		);
  
++		let gettingStartedCoder: HTMLElement = $('.header', {});
 +		if (this.contextService.contextMatchesRules(IsEnabledCoderGettingStarted)) {
-+			header = $('.header', {},
-+			   $('h1.product-name.caption', {}, this.productService.nameLong),
-+			   $('p.subtitle.description.coder', {},
-+				   "Using code-server on a team?",
-+			   ),
-+			   $('p.subtitle.description.coder-coder', {},
-+				   "Check out: ",
-+				   $('a', { href: "https://github.com/coder/coder" }, "coder/coder")
-+			   ),
-+		   );
++			gettingStartedCoder = $('.gettingStartedCategory', {},
++				$('h2', {
++					style: 'margin-bottom: 12px',
++				}, 'Next Up'),
++				$('a', {
++					href: 'https://cdr.co/code-server-to-coder',
++					target: '_blank',
++				},
++					$('button', {
++						style: [
++							'padding: 10px 16px	',
++							'border-radius: 4px',
++							'background: linear-gradient(94.04deg, #7934DA 0%, #4D52E0 101.2%)',
++							'color: white',
++							'overflow: hidden',
++							'margin-right: 14px',
++						].join(';'),
++					},
++					$('h3', {
++						style: [
++							'margin: 0px 0px 6px',
++							'font-weight: 500',
++						].join(';'),
++					}, 'Deploy code-server for your team'),
++					$('p', {
++						style: [
++							'margin: 0',
++							'font-size: 13px',
++							'color: #dcdee2',
++						].join(';'),
++					}, 'Provision remote development environments on your infrastructure with Coder.'),
++					$('p', {
++						style: [
++							'margin-top: 8px',
++							'font-size: 13px',
++							'color: #dcdee2',
++						].join(';'),
++					}, 'Coder is a self-service portal which provisions via Terraform—Linux, macOS, Windows, x86, ARM, and, of course, Kubernetes based infrastructure.'),
++					$('p', {
++						style: [
++							'margin: 0',
++							'margin-top: 8px',
++							'font-size: 13px',
++							'display: flex',
++							'align-items: center',
++						].join(';'),
++					}, 'Get started ', $('span', {
++						class: Codicon.arrowRight.classNames,
++						style: [
++							'color: white',
++							'margin-left: 8px',
++						].join(';'),
++					})),
++					$('img', {
++						src: './_static/src/browser/media/templates.png',
++						style: [
++							'margin-bottom: -65px',
++						].join(';'),
++					}),
++					),
++				),
++			);
 +	   }
 +
  
  		const leftColumn = $('.categories-column.categories-column-left', {},);
  		const rightColumn = $('.categories-column.categories-column-right', {},);
+@@ -775,13 +841,23 @@ export class GettingStartedPage extends
+ 		const layoutLists = () => {
+ 			if (gettingStartedList.itemCount) {
+ 				this.container.classList.remove('noWalkthroughs');
+-				reset(leftColumn, startList.getDomElement(), recentList.getDomElement());
+-				reset(rightColumn, gettingStartedList.getDomElement());
++				if (this.contextService.contextMatchesRules(IsEnabledCoderGettingStarted)) {
++					reset(leftColumn, startList.getDomElement(), recentList.getDomElement(), gettingStartedList.getDomElement());
++					reset(rightColumn, gettingStartedCoder);
++				} else {
++					reset(leftColumn, startList.getDomElement(), recentList.getDomElement());
++					reset(rightColumn, gettingStartedList.getDomElement());
++				}
++
+ 				recentList.setLimit(5);
+ 			}
+ 			else {
+ 				this.container.classList.add('noWalkthroughs');
+-				reset(leftColumn, startList.getDomElement());
++				if (this.contextService.contextMatchesRules(IsEnabledCoderGettingStarted)) {
++					reset(leftColumn, startList.getDomElement(), gettingStartedCoder);
++				} else {
++					reset(leftColumn, startList.getDomElement());
++				}
+ 				reset(rightColumn, recentList.getDomElement());
+ 				recentList.setLimit(10);
+ 			}
 Index: code-server/lib/vscode/src/vs/workbench/contrib/welcomeGettingStarted/browser/media/gettingStarted.css
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/contrib/welcomeGettingStarted/browser/media/gettingStarted.css
