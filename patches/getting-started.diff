@@ -19,7 +19,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/welcomeGettingStarted/bro
  import { OpenFolderViaWorkspaceAction } from 'vs/workbench/browser/actions/workspaceActions';
  import { OpenRecentAction } from 'vs/workbench/browser/actions/windowActions';
  import { Toggle } from 'vs/base/browser/ui/toggle/toggle';
-@@ -758,6 +758,65 @@ export class GettingStartedPage extends
+@@ -758,6 +758,72 @@ export class GettingStartedPage extends
  			$('p.subtitle.description', {}, localize({ key: 'gettingStarted.editingEvolved', comment: ['Shown as subtitle on the Welcome page.'] }, "Editing evolved"))
  		);
  
@@ -53,9 +53,16 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/welcomeGettingStarted/bro
 +						style: [
 +							'margin: 0',
 +							'font-size: 13px',
-+							'color: #B3BFD7',
++							'color: #dcdee2',
 +						].join(';'),
 +					}, 'Provision remote development environments on your infrastructure with Coder.'),
++					$('p', {
++						style: [
++							'margin-top: 8px',
++							'font-size: 13px',
++							'color: #dcdee2',
++						].join(';'),
++					}, 'Coder is a self-service portal which provisions via Terraform—Linux, macOS, Windows, x86, ARM, and, of course, Kubernetes based infrastructure.'),
 +					$('p', {
 +						style: [
 +							'margin: 0',
@@ -85,7 +92,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/welcomeGettingStarted/bro
  
  		const leftColumn = $('.categories-column.categories-column-left', {},);
  		const rightColumn = $('.categories-column.categories-column-right', {},);
-@@ -775,13 +834,23 @@ export class GettingStartedPage extends
+@@ -775,13 +841,23 @@ export class GettingStartedPage extends
  		const layoutLists = () => {
  			if (gettingStartedList.itemCount) {
  				this.container.classList.remove('noWalkthroughs');
