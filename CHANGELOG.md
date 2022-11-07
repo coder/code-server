@@ -20,6 +20,14 @@ Code v99.99.999
 
 -->
 
+## [4.8.3](https://github.com/coder/code-server/releases/tag/v4.8.3) - 2022-11-07
+
+Code v1.72.1
+
+### Changed
+
+- Updated text in the Getting Started page.
+
 ## [4.8.2](https://github.com/coder/code-server/releases/tag/v4.8.2) - 2022-11-02
 
 Code v1.72.1
