@@ -24,6 +24,11 @@ Code v99.99.999
 
 Code v1.72.1
 
+### Added
+
+- install script now supports arch-like (i.e. manjaro, endeavourous, etc.)
+architectures
+
 ### Changed
 
 - Updated text in the Getting Started page.
