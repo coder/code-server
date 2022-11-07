@@ -11,14 +11,14 @@ function should-use-deb() {
   DISTRO=$1 ARCH=$2 OS=linux run "$SCRIPT" --dry-run
   [ "$status" -eq 0 ]
   [ "${lines[1]}" = "Installing v$VERSION of the $2 deb package from GitHub." ]
-  [ "${lines[-5]}" = "deb package has been installed." ]
+  [ "${lines[-6]}" = "deb package has been installed." ]
 }
 
 function should-use-rpm() {
   DISTRO=$1 ARCH=$2 OS=linux run "$SCRIPT" --dry-run
   [ "$status" -eq 0 ]
   [ "${lines[1]}" = "Installing v$VERSION of the $2 rpm package from GitHub." ]
-  [ "${lines[-5]}" = "rpm package has been installed." ]
+  [ "${lines[-6]}" = "rpm package has been installed." ]
 }
 
 function should-fallback-npm() {
@@ -27,21 +27,21 @@ function should-fallback-npm() {
   [ "${lines[1]}" = "No standalone releases for $2." ]
   [ "${lines[2]}" = "Falling back to installation from npm." ]
   [ "${lines[3]}" = "Installing latest from npm." ]
-  [ "${lines[-5]}" = "npm package has been installed." ]
+  [ "${lines[-6]}" = "npm package has been installed." ]
 }
 
 function should-use-npm() {
   YARN_PATH=true DISTRO=$1 ARCH=$2 OS=linux run "$SCRIPT" --dry-run
   [ "$status" -eq 0 ]
   [ "${lines[1]}" = "Installing latest from npm." ]
-  [ "${lines[-5]}" = "npm package has been installed." ]
+  [ "${lines[-6]}" = "npm package has been installed." ]
 }
 
 function should-use-aur() {
   DISTRO=$1 ARCH=$2 OS=linux run "$SCRIPT" --dry-run
   [ "$status" -eq 0 ]
   [ "${lines[1]}" = "Installing latest from the AUR." ]
-  [ "${lines[-5]}" = "AUR package has been installed." ]
+  [ "${lines[-6]}" = "AUR package has been installed." ]
 }
 
 function should-fallback-npm-brew() {
@@ -52,21 +52,21 @@ function should-fallback-npm-brew() {
   [ "${lines[3]}" = "No standalone releases for $1." ]
   [ "${lines[4]}" = "Falling back to installation from npm." ]
   [ "${lines[5]}" = "Installing latest from npm." ]
-  [ "${lines[-5]}" = "npm package has been installed." ]
+  [ "${lines[-6]}" = "npm package has been installed." ]
 }
 
 function should-use-brew() {
   BREW_PATH=true OS=macos ARCH=$1 run "$SCRIPT" --dry-run
   [ "$status" -eq 0 ]
   [ "${lines[1]}" = "Installing latest from Homebrew." ]
-  [ "${lines[-3]}" = "Brew release has been installed." ]
+  [ "${lines[-4]}" = "Brew release has been installed." ]
 }
 
 function should-use-standalone() {
   DISTRO=$1 ARCH=$2 OS=$3 run "$SCRIPT" --method standalone --dry-run
   [ "$status" -eq 0 ]
   [ "${lines[1]}" = "Installing v$VERSION of the $2 release from GitHub." ]
-  [[ "${lines[-5]}" = "Standalone release has been installed"* ]]
+  [[ "${lines[-6]}" = "Standalone release has been installed"* ]]
 }
 
 @test "$SCRIPT_NAME: usage with --help" {
@@ -141,7 +141,7 @@ function should-use-standalone() {
   [ "${lines[1]}" = "Homebrew not installed." ]
   [ "${lines[2]}" = "Falling back to standalone installation." ]
   [ "${lines[3]}" = "Installing v$VERSION of the amd64 release from GitHub." ]
-  [[ "${lines[-5]}" = "Standalone release has been installed"* ]]
+  [[ "${lines[-6]}" = "Standalone release has been installed"* ]]
 }
 @test "$SCRIPT_NAME: macos i386 (no brew)" {
   should-fallback-npm-brew "i386"

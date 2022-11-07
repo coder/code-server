@@ -12,13 +12,13 @@
         in {
           devShells.default = pkgs.mkShell {
             nativeBuildInputs = with pkgs; [
-              nodejs yarn' python pkg-config git rsync jq moreutils
+              nodejs yarn' python pkg-config git rsync jq moreutils quilt bats
             ];
             buildInputs = with pkgs; (lib.optionals (!stdenv.isDarwin) [ libsecret ]
                           ++ (with xorg; [ libX11 libxkbfile ])
-                          ++ lib.optionals stdenv.isDarwin [
-                            AppKit Cocoa CoreServices Security cctools xcbuild
-                          ]);
+                          ++ lib.optionals stdenv.isDarwin (with pkgs.darwin.apple_sdk.frameworks; [ 
+                            AppKit Cocoa CoreServices Security xcbuild
+                          ]));
           };
         }
       );
