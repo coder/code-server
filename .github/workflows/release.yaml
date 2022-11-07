@@ -92,6 +92,8 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
         if: success()
 
+      # NOTE@jsjoeio - we do this so we can strip out the v
+      # i.e. v4.9.1 -> 4.9.1
       - name: Get and set VERSION
         run: |
           TAG="${{ inputs.version || github.ref_name }}"
@@ -185,6 +187,8 @@ jobs:
           tar -xf node-${NODE_VERSION}-linux-${NPM_CONFIG_ARCH}.tar.xz node-${NODE_VERSION}-linux-${NPM_CONFIG_ARCH}/bin/node --strip-components=2
           mv ./node ./release-standalone/lib/node
 
+      # NOTE@jsjoeio - we do this so we can strip out the v
+      # i.e. v4.9.1 -> 4.9.1
       - name: Get and set VERSION
         run: |
           TAG="${{ inputs.version || github.ref_name }}"
@@ -248,6 +252,8 @@ jobs:
       - name: Run native module tests on standalone release
         run: yarn test:native
 
+      # NOTE@jsjoeio - we do this so we can strip out the v
+      # i.e. v4.9.1 -> 4.9.1
       - name: Get and set VERSION
         run: |
           TAG="${{ inputs.version || github.ref_name }}"
