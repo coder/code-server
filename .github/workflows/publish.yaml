@@ -177,5 +177,5 @@ jobs:
       - name: Publish to Docker
         run: yarn publish:docker
         env:
-          VERSION: ${{ steps.version.outputs.version }}
+          VERSION: ${{ env.VERSION }}
           GITHUB_TOKEN: ${{ github.token }}
