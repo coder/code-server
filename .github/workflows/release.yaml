@@ -314,7 +314,6 @@ jobs:
           tmp=$(mktemp) 
           jq '.codeServerVersion = "${{ inputs.version || github.ref_name }}"' release/lib/vscode/product.json > "$tmp" && mv "$tmp" release/lib/vscode/product.json
 
-      # TODO@jsjoeio - will it throw error if it already exists?
       - name: Compress release package
         run: tar -czf package.tar.gz release
 
