@@ -91,7 +91,6 @@ jobs:
     timeout-minutes: 10
     env:
       GH_TOKEN: ${{ secrets.HOMEBREW_GITHUB_API_TOKEN }}
-      VERSION: ${{ github.event.inputs.version || github.ref_name }}
 
     steps:
       # We need to checkout code-server so we can get the version
