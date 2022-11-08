@@ -19,12 +19,6 @@ main() {
   # This is because npm won't publish your package unless it's a new version.
   # i.e. for development, we bump the version to <current version>-<pr number>-<commit sha>
   # example: "version": "4.0.1-4769-ad7b23cfe6ffd72914e34781ef7721b129a23040"
-  # We need the current package.json VERSION
-  if ! is_env_var_set "VERSION"; then
-    echo "VERSION is not set. Cannot publish to npm without VERSION."
-    exit 1
-  fi
-
   # We use this to grab the PR_NUMBER
   if ! is_env_var_set "GITHUB_REF"; then
     echo "GITHUB_REF is not set. Are you running this locally? We rely on values provided by GitHub."
@@ -102,6 +96,7 @@ main() {
       # This means the npm version will be tagged with "beta"
       # and installed when a user runs `yarn install code-server@beta`
       NPM_TAG="beta"
+      PACKAGE_NAME="@coder/code-server-pr"
     fi
 
     if [[ "$NPM_ENVIRONMENT" == "development" ]]; then

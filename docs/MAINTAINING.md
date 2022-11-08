@@ -142,16 +142,16 @@ changelog](https://github.com/emacs-mirror/emacs/blob/master/etc/NEWS).
 
 ### Publishing a release
 
-1. Create a new branch called `release/v0.0.0` (replace 0s with actual version aka v4.5.0)
-1. Run `yarn release:prep`
-1. Bump chart version in `Chart.yaml`.
-1. Summarize the major changes in the `CHANGELOG.md`
-1. Download CI artifacts and make sure code-server works locally.
-1. Merge PR and wait for CI build on `main` to finish.
-1. Go to GitHub Actions > Draft release > Run workflow off `main`. CI will automatically upload the artifacts to the release.
-1. Add the release notes from the `CHANGELOG.md` and publish release. CI will automatically grab the
+1. Go to GitHub Actions > Draft release > Run workflow off commit you want to
+   release. CI will automatically upload the artifacts to the release. Make sure CI
+   has finished on that commit.
+1. CI will automatically grab the
    artifacts, publish the NPM package from `npm-package`, and publish the Docker
    Hub image from `release-images`.
+1. Publish release.
+1. After, create a new branch called `release/v0.0.0` (replace 0s with actual version aka v4.5.0)
+1. Summarize the major changes in the `CHANGELOG.md`
+1. Bump chart version in `Chart.yaml`.
 
 #### Release Candidates
 
