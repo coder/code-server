@@ -1,6 +1,7 @@
 Unconditionally enable the proposed API
 
-To test run an extension that uses the proposed API.
+To test run an extension that uses the proposed API (i.e.
+https://github.com/microsoft/vscode-extension-samples/tree/ddae6c0c9ff203b4ed6f6b43bfacdd0834215f83/proposed-api-sample)
 
 We also override isProposedApiEnabled in case an extension does not declare the
 APIs it needs correctly (the Jupyter extension had this issue).
