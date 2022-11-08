@@ -272,3 +272,21 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
  				embedderIdentifier: 'server-distro',
  				extensionsGallery: this._webExtensionResourceUrlTemplate ? {
  					...this._productService.extensionsGallery,
+Index: code-server/lib/vscode/src/vs/platform/environment/common/environmentService.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/platform/environment/common/environmentService.ts
++++ code-server/lib/vscode/src/vs/platform/environment/common/environmentService.ts
+@@ -223,7 +223,12 @@ export abstract class AbstractNativeEnvi
+ 	get verbose(): boolean { return !!this.args.verbose; }
+ 
+ 	@memoize
+-	get logLevel(): string | undefined { return this.args.log?.find(entry => !EXTENSION_IDENTIFIER_WITH_LOG_REGEX.test(entry)); }
++	get logLevel(): string | undefined {
++		if (typeof this.args.log === "string") {
++			return this.args.log
++		}
++		return this.args.log?.find(entry => !EXTENSION_IDENTIFIER_WITH_LOG_REGEX.test(entry));
++	}
+ 	@memoize
+ 	get extensionLogLevel(): [string, string][] | undefined {
+ 		const result: [string, string][] = [];
