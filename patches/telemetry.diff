@@ -4,6 +4,7 @@ To test:
 1. Create a RequestBin - https://requestbin.io/
 2. Run code-server with `CS_TELEMETRY_URL` set: 
   i.e. `CS_TELEMETRY_URL="https://requestbin.io/1ebub9z1" ./code-server-<version>-macos-amd64/bin/code-server`
+  NOTE: it has to be a production build.
 3. Load code-server in browser an do things (i.e. open a file)
 4. Refresh RequestBin and you should see logs
 
@@ -18,8 +19,8 @@ Index: code-server/lib/vscode/src/vs/server/node/serverServices.ts
 +import { TelemetryClient } from "vs/server/node/telemetryClient";
  import { NullPolicyService } from 'vs/platform/policy/common/policy';
  import { OneDataSystemAppender } from 'vs/platform/telemetry/node/1dsAppender';
- 
-@@ -133,10 +134,13 @@ export async function setupServerService
+ import { LoggerService } from 'vs/platform/log/node/loggerService';
+@@ -139,10 +140,13 @@ export async function setupServerService
  	const machineId = await getMachineId();
  	const isInternal = isInternalTelemetry(productService, configurationService);
  	if (supportsTelemetry(productService, environmentService)) {

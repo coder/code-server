@@ -1,6 +1,7 @@
 Unconditionally enable the proposed API
 
-To test run an extension that uses the proposed API.
+To test run an extension that uses the proposed API (i.e.
+https://github.com/microsoft/vscode-extension-samples/tree/ddae6c0c9ff203b4ed6f6b43bfacdd0834215f83/proposed-api-sample)
 
 We also override isProposedApiEnabled in case an extension does not declare the
 APIs it needs correctly (the Jupyter extension had this issue).
@@ -9,7 +10,7 @@ Index: code-server/lib/vscode/src/vs/workbench/services/extensions/common/abstra
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/services/extensions/common/abstractExtensionService.ts
 +++ code-server/lib/vscode/src/vs/workbench/services/extensions/common/abstractExtensionService.ts
-@@ -1462,7 +1462,7 @@ class ProposedApiController {
+@@ -1482,7 +1482,7 @@ class ProposedApiController {
  
  		this._envEnabledExtensions = new Set((_environmentService.extensionEnabledProposedApi ?? []).map(id => ExtensionIdentifier.toKey(id)));
  
@@ -22,7 +23,7 @@ Index: code-server/lib/vscode/src/vs/workbench/services/extensions/common/extens
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/services/extensions/common/extensions.ts
 +++ code-server/lib/vscode/src/vs/workbench/services/extensions/common/extensions.ts
-@@ -359,10 +359,7 @@ function extensionDescriptionArrayToMap(
+@@ -364,10 +364,7 @@ function extensionDescriptionArrayToMap(
  }
  
  export function isProposedApiEnabled(extension: IExtensionDescription, proposal: ApiProposalName): boolean {
