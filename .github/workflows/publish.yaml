@@ -30,7 +30,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Download npm package from release artifacts
-        uses: robinraju/release-downloader@v1.5
+        uses: robinraju/release-downloader@v1.6
         with:
           repository: "coder/code-server"
           tag: ${{ github.event.inputs.version || github.ref_name }}
@@ -174,7 +174,7 @@ jobs:
           echo "VERSION=${TAG#v}" >> $GITHUB_ENV
 
       - name: Download release artifacts
-        uses: robinraju/release-downloader@v1.5
+        uses: robinraju/release-downloader@v1.6
         with:
           repository: "coder/code-server"
           tag: v${{ env.VERSION }}
