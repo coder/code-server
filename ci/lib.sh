@@ -9,10 +9,6 @@ popd() {
   builtin popd > /dev/null
 }
 
-pkg_json_version() {
-  jq -r .version package.json
-}
-
 vscode_version() {
   jq -r .version lib/vscode/package.json
 }
@@ -48,8 +44,6 @@ rsync() {
   command rsync -a --del "$@"
 }
 
-VERSION="$(pkg_json_version)"
-export VERSION
 ARCH="$(arch)"
 export ARCH
 OS=$(os)

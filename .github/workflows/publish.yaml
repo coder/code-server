@@ -4,6 +4,11 @@ on:
   # Shows the manual trigger in GitHub UI
   # helpful as a back-up in case the GitHub Actions Workflow fails
   workflow_dispatch:
+    inputs:
+      version:
+        description: The version to publish (include "v", i.e. "v4.9.1").
+        type: string
+        required: true
 
   release:
     types: [released]
@@ -24,21 +29,25 @@ jobs:
       - name: Checkout code-server
         uses: actions/checkout@v3
 
-      - name: Get version
-        id: version
-        run: echo "::set-output name=version::$(jq -r .version package.json)"
-
       - name: Download npm package from release artifacts
         uses: robinraju/release-downloader@v1.5
         with:
           repository: "coder/code-server"
-          tag: v${{ steps.version.outputs.version }}
+          tag: ${{ github.event.inputs.version || github.ref_name }}
           fileName: "package.tar.gz"
           out-file-path: "release-npm-package"
+
+      # NOTE@jsjoeio - we do this so we can strip out the v
+      # i.e. v4.9.1 -> 4.9.1
+      - name: Get and set VERSION
+        run: |
+          TAG="${{ github.event.inputs.version || github.ref_name }}"
+          echo "VERSION=${TAG#v}" >> $GITHUB_ENV
 
       - name: Publish npm package and tag with "latest"
         run: yarn publish:npm
         env:
+          VERSION: ${{ env.VERSION }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           NPM_ENVIRONMENT: "production"
@@ -62,9 +71,18 @@ jobs:
           git config --global user.name cdrci
           git config --global user.email opensource@coder.com
 
+      # NOTE@jsjoeio - we do this so we can strip out the v
+      # i.e. v4.9.1 -> 4.9.1
+      - name: Get and set VERSION
+        run: |
+          TAG="${{ github.event.inputs.version || github.ref_name }}"
+          echo "VERSION=${TAG#v}" >> $GITHUB_ENV
+
       - name: Bump code-server homebrew version
         env:
+          VERSION: ${{ env.VERSION }}
           HOMEBREW_GITHUB_API_TOKEN: ${{secrets.HOMEBREW_GITHUB_API_TOKEN}}
+
         run: ./ci/steps/brew-bump.sh
 
   aur:
@@ -73,6 +91,7 @@ jobs:
     timeout-minutes: 10
     env:
       GH_TOKEN: ${{ secrets.HOMEBREW_GITHUB_API_TOKEN }}
+
     steps:
       # We need to checkout code-server so we can get the version
       - name: Checkout code-server
@@ -80,13 +99,6 @@ jobs:
         with:
           fetch-depth: 0
           path: "./code-server"
-
-      - name: Get code-server version
-        id: version
-        run: |
-          pushd code-server
-          echo "::set-output name=version::$(jq -r .version package.json)"
-          popd
 
       - name: Checkout code-server-aur repo
         uses: actions/checkout@v3
@@ -106,10 +118,17 @@ jobs:
           git config --global user.name cdrci
           git config --global user.email opensource@coder.com
 
+      # NOTE@jsjoeio - we do this so we can strip out the v
+      # i.e. v4.9.1 -> 4.9.1
+      - name: Get and set VERSION
+        run: |
+          TAG="${{ github.event.inputs.version || github.ref_name }}"
+          echo "VERSION=${TAG#v}" >> $GITHUB_ENV
+
       - name: Validate package
         uses: hapakaien/archlinux-package-action@v2
         with:
-          pkgver: ${{ steps.version.outputs.version }}
+          pkgver: ${{ env.VERSION }}
           updpkgsums: true
           srcinfo: true
 
@@ -147,19 +166,23 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Get version
-        id: version
-        run: echo "::set-output name=version::$(jq -r .version package.json)"
+      # NOTE@jsjoeio - we do this so we can strip out the v
+      # i.e. v4.9.1 -> 4.9.1
+      - name: Get and set VERSION
+        run: |
+          TAG="${{ github.event.inputs.version || github.ref_name }}"
+          echo "VERSION=${TAG#v}" >> $GITHUB_ENV
 
       - name: Download release artifacts
         uses: robinraju/release-downloader@v1.5
         with:
           repository: "coder/code-server"
-          tag: v${{ steps.version.outputs.version }}
+          tag: v${{ env.VERSION }}
           fileName: "*.deb"
           out-file-path: "release-packages"
 
       - name: Publish to Docker
         run: yarn publish:docker
         env:
+          VERSION: ${{ env.VERSION }}
           GITHUB_TOKEN: ${{ github.token }}

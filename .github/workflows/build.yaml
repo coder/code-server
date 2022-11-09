@@ -187,10 +187,6 @@ jobs:
         id: vscode-rev
         run: echo "::set-output name=rev::$(git rev-parse HEAD:./lib/vscode)"
 
-      - name: Get version
-        id: version
-        run: echo "::set-output name=version::$(jq -r .version package.json)"
-
       # We need to rebuild when we have a new version of Code, when any of
       # the patches changed, or when the code-server version changes (since
       # it gets embedded into the code).  Use VSCODE_CACHE_VERSION to
@@ -200,9 +196,11 @@ jobs:
         uses: actions/cache@v3
         with:
           path: lib/vscode-reh-web-*
-          key: vscode-reh-package-${{ secrets.VSCODE_CACHE_VERSION }}-${{ steps.vscode-rev.outputs.rev }}-${{ steps.version.outputs.version }}-${{ hashFiles('patches/*.diff', 'ci/build/build-vscode.sh') }}
+          key: vscode-reh-package-${{ secrets.VSCODE_CACHE_VERSION }}-${{ steps.vscode-rev.outputs.rev }}-${{ hashFiles('patches/*.diff', 'ci/build/build-vscode.sh') }}
 
       - name: Build vscode
+        env:
+          VERSION: "0.0.0"
         if: steps.cache-vscode.outputs.cache-hit != 'true'
         run: yarn build:vscode
 
@@ -261,6 +259,12 @@ jobs:
       - name: Run ./ci/steps/publish-npm.sh
         run: yarn publish:npm
         env:
+          # NOTE@jsjoeio
+          # This is because npm enforces semantic versioning
+          # so it has to be a valid version. We only use this
+          # to publish dev versions from prs
+          # and beta versions from main.
+          VERSION: "0.0.0"
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           # NOTE@jsjoeio

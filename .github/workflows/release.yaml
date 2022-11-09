@@ -2,6 +2,11 @@ name: Draft release
 
 on:
   workflow_dispatch:
+    inputs:
+      version:
+        description: The version to publish (include "v", i.e. "v4.9.1").
+        type: string
+        required: true
 
 permissions:
   contents: write # For creating releases.
@@ -21,6 +26,7 @@ jobs:
     name: x86-64 Linux build
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    needs: npm-version
     container: "centos:7"
     env:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
@@ -51,15 +57,10 @@ jobs:
       - name: Install yarn
         run: npm install -g yarn
 
-      - name: Download artifacts
-        uses: dawidd6/action-download-artifact@v2
-        id: download
+      - name: Download npm package
+        uses: actions/download-artifact@v3
         with:
-          branch: ${{ github.ref }}
-          workflow: build.yaml
-          workflow_conclusion: completed
-          check_artifacts: true
-          name: npm-package
+          name: npm-release-package
 
       - name: Decompress npm package
         run: tar -xzf package.tar.gz
@@ -91,7 +92,16 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
         if: success()
 
+      # NOTE@jsjoeio - we do this so we can strip out the v
+      # i.e. v4.9.1 -> 4.9.1
+      - name: Get and set VERSION
+        run: |
+          TAG="${{ inputs.version || github.ref_name }}"
+          echo "VERSION=${TAG#v}" >> $GITHUB_ENV
+
       - name: Build packages with nfpm
+        env:
+          VERSION: ${{ env.VERSION }}
         run: yarn package
 
       - uses: softprops/action-gh-release@v1
@@ -123,6 +133,7 @@ jobs:
     name: Linux cross-compile builds
     runs-on: ubuntu-18.04
     timeout-minutes: 15
+    needs: npm-version
     strategy:
       matrix:
         include:
@@ -159,15 +170,10 @@ jobs:
         env:
           PACKAGE: ${{ format('g++-{0}', matrix.prefix) }}
 
-      - name: Download artifacts
-        uses: dawidd6/action-download-artifact@v2
-        id: download
+      - name: Download npm package
+        uses: actions/download-artifact@v3
         with:
-          branch: ${{ github.ref }}
-          workflow: build.yaml
-          workflow_conclusion: completed
-          check_artifacts: true
-          name: npm-package
+          name: npm-release-package
 
       - name: Decompress npm package
         run: tar -xzf package.tar.gz
@@ -181,7 +187,16 @@ jobs:
           tar -xf node-${NODE_VERSION}-linux-${NPM_CONFIG_ARCH}.tar.xz node-${NODE_VERSION}-linux-${NPM_CONFIG_ARCH}/bin/node --strip-components=2
           mv ./node ./release-standalone/lib/node
 
+      # NOTE@jsjoeio - we do this so we can strip out the v
+      # i.e. v4.9.1 -> 4.9.1
+      - name: Get and set VERSION
+        run: |
+          TAG="${{ inputs.version || github.ref_name }}"
+          echo "VERSION=${TAG#v}" >> $GITHUB_ENV
+
       - name: Build packages with nfpm
+        env:
+          VERSION: ${{ env.VERSION }}
         run: yarn package ${NPM_CONFIG_ARCH}
 
       - uses: softprops/action-gh-release@v1
@@ -194,6 +209,7 @@ jobs:
     name: x86-64 macOS build
     runs-on: macos-latest
     timeout-minutes: 15
+    needs: npm-version
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
@@ -209,15 +225,10 @@ jobs:
           curl -sSfL https://github.com/goreleaser/nfpm/releases/download/v2.3.1/nfpm_2.3.1_`uname -s`_`uname -m`.tar.gz | tar -C ~/.local/bin -zxv nfpm
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
-      - name: Download artifacts
-        uses: dawidd6/action-download-artifact@v2
-        id: download
+      - name: Download npm package
+        uses: actions/download-artifact@v3
         with:
-          branch: ${{ github.ref }}
-          workflow: build.yaml
-          workflow_conclusion: completed
-          check_artifacts: true
-          name: npm-package
+          name: npm-release-package
 
       - name: Decompress npm package
         run: tar -xzf package.tar.gz
@@ -241,7 +252,16 @@ jobs:
       - name: Run native module tests on standalone release
         run: yarn test:native
 
+      # NOTE@jsjoeio - we do this so we can strip out the v
+      # i.e. v4.9.1 -> 4.9.1
+      - name: Get and set VERSION
+        run: |
+          TAG="${{ inputs.version || github.ref_name }}"
+          echo "VERSION=${TAG#v}" >> $GITHUB_ENV
+
       - name: Build packages with nfpm
+        env:
+          VERSION: ${{ env.VERSION }}
         run: yarn package
 
       - uses: softprops/action-gh-release@v1
@@ -252,6 +272,23 @@ jobs:
 
   npm-package:
     name: Upload npm package
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: npm-version
+    steps:
+      - name: Download npm package
+        uses: actions/download-artifact@v3
+        with:
+          name: npm-release-package
+
+      - uses: softprops/action-gh-release@v1
+        with:
+          draft: true
+          discussion_category_name: "📣 Announcements"
+          files: ./package.tar.gz
+
+  npm-version:
+    name: Modify package.json version
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -265,8 +302,32 @@ jobs:
           check_artifacts: true
           name: npm-package
 
-      - uses: softprops/action-gh-release@v1
+      - name: Decompress npm package
+        run: tar -xzf package.tar.gz
+
+      # NOTE@jsjoeio - we do this so we can strip out the v
+      # i.e. v4.9.1 -> 4.9.1
+      - name: Get and set VERSION
+        run: |
+          TAG="${{ inputs.version || github.ref_name }}"
+          echo "VERSION=${TAG#v}" >> $GITHUB_ENV
+
+      - name: Modify version
+        env:
+          VERSION: ${{ env.VERSION )}}
+        run: |
+          echo "Updating version in root package.json"
+          npm version --prefix release "$VERSION"
+
+          echo "Updating version in lib/vscode/product.json"
+          tmp=$(mktemp) 
+          jq '.codeServerVersion = "$VERSION"' release/lib/vscode/product.json > "$tmp" && mv "$tmp" release/lib/vscode/product.json
+
+      - name: Compress release package
+        run: tar -czf package.tar.gz release
+
+      - name: Upload npm package artifact
+        uses: actions/upload-artifact@v3
         with:
-          draft: true
-          discussion_category_name: "📣 Announcements"
-          files: ./package.tar.gz
+          name: npm-release-package
+          path: ./package.tar.gz
