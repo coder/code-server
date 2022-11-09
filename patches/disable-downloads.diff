@@ -28,7 +28,7 @@ Index: code-server/lib/vscode/src/vs/workbench/services/environment/browser/envi
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/services/environment/browser/environmentService.ts
 +++ code-server/lib/vscode/src/vs/workbench/services/environment/browser/environmentService.ts
-@@ -31,6 +31,11 @@ export interface IBrowserWorkbenchEnviro
+@@ -32,6 +32,11 @@ export interface IBrowserWorkbenchEnviro
  	 * Options used to configure the workbench.
  	 */
  	readonly options?: IWorkbenchConstructionOptions;
@@ -40,7 +40,7 @@ Index: code-server/lib/vscode/src/vs/workbench/services/environment/browser/envi
  }
  
  export class BrowserWorkbenchEnvironmentService implements IBrowserWorkbenchEnvironmentService {
-@@ -62,6 +67,13 @@ export class BrowserWorkbenchEnvironment
+@@ -87,6 +92,13 @@ export class BrowserWorkbenchEnvironment
  		return this.options.userDataPath;
  	}
  
@@ -135,16 +135,16 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/files/browser/fileActions
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/contrib/files/browser/fileActions.contribution.ts
 +++ code-server/lib/vscode/src/vs/workbench/contrib/files/browser/fileActions.contribution.ts
-@@ -22,7 +22,7 @@ import { CLOSE_SAVED_EDITORS_COMMAND_ID,
+@@ -20,7 +20,7 @@ import { CLOSE_SAVED_EDITORS_COMMAND_ID,
  import { AutoSaveAfterShortDelayContext } from 'vs/workbench/services/filesConfiguration/common/filesConfigurationService';
  import { WorkbenchListDoubleSelection } from 'vs/platform/list/browser/listService';
  import { Schemas } from 'vs/base/common/network';
--import { DirtyWorkingCopiesContext, EmptyWorkspaceSupportContext, EnterMultiRootWorkspaceSupportContext, HasWebFileSystemAccess, WorkbenchStateContext, WorkspaceFolderCountContext, SidebarFocusContext, ActiveEditorCanRevertContext, ActiveEditorContext, ResourceContextKey } from 'vs/workbench/common/contextkeys';
-+import { DirtyWorkingCopiesContext, EmptyWorkspaceSupportContext, EnterMultiRootWorkspaceSupportContext, HasWebFileSystemAccess, WorkbenchStateContext, WorkspaceFolderCountContext, SidebarFocusContext, ActiveEditorCanRevertContext, ActiveEditorContext, ResourceContextKey, IsEnabledFileDownloads } from 'vs/workbench/common/contextkeys';
+-import { DirtyWorkingCopiesContext, EnterMultiRootWorkspaceSupportContext, HasWebFileSystemAccess, WorkbenchStateContext, WorkspaceFolderCountContext, SidebarFocusContext, ActiveEditorCanRevertContext, ActiveEditorContext, ResourceContextKey, ActiveEditorAvailableEditorIdsContext } from 'vs/workbench/common/contextkeys';
++import { DirtyWorkingCopiesContext, EnterMultiRootWorkspaceSupportContext, HasWebFileSystemAccess, WorkbenchStateContext, WorkspaceFolderCountContext, SidebarFocusContext, ActiveEditorCanRevertContext, ActiveEditorContext, ResourceContextKey, ActiveEditorAvailableEditorIdsContext, IsEnabledFileDownloads } from 'vs/workbench/common/contextkeys';
  import { IsWebContext } from 'vs/platform/contextkey/common/contextkeys';
  import { ServicesAccessor } from 'vs/platform/instantiation/common/instantiation';
  import { ThemeIcon } from 'vs/platform/theme/common/themeService';
-@@ -477,13 +477,16 @@ MenuRegistry.appendMenuItem(MenuId.Explo
+@@ -483,13 +483,16 @@ MenuRegistry.appendMenuItem(MenuId.Explo
  		id: DOWNLOAD_COMMAND_ID,
  		title: DOWNLOAD_LABEL
  	},

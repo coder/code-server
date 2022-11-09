@@ -795,6 +795,7 @@ describe("toCodeArgs", () => {
     help: false,
     port: "8080",
     version: false,
+    log: undefined,
   }
 
   const testName = "vscode-args"

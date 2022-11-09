@@ -119,7 +119,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 @@ -267,12 +267,11 @@ export class WebClientServer {
- 			return res.end();
+ 			return void res.end();
  		}
  
 -		const getFirstHeader = (headerName: string) => {
@@ -176,7 +176,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
  			`frame-src 'self' https://*.vscode-cdn.net data:;`,
  			'worker-src \'self\' data:;',
 @@ -417,3 +421,70 @@ export class WebClientServer {
- 		return res.end(data);
+ 		return void res.end(data);
  	}
  }
 +
@@ -279,10 +279,10 @@ Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench.ts
  
  	// Create workbench
  	create(document.body, {
-Index: code-server/lib/vscode/src/vs/workbench/services/extensionResourceLoader/common/extensionResourceLoader.ts
+Index: code-server/lib/vscode/src/vs/platform/extensionResourceLoader/common/extensionResourceLoader.ts
 ===================================================================
---- code-server.orig/lib/vscode/src/vs/workbench/services/extensionResourceLoader/common/extensionResourceLoader.ts
-+++ code-server/lib/vscode/src/vs/workbench/services/extensionResourceLoader/common/extensionResourceLoader.ts
+--- code-server.orig/lib/vscode/src/vs/platform/extensionResourceLoader/common/extensionResourceLoader.ts
++++ code-server/lib/vscode/src/vs/platform/extensionResourceLoader/common/extensionResourceLoader.ts
 @@ -16,7 +16,6 @@ import { getServiceMachineId } from 'vs/
  import { IStorageService } from 'vs/platform/storage/common/storage';
  import { TelemetryLevel } from 'vs/platform/telemetry/common/telemetry';

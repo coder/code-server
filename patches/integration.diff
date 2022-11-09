@@ -184,7 +184,7 @@ Index: code-server/lib/vscode/src/vs/workbench/browser/web.main.ts
  import { ITelemetryService } from 'vs/platform/telemetry/common/telemetry';
  import { IProgressService } from 'vs/platform/progress/common/progress';
  import { DelayedLogChannel } from 'vs/workbench/services/output/common/delayedLogChannel';
-@@ -116,6 +117,9 @@ export class BrowserMain extends Disposa
+@@ -117,6 +118,9 @@ export class BrowserMain extends Disposa
  		// Startup
  		const instantiationService = workbench.startup();
  

@@ -814,6 +814,7 @@ export interface CodeArgs extends UserProvidedCodeArgs {
   "without-connection-token"?: boolean
   "without-browser-env-var"?: boolean
   compatibility: string
+  log: string[] | undefined
 }
 
 /**
@@ -835,5 +836,6 @@ export const toCodeArgs = async (args: DefaultedArgs): Promise<CodeArgs> => {
     help: !!args.help,
     version: !!args.version,
     port: args.port?.toString(),
+    log: args.log ? [args.log] : undefined,
   }
 }

@@ -159,7 +159,7 @@ Index: code-server/lib/vscode/src/vs/workbench/services/environment/browser/envi
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/services/environment/browser/environmentService.ts
 +++ code-server/lib/vscode/src/vs/workbench/services/environment/browser/environmentService.ts
-@@ -36,6 +36,11 @@ export interface IBrowserWorkbenchEnviro
+@@ -37,6 +37,11 @@ export interface IBrowserWorkbenchEnviro
  	 * Enable downloading files via menu actions.
  	 */
  	readonly isEnabledFileDownloads?: boolean;
@@ -171,7 +171,7 @@ Index: code-server/lib/vscode/src/vs/workbench/services/environment/browser/envi
  }
  
  export class BrowserWorkbenchEnvironmentService implements IBrowserWorkbenchEnvironmentService {
-@@ -74,6 +79,13 @@ export class BrowserWorkbenchEnvironment
+@@ -99,6 +104,13 @@ export class BrowserWorkbenchEnvironment
  		return this.options.isEnabledFileDownloads;
  	}
  
