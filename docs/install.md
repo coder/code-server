@@ -59,6 +59,7 @@ following flags:
 - `--prefix=/usr/local`: install a standalone release archive system-wide.
 - `--version=X.X.X`: install version `X.X.X` instead of latest version.
 - `--help`: see usage docs.
+- `--edge`: install the latest edge version (i.e. pre-release)
 
 When done, the install script prints out instructions for running and starting
 code-server.
