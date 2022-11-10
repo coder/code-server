@@ -20,6 +20,13 @@ Code v99.99.999
 
 -->
 
+## [4.9.0](https://github.com/coder/code-server/releases/tag/v4.9.0) - 2022-11-14
+
+Code v1.73.0
+
+WIP
+
+
 ## [4.8.3](https://github.com/coder/code-server/releases/tag/v4.8.3) - 2022-11-07
 
 Code v1.72.1
