@@ -314,7 +314,7 @@ jobs:
 
       - name: Modify version
         env:
-          VERSION: ${{ env.VERSION )}}
+          VERSION: ${{ env.VERSION }}
         run: |
           echo "Updating version in root package.json"
           npm version --prefix release "$VERSION"
