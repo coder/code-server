@@ -55,7 +55,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/welcomeGettingStarted/bro
 +							'font-size: 13px',
 +							'color: #dcdee2',
 +						].join(';'),
-+					}, 'Provision remote development environments on your infrastructure with Coder.'),
++					}, 'Provision software development environments on your infrastructure with Coder.'),
 +					$('p', {
 +						style: [
 +							'margin-top: 8px',
