@@ -38,7 +38,7 @@ jobs:
     name: Run script unit tests
     runs-on: ubuntu-latest
     # This runs on Alpine to make sure we're testing with actual sh.
-    container: "alpine:3.16"
+    container: "alpine:3.17"
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
