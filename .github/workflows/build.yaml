@@ -296,7 +296,7 @@ jobs:
     name: Run e2e tests
     needs: build
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
