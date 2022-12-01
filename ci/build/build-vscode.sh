@@ -42,6 +42,12 @@ main() {
 
   pushd lib/vscode
 
+  if [[ ! ${VERSION-} ]]; then
+    echo "VERSION not set. Please set before running this script:"
+    echo "VERSION='0.0.0' yarn build:vscode"
+    exit 1
+  fi
+
   # Set the commit Code will embed into the product.json.  We need to do this
   # since Code tries to get the commit from the `.git` directory which will fail
   # as it is a submodule.
