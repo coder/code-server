@@ -96,8 +96,6 @@ main() {
 EOF
   ) > product.json
 
-  chmod +x product.json
-
   # Any platform here works since we will do our own packaging.  We have to do
   # this because we have an NPM package that could be installed on any platform.
   # The correct platform dependencies and scripts will be installed as part of
