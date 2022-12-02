@@ -26,6 +26,9 @@ Code v1.73.0
 
 WIP
 
+known issues: https://github.com/adobe/fetch/pull/318#issuecomment-1306070259
+cert won't work for anyone using Ubuntu 22.04
+
 ## [4.8.3](https://github.com/coder/code-server/releases/tag/v4.8.3) - 2022-11-07
 
 Code v1.72.1
