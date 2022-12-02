@@ -116,7 +116,8 @@
     "ide",
     "coder",
     "vscode-remote",
-    "browser-ide"
+    "browser-ide",
+    "remote-development"
   ],
   "engines": {
     "node": "16"
