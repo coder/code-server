@@ -387,7 +387,7 @@ install_aur() {
   if [ ! "${DRY_RUN-}" ]; then
     cd "$CACHE_DIR/code-server-aur"
   fi
-  sh_c makepkg -si
+  sh_c makepkg -si --noconfirm
 
   echo_systemd_postinstall AUR
 }
