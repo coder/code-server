@@ -81,6 +81,13 @@ export const register = async (app: App, args: DefaultedArgs): Promise<Disposabl
       return res.redirect(`https://${req.headers.host}${req.originalUrl}`)
     }
 
+    // Return security.txt.
+    if (req.originalUrl === "/security.txt" || req.originalUrl === "/.well-known/security.txt") {
+      const resourcePath = path.resolve(rootPath, "src/browser/security.txt")
+      res.set("Content-Type", getMediaMime(resourcePath))
+      return res.send(await fs.readFile(resourcePath))
+    }
+
     // Return robots.txt.
     if (req.originalUrl === "/robots.txt") {
       const resourcePath = path.resolve(rootPath, "src/browser/robots.txt")
