@@ -20,14 +20,27 @@ Code v99.99.999
 
 -->
 
-## [4.9.0](https://github.com/coder/code-server/releases/tag/v4.9.0) - 2022-11-14
+## [4.9.0](https://github.com/coder/code-server/releases/tag/v4.9.0) - 2022-12-06
 
 Code v1.73.0
 
-WIP
+### Changed
 
-known issues: https://github.com/adobe/fetch/pull/318#issuecomment-1306070259
-cert won't work for anyone using Ubuntu 22.04
+- Upgraded to Code 1.73.1
+
+### Added
+
+- `/security.txt` added as a route with info on our security policy information thanks to @ghuntley
+
+### Fixed
+
+- Installing on majaro images should now work thanks to @MrPeacockNLB for
+  adding the `--noconfirm` flag in `install.sh`
+
+### Known Issues
+
+- `--cert` on Ubuntu 22.04: OpenSSL v3 is used which breaks `pem` meaning the
+  `--cert` feature will not work. [Reference](https://github.com/adobe/fetch/pull/318#issuecomment-1306070259)
 
 ## [4.8.3](https://github.com/coder/code-server/releases/tag/v4.8.3) - 2022-11-07
 
