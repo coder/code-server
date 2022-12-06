@@ -12,7 +12,7 @@ describe("wrapper", () => {
     const p = new ChildProcess()
     // our ChildProcess isn't exported
     // and shouldn't be for a test so surpressing TS error.
-    // @ts-expect-error
+    // @ts-expect-error - see above
     expect(isChild(p)).toBe(false)
   })
 })
