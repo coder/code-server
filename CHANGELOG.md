@@ -22,7 +22,7 @@ Code v99.99.999
 
 ## [4.9.0](https://github.com/coder/code-server/releases/tag/v4.9.0) - 2022-12-06
 
-Code v1.73.0
+Code v1.73.1
 
 ### Changed
 
