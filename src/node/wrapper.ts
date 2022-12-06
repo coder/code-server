@@ -147,7 +147,7 @@ abstract class Process {
  * Child process that will clean up after itself if the parent goes away and can
  * perform a handshake with the parent and ask it to relaunch.
  */
-class ChildProcess extends Process {
+export class ChildProcess extends Process {
   public logger = logger.named(`child:${process.pid}`)
 
   public constructor(private readonly parentPid: number) {
