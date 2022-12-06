@@ -24,7 +24,7 @@ concurrency:
 jobs:
   prettier:
     name: Format with Prettier
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     timeout-minutes: 5
     steps:
       - name: Checkout repo
@@ -37,7 +37,7 @@ jobs:
 
   doctoc:
     name: Doctoc markdown files
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     timeout-minutes: 5
     steps:
       - name: Checkout repo
@@ -66,7 +66,7 @@ jobs:
 
   lint-helm:
     name: Lint Helm chart
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     timeout-minutes: 5
     steps:
       - name: Checkout repo
@@ -97,7 +97,7 @@ jobs:
 
   lint-ts:
     name: Lint TypeScript files
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     timeout-minutes: 5
     steps:
       - name: Checkout repo
@@ -141,7 +141,7 @@ jobs:
 
   build:
     name: Build code-server
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     timeout-minutes: 30
     env:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
@@ -244,7 +244,7 @@ jobs:
     # Only run if PR comes from base repo or event is not a PR
     # Reason: forks cannot access secrets and this will always fail
     if: github.event.pull_request.head.repo.full_name == github.repository || github.event_name != 'pull_request'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
@@ -295,8 +295,8 @@ jobs:
   test-e2e:
     name: Run e2e tests
     needs: build
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
+    runs-on: ubuntu-20.04
+    timeout-minutes: 25
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
@@ -351,7 +351,7 @@ jobs:
   test-e2e-proxy:
     name: Run e2e tests behind proxy
     needs: build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     timeout-minutes: 25
     steps:
       - name: Checkout repo
