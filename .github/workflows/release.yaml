@@ -321,7 +321,7 @@ jobs:
 
           echo "Updating version in lib/vscode/product.json"
           tmp=$(mktemp) 
-          jq '.codeServerVersion = "$VERSION"' release/lib/vscode/product.json > "$tmp" && mv "$tmp" release/lib/vscode/product.json
+          jq ".codeServerVersion = \"$VERSION\"" release/lib/vscode/product.json > "$tmp" && mv "$tmp" release/lib/vscode/product.json
           # Ensure it has the same permissions as before
           chmod 644 release/lib/vscode/product.json
 
