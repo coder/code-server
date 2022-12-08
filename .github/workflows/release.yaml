@@ -202,10 +202,10 @@ jobs:
       # NOTE@jsjoeio - the dependencies needed for this
       # aren't supported on this architecture so we remove
       # it manually.
-      # - name: Remove keytar
-      #   run: |
-      #     cd ./release-standalone/lib/vscode
-      #     npm uninstall keytar
+      - name: Remove keytar
+        run: |
+          cd ./release-standalone/lib/vscode
+          npm uninstall keytar
 
       - name: Build packages with nfpm
         env:
