@@ -172,6 +172,9 @@ jobs:
         env:
           PACKAGE: ${{ format('g++-{0}', matrix.prefix) }}
 
+      - name: Install keytar dependencies
+        run: sudo apt install -y libsecret-1-dev:armhf
+
       - name: Download npm package
         uses: actions/download-artifact@v3
         with:
@@ -199,10 +202,10 @@ jobs:
       # NOTE@jsjoeio - the dependencies needed for this
       # aren't supported on this architecture so we remove
       # it manually.
-      - name: Remove keytar
-        run: |
-          cd ./release-standalone/lib/vscode
-          npm uninstall keytar
+      # - name: Remove keytar
+      #   run: |
+      #     cd ./release-standalone/lib/vscode
+      #     npm uninstall keytar
 
       - name: Build packages with nfpm
         env:
