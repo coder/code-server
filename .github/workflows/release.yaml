@@ -185,7 +185,7 @@ jobs:
       # it manually.
       - name: Remove keytar
         run: |
-          cd ./release-standalone/lib/vscode
+          cd ./lib/vscode
           npm uninstall keytar --legacy-peer-deps
 
       - name: Build standalone release
