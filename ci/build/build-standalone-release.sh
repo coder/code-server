@@ -10,7 +10,7 @@ main() {
 
   source ./ci/lib.sh
 
-  rsync --exclude yarn.lock "$RELEASE_PATH/" "$RELEASE_PATH-standalone"
+  rsync "$RELEASE_PATH/" "$RELEASE_PATH-standalone"
   RELEASE_PATH+=-standalone
 
   # We cannot find the path to node from $PATH because yarn shims a script to ensure
