@@ -202,7 +202,7 @@ jobs:
       - name: Remove keytar
         run: |
           cd ./release-standalone/lib/vscode
-          npm uninstall keytar
+          npm uninstall keytar --legacy-peer-deps
 
       - name: Build packages with nfpm
         env:
