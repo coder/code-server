@@ -44,6 +44,8 @@ jobs:
         run: |
           yum install -y epel-release centos-release-scl make
           yum install -y devtoolset-9-{make,gcc,gcc-c++} jq rsync python3
+          # for keytar
+          yum install -y libsecret-devel
 
       - name: Install nfpm and envsubst
         run: |
@@ -169,6 +171,9 @@ jobs:
         run: sudo apt update && sudo apt install $PACKAGE
         env:
           PACKAGE: ${{ format('g++-{0}', matrix.prefix) }}
+
+      - name: Install keytar dependencies
+        run: sudo apt install -y libsecret-1-dev
 
       - name: Download npm package
         uses: actions/download-artifact@v3
