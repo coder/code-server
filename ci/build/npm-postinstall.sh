@@ -128,7 +128,7 @@ install_with_yarn_or_npm() {
   # NOTE@edvincent: We want to keep using the package manager that the end-user was using to install the package.
   # This also ensures that when *we* run `yarn` in the development process, the yarn.lock file is used.
   case "${npm_config_user_agent-}" in
-    *npm*)
+    npm*)
       if [ -f "yarn.lock" ]; then
         echo "yarn.lock file present, running in development mode. use yarn to install code-server!"
         exit 1
