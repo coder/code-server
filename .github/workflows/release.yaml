@@ -180,14 +180,6 @@ jobs:
       - name: Decompress npm package
         run: tar -xzf package.tar.gz
 
-      # NOTE@jsjoeio - the dependencies needed for this
-      # aren't supported on this architecture so we remove
-      # it manually.
-      - name: Remove keytar
-        run: |
-          cd ./release/lib/vscode
-          npm uninstall keytar --legacy-peer-deps
-
       - name: Build standalone release
         run: yarn release:standalone
 
