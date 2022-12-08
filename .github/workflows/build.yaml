@@ -324,7 +324,7 @@ jobs:
         run: tar -xzf package.tar.gz
 
       - name: Install release package dependencies
-        run: cd release && yarn install
+        run: cd release && npm install --unsafe-perm --omit=dev
 
       - name: Install dependencies
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
@@ -380,7 +380,7 @@ jobs:
         run: tar -xzf package.tar.gz
 
       - name: Install release package dependencies
-        run: cd release && yarn install
+        run: cd release && npm install --unsafe-perm --omit=dev
 
       - name: Install dependencies
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
