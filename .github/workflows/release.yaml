@@ -172,6 +172,11 @@ jobs:
         env:
           PACKAGE: ${{ format('g++-{0}', matrix.prefix) }}
 
+      - name: Install keytar dependencies
+        run: sudo apt install -y $PACKAGE
+        env:
+          PACKAGE: ${{ format('libsecret-1-dev:{0}', matrix.arch) }}
+
       - name: Download npm package
         uses: actions/download-artifact@v3
         with:
