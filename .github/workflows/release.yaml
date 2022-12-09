@@ -50,7 +50,7 @@ jobs:
       - name: Install nfpm and envsubst
         run: |
           mkdir -p ~/.local/bin
-          curl -sSfL https://github.com/goreleaser/nfpm/releases/download/v2.3.1/nfpm_2.3.1_`uname -s`_`uname -m`.tar.gz | tar -C ~/.local/bin -zxv nfpm
+          curl -sSfL https://github.com/goreleaser/nfpm/releases/download/v2.22.2/nfpm_2.22.2_`uname -s`_`uname -m`.tar.gz | tar -C ~/.local/bin -zxv nfpm
           curl -sSfL https://github.com/a8m/envsubst/releases/download/v1.1.0/envsubst-`uname -s`-`uname -m` -o envsubst
           chmod +x envsubst
           mv envsubst ~/.local/bin
