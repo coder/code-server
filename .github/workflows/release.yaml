@@ -72,9 +72,9 @@ jobs:
         uses: actions/cache@v3
         with:
           path: "**/node_modules"
-          key: yarn-build-${{ hashFiles('**/yarn.lock') }}
+          key: yarn-build-linux-amd64-${{ hashFiles('**/yarn.lock') }}
           restore-keys: |
-            yarn-build-
+            yarn-build-linux-amd64-
 
       # NOTE: && here is deliberate - GitHub puts each line in its own `.sh`
       # file when running inside a docker container.
@@ -243,9 +243,9 @@ jobs:
         uses: actions/cache@v3
         with:
           path: "**/node_modules"
-          key: yarn-build-${{ hashFiles('**/yarn.lock') }}
+          key: yarn-build-macos-${{ hashFiles('**/yarn.lock') }}
           restore-keys: |
-            yarn-build-
+            yarn-build-macos-
 
       - name: Build standalone release
         run: npm run release:standalone
