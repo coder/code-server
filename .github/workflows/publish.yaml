@@ -127,6 +127,8 @@ jobs:
 
       - name: Validate package
         uses: hapakaien/archlinux-package-action@v2
+        env:
+          VERSION: ${{ env.VERSION }}
         with:
           pkgver: ${{ env.VERSION }}
           updpkgsums: true
