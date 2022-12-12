@@ -81,7 +81,6 @@ jobs:
       - name: Build standalone release
         run: source scl_source enable devtoolset-9 && npm run release:standalone
 
-
       - name: Install test dependencies
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: SKIP_SUBMODULE_DEPS=1 yarn --frozen-lockfile
