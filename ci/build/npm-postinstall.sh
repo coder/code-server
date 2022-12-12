@@ -124,18 +124,11 @@ main() {
 }
 
 install_with_yarn_or_npm() {
+  echo "User agent: ${npm_config_user_agent-none}"
   # NOTE@edvincent: We want to keep using the package manager that the end-user was using to install the package.
   # This also ensures that when *we* run `yarn` in the development process, the yarn.lock file is used.
   case "${npm_config_user_agent-}" in
-    yarn*)
-      if [ -f "yarn.lock" ]; then
-        yarn --production --frozen-lockfile --no-default-rc
-      else
-        echo "yarn.lock file not present, not running in development mode. use npm to install code-server!"
-        exit 1
-      fi
-      ;;
-    npm*)
+    *npm*)
       if [ -f "yarn.lock" ]; then
         echo "yarn.lock file present, running in development mode. use yarn to install code-server!"
         exit 1
@@ -144,6 +137,14 @@ install_with_yarn_or_npm() {
         # The legacy behavior doesn't complain about pre-releases being used, falling back to that for now.
         # See https://github.com//pull/5071
         npm install --unsafe-perm --legacy-peer-deps --omit=dev
+      fi
+      ;;
+    yarn*)
+      if [ -f "yarn.lock" ]; then
+        yarn --production --frozen-lockfile --no-default-rc
+      else
+        echo "yarn.lock file not present, not running in development mode. use npm to install code-server!"
+        exit 1
       fi
       ;;
     *)

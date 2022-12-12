@@ -56,7 +56,6 @@ bundle_code_server() {
   }
 EOF
   ) > "$RELEASE_PATH/package.json"
-  rsync yarn.lock "$RELEASE_PATH"
   mv npm-shrinkwrap.json "$RELEASE_PATH"
 
   rsync ci/build/npm-postinstall.sh "$RELEASE_PATH/postinstall.sh"
@@ -97,12 +96,10 @@ bundle_vscode() {
     "$VSCODE_SRC_PATH/remote/package.json" \
     "$VSCODE_SRC_PATH/package.json" > "$VSCODE_OUT_PATH/package.json"
 
-  rsync "$VSCODE_SRC_PATH/remote/yarn.lock" "$VSCODE_OUT_PATH/yarn.lock"
   mv "$VSCODE_SRC_PATH/remote/npm-shrinkwrap.json" "$VSCODE_OUT_PATH/npm-shrinkwrap.json"
 
   # Include global extension dependencies as well.
   rsync "$VSCODE_SRC_PATH/extensions/package.json" "$VSCODE_OUT_PATH/extensions/package.json"
-  rsync "$VSCODE_SRC_PATH/extensions/yarn.lock" "$VSCODE_OUT_PATH/extensions/yarn.lock"
   mv "$VSCODE_SRC_PATH/extensions/npm-shrinkwrap.json" "$VSCODE_OUT_PATH/extensions/npm-shrinkwrap.json"
   rsync "$VSCODE_SRC_PATH/extensions/postinstall.mjs" "$VSCODE_OUT_PATH/extensions/postinstall.mjs"
 }

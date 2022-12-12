@@ -44,11 +44,13 @@ jobs:
         run: |
           yum install -y epel-release centos-release-scl make
           yum install -y devtoolset-9-{make,gcc,gcc-c++} jq rsync python3
+          # for keytar
+          yum install -y libsecret-devel
 
       - name: Install nfpm and envsubst
         run: |
           mkdir -p ~/.local/bin
-          curl -sSfL https://github.com/goreleaser/nfpm/releases/download/v2.3.1/nfpm_2.3.1_`uname -s`_`uname -m`.tar.gz | tar -C ~/.local/bin -zxv nfpm
+          curl -sSfL https://github.com/goreleaser/nfpm/releases/download/v2.22.2/nfpm_2.22.2_`uname -s`_`uname -m`.tar.gz | tar -C ~/.local/bin -zxv nfpm
           curl -sSfL https://github.com/a8m/envsubst/releases/download/v1.1.0/envsubst-`uname -s`-`uname -m` -o envsubst
           chmod +x envsubst
           mv envsubst ~/.local/bin
@@ -169,6 +171,9 @@ jobs:
         run: sudo apt update && sudo apt install $PACKAGE
         env:
           PACKAGE: ${{ format('g++-{0}', matrix.prefix) }}
+
+      - name: Install keytar dependencies
+        run: sudo apt install -y libsecret-1-dev
 
       - name: Download npm package
         uses: actions/download-artifact@v3
@@ -322,7 +327,7 @@ jobs:
 
           echo "Updating version in lib/vscode/product.json"
           tmp=$(mktemp) 
-          jq '.codeServerVersion = "$VERSION"' release/lib/vscode/product.json > "$tmp" && mv "$tmp" release/lib/vscode/product.json
+          jq ".codeServerVersion = \"$VERSION\"" release/lib/vscode/product.json > "$tmp" && mv "$tmp" release/lib/vscode/product.json
           # Ensure it has the same permissions as before
           chmod 644 release/lib/vscode/product.json
 
