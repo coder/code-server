@@ -67,19 +67,19 @@ jobs:
       - name: Decompress npm package
         run: tar -xzf package.tar.gz
 
-      # NOTE: && here is deliberate - GitHub puts each line in its own `.sh`
-      # file when running inside a docker container.
-      - name: Build standalone release
-        run: source scl_source enable devtoolset-9 && npm run release:standalone
-
       - name: Fetch dependencies from cache
         id: cache-node-modules
         uses: actions/cache@v3
         with:
           path: "**/node_modules"
-          key: yarn-build-${{ hashFiles('**/yarn.lock') }}
+          key: yarn-build-linux-amd64-${{ hashFiles('**/yarn.lock') }}
           restore-keys: |
-            yarn-build-
+            yarn-build-linux-amd64-
+
+      # NOTE: && here is deliberate - GitHub puts each line in its own `.sh`
+      # file when running inside a docker container.
+      - name: Build standalone release
+        run: source scl_source enable devtoolset-9 && npm run release:standalone
 
       - name: Install test dependencies
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
@@ -237,17 +237,17 @@ jobs:
       - name: Decompress npm package
         run: tar -xzf package.tar.gz
 
-      - name: Build standalone release
-        run: npm run release:standalone
-
       - name: Fetch dependencies from cache
         id: cache-node-modules
         uses: actions/cache@v3
         with:
           path: "**/node_modules"
-          key: yarn-build-${{ hashFiles('**/yarn.lock') }}
+          key: yarn-build-macos-${{ hashFiles('**/yarn.lock') }}
           restore-keys: |
-            yarn-build-
+            yarn-build-macos-
+
+      - name: Build standalone release
+        run: npm run release:standalone
 
       - name: Install test dependencies
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
