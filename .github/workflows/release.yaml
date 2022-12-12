@@ -66,7 +66,7 @@ jobs:
 
       - name: Decompress npm package
         run: tar -xzf package.tar.gz
-
+        
       - name: Fetch dependencies from cache
         id: cache-node-modules
         uses: actions/cache@v3
@@ -303,8 +303,9 @@ jobs:
           branch: ${{ github.ref }}
           workflow: build.yaml
           workflow_conclusion: completed
-          check_artifacts: true
           name: npm-package
+          check_artifacts: false
+          if_no_artifact_found: fail
 
       - name: Decompress npm package
         run: tar -xzf package.tar.gz
