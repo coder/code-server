@@ -128,24 +128,14 @@ install_with_yarn_or_npm() {
   # NOTE@edvincent: We want to keep using the package manager that the end-user was using to install the package.
   # This also ensures that when *we* run `yarn` in the development process, the yarn.lock file is used.
   case "${npm_config_user_agent-}" in
-    *npm*)
-      if [ -f "yarn.lock" ]; then
-        echo "yarn.lock file present, running in development mode. use yarn to install code-server!"
-        exit 1
-      else
-        # HACK: NPM's use of semver doesn't like resolving some peerDependencies that vscode (upstream) brings in the form of pre-releases.
-        # The legacy behavior doesn't complain about pre-releases being used, falling back to that for now.
-        # See https://github.com//pull/5071
-        npm install --unsafe-perm --legacy-peer-deps --omit=dev
-      fi
+    npm*)
+      # HACK: NPM's use of semver doesn't like resolving some peerDependencies that vscode (upstream) brings in the form of pre-releases.
+      # The legacy behavior doesn't complain about pre-releases being used, falling back to that for now.
+      # See https://github.com//pull/5071
+      npm install --unsafe-perm --legacy-peer-deps --omit=dev
       ;;
     yarn*)
-      if [ -f "yarn.lock" ]; then
-        yarn --production --frozen-lockfile --no-default-rc
-      else
-        echo "yarn.lock file not present, not running in development mode. use npm to install code-server!"
-        exit 1
-      fi
+      yarn --production --frozen-lockfile --no-default-rc
       ;;
     *)
       echo "Could not determine which package manager is being used to install code-server"

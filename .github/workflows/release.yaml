@@ -70,7 +70,7 @@ jobs:
       # NOTE: && here is deliberate - GitHub puts each line in its own `.sh`
       # file when running inside a docker container.
       - name: Build standalone release
-        run: source scl_source enable devtoolset-9 && yarn release:standalone
+        run: source scl_source enable devtoolset-9 && npm run release:standalone
 
       - name: Fetch dependencies from cache
         id: cache-node-modules
@@ -172,9 +172,6 @@ jobs:
         env:
           PACKAGE: ${{ format('g++-{0}', matrix.prefix) }}
 
-      - name: Install keytar dependencies
-        run: sudo apt install -y libsecret-1-dev
-
       - name: Download npm package
         uses: actions/download-artifact@v3
         with:
@@ -183,6 +180,8 @@ jobs:
       - name: Decompress npm package
         run: tar -xzf package.tar.gz
 
+      # NOTE@jsjoeio - npm fails here
+      # so use yarn
       - name: Build standalone release
         run: yarn release:standalone
 
@@ -239,7 +238,7 @@ jobs:
         run: tar -xzf package.tar.gz
 
       - name: Build standalone release
-        run: yarn release:standalone
+        run: npm run release:standalone
 
       - name: Fetch dependencies from cache
         id: cache-node-modules
