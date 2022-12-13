@@ -22,4 +22,4 @@ contents:
     dst: /usr/lib/systemd/user/code-server.service
 
   - src: ./release-standalone/*
-    dst: /usr/lib/code-server/
+    dst: /usr/lib/code-server
