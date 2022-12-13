@@ -2,7 +2,7 @@ import * as cs from "code-server"
 import * as fspath from "path"
 
 export const plugin: cs.Plugin = {
-  displayName: "Test Plugin",
+  displayName: "Test Pluginn",
   routerPath: "/test-plugin",
   homepageURL: "https://example.com",
   description: "Plugin used in code-server tests.",
