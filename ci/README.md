@@ -112,3 +112,5 @@ Helps avoid clobbering the CI configuration.
   - Loads all images in `./release-images` and then builds and pushes a multi architecture
     docker manifest for the amd64 and arm64 images to `codercom/code-server:$VERSION` and
     `codercom/code-server:latest`.
+
+hello world
