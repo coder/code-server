@@ -119,11 +119,11 @@ jobs:
   # but this means we don't need to maintain a self-hosted runner!
 
   # NOTE@jsjoeio:
-  # We used to use 16.04 until GitHub deprecated it on September 20, 2021
-  # See here: https://github.com/actions/virtual-environments/pull/3862/files
+  # We used to use 18.04 until GitHub browned it out on December 15, 2022
+  # See here: https://github.com/actions/runner-images/issues/6002
   package-linux-cross:
     name: Linux cross-compile builds
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     timeout-minutes: 15
     needs: npm-version
     strategy:
