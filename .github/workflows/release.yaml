@@ -67,22 +67,12 @@ jobs:
       - name: Decompress npm package
         run: tar -xzf package.tar.gz
 
-      - name: Fetch dependencies from cache
-        id: cache-node-modules
-        uses: actions/cache@v3
-        with:
-          path: "**/node_modules"
-          key: yarn-build-linux-amd64-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            yarn-build-linux-amd64-
-
       # NOTE: && here is deliberate - GitHub puts each line in its own `.sh`
       # file when running inside a docker container.
       - name: Build standalone release
         run: source scl_source enable devtoolset-9 && npm run release:standalone
 
       - name: Install test dependencies
-        if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: SKIP_SUBMODULE_DEPS=1 yarn --frozen-lockfile
 
       - name: Run integration tests on standalone release
@@ -129,11 +119,11 @@ jobs:
   # but this means we don't need to maintain a self-hosted runner!
 
   # NOTE@jsjoeio:
-  # We used to use 16.04 until GitHub deprecated it on September 20, 2021
-  # See here: https://github.com/actions/virtual-environments/pull/3862/files
+  # We used to use 18.04 until GitHub browned it out on December 15, 2022
+  # See here: https://github.com/actions/runner-images/issues/6002
   package-linux-cross:
     name: Linux cross-compile builds
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     timeout-minutes: 15
     needs: npm-version
     strategy:
@@ -237,20 +227,10 @@ jobs:
       - name: Decompress npm package
         run: tar -xzf package.tar.gz
 
-      - name: Fetch dependencies from cache
-        id: cache-node-modules
-        uses: actions/cache@v3
-        with:
-          path: "**/node_modules"
-          key: yarn-build-macos-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            yarn-build-macos-
-
       - name: Build standalone release
         run: npm run release:standalone
 
       - name: Install test dependencies
-        if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: SKIP_SUBMODULE_DEPS=1 yarn install
 
       - name: Run native module tests on standalone release
