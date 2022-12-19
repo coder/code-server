@@ -170,9 +170,9 @@ jobs:
         uses: actions/cache@v3
         with:
           path: "**/node_modules"
-          key: yarn-build-${{ hashFiles('**/yarn.lock') }}
+          key: yarn-build-code-server-${{ hashFiles('**/yarn.lock') }}
           restore-keys: |
-            yarn-build-
+            yarn-build-code-server-
 
       - name: Install dependencies
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
