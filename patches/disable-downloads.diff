@@ -12,7 +12,7 @@ Index: code-server/lib/vscode/src/vs/workbench/browser/web.api.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/browser/web.api.ts
 +++ code-server/lib/vscode/src/vs/workbench/browser/web.api.ts
-@@ -271,6 +271,11 @@ export interface IWorkbenchConstructionO
+@@ -264,6 +264,11 @@ export interface IWorkbenchConstructionO
  	 */
  	readonly userDataPath?: string
  
