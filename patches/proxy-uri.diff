@@ -92,7 +92,7 @@ Index: code-server/lib/vscode/src/vs/workbench/browser/web.main.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/browser/web.main.ts
 +++ code-server/lib/vscode/src/vs/workbench/browser/web.main.ts
-@@ -248,7 +248,7 @@ export class BrowserMain extends Disposa
+@@ -247,7 +247,7 @@ export class BrowserMain extends Disposa
  
  		// Remote
  		const connectionToken = environmentService.options.connectionToken || getCookieValue(connectionTokenCookieName);
