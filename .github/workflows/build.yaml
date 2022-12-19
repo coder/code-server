@@ -179,6 +179,8 @@ jobs:
         run: yarn --frozen-lockfile
 
       - name: Build code-server
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: yarn build
 
       # Get Code's git hash.  When this changes it means the content is
