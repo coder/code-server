@@ -33,6 +33,7 @@
 - [Are there community projects involving code-server?](#are-there-community-projects-involving-code-server)
 - [How do I change the port?](#how-do-i-change-the-port)
 - [How do I hide the coder/coder promotion in Help: Getting Started?](#how-do-i-hide-the-codercoder-promotion-in-help-getting-started)
+- [How do I disable file download?](#how-do-i-disable-file-download)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 <!-- prettier-ignore-end -->
@@ -425,3 +426,7 @@ There are two ways to change the port on which code-server runs:
 You can pass the flag `--disable-getting-started-override` to `code-server` or
 you can set the environment variable `CS_DISABLE_GETTING_STARTED_OVERRIDE=1` or
 `CS_DISABLE_GETTING_STARTED_OVERRIDE=true`.
+
+## How do I disable file download?
+
+You can pass the flag `--disable-file-downloads` to `code-server`
