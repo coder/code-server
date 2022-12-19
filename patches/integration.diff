@@ -38,7 +38,7 @@ Index: code-server/lib/vscode/src/vs/server/node/server.main.ts
 -const LOCAL_HISTORY_HOME = join(APP_SETTINGS_HOME, 'History');
 -const MACHINE_SETTINGS_HOME = join(USER_DATA_PATH, 'Machine');
 -args['user-data-dir'] = USER_DATA_PATH;
--const APP_ROOT = dirname(FileAccess.asFileUri('', require).fsPath);
+-const APP_ROOT = dirname(FileAccess.asFileUri('').fsPath);
 -const BUILTIN_EXTENSIONS_FOLDER_PATH = join(APP_ROOT, 'extensions');
 -args['builtin-extensions-dir'] = BUILTIN_EXTENSIONS_FOLDER_PATH;
 -args['extensions-dir'] = args['extensions-dir'] || join(REMOTE_DATA_FOLDER, 'extensions');
@@ -58,7 +58,7 @@ Index: code-server/lib/vscode/src/vs/server/node/server.main.ts
 +	const LOCAL_HISTORY_HOME = join(APP_SETTINGS_HOME, 'History');
 +	const MACHINE_SETTINGS_HOME = join(USER_DATA_PATH, 'Machine');
 +	args['user-data-dir'] = USER_DATA_PATH;
-+	const APP_ROOT = dirname(FileAccess.asFileUri('', require).fsPath);
++	const APP_ROOT = dirname(FileAccess.asFileUri('').fsPath);
 +	const BUILTIN_EXTENSIONS_FOLDER_PATH = args['builtin-extensions-dir'] || join(APP_ROOT, 'extensions');
 +	args['builtin-extensions-dir'] = BUILTIN_EXTENSIONS_FOLDER_PATH;
 +	args['extensions-dir'] = args['extensions-dir'] || join(REMOTE_DATA_FOLDER, 'extensions');
@@ -107,7 +107,7 @@ Index: code-server/lib/vscode/src/vs/workbench/browser/parts/dialogs/dialogHandl
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/browser/parts/dialogs/dialogHandler.ts
 +++ code-server/lib/vscode/src/vs/workbench/browser/parts/dialogs/dialogHandler.ts
-@@ -143,8 +143,11 @@ export class BrowserDialogHandler implem
+@@ -145,8 +145,11 @@ export class BrowserDialogHandler implem
  
  	async about(): Promise<void> {
  		const detailString = (useAgo: boolean): string => {
@@ -184,7 +184,7 @@ Index: code-server/lib/vscode/src/vs/workbench/browser/web.main.ts
  import { ITelemetryService } from 'vs/platform/telemetry/common/telemetry';
  import { IProgressService } from 'vs/platform/progress/common/progress';
  import { DelayedLogChannel } from 'vs/workbench/services/output/common/delayedLogChannel';
-@@ -117,6 +118,9 @@ export class BrowserMain extends Disposa
+@@ -118,6 +119,9 @@ export class BrowserMain extends Disposa
  		// Startup
  		const instantiationService = workbench.startup();
  
