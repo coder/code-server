@@ -119,7 +119,7 @@ export class CodeServer {
   private async spawn(): Promise<CodeServerProcess> {
     // This will be used both as the workspace and data directory to ensure
     // instances don't bleed into each other.
-    const dir = await this.createWorkspace()
+    let dir = await this.createWorkspace()
 
     return new Promise((resolve, reject) => {
       const args = [
@@ -128,6 +128,8 @@ export class CodeServer {
         path.join(dir, "extensions"),
         "--auth",
         "none",
+        // The last argument is the workspace to open.
+        ...(this.args.includes("--ignore-last-opened") ? [] : [dir]),
         ...this.args,
         // Using port zero will spawn on a random port.
         "--bind-addr",
@@ -138,8 +140,6 @@ export class CodeServer {
         "--config",
         path.join(dir, "config.yaml"),
         "--user-data-dir",
-        dir,
-        // The last argument is the workspace to open.
         dir,
       ]
       this.logger.debug("spawning `node " + args.join(" ") + "`")
