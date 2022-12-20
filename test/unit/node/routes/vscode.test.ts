@@ -32,6 +32,7 @@ describe.skip("vscode", () => {
       const html = await resp.text()
       const url = new URL(resp.url) // Check there were no redirections.
       expect(url.pathname + url.search).toBe(route)
+
       switch (route) {
         case "/":
         case "/vscode/":
@@ -109,28 +110,6 @@ describe.skip("vscode", () => {
 
     expect(resp.status).toBe(200)
     const url = new URL(resp.url)
-    expect(url.search).toBe("")
-    await resp.text()
-  })
-
-  it("should not redirect when last opened is ignored", async () => {
-    codeServer = await integration.setup(["--auth=none", "--ignore-last-opened"], "")
-
-    const folder = await tmpdir(testName)
-    const workspace = path.join(await tmpdir(testName), "test.code-workspace")
-    await fs.writeFile(workspace, "")
-
-    let resp = await codeServer.fetch("/", undefined, {
-      folder,
-      workspace,
-    })
-    expect(resp.status).toBe(200)
-    await resp.text()
-
-    // No redirections.
-    resp = await codeServer.fetch("/")
-    const url = new URL(resp.url)
-    expect(url.pathname).toBe("/")
     expect(url.search).toBe("")
     await resp.text()
   })
