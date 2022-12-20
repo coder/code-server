@@ -6,7 +6,7 @@ import * as integration from "../../../utils/integration"
 
 // TODO@jsjoeio - move these to integration tests since they rely on Code
 // to be built
-describe("vscode", () => {
+describe.skip("vscode", () => {
   let codeServer: httpserver.HttpServer | undefined
 
   const testName = "vscode"
