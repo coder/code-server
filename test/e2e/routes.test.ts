@@ -56,6 +56,20 @@ describe("VS Code Routes with code-workspace", ["--disable-workspace-trust", COD
   })
 })
 
+const CODE_FOLDER_DIR = process.env.CODE_FOLDER_DIR || ""
+describe("VS Code Routes with code-workspace", ["--disable-workspace-trust", CODE_FOLDER_DIR], {}, async () => {
+  const testName = "vscode-routes"
+  test.beforeAll(async () => {
+    await clean(testName)
+  })
+
+  test.only("should redirect to the passed in folder using human-readable query", async ({ codeServerPage }) => {
+    const url = new URL(codeServerPage.page.url())
+    expect(url.pathname).toBe("/")
+    expect(url.search).toBe(`?folder=${CODE_FOLDER_DIR}`)
+  })
+})
+
 describe(
   "VS Code Routes with ignore-last-opened",
   ["--disable-workspace-trust", "--ignore-last-opened"],

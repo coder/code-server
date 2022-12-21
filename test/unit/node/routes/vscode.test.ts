@@ -23,49 +23,6 @@ describe.skip("vscode", () => {
 
   const routes = ["/", "/vscode", "/vscode/"]
 
-  it("should load all route variations", async () => {
-    codeServer = await integration.setup(["--auth=none"], "")
-
-    for (const route of routes) {
-      const resp = await codeServer.fetch(route)
-      expect(resp.status).toBe(200)
-      const html = await resp.text()
-      const url = new URL(resp.url) // Check there were no redirections.
-      expect(url.pathname + url.search).toBe(route)
-
-      switch (route) {
-        case "/":
-        case "/vscode/":
-          expect(html).toMatch(/src="\.\/[a-z]+-[0-9a-z]+\/static\//)
-          break
-        case "/vscode":
-          expect(html).toMatch(/src="\.\/vscode\/[a-z]+-[0-9a-z]+\/static\//)
-          break
-      }
-    }
-  })
-
-  it("should redirect to the passed in workspace using human-readable query", async () => {
-    const workspace = path.join(await tmpdir(testName), "test.code-workspace")
-    await fs.writeFile(workspace, "")
-    codeServer = await integration.setup(["--auth=none", workspace], "")
-
-    const resp = await codeServer.fetch("/")
-    const url = new URL(resp.url)
-    expect(url.pathname).toBe("/")
-    expect(url.search).toBe(`?workspace=${workspace}`)
-  })
-
-  it("should redirect to the passed in folder using human-readable query", async () => {
-    const folder = await tmpdir(testName)
-    codeServer = await integration.setup(["--auth=none", folder], "")
-
-    const resp = await codeServer.fetch("/")
-    const url = new URL(resp.url)
-    expect(url.pathname).toBe("/")
-    expect(url.search).toBe(`?folder=${folder}`)
-  })
-
   it("should redirect to last query folder/workspace", async () => {
     codeServer = await integration.setup(["--auth=none"], "")
 
