@@ -37,15 +37,6 @@ describe("VS Code Routes", ["--disable-workspace-trust"], {}, async () => {
       }
     }
   })
-
-  test("should redirect to the passed in workspace using human-readable query", async ({ codeServerPage }) => {
-    const workspace = path.join(await tmpdir(testName), "test.code-workspace")
-    await fs.writeFile(workspace, "")
-
-    const url = new URL(codeServerPage.page.url())
-    expect(url.pathname).toBe("/")
-    expect(url.search).toBe(`?workspace=${workspace}`)
-  })
 })
 
 const CODE_WORKSPACE_DIR = process.env.CODE_WORKSPACE_DIR || ""
