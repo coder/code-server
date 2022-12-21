@@ -6,7 +6,7 @@ import { promises as fs } from "fs"
 const routes = ["/", "/vscode", "/vscode/"]
 
 describe("VS Code Routes", ["--disable-workspace-trust"], {}, async () => {
-  const testName = "integrated-terminal"
+  const testName = "vscode-routes-default"
   test.beforeAll(async () => {
     await clean(testName)
   })
@@ -50,11 +50,6 @@ describe("VS Code Routes", ["--disable-workspace-trust"], {}, async () => {
 
 const CODE_WORKSPACE_DIR = process.env.CODE_WORKSPACE_DIR || ""
 describe("VS Code Routes with code-workspace", ["--disable-workspace-trust", CODE_WORKSPACE_DIR], {}, async () => {
-  const testName = "vscode-routes"
-  test.beforeAll(async () => {
-    await clean(testName)
-  })
-
   test("should redirect to the passed in workspace using human-readable query", async ({ codeServerPage }) => {
     const url = new URL(codeServerPage.page.url())
     expect(url.pathname).toBe("/")
@@ -64,11 +59,6 @@ describe("VS Code Routes with code-workspace", ["--disable-workspace-trust", COD
 
 const CODE_FOLDER_DIR = process.env.CODE_FOLDER_DIR || ""
 describe("VS Code Routes with code-workspace", ["--disable-workspace-trust", CODE_FOLDER_DIR], {}, async () => {
-  const testName = "vscode-routes"
-  test.beforeAll(async () => {
-    await clean(testName)
-  })
-
   test("should redirect to the passed in folder using human-readable query", async ({ codeServerPage }) => {
     const url = new URL(codeServerPage.page.url())
     expect(url.pathname).toBe("/")
