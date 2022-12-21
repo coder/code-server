@@ -119,7 +119,7 @@ export class CodeServer {
   private async spawn(): Promise<CodeServerProcess> {
     // This will be used both as the workspace and data directory to ensure
     // instances don't bleed into each other.
-    let dir = await this.createWorkspace()
+    const dir = await this.createWorkspace()
 
     return new Promise((resolve, reject) => {
       const args = [
