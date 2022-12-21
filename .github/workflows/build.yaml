@@ -182,6 +182,12 @@ jobs:
         if: steps.changed-files.outputs.any_changed == 'true'
         run: yarn test:unit
 
+      - name: Upload coverage report to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+        if: success()
+
   build:
     name: Build code-server
     runs-on: ubuntu-20.04
