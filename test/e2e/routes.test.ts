@@ -1,7 +1,5 @@
 import { describe, test, expect } from "./baseFixture"
-import { clean, tmpdir } from "../utils/helpers"
-import * as path from "path"
-import { promises as fs } from "fs"
+import { clean } from "../utils/helpers"
 
 const routes = ["/", "/vscode", "/vscode/"]
 
