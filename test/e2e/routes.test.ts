@@ -15,17 +15,13 @@ describe("VS Code Routes", ["--disable-workspace-trust"], {}, async () => {
 
       // Check there were no redirections
       const url = new URL(codeServerPage.page.url())
-      let expected = route
       if (process.env.USE_PROXY === "1") {
-        // TODO@jsjoeio if running behind proxy
-        // we need to modify expected value 
-        // instead of / it should be /<port>/ide
-        expected = "something else "
-        // could also modify left side and stripe /<port>/ide...
-        // in url.pathname
-
+        // Behind proxy, path will be /<port/ide + route
+        const pathWithoutProxy = url.pathname.split("/ide")[1]
+        expect(pathWithoutProxy).toBe(route)
+      } else {
+        expect(url.pathname).toBe(route)
       }
-      expect(url.pathname).toBe(expected)
 
       // TODO@jsjoeio
       // now that we are in a proper browser instead of scraping the HTML we
