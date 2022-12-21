@@ -128,6 +128,8 @@ export class CodeServer {
         path.join(dir, "extensions"),
         "--auth",
         "none",
+        // The workspace to open.
+        ...(this.args.includes("--ignore-last-opened") ? [] : [dir]),
         ...this.args,
         // Using port zero will spawn on a random port.
         "--bind-addr",
@@ -138,8 +140,6 @@ export class CodeServer {
         "--config",
         path.join(dir, "config.yaml"),
         "--user-data-dir",
-        dir,
-        // The last argument is the workspace to open.
         dir,
       ]
       this.logger.debug("spawning `node " + args.join(" ") + "`")
