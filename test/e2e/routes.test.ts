@@ -1,5 +1,6 @@
 import { describe, test, expect } from "./baseFixture"
 import { clean } from "../utils/helpers"
+import { REVERSE_PROXY_BASE_PATH } from "../utils/constants"
 
 const routes = ["/", "/vscode", "/vscode/"]
 
@@ -17,7 +18,7 @@ describe("VS Code Routes", ["--disable-workspace-trust"], {}, async () => {
       const url = new URL(codeServerPage.page.url())
       if (process.env.USE_PROXY === "1") {
         // Behind proxy, path will be /<port/ide + route
-        const pathWithoutProxy = url.pathname.split("/ide")[1]
+        const pathWithoutProxy = url.pathname.split(`/${REVERSE_PROXY_BASE_PATH}`)[1]
         expect(pathWithoutProxy).toBe(route)
       } else {
         expect(url.pathname).toBe(route)
