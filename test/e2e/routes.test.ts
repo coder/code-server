@@ -1,6 +1,5 @@
 import { describe, test, expect } from "./baseFixture"
 import { clean, getMaybeProxiedPathname } from "../utils/helpers"
-import { REVERSE_PROXY_BASE_PATH } from "../utils/constants"
 
 const routes = ["/", "/vscode", "/vscode/"]
 
