@@ -63,8 +63,12 @@ describe(
   {},
   async () => {
     test("should not redirect", async ({ codeServerPage }) => {
+      const folder = process.env.CODE_FOLDER_DIR
+
       await codeServerPage.navigate(`/`)
-      // No redirections.
+      await codeServerPage.navigate(`/?folder=${folder}`)
+      await codeServerPage.navigate(`/`)
+
       const url = new URL(codeServerPage.page.url())
       expect(url.pathname).toBe("/")
       expect(url.search).toBe("")
