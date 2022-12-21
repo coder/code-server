@@ -63,7 +63,6 @@ describe(
     test("should not redirect", async ({ codeServerPage }) => {
       const folder = process.env.CODE_FOLDER_DIR
 
-      await codeServerPage.navigate(`/`)
       await codeServerPage.navigate(`/?folder=${folder}`)
       await codeServerPage.navigate(`/`)
 
