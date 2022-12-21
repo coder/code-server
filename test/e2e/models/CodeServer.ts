@@ -128,7 +128,7 @@ export class CodeServer {
         path.join(dir, "extensions"),
         "--auth",
         "none",
-        // The last argument is the workspace to open.
+        // The workspace to open.
         ...(this.args.includes("--ignore-last-opened") ? [] : [dir]),
         ...this.args,
         // Using port zero will spawn on a random port.
