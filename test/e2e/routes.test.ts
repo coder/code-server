@@ -1,5 +1,5 @@
 import { describe, test, expect } from "./baseFixture"
-import { clean } from "../utils/helpers"
+import { clean, getMaybeProxiedPathname } from "../utils/helpers"
 import { REVERSE_PROXY_BASE_PATH } from "../utils/constants"
 
 const routes = ["/", "/vscode", "/vscode/"]
@@ -16,13 +16,8 @@ describe("VS Code Routes", ["--disable-workspace-trust"], {}, async () => {
 
       // Check there were no redirections
       const url = new URL(codeServerPage.page.url())
-      if (process.env.USE_PROXY === "1") {
-        // Behind proxy, path will be /<port/ide + route
-        const pathWithoutProxy = url.pathname.split(`/${REVERSE_PROXY_BASE_PATH}`)[1]
-        expect(pathWithoutProxy).toBe(route)
-      } else {
-        expect(url.pathname).toBe(route)
-      }
+      const pathname = getMaybeProxiedPathname(url)
+      expect(pathname).toBe(route)
 
       // TODO@jsjoeio
       // now that we are in a proper browser instead of scraping the HTML we
@@ -48,7 +43,8 @@ const CODE_WORKSPACE_DIR = process.env.CODE_WORKSPACE_DIR || ""
 describe("VS Code Routes with code-workspace", ["--disable-workspace-trust", CODE_WORKSPACE_DIR], {}, async () => {
   test("should redirect to the passed in workspace using human-readable query", async ({ codeServerPage }) => {
     const url = new URL(codeServerPage.page.url())
-    expect(url.pathname).toBe("/")
+    const pathname = getMaybeProxiedPathname(url)
+    expect(pathname).toBe("/")
     expect(url.search).toBe(`?workspace=${CODE_WORKSPACE_DIR}`)
   })
 })
@@ -57,7 +53,8 @@ const CODE_FOLDER_DIR = process.env.CODE_FOLDER_DIR || ""
 describe("VS Code Routes with code-workspace", ["--disable-workspace-trust", CODE_FOLDER_DIR], {}, async () => {
   test("should redirect to the passed in folder using human-readable query", async ({ codeServerPage }) => {
     const url = new URL(codeServerPage.page.url())
-    expect(url.pathname).toBe("/")
+    const pathname = getMaybeProxiedPathname(url)
+    expect(pathname).toBe("/")
     expect(url.search).toBe(`?folder=${CODE_FOLDER_DIR}`)
   })
 })
@@ -74,7 +71,8 @@ describe(
       await codeServerPage.navigate(`/`)
 
       const url = new URL(codeServerPage.page.url())
-      expect(url.pathname).toBe("/")
+      const pathname = getMaybeProxiedPathname(url)
+      expect(pathname).toBe("/")
       expect(url.search).toBe("")
     })
   },
@@ -91,7 +89,8 @@ describe("VS Code Routes with no workspace or folder", ["--disable-workspace-tru
     for (const route of routes) {
       await codeServerPage.navigate(route)
       const url = new URL(codeServerPage.page.url())
-      expect(url.pathname).toBe(route)
+      const pathname = getMaybeProxiedPathname(url)
+      expect(pathname).toBe(route)
       expect(url.search).toBe(`?folder=${folder}&workspace=${workspace}`)
     }
   })
@@ -106,7 +105,8 @@ describe("VS Code Routes with no workspace or folder", ["--disable-workspace-tru
     // Closing the folder should stop the redirecting.
     await codeServerPage.navigate("/?ew=true")
     let url = new URL(codeServerPage.page.url())
-    expect(url.pathname).toBe("/")
+    const pathname = getMaybeProxiedPathname(url)
+    expect(pathname).toBe("/")
     expect(url.search).toBe("?ew=true")
   })
 })
