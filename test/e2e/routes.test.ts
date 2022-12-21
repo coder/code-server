@@ -19,6 +19,11 @@ describe("VS Code Routes", ["--disable-workspace-trust"], {}, async () => {
       const url = new URL(codeServerPage.page.url())
       expect(url.pathname).toBe(route)
 
+      // TODO@jsjoeio 
+      // now that we are in a proper browser instead of scraping the HTML we
+      // could possibly intercept requests to make sure assets are loading from
+      // the right spot.
+      //
       // Check that page loaded from correct route
       const html = await codeServerPage.page.innerHTML("html")
       switch (route) {
