@@ -374,7 +374,7 @@ jobs:
           ./test/node_modules/.bin/playwright install
 
       - name: Run end-to-end tests
-        run: CODE_SERVER_TEST_ENTRY=./release yarn test:e2e --global-timeout 840000
+        run: CODE_SERVER_TEST_ENTRY=./release yarn test:e2e
 
       - name: Upload test artifacts
         if: always()
