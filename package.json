@@ -67,7 +67,7 @@
     "typescript": "^4.6.2"
   },
   "resolutions": {
-    "ansi-regex": "^5.0.1",
+    "ansi-regex": "^6.0.0",
     "normalize-package-data": "^5.0.0",
     "doctoc/underscore": "^1.13.1",
     "doctoc/**/trim": "^1.0.0",
