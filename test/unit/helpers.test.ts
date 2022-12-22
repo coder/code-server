@@ -1,5 +1,6 @@
 import { promises as fs } from "fs"
-import { clean, getAvailablePort, tmpdir, useEnv } from "../../test/utils/helpers"
+import { clean, getAvailablePort, getMaybeProxiedPathname, tmpdir, useEnv } from "../../test/utils/helpers"
+import { REVERSE_PROXY_BASE_PATH } from "../utils/constants"
 
 /**
  * This file is for testing test helpers (not core code).
@@ -54,5 +55,24 @@ describe("getAvailablePort", () => {
     const portOne = await getAvailablePort()
     const portTwo = await getAvailablePort()
     expect(portOne).not.toEqual(portTwo)
+  })
+})
+
+describe("getMaybeProxiedPathname", () => {
+  it("should return the route", () => {
+    const route = "/vscode"
+    const url = new URL(`http://localhost:3000${route}`)
+    const actual = getMaybeProxiedPathname(url)
+    expect(actual).toBe(route)
+  })
+  it("should strip proxy if env var set", () => {
+    const envKey = "USE_PROXY"
+    const [setValue, resetValue] = useEnv(envKey)
+    setValue("1")
+    const route = "/vscode"
+    const url = new URL(`http://localhost:3000/8000/${REVERSE_PROXY_BASE_PATH}${route}`)
+    const actual = getMaybeProxiedPathname(url)
+    expect(actual).toBe(route)
+    resetValue()
   })
 })

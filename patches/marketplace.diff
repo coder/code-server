@@ -19,7 +19,7 @@ Index: code-server/lib/vscode/src/vs/platform/product/common/product.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/platform/product/common/product.ts
 +++ code-server/lib/vscode/src/vs/platform/product/common/product.ts
-@@ -53,6 +53,16 @@ else if (typeof require?.__$__nodeRequir
+@@ -47,6 +47,16 @@ else if (globalThis._VSCODE_PRODUCT_JSON
  			version: pkg.version
  		});
  	}

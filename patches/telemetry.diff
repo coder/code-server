@@ -1,7 +1,7 @@
 Add support for telemetry endpoint
 
 To test:
-1. Create a RequestBin - https://requestbin.io/
+1. Create a mock API using [RequestBin](https://requestbin.io/) or [Beeceptor](https://beeceptor.com/)
 2. Run code-server with `CS_TELEMETRY_URL` set: 
   i.e. `CS_TELEMETRY_URL="https://requestbin.io/1ebub9z1" ./code-server-<version>-macos-amd64/bin/code-server`
   NOTE: it has to be a production build.
