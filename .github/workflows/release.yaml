@@ -27,7 +27,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     needs: npm-version
-    container: "centos:7"
+    container: "centos:8"
     env:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
