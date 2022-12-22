@@ -22,6 +22,7 @@
     "ansi-regex",
     "env-paths",
     "limiter",
-    "node"
+    "node",
+    "prettier"
   ]
 }
