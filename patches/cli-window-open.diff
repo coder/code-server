@@ -8,7 +8,7 @@ To test:
 2. Open code-server
 3. Open terminal
 4. Open another code-server window
-5. Run code-server with a file or directory argument
+5. Run node ./out/node/entry.js with a file or directory argument
 
 The file or directory should only open from the instance attached to that
 terminal.

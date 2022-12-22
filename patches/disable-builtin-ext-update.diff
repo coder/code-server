@@ -18,14 +18,3 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/extensions/browser/extens
  			if (!this.local.preRelease && this.gallery.properties.isPreReleaseVersion) {
  				return false;
  			}
-@@ -1237,6 +1241,10 @@ export class ExtensionsWorkbenchService 
- 				// Skip if check updates only for builtin extensions and current extension is not builtin.
- 				continue;
- 			}
-+			if (installed.type !== ExtensionType.User) {
-+				// Never update builtin extensions.
-+				continue;
-+			}
- 			if (installed.isBuiltin && (!installed.local?.identifier.uuid || (!isWeb && this.productService.quality === 'stable'))) {
- 				// Skip checking updates for a builtin extension if it does not has Marketplace identifier or the current product is VS Code Desktop stable.
- 				continue;

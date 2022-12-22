@@ -136,3 +136,17 @@ export async function getMaybeProxiedCodeServer(codeServer: CodeServerPage | Cod
 
   return address
 }
+
+/**
+ * Stripes proxy base from url.pathname
+ * i.e. /<port>/ide + route returns just route
+ */
+export function getMaybeProxiedPathname(url: URL): string {
+  if (process.env.USE_PROXY === "1") {
+    // Behind proxy, path will be /<port>/ide + route
+    const pathWithoutProxy = url.pathname.split(`/${REVERSE_PROXY_BASE_PATH}`)[1]
+    return pathWithoutProxy
+  }
+
+  return url.pathname
+}
