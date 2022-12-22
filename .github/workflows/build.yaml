@@ -430,7 +430,7 @@ jobs:
           ./test/node_modules/.bin/playwright install
 
       - name: Cache Caddy
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         id: caddy-cache
         with:
           path: |
