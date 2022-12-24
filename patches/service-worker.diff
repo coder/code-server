@@ -59,7 +59,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
  				logoutEndpoint: this._environmentService.args['auth'] && this._environmentService.args['auth'] !== "none" ? base + '/logout' : undefined,
  				proxyEndpointTemplate: process.env.VSCODE_PROXY_URI ?? base + '/proxy/{{port}}/',
 +				serviceWorker: {
-+					scope: vscodeBase + '/',
++					scope: '/',
 +					path: base + '/_static/out/browser/serviceWorker.js',
 +				},
  				embedderIdentifier: 'server-distro',
