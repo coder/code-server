@@ -137,12 +137,14 @@ jobs:
       - name: Open PR
         # We need to git push -u otherwise gh will prompt
         # asking where to push the branch.
+        env:
+          VERSION: ${{ env.VERSION }}
         run: |
-          git checkout -b update-version-${{ steps.version.outputs.version }}
+          git checkout -b update-version-${{ env.VERSION }}
           git add . 
-          git commit -m "chore: updating version to ${{ steps.version.outputs.version }}"
+          git commit -m "chore: updating version to ${{ env.VERSION }}"
           git push -u origin $(git branch --show)
-          gh pr create --repo coder/code-server-aur --title "chore: bump version to ${{ steps.version.outputs.version }}" --body "PR opened by @$GITHUB_ACTOR" --assignee $GITHUB_ACTOR
+          gh pr create --repo coder/code-server-aur --title "chore: bump version to ${{ env.VERSION }}" --body "PR opened by @$GITHUB_ACTOR" --assignee $GITHUB_ACTOR
   docker:
     runs-on: ubuntu-20.04
     steps:
