@@ -1,6 +1,7 @@
 {
   "rangeStrategy": "replace",
   "extends": ["config:base"],
+  "includesPeerDependencies": true,
   "packageRules": [
     {
       "matchUpdateTypes": ["minor", "patch", "digest"],
