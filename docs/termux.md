@@ -20,50 +20,9 @@
 ## Install
 
 1. Get [Termux](https://f-droid.org/en/packages/com.termux/) from **F-Droid**.
-2. Install Debian by running the following:
-   - Run `termux-setup-storage` to allow storage access, or else code-server won't be able to read from `/sdcard`.\
-     > The following command is from [proot-distro](https://github.com/termux/proot-distro), but you can also use [Andronix](https://andronix.app/).
-     > After Debian is installed the `~ $` will change to `root@localhost`.
-
-```bash
-pkg update -y && pkg install proot-distro -y && proot-distro install debian && proot-distro login debian
-```
-
-3. Run the following commands to setup Debian:
-
-```bash
-apt update && apt upgrade -y && apt-get install sudo vim git -y
-```
-
-4. Install [NVM](https://github.com/nvm-sh/nvm#install--update-script) by following the install guide in the README, just a curl/wget command.
-
-5. Set up NVM for multi-user. After installing NVM it automatically adds the necessary commands for it to work, but it will only work if you are logged in as root:
-
-   - Copy the lines NVM asks you to run after running the install script.
-   - Run `nano /root/.bashrc` and comment out those lines by adding a `#` at the start.
-   - Run `nano /etc/profile` and paste those lines at the end of the file. Make sure to replace `$HOME` with `/root` on the first line.
-   - Now run `exit`
-   - Start Debian again `proot-distro login debian`
-
-6. After following the instructions and setting up NVM you can now install the [required node version](https://coder.com/docs/code-server/latest/npm#nodejs-version) by running:
-
-```bash
-nvm install v<major_version_here>
-```
-
-7. To install `code-server` run the following:
-   > To check the install process (Will not actually install code-server)
-   > If it all looks good, you can install code-server by running the second command
-
-```bash
-curl -fsSL https://code-server.dev/install.sh | sh -s -- --dry-run
-```
-
-```bash
-curl -fsSL https://code-server.dev/install.sh | sh
-```
-
-8. You can now start code server by simply running `code-server`.
+2. Run `pkg install tur-repo`
+3. Run `pkg install code-server`
+4. You can now start code server by simply running `code-server`.
 
 > Consider using a new user instead of root, read [here](https://www.howtogeek.com/124950/htg-explains-why-you-shouldnt-log-into-your-linux-system-as-root/) why using root is not recommended.\
 > Learn how to add a user [here](#create-a-new-user).
