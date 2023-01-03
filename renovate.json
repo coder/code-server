@@ -11,5 +11,5 @@
   "vulnerabilityAlerts": {
     "enabled": "true"
   },
-  "ignoreDeps": ["express"]
+  "ignoreDeps": ["express", "ansi-regex", "env-paths", "limiter", "node", "prettier"]
 }
