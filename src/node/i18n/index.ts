@@ -1,0 +1,21 @@
+import i18next from "i18next"
+import * as en from "./locales/en.json"
+import * as zhCn from "./locales/zh-cn.json"
+
+i18next.init({
+  lng: "en",
+  fallbackLng: "en", // language to use if translations in user language are not available.
+  returnNull: false,
+  lowerCaseLng: true,
+  debug: process.env.NODE_ENV === "development",
+  resources: {
+    en: {
+      translation: en,
+    },
+    "zh-cn": {
+      translation: zhCn,
+    },
+  },
+})
+
+export default i18next

@@ -88,6 +88,7 @@ export interface UserProvidedArgs extends UserProvidedCodeArgs {
   verbose?: boolean
   "app-name"?: string
   "welcome-text"?: string
+  "lng"?: string
   /* Positional arguments. */
   _?: string[]
 }
@@ -263,6 +264,13 @@ export const options: Options<Required<UserProvidedArgs>> = {
       Authorization is done via GitHub.
     `,
     deprecated: true,
+  },
+  "lng": {
+    type: "string",
+    description: `
+      Language show on login page, more infomations to read up on
+      https://en.wikipedia.org/wiki/IETF_language_tag.
+    `,
   },
 }
 

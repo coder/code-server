@@ -22,7 +22,8 @@
       "./test/node_modules/@types",
       "./lib/vscode/src/vs/server/@types"
     ],
-    "downlevelIteration": true
+    "downlevelIteration": true,
+    "resolveJsonModule": true
   },
   "include": ["./src/**/*"],
   "exclude": ["/test", "/lib", "/ci", "/doc"]

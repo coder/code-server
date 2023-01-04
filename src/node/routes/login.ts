@@ -7,6 +7,7 @@ import { CookieKeys } from "../../common/http"
 import { rootPath } from "../constants"
 import { authenticated, getCookieOptions, redirect, replaceTemplates } from "../http"
 import { getPasswordMethod, handlePasswordValidation, humanPath, sanitizeString, escapeHtml } from "../util"
+import i18n from "../i18n"
 
 // RateLimiter wraps around the limiter library for logins.
 // It allows 2 logins every minute plus 12 logins every hour.
@@ -28,13 +29,15 @@ export class RateLimiter {
 
 const getRoot = async (req: Request, error?: Error): Promise<string> => {
   const content = await fs.readFile(path.join(rootPath, "src/browser/pages/login.html"), "utf8")
+  const lng = req.args["lng"] || "en"
+  i18n.changeLanguage(lng)
   const appName = req.args["app-name"] || "code-server"
-  const welcomeText = req.args["welcome-text"] || `Welcome to ${appName}`
-  let passwordMsg = `Check the config file at ${humanPath(os.homedir(), req.args.config)} for the password.`
+  const welcomeText = req.args["welcome-text"] || (i18n.t("WELCOME", { app: appName }) as string)
+  let passwordMsg = i18n.t("LOGIN_PASSWORD", { configFile: humanPath(os.homedir(), req.args.config) })
   if (req.args.usingEnvPassword) {
-    passwordMsg = "Password was set from $PASSWORD."
+    passwordMsg = i18n.t("LOGIN_USING_ENV_PASSWORD")
   } else if (req.args.usingEnvHashedPassword) {
-    passwordMsg = "Password was set from $HASHED_PASSWORD."
+    passwordMsg = i18n.t("LOGIN_USING_HASHED_PASSWORD")
   }
 
   return replaceTemplates(
@@ -43,6 +46,10 @@ const getRoot = async (req: Request, error?: Error): Promise<string> => {
       .replace(/{{APP_NAME}}/g, appName)
       .replace(/{{WELCOME_TEXT}}/g, welcomeText)
       .replace(/{{PASSWORD_MSG}}/g, passwordMsg)
+      .replace(/{{I18N_LOGIN_TITLE}}/g, i18n.t("LOGIN_TITLE"))
+      .replace(/{{I18N_LOGIN_BELOW}}/g, i18n.t("LOGIN_BELOW"))
+      .replace(/{{I18N_PASSWORD_PLACEHOLDER}}/g, i18n.t("PASSWORD_PLACEHOLDER"))
+      .replace(/{{I18N_SUBMIT}}/g, i18n.t("SUBMIT"))
       .replace(/{{ERROR}}/, error ? `<div class="error">${escapeHtml(error.message)}</div>` : ""),
   )
 }
@@ -70,11 +77,11 @@ router.post<{}, string, { password: string; base?: string }, { to?: string }>("/
   try {
     // Check to see if they exceeded their login attempts
     if (!limiter.canTry()) {
-      throw new Error("Login rate limited!")
+      throw new Error(i18n.t("LOGIN_RATE_LIMIT") as string)
     }
 
     if (!password) {
-      throw new Error("Missing password")
+      throw new Error(i18n.t("MISS_PASSWORD") as string)
     }
 
     const passwordMethod = getPasswordMethod(hashedPasswordFromArgs)
@@ -108,7 +115,7 @@ router.post<{}, string, { password: string; base?: string }, { to?: string }>("/
       }),
     )
 
-    throw new Error("Incorrect password")
+    throw new Error(i18n.t("INCORRECT_PASSWORD") as string)
   } catch (error: any) {
     const renderedHtml = await getRoot(req, error)
     res.send(renderedHtml)
