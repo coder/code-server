@@ -3,7 +3,6 @@
   "extends": ["config:base"],
   "packageRules": [
     {
-      "matchDepTypes": ["dependencies", "devDependencies"],
       "matchUpdateTypes": ["minor", "patch", "digest"],
       "automerge": true,
       "groupName": "Minor dependency updates"
