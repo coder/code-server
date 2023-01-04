@@ -12,7 +12,6 @@
   - [Create a new user](#create-a-new-user)
   - [Install Go](#install-go)
   - [Install Python](#install-python)
-  - [Working with PRoot](#working-with-proot)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 <!-- prettier-ignore-end -->
@@ -20,53 +19,9 @@
 ## Install
 
 1. Get [Termux](https://f-droid.org/en/packages/com.termux/) from **F-Droid**.
-2. Install Debian by running the following:
-   - Run `termux-setup-storage` to allow storage access, or else code-server won't be able to read from `/sdcard`.\
-     > The following command is from [proot-distro](https://github.com/termux/proot-distro), but you can also use [Andronix](https://andronix.app/).
-     > After Debian is installed the `~ $` will change to `root@localhost`.
-
-```bash
-pkg update -y && pkg install proot-distro -y && proot-distro install debian && proot-distro login debian
-```
-
-3. Run the following commands to setup Debian:
-
-```bash
-apt update && apt upgrade -y && apt-get install sudo vim git -y
-```
-
-4. Install [NVM](https://github.com/nvm-sh/nvm#install--update-script) by following the install guide in the README, just a curl/wget command.
-
-5. Set up NVM for multi-user. After installing NVM it automatically adds the necessary commands for it to work, but it will only work if you are logged in as root:
-
-   - Copy the lines NVM asks you to run after running the install script.
-   - Run `nano /root/.bashrc` and comment out those lines by adding a `#` at the start.
-   - Run `nano /etc/profile` and paste those lines at the end of the file. Make sure to replace `$HOME` with `/root` on the first line.
-   - Now run `exit`
-   - Start Debian again `proot-distro login debian`
-
-6. After following the instructions and setting up NVM you can now install the [required node version](https://coder.com/docs/code-server/latest/npm#nodejs-version) by running:
-
-```bash
-nvm install v<major_version_here>
-```
-
-7. To install `code-server` run the following:
-   > To check the install process (Will not actually install code-server)
-   > If it all looks good, you can install code-server by running the second command
-
-```bash
-curl -fsSL https://code-server.dev/install.sh | sh -s -- --dry-run
-```
-
-```bash
-curl -fsSL https://code-server.dev/install.sh | sh
-```
-
-8. You can now start code server by simply running `code-server`.
-
-> Consider using a new user instead of root, read [here](https://www.howtogeek.com/124950/htg-explains-why-you-shouldnt-log-into-your-linux-system-as-root/) why using root is not recommended.\
-> Learn how to add a user [here](#create-a-new-user).
+2. Run `pkg install tur-repo`
+3. Run `pkg install code-server`
+4. You can now start code server by simply running `code-server`.
 
 ## NPM Installation
 
@@ -202,35 +157,3 @@ eval "$(pyenv virtualenv-init -)"
 7. Run `touch /root/.pyenv/version && echo "your_version_here" > /root/.pyenv/version`
 8. (You may have to start Debian again) Run `python3 -V` to verify if PATH works or not.
    > If `python3` doesn't work but pyenv says that the install was successful in step 6 then try running `$PYENV_ROOT/versions/your_version/bin/python3`.
-
-### Working with PRoot
-
-Debian PRoot Distro Dev Environment
-
-- Since Node and code-server are installed in the Debian PRoot distro, your `~/.ssh/` configuration, `~/.bashrc`, git, npm packages, etc. should be setup in PRoot as well.
-- The terminal accessible in code-server will bring up the filesystem and `~/.bashrc` in the Debian PRoot distro.
-
-Accessing files in the Debian PRoot Distro
-
-- The `/data/data/com.termux/files/home` directory in PRoot accesses the termux home directory (`~`)
-- The `/sdcard` directory in PRoot accesses the Android storage directory, though there are [known issues with git and files in the `/sdcard` path](#git-wont-work-in-sdcard)
-
-Accessing the Debian PRoot distro/Starting code-server
-
-- Run the following command to access the Debian PRoot distro, from the termux shell:
-
-```bash
-proot-distro login debian
-```
-
-- Run the following command to start code-server directly in the Debian PRoot distro, from the termux shell:
-
-```bash
-proot-distro login debian -- code-server
-```
-
-- If you [created a new user](#create-a-new-user), you'll need to insert the `--user <username>` option between `login` and `debian` in the commands above to run as the user instead of root in PRoot.
-
-Additional information on PRoot and Termux
-
-- Additional information on using your Debian PRoot Distro can be [found here](https://github.com/termux/proot-distro#functionality-overview).
