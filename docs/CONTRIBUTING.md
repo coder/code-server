@@ -178,7 +178,7 @@ This means your patches didn't apply correctly. We have a patch to remove the au
 
 Try popping off the patches with `quilt pop -a` and reapplying with `quilt push -a`.
 
-### "Can only have one anonymous define call per script"
+#### "Can only have one anonymous define call per script"
 
 Code might be trying to use a dev or prod HTML in the wrong context. You can try re-running code-server and setting `VSCODE_DEV=1`.
 
