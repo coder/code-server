@@ -11,9 +11,10 @@
   - [Version updates to Code](#version-updates-to-code)
   - [Patching Code](#patching-code)
   - [Build](#build)
+    - [Creating a Standalone Release](#creating-a-standalone-release)
   - [Troubleshooting](#troubleshooting)
     - [I see "Forbidden access" when I load code-server in the browser](#i-see-forbidden-access-when-i-load-code-server-in-the-browser)
-  - ["Can only have one anonymous define call per script"](#can-only-have-one-anonymous-define-call-per-script)
+    - ["Can only have one anonymous define call per script"](#can-only-have-one-anonymous-define-call-per-script)
   - [Help](#help)
 - [Test](#test)
   - [Unit tests](#unit-tests)
@@ -169,6 +170,22 @@ yarn package
 > version. In our GitHub Actions CI, we use CentOS 7 for maximum compatibility.
 > If you need your builds to support older distros, run the build commands
 > inside a Docker container with all the build requirements installed.
+
+#### Creating a Standalone Release
+
+Part of the build process involves creating standalone releases. At the time of
+writing, we do this for the following platforms/architectures:
+
+- Linux amd64 (.tar.gz, .deb, and .rpm)
+- Linux arm64 (.tar.gz, .deb, and .rpm)
+- Linux arm7l (.tar.gz)
+- Linux armhf.deb
+- Linux armhf.rpm
+- macOS amd64 (Intel-based)
+
+Currently, these are compiled in CI using the `yarn release-standalone` command
+in the `release.yaml` workflow. We then upload them to the draft release and
+distribute via GitHub Releases.
 
 ### Troubleshooting
 
