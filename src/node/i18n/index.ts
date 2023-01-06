@@ -1,8 +1,8 @@
-import i18next from "i18next"
+import i18next, { init } from "i18next"
 import * as en from "./locales/en.json"
 import * as zhCn from "./locales/zh-cn.json"
 
-i18next.init({
+init({
   lng: "en",
   fallbackLng: "en", // language to use if translations in user language are not available.
   returnNull: false,
