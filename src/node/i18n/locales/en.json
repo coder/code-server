@@ -1,6 +1,6 @@
 {
-  "LOGIN_TITLE": "login",
-  "LOGIN_BELOW": "Please log in below. ",
+  "LOGIN_TITLE": "{{app}} login",
+  "LOGIN_BELOW": "Please log in below.",
   "WELCOME": "Welcome to {{app}}",
   "LOGIN_PASSWORD": "Check the config file at {{configFile}} for the password.",
   "LOGIN_USING_ENV_PASSWORD": "Password was set from $PASSWORD.",

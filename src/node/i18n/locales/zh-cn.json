@@ -1,5 +1,5 @@
 {
-  "LOGIN_TITLE": "登录",
+  "LOGIN_TITLE": "{{app}} 登录",
   "LOGIN_BELOW": "请在下面登录。",
   "WELCOME": "欢迎来到 {{app}}",
   "LOGIN_PASSWORD": "查看配置文件 {{configFile}} 中的密码。",
