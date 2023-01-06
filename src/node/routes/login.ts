@@ -43,7 +43,7 @@ const getRoot = async (req: Request, error?: Error): Promise<string> => {
   return replaceTemplates(
     req,
     content
-      .replace(/{{I18N_LOGIN_TITLE}}/g, i18n.t("LOGIN_TITLE", { app: appName}))
+      .replace(/{{I18N_LOGIN_TITLE}}/g, i18n.t("LOGIN_TITLE", { app: appName }))
       .replace(/{{WELCOME_TEXT}}/g, welcomeText)
       .replace(/{{PASSWORD_MSG}}/g, passwordMsg)
       .replace(/{{I18N_LOGIN_BELOW}}/g, i18n.t("LOGIN_BELOW"))

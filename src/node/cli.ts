@@ -88,7 +88,7 @@ export interface UserProvidedArgs extends UserProvidedCodeArgs {
   verbose?: boolean
   "app-name"?: string
   "welcome-text"?: string
-  "lng"?: string
+  lng?: string
   /* Positional arguments. */
   _?: string[]
 }
@@ -265,7 +265,7 @@ export const options: Options<Required<UserProvidedArgs>> = {
     `,
     deprecated: true,
   },
-  "lng": {
+  lng: {
     type: "string",
     description: `
       Language show on login page, more infomations to read up on

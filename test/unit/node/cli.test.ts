@@ -132,7 +132,7 @@ describe("parser", () => {
       verbose: true,
       "app-name": "custom instance name",
       "welcome-text": "welcome to code",
-      "lng": "zh-cn",
+      lng: "zh-cn",
       version: true,
       "bind-addr": "192.169.0.1:8080",
     })
