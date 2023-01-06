@@ -46,7 +46,6 @@ const getRoot = async (req: Request, error?: Error): Promise<string> => {
       .replace(/{{I18N_LOGIN_TITLE}}/g, i18n.t("LOGIN_TITLE", { app: appName}))
       .replace(/{{WELCOME_TEXT}}/g, welcomeText)
       .replace(/{{PASSWORD_MSG}}/g, passwordMsg)
-      .replace(/{{I18N_LOGIN_TITLE}}/g, i18n.t("LOGIN_TITLE"))
       .replace(/{{I18N_LOGIN_BELOW}}/g, i18n.t("LOGIN_BELOW"))
       .replace(/{{I18N_PASSWORD_PLACEHOLDER}}/g, i18n.t("PASSWORD_PLACEHOLDER"))
       .replace(/{{I18N_SUBMIT}}/g, i18n.t("SUBMIT"))
