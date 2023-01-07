@@ -29,8 +29,8 @@ export class RateLimiter {
 
 const getRoot = async (req: Request, error?: Error): Promise<string> => {
   const content = await fs.readFile(path.join(rootPath, "src/browser/pages/login.html"), "utf8")
-  const lng = req.args["lng"] || "en"
-  i18n.changeLanguage(lng)
+  const locale = req.args["locale"] || "en"
+  i18n.changeLanguage(locale)
   const appName = req.args["app-name"] || "code-server"
   const welcomeText = req.args["welcome-text"] || (i18n.t("WELCOME", { app: appName }) as string)
   let passwordMsg = i18n.t("LOGIN_PASSWORD", { configFile: humanPath(os.homedir(), req.args.config) })

@@ -139,10 +139,10 @@ describe("login", () => {
       expect(htmlContent).toContain(`Welcome to ${appName}`)
     })
 
-    it("should return correct welcome text when lng is set to non-English", async () => {
+    it("should return correct welcome text when locale is set to non-English", async () => {
       process.env.PASSWORD = previousEnvPassword
-      const lng = "zh-cn"
-      const codeServer = await integration.setup([`--lng=${lng}`], "")
+      const locale = "zh-cn"
+      const codeServer = await integration.setup([`--locale=${locale}`], "")
       const resp = await codeServer.fetch("/login", { method: "GET" })
 
       const htmlContent = await resp.text()
