@@ -102,6 +102,7 @@ spec:
           {{- range .Values.extraSecretMounts }}
           - name: {{ .name }}
             mountPath: {{ .mountPath }}
+            subPath: {{ .subPath | default "" }}
             readOnly: {{ .readOnly }}
           {{- end }}
           {{- range .Values.extraVolumeMounts }}

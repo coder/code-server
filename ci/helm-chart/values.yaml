@@ -179,6 +179,7 @@ extraInitContainers: |
 extraSecretMounts: []
   # - name: secret-files
   #   mountPath: /etc/secrets
+  #   subPath: private.key # (optional)
   #   secretName: code-server-secret-files
   #   readOnly: true
 
