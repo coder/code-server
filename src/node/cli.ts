@@ -180,7 +180,14 @@ export const options: Options<Required<UserProvidedArgs>> = {
   enable: { type: "string[]" },
   help: { type: "boolean", short: "h", description: "Show this output." },
   json: { type: "boolean" },
-  locale: { type: "string" }, // The preferred way to set the locale is via the UI.
+  locale: {
+    // The preferred way to set the locale is via the UI.
+    type: "string",
+    description: `
+      Set vscode display language and language to show on the login page, more info see 
+      https://en.wikipedia.org/wiki/IETF_language_tag
+    `,
+  },
   open: { type: "boolean", description: "Open in browser on startup. Does not work remotely." },
 
   "bind-addr": {

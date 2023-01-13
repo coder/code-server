@@ -3,3 +3,5 @@
 ci/helm-chart/ @Matthew-Beckett @alexgorbatchev
 
 docs/install.md @GNUxeava
+
+src/node/i18n/locales/zh-cn.json @zhaozhiming

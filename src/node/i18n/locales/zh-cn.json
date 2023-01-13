@@ -1,0 +1,13 @@
+{
+  "LOGIN_TITLE": "{{app}} 登录",
+  "LOGIN_BELOW": "请在下面登录。",
+  "WELCOME": "欢迎来到 {{app}}",
+  "LOGIN_PASSWORD": "查看配置文件 {{configFile}} 中的密码。",
+  "LOGIN_USING_ENV_PASSWORD": "密码在 $PASSWORD 中设置。",
+  "LOGIN_USING_HASHED_PASSWORD": "密码在 $HASHED_PASSWORD 中设置。",
+  "SUBMIT": "提交",
+  "PASSWORD_PLACEHOLDER": "密码",
+  "LOGIN_RATE_LIMIT": "登录速率限制!",
+  "MISS_PASSWORD": "缺少密码",
+  "INCORRECT_PASSWORD": "密码不正确"
+}
