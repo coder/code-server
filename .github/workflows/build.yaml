@@ -139,6 +139,18 @@ jobs:
         if: steps.changed-files.outputs.any_changed == 'true'
         run: yarn lint:ts
 
+  lint-actions:
+    name: Lint GitHub Actions
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+      - name: Check workflow files
+        run: |
+          bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/7fdc9630cc360ea1a469eed64ac6d78caeda1234/scripts/download-actionlint.bash)
+          ./actionlint -color -shellcheck= -ignore "set-output"
+        shell: bash
+
   test-unit:
     name: Run unit tests
     runs-on: ubuntu-20.04
