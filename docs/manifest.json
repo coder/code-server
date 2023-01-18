@@ -20,6 +20,11 @@
       "path": "./install.md",
       "children": [
         {
+          "title": "Coder",
+          "description": "How to install code-server in Coder",
+          "path": "./coder.md"
+        },
+        {
           "title": "npm",
           "description": "How to install code-server using npm",
           "path": "./npm.md"
