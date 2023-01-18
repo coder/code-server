@@ -366,7 +366,10 @@ Use the `--disable-telemetry` flag to disable telemetry.
 
 ## What's the difference between code-server and Coder?
 
-code-server and Coder are both applications that can be installed on any machine. The main difference is who they serve. Out of the box, code-server is simply VS Code in the browser while Coder is a tool for provisioning remote development environments via Terraform.
+code-server and Coder are both applications that can be installed on any
+machine. The main difference is who they serve. Out of the box, code-server is
+simply VS Code in the browser while Coder is a tool for provisioning remote
+development environments via Terraform.
 
 code-server was built for individuals while Coder was built for teams. In Coder, you create Workspaces which can have applications like code-server. If you're looking for a team solution, you should reach for [Coder](https://github.com/coder/coder).
 
