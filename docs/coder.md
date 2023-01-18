@@ -1,6 +1,6 @@
 # Coder
 
-To install code-server in a Coder workspace, we suggest using the `install.sh`
+To install and run code-server in a Coder workspace, we suggest using the `install.sh`
 script in your template like so:
 
 ```terraform
