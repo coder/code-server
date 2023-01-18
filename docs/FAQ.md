@@ -26,6 +26,7 @@
 - [Is multi-tenancy possible?](#is-multi-tenancy-possible)
 - [Can I use Docker in a code-server container?](#can-i-use-docker-in-a-code-server-container)
 - [How do I disable telemetry?](#how-do-i-disable-telemetry)
+- [What's the difference between code-server and Coder?](#whats-the-difference-between-code-server-and-coder)
 - [What's the difference between code-server and Theia?](#whats-the-difference-between-code-server-and-theia)
 - [What's the difference between code-server and OpenVSCode-Server?](#whats-the-difference-between-code-server-and-openvscode-server)
 - [What's the difference between code-server and GitHub Codespaces?](#whats-the-difference-between-code-server-and-github-codespaces)
@@ -362,6 +363,12 @@ one mounted inside the `code-server` container, and the mount will work.
 Use the `--disable-telemetry` flag to disable telemetry.
 
 > We use the data collected only to improve code-server.
+
+## What's the difference between code-server and Coder?
+
+code-server and Coder are both applications that can be installed on any machine. The main difference is who they serve. Out of the box, code-server is simply VS Code in the browser while Coder is a tool for provisioning remote development environments via Terraform.
+
+code-server was built for individuals while Coder was built for teams. In Coder, you create Workspaces which can have applications like code-server. If you're looking for a team solution, you should reach for [Coder](https://github.com/coder/coder).
 
 ## What's the difference between code-server and Theia?
 
