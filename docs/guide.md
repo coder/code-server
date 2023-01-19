@@ -5,6 +5,7 @@
 
 - [Expose code-server](#expose-code-server)
   - [Port forwarding via SSH](#port-forwarding-via-ssh)
+  - [Port forwarding via code-server's built-in proxy](#port-forwarding-via-code-servers-built-in-proxy)
   - [Using Let's Encrypt with Caddy](#using-lets-encrypt-with-caddy)
   - [Using Let's Encrypt with NGINX](#using-lets-encrypt-with-nginx)
   - [Using a self-signed certificate](#using-a-self-signed-certificate)
@@ -111,6 +112,18 @@ we recommend using another method, such as [Let's Encrypt](#let-encrypt) instead
 > SSH](https://developer.github.com/v3/guides/using-ssh-agent-forwarding/) and
 > [GPG agent](https://wiki.gnupg.org/AgentForwarding) to the instance to
 > securely access GitHub and sign commits without having to copy your keys.
+
+### Port forwarding via code-server's built-in proxy
+
+code-server has a proxy built-in for port-forwarding. By default, ports running
+on the same machine as code-server can be accessed at
+{current_url}/proxy/{port}. For instance, if you have code-server running on
+localhost:8080 and a Python server running on localhost:8000, you could access
+it via http://localhost:8080/proxy/8000
+
+You can also override the URL scheme for the proxy using the `VSCODE_PROXY_URI`
+environment variable. `VSCODE_PROXY_URI=https://{{port}}.kyle.dev` would forward
+an application running on localhost:3000 to https://3000.kyle.dev
 
 ### Using Let's Encrypt with Caddy
 
