@@ -115,16 +115,6 @@ we recommend using another method, such as [Let's Encrypt](#let-encrypt) instead
 
 ### Port forwarding via code-server's built-in proxy
 
-code-server has a proxy built-in for port-forwarding. By default, ports running
-on the same machine as code-server can be accessed at
-{current_url}/proxy/{port}. For instance, if you have code-server running on
-localhost:8080 and a Python server running on localhost:8000, you could access
-it via http://localhost:8080/proxy/8000
-
-You can also override the URL scheme for the proxy using the `VSCODE_PROXY_URI`
-environment variable. `VSCODE_PROXY_URI=https://{{port}}.kyle.dev` would forward
-an application running on localhost:3000 to https://3000.kyle.dev
-
 ### Using Let's Encrypt with Caddy
 
 Using [Let's Encrypt](https://letsencrypt.org) is an option if you want to
@@ -312,6 +302,15 @@ Note: if you set `proxy_set_header Host $host;` in your reverse proxy config, it
 If you're working on web services and want to access them locally, code-server
 can proxy to any port using either a subdomain or a subpath, allowing you to
 securely access these services using code-server's built-in authentication.
+
+By default, ports running on the same machine as code-server can be accessed at
+{current_url}/proxy/{port}. For instance, if you have code-server running on
+localhost:8080 and a Python server running on localhost:8000, you could access
+it via http://localhost:8080/proxy/8000
+
+You can also override the URL scheme for the proxy using the `VSCODE_PROXY_URI`
+environment variable. `VSCODE_PROXY_URI=https://{{port}}.kyle.dev` would forward
+an application running on localhost:3000 to https://3000.kyle.dev
 
 ### Using a subdomain
 
