@@ -5,7 +5,6 @@
 
 - [Expose code-server](#expose-code-server)
   - [Port forwarding via SSH](#port-forwarding-via-ssh)
-  - [Port forwarding via code-server's built-in proxy](#port-forwarding-via-code-servers-built-in-proxy)
   - [Using Let's Encrypt with Caddy](#using-lets-encrypt-with-caddy)
   - [Using Let's Encrypt with NGINX](#using-lets-encrypt-with-nginx)
   - [Using a self-signed certificate](#using-a-self-signed-certificate)
@@ -15,6 +14,7 @@
 - [Accessing web services](#accessing-web-services)
   - [Using a subdomain](#using-a-subdomain)
   - [Using a subpath](#using-a-subpath)
+  - [Using your own proxy](#using-your-own-proxy)
   - [Stripping `/proxy/<port>` from the request path](#stripping-proxyport-from-the-request-path)
   - [Proxying to create a React app](#proxying-to-create-a-react-app)
   - [Proxying to a Vue app](#proxying-to-a-vue-app)
@@ -306,10 +306,6 @@ By default, ports running on the same machine as code-server can be accessed at
 localhost:8080 and a Python server running on localhost:8000, you could access
 it via http://localhost:8080/proxy/8000
 
-You can also override the URL scheme for the proxy using the `VSCODE_PROXY_URI`
-environment variable. `VSCODE_PROXY_URI=https://{{port}}.kyle.dev` would forward
-an application running on localhost:3000 to https://3000.kyle.dev
-
 ### Using a subdomain
 
 You will need a DNS entry that points to your server for each port you want to
@@ -326,12 +322,29 @@ To set your domain, start code-server with the `--proxy-domain` flag:
 code-server --proxy-domain <domain>
 ```
 
-Now you can browse to `<port>.<domain>`. Note that this uses the host header, so
+For instance, if you have code-server exposed on `domain.tld` and a Python
+server running on port 8080 of the same machine code-server is running on, you
+could run code-server with `--proxy-domain domain.tld` and access the Python
+server via `8080.domain.tld`.
+
+Note that this uses the host header, so
 ensure your reverse proxy (if you're using one) forwards that information.
 
 ### Using a subpath
 
-Simply browse to `/proxy/<port>/`.
+Simply browse to `/proxy/<port>/`. For instance, if you have code-server
+exposed on `domain.tld` and a Python server running on port 8080 of the same
+machine code-server is running on, you could access the Python server via
+`domain.tld/proxy/8000`.
+
+### Using your own proxy
+
+You can make extensions and the ports panel use your own proxy by setting
+`VSCODE_PROXY_URI`. For example if you set
+`VSCODE_PROXY_URI=https://{{port}}.kyle.dev` when an application is detected
+running on port 3000 of the same machine code-server is running on the ports
+panel will create a link to https://3000.kyle.dev instead of pointing to the
+built-in subpath-based proxy.
 
 ### Stripping `/proxy/<port>` from the request path
 
