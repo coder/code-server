@@ -113,8 +113,6 @@ we recommend using another method, such as [Let's Encrypt](#let-encrypt) instead
 > [GPG agent](https://wiki.gnupg.org/AgentForwarding) to the instance to
 > securely access GitHub and sign commits without having to copy your keys.
 
-### Port forwarding via code-server's built-in proxy
-
 ### Using Let's Encrypt with Caddy
 
 Using [Let's Encrypt](https://letsencrypt.org) is an option if you want to
