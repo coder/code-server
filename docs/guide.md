@@ -346,6 +346,9 @@ running on port 3000 of the same machine code-server is running on the ports
 panel will create a link to https://3000.kyle.dev instead of pointing to the
 built-in subpath-based proxy.
 
+Note: relative paths are also supported i.e.
+`VSCODE_PROXY_URI=./proxy/{{port}}`
+
 ### Stripping `/proxy/<port>` from the request path
 
 You may notice that the code-server proxy strips `/proxy/<port>` from the
