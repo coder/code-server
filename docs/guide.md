@@ -301,11 +301,6 @@ If you're working on web services and want to access them locally, code-server
 can proxy to any port using either a subdomain or a subpath, allowing you to
 securely access these services using code-server's built-in authentication.
 
-By default, ports running on the same machine as code-server can be accessed at
-{current_url}/proxy/{port}. For instance, if you have code-server running on
-localhost:8080 and a Python server running on localhost:8000, you could access
-it via http://localhost:8080/proxy/8000
-
 ### Using a subdomain
 
 You will need a DNS entry that points to your server for each port you want to
@@ -327,8 +322,8 @@ server running on port 8080 of the same machine code-server is running on, you
 could run code-server with `--proxy-domain domain.tld` and access the Python
 server via `8080.domain.tld`.
 
-Note that this uses the host header, so
-ensure your reverse proxy (if you're using one) forwards that information.
+Note that this uses the host header, so ensure your reverse proxy (if you're
+using one) forwards that information.
 
 ### Using a subpath
 
