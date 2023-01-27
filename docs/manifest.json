@@ -38,6 +38,11 @@
       "path": "./guide.md",
       "children": [
         {
+          "title": "Coder",
+          "description": "How to run code-server in Coder",
+          "path": "./coder.md"
+        },
+        {
           "title": "--link",
           "description": "How to run code-server --link",
           "path": "./link.md"
