@@ -14,6 +14,7 @@
 - [Accessing web services](#accessing-web-services)
   - [Using a subdomain](#using-a-subdomain)
   - [Using a subpath](#using-a-subpath)
+  - [Using your own proxy](#using-your-own-proxy)
   - [Stripping `/proxy/<port>` from the request path](#stripping-proxyport-from-the-request-path)
   - [Proxying to create a React app](#proxying-to-create-a-react-app)
   - [Proxying to a Vue app](#proxying-to-a-vue-app)
@@ -316,12 +317,32 @@ To set your domain, start code-server with the `--proxy-domain` flag:
 code-server --proxy-domain <domain>
 ```
 
-Now you can browse to `<port>.<domain>`. Note that this uses the host header, so
-ensure your reverse proxy (if you're using one) forwards that information.
+For instance, if you have code-server exposed on `domain.tld` and a Python
+server running on port 8080 of the same machine code-server is running on, you
+could run code-server with `--proxy-domain domain.tld` and access the Python
+server via `8080.domain.tld`.
+
+Note that this uses the host header, so ensure your reverse proxy (if you're
+using one) forwards that information.
 
 ### Using a subpath
 
-Simply browse to `/proxy/<port>/`.
+Simply browse to `/proxy/<port>/`. For instance, if you have code-server
+exposed on `domain.tld` and a Python server running on port 8080 of the same
+machine code-server is running on, you could access the Python server via
+`domain.tld/proxy/8000`.
+
+### Using your own proxy
+
+You can make extensions and the ports panel use your own proxy by setting
+`VSCODE_PROXY_URI`. For example if you set
+`VSCODE_PROXY_URI=https://{{port}}.kyle.dev` when an application is detected
+running on port 3000 of the same machine code-server is running on the ports
+panel will create a link to https://3000.kyle.dev instead of pointing to the
+built-in subpath-based proxy.
+
+Note: relative paths are also supported i.e.
+`VSCODE_PROXY_URI=./proxy/{{port}}`
 
 ### Stripping `/proxy/<port>` from the request path
 
