@@ -19,7 +19,7 @@ Index: code-server/lib/vscode/src/vs/server/node/serverServices.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/serverServices.ts
 +++ code-server/lib/vscode/src/vs/server/node/serverServices.ts
-@@ -216,6 +216,9 @@ export async function setupServerService
+@@ -220,6 +220,9 @@ export async function setupServerService
  		const channel = new ExtensionManagementChannel(extensionManagementService, (ctx: RemoteAgentConnectionContext) => getUriTransformer(ctx.remoteAuthority));
  		socketServer.registerChannel('extensions', channel);
  
