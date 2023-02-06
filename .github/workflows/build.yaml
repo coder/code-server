@@ -283,65 +283,6 @@ jobs:
           name: npm-package
           path: ./package.tar.gz
 
-  npm:
-    name: Publish npm package
-    # the npm-package gets uploaded as an artifact in Build
-    # so we need that to complete before this runs
-    needs: build
-    # This environment "npm" requires someone from
-    # coder/code-server-reviewers to approve the PR before this job runs.
-    environment: npm
-    # Only run if PR comes from base repo or event is not a PR
-    # Reason: forks cannot access secrets and this will always fail
-    if: github.event.pull_request.head.repo.full_name == github.repository || github.event_name != 'pull_request'
-    runs-on: ubuntu-20.04
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v3
-
-      - name: Download artifact
-        uses: actions/download-artifact@v3
-        id: download
-        with:
-          name: "npm-package"
-          path: release-npm-package
-
-      - name: Run ./ci/steps/publish-npm.sh
-        run: yarn publish:npm
-        env:
-          # NOTE@jsjoeio
-          # This is because npm enforces semantic versioning
-          # so it has to be a valid version. We only use this
-          # to publish dev versions from prs
-          # and beta versions from main.
-          VERSION: "0.0.0"
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-          # NOTE@jsjoeio
-          # NPM_ENVIRONMENT intentionally not set here.
-          # Instead, itis determined in publish-npm.sh script
-          # using GITHUB environment variables
-
-      - name: Comment npm information
-        uses: marocchino/sticky-pull-request-comment@v2
-        with:
-          GITHUB_TOKEN: ${{ github.token }}
-          header: npm-dev-build
-          message: |
-            ✨ code-server dev build published to npm for PR #${{ github.event.number }}!
-            * _Last publish status_: success
-            * _Commit_: ${{ github.event.pull_request.head.sha }}
-
-            To install in a local project, run:
-            ```shell-session
-            npm install @coder/code-server-pr@${{ github.event.number }}
-            ```
-
-            To install globally, run:
-            ```shell-session
-            npm install -g @coder/code-server-pr@${{ github.event.number }}
-            ```
-
   test-e2e:
     name: Run e2e tests
     needs: build
@@ -455,7 +396,7 @@ jobs:
         if: steps.caddy-cache.outputs.cache-hit != 'true'
         run: |
           gh release download v2.5.2 --repo caddyserver/caddy --pattern "caddy_2.5.2_linux_amd64.tar.gz"
-          mkdir -p ~/.cache/caddy 
+          mkdir -p ~/.cache/caddy
           tar -xzf caddy_2.5.2_linux_amd64.tar.gz --directory ~/.cache/caddy
 
       - name: Start Caddy
