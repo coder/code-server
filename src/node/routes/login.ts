@@ -12,8 +12,8 @@ import i18n from "../i18n"
 // RateLimiter wraps around the limiter library for logins.
 // It allows 2 logins every minute plus 12 logins every hour.
 export class RateLimiter {
-  private readonly minuteLimiter = new Limiter(2, "minute")
-  private readonly hourLimiter = new Limiter(12, "hour")
+  private readonly minuteLimiter = new Limiter({ tokensPerInterval: 2, interval: "minute" })
+  private readonly hourLimiter = new Limiter({ tokensPerInterval: 12, interval: "hour" })
 
   public canTry(): boolean {
     // Note: we must check using >= 1 because technically when there are no tokens left
