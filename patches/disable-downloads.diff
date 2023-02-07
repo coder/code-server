@@ -12,7 +12,7 @@ Index: code-server/lib/vscode/src/vs/workbench/browser/web.api.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/browser/web.api.ts
 +++ code-server/lib/vscode/src/vs/workbench/browser/web.api.ts
-@@ -264,6 +264,11 @@ export interface IWorkbenchConstructionO
+@@ -266,6 +266,11 @@ export interface IWorkbenchConstructionO
  	 */
  	readonly userDataPath?: string
  
@@ -23,7 +23,7 @@ Index: code-server/lib/vscode/src/vs/workbench/browser/web.api.ts
 +
  	//#endregion
  
- 
+ 	//#region Profile options
 Index: code-server/lib/vscode/src/vs/workbench/services/environment/browser/environmentService.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/services/environment/browser/environmentService.ts
@@ -40,7 +40,7 @@ Index: code-server/lib/vscode/src/vs/workbench/services/environment/browser/envi
  }
  
  export class BrowserWorkbenchEnvironmentService implements IBrowserWorkbenchEnvironmentService {
-@@ -87,6 +92,13 @@ export class BrowserWorkbenchEnvironment
+@@ -104,6 +109,13 @@ export class BrowserWorkbenchEnvironment
  		return this.options.userDataPath;
  	}
  
@@ -143,8 +143,8 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/files/browser/fileActions
 +import { DirtyWorkingCopiesContext, EnterMultiRootWorkspaceSupportContext, HasWebFileSystemAccess, WorkbenchStateContext, WorkspaceFolderCountContext, SidebarFocusContext, ActiveEditorCanRevertContext, ActiveEditorContext, ResourceContextKey, ActiveEditorAvailableEditorIdsContext, IsEnabledFileDownloads } from 'vs/workbench/common/contextkeys';
  import { IsWebContext } from 'vs/platform/contextkey/common/contextkeys';
  import { ServicesAccessor } from 'vs/platform/instantiation/common/instantiation';
- import { ThemeIcon } from 'vs/platform/theme/common/themeService';
-@@ -483,13 +483,16 @@ MenuRegistry.appendMenuItem(MenuId.Explo
+ import { ThemeIcon } from 'vs/base/common/themables';
+@@ -484,13 +484,16 @@ MenuRegistry.appendMenuItem(MenuId.Explo
  		id: DOWNLOAD_COMMAND_ID,
  		title: DOWNLOAD_LABEL
  	},

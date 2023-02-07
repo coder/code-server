@@ -12,15 +12,15 @@ Index: code-server/lib/vscode/src/vs/server/node/serverServices.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/serverServices.ts
 +++ code-server/lib/vscode/src/vs/server/node/serverServices.ts
-@@ -71,6 +71,7 @@ import { IExtensionsScannerService } fro
+@@ -70,6 +70,7 @@ import { IExtensionsScannerService } fro
  import { ExtensionsScannerService } from 'vs/server/node/extensionsScannerService';
- import { ExtensionsProfileScannerService, IExtensionsProfileScannerService } from 'vs/platform/extensionManagement/common/extensionsProfileScannerService';
- import { IUserDataProfilesService, UserDataProfilesService } from 'vs/platform/userDataProfile/common/userDataProfile';
+ import { IExtensionsProfileScannerService } from 'vs/platform/extensionManagement/common/extensionsProfileScannerService';
+ import { IUserDataProfilesService } from 'vs/platform/userDataProfile/common/userDataProfile';
 +import { TelemetryClient } from "vs/server/node/telemetryClient";
  import { NullPolicyService } from 'vs/platform/policy/common/policy';
  import { OneDataSystemAppender } from 'vs/platform/telemetry/node/1dsAppender';
  import { LoggerService } from 'vs/platform/log/node/loggerService';
-@@ -139,10 +140,13 @@ export async function setupServerService
+@@ -142,10 +143,13 @@ export async function setupServerService
  	const machineId = await getMachineId();
  	const isInternal = isInternalTelemetry(productService, configurationService);
  	if (supportsTelemetry(productService, environmentService)) {

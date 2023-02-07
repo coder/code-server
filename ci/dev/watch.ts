@@ -1,4 +1,4 @@
-import { spawn, fork, ChildProcess } from "child_process"
+import { spawn, ChildProcess } from "child_process"
 import * as path from "path"
 import { onLine, OnLineCallback } from "../../src/node/util"
 
@@ -30,7 +30,7 @@ class Watcher {
 
     // Pass CLI args, save for `node` and the initial script name.
     const args = process.argv.slice(2)
-    this.webServer = fork(path.join(this.rootPath, "out/node/entry.js"), args)
+    this.webServer = spawn("node", [path.join(this.rootPath, "out/node/entry.js"), ...args])
     const { pid } = this.webServer
 
     this.webServer.on("exit", () => console.log("[Code Server]", `Web process ${pid} exited`))

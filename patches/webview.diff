@@ -41,7 +41,7 @@ Index: code-server/lib/vscode/src/vs/workbench/services/environment/browser/envi
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/services/environment/browser/environmentService.ts
 +++ code-server/lib/vscode/src/vs/workbench/services/environment/browser/environmentService.ts
-@@ -207,7 +207,7 @@ export class BrowserWorkbenchEnvironment
+@@ -224,7 +224,7 @@ export class BrowserWorkbenchEnvironment
  
  	@memoize
  	get webviewExternalEndpoint(): string {
@@ -62,6 +62,15 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
  			_wrapWebWorkerExtHostInIframe,
  			developmentOptions: { enableSmokeTestDriver: this._environmentService.args['enable-smoke-test-driver'] ? true : undefined, logLevel: this._logService.getLevel() },
  			settingsSyncOptions: !this._environmentService.isBuilt && this._environmentService.args['enable-sync'] ? { enabled: true } : undefined,
+@@ -344,7 +345,7 @@ export class WebClientServer {
+ 			`script-src 'self' 'unsafe-eval' ${this._getScriptCspHashes(data).join(' ')} 'sha256-fh3TwPMflhsEIpR8g1OYTIMVWhXTLcjQ9kh2tIpmv54=';`, // the sha is the same as in src/vs/workbench/services/extensions/worker/webWorkerExtensionHostIframe.html
+ 			'child-src \'self\';',
+ 			`frame-src 'self' https://*.vscode-cdn.net data:;`,
+-			'worker-src \'self\' data:;',
++			'worker-src \'self\' data: blob:;',
+ 			'style-src \'self\' \'unsafe-inline\';',
+ 			'connect-src \'self\' ws: wss: https:;',
+ 			'font-src \'self\' blob:;',
 Index: code-server/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/index.html
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/index.html
@@ -70,8 +79,8 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/index
  	<meta charset="UTF-8">
  
  	<meta http-equiv="Content-Security-Policy"
--		content="default-src 'none'; script-src 'sha256-6s2fEapj0jmA7ZDjzz23Uv4xLlM7KX3p9DYidJX7Zmk=' 'self'; frame-src 'self'; style-src 'unsafe-inline';">
-+		content="default-src 'none'; script-src 'sha256-6/HBKMr5Cr24xXtQ+U/BxvVfCvBLYE55u8Jq3j/nzcI=' 'self'; frame-src 'self'; style-src 'unsafe-inline';">
+-		content="default-src 'none'; script-src 'sha256-RaCvj6SRgHm+2C3LKzSAamDwa3Bp4u4iQ1Y2Sm+97tE=' 'self'; frame-src 'self'; style-src 'unsafe-inline';">
++		content="default-src 'none'; script-src 'sha256-mi72idjvdhsPSBMKFqU82FG/kZVJjKR0TfHLE13gB+w=' 'self'; frame-src 'self'; style-src 'unsafe-inline';">
  
  	<!-- Disable pinch zooming -->
  	<meta name="viewport"
@@ -92,7 +101,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/index
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/index-no-csp.html
 +++ code-server/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/index-no-csp.html
-@@ -318,6 +318,12 @@
+@@ -322,6 +322,12 @@
  
  				const hostname = location.hostname;
  
