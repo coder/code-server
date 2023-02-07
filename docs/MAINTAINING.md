@@ -142,24 +142,28 @@ changelog](https://github.com/emacs-mirror/emacs/blob/master/etc/NEWS).
 
 ### Publishing a release
 
-1. Go to GitHub Actions > Draft release > Run workflow off commit you want to
-   release. CI will automatically upload the artifacts to the release. Make sure CI
-   has finished on that commit.
-1. CI will automatically grab the
-   artifacts, publish the NPM package from `npm-package`, and publish the Docker
-   Hub image from `release-images`.
-1. Publish release.
-1. After, create a new branch called `release/v0.0.0` (replace 0s with actual version aka v4.5.0)
-1. Summarize the major changes in the `CHANGELOG.md`
-1. Bump chart version in `Chart.yaml`.
+1. Go to GitHub Actions > Draft release > Run workflow on the commit you want to
+   release. Make sure CI has finished the build workflow on that commit or this
+   will fail.
+2. CI will automatically grab the build artifact on that commit, inject the
+   version into the `package.json`, put together platform-specific packages, and
+   upload those packages to a draft release.
+3. Summarize the major changes in the `CHANGELOG.md`.
+4. Copy the relevant changelog section to the release then publish it.
+5. CI will automatically publish the NPM package, Docker image, and update
+   Homebrew using the published release assets.
+6. Bump the chart version in `Chart.yaml` and merge in the changelog updates.
 
 #### Release Candidates
 
-We prefer to do release candidates so the community can test things before a full-blown release. To do this follow the same steps as above but:
+We prefer to do release candidates so the community can test things before a
+full-blown release. To do this follow the same steps as above but:
 
-1. Only bump version in `package.json`
-1. use `0.0.0-rc.0`
-1. When you publish the release, select "pre-release"
+1. Add a `-rc.<number>` suffix to the version.
+2. When you publish the release select "pre-release". CI will not automatically
+   publish pre-releases.
+3. Do not update the chart version or merge in the changelog until the final
+   release.
 
 #### AUR
 
