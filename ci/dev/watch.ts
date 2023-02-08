@@ -31,11 +31,12 @@ class Watcher {
     // Pass CLI args, save for `node` and the initial script name.
     const args = process.argv.slice(2)
     this.webServer = spawn("node", [path.join(this.rootPath, "out/node/entry.js"), ...args])
+    onLine(this.webServer, (line) => console.log("[code-server]", line))
     const { pid } = this.webServer
 
-    this.webServer.on("exit", () => console.log("[Code Server]", `Web process ${pid} exited`))
+    this.webServer.on("exit", () => console.log("[code-server]", `Web process ${pid} exited`))
 
-    console.log("\n[Code Server]", `Spawned web server process ${pid}`)
+    console.log("\n[code-server]", `Spawned web server process ${pid}`)
   }
 
   //#endregion
@@ -82,10 +83,10 @@ class Watcher {
   private parseVSCodeLine: OnLineCallback = (strippedLine, originalLine) => {
     if (!strippedLine.length) return
 
-    console.log("[VS Code]", originalLine)
+    console.log("[Code OSS]", originalLine)
 
     if (strippedLine.includes("Finished compilation with")) {
-      console.log("[VS Code] ✨ Finished compiling! ✨", "(Refresh your web browser ♻️)")
+      console.log("[Code OSS] ✨ Finished compiling! ✨", "(Refresh your web browser ♻️)")
       this.reloadWebServer()
     }
   }
@@ -93,10 +94,10 @@ class Watcher {
   private parseCodeServerLine: OnLineCallback = (strippedLine, originalLine) => {
     if (!strippedLine.length) return
 
-    console.log("[Compiler][Code Server]", originalLine)
+    console.log("[Compiler][code-server]", originalLine)
 
     if (strippedLine.includes("Watching for file changes")) {
-      console.log("[Compiler][Code Server]", "Finished compiling!", "(Refresh your web browser ♻️)")
+      console.log("[Compiler][code-server]", "Finished compiling!", "(Refresh your web browser ♻️)")
       this.reloadWebServer()
     }
   }
