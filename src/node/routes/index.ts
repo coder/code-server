@@ -33,7 +33,15 @@ import { CodeServerRouteWrapper } from "./vscode"
 export const register = async (app: App, args: DefaultedArgs): Promise<Disposable["dispose"]> => {
   const heart = new Heart(path.join(paths.data, "heartbeat"), async () => {
     return new Promise((resolve, reject) => {
+      // getConnections appears to not call the callback when there are no more
+      // connections.  Feels like it must be a bug?  For now add a timer to make
+      // sure we eventually resolve.
+      const timer = setTimeout(() => {
+        logger.debug("Node failed to respond with connections; assuming zero")
+        resolve(false)
+      }, 5000)
       app.server.getConnections((error, count) => {
+        clearTimeout(timer)
         if (error) {
           return reject(error)
         }
