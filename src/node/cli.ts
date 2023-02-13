@@ -84,7 +84,6 @@ export interface UserProvidedArgs extends UserProvidedCodeArgs {
   "reuse-window"?: boolean
   "new-window"?: boolean
   "ignore-last-opened"?: boolean
-  link?: OptionalString
   verbose?: boolean
   "app-name"?: string
   "welcome-text"?: string
@@ -184,7 +183,7 @@ export const options: Options<Required<UserProvidedArgs>> = {
     // The preferred way to set the locale is via the UI.
     type: "string",
     description: `
-      Set vscode display language and language to show on the login page, more info see 
+      Set vscode display language and language to show on the login page, more info see
       https://en.wikipedia.org/wiki/IETF_language_tag
     `,
   },
@@ -261,15 +260,6 @@ export const options: Options<Required<UserProvidedArgs>> = {
     type: "string",
     short: "w",
     description: "Text to show on login page",
-  },
-  link: {
-    type: OptionalString,
-    description: `
-      Securely bind code-server via our cloud service with the passed name. You'll get a URL like
-      https://hostname-username.coder.co at which you can easily access your code-server instance.
-      Authorization is done via GitHub.
-    `,
-    deprecated: true,
   },
 }
 
@@ -546,17 +536,6 @@ export async function setDefaults(cliArgs: UserProvidedArgs, configArgs?: Config
   const addr = bindAddrFromAllSources(configArgs || {}, cliArgs)
   args.host = addr.host
   args.port = addr.port
-
-  // If we're being exposed to the cloud, we listen on a random address and
-  // disable auth.
-  if (args.link) {
-    args.host = "localhost"
-    args.port = 0
-    args.socket = undefined
-    args["socket-mode"] = undefined
-    args.cert = undefined
-    args.auth = AuthType.None
-  }
 
   if (args.cert && !args.cert.value) {
     const { cert, certKey } = await generateCertificate(args["cert-host"] || "localhost")

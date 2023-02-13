@@ -1,18 +1,8 @@
 #!/usr/bin/env sh
 set -eu
 
-# Copied from ../lib.sh.
-arch() {
-  cpu="$(uname -m)"
-  case "$cpu" in
-    aarch64) cpu=arm64 ;;
-    x86_64) cpu=amd64 ;;
-  esac
-  echo "$cpu"
-}
-
-# Copied from ../lib.sh except we do not rename Darwin since the cloud agent
-# uses "darwin" in the release names and we do not need to detect Alpine.
+# Copied from ../lib.sh except we do not rename Darwin and we do not need to
+# detect Alpine.
 os() {
   osname=$(uname | tr '[:upper:]' '[:lower:]')
   case $osname in
@@ -61,7 +51,6 @@ symlink_bin_script() {
   cd "$oldpwd"
 }
 
-ARCH="${NPM_CONFIG_ARCH:-$(arch)}"
 OS="$(os)"
 
 # This is due to an upstream issue with RHEL7/CentOS 7 comptability with node-argon2
@@ -101,14 +90,6 @@ main() {
     fi
     ;;
   esac
-
-  mkdir -p ./lib
-
-  if curl -fsSL "https://github.com/coder/cloud-agent/releases/latest/download/cloud-agent-$OS-$ARCH" -o ./lib/coder-cloud-agent; then
-    chmod +x ./lib/coder-cloud-agent
-  else
-    echo "Failed to download cloud agent; --link will not work"
-  fi
 
   if ! vscode_install; then
     echo "You may not have the required dependencies to build the native modules."
