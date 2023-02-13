@@ -297,26 +297,6 @@ describe("parser", () => {
     })
   })
 
-  it("should override with --link", async () => {
-    const args = parse(
-      "--cert test --cert-key test --socket test --socket-mode 777 --host 0.0.0.0 --port 8888 --link test".split(" "),
-    )
-    const defaultArgs = await setDefaults(args)
-    expect(defaultArgs).toEqual({
-      ...defaults,
-      auth: "none",
-      host: "localhost",
-      link: {
-        value: "test",
-      },
-      port: 0,
-      cert: undefined,
-      "cert-key": path.resolve("test"),
-      socket: undefined,
-      "socket-mode": undefined,
-    })
-  })
-
   it("should use env var password", async () => {
     process.env.PASSWORD = "test"
     const args = parse([])
@@ -881,21 +861,13 @@ describe("optionDescriptions", () => {
 
   it("should show if an option is deprecated", () => {
     const opts: Partial<Options<Required<UserProvidedArgs>>> = {
-      link: {
+      cert: {
         type: OptionalString,
-        description: `
-          Securely bind code-server via our cloud service with the passed name. You'll get a URL like
-          https://hostname-username.coder.co at which you can easily access your code-server instance.
-          Authorization is done via GitHub.
-        `,
+        description: "foo",
         deprecated: true,
       },
     }
-    expect(optionDescriptions(opts)).toStrictEqual([
-      `  --link (deprecated) Securely bind code-server via our cloud service with the passed name. You'll get a URL like
-          https://hostname-username.coder.co at which you can easily access your code-server instance.
-          Authorization is done via GitHub.`,
-    ])
+    expect(optionDescriptions(opts)).toStrictEqual(["  --cert (deprecated) foo"])
   })
 
   it("should show newlines in description", () => {

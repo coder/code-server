@@ -43,11 +43,6 @@
           "path": "./coder.md"
         },
         {
-          "title": "--link",
-          "description": "How to run code-server --link",
-          "path": "./link.md"
-        },
-        {
           "title": "iPad",
           "description": "How to access your code-server installation using an iPad.",
           "path": "./ipad.md"
