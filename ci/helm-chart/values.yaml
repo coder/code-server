@@ -196,3 +196,8 @@ extraConfigmapMounts: []
   #   subPath: certificates.crt # (optional)
   #   configMap: certs-configmap
   #   readOnly: true
+
+extraPorts: []
+  # - name: minecraft
+  #   port: 25565
+  #   protocol: tcp
