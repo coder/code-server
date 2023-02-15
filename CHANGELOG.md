@@ -20,7 +20,7 @@ Code v99.99.999
 
 -->
 
-## [4.10.0](https://github.com/coder/code-server/releases/tag/v4.10.0) - TBD
+## [4.10.0](https://github.com/coder/code-server/releases/tag/v4.10.0) - 2023-02-15
 
 Code v1.75.1
 
@@ -30,7 +30,7 @@ Code v1.75.1
 
 ### Removed
 
-- Removed `--link` (was deprecated in 4.0.1).
+- Removed `--link` (was deprecated over thirteen months ago in 4.0.1).
 
 ## [4.9.1](https://github.com/coder/code-server/releases/tag/v4.9.1) - 2022-12-15
 
