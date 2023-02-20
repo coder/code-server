@@ -46,7 +46,7 @@ Usage:
       Sets the prefix used by standalone release archives. Defaults to ~/.local
       The release is unarchived into ~/.local/lib/code-server-X.X.X
       and the binary symlinked into ~/.local/bin/code-server
-      To install system wide pass ---prefix=/usr/local
+      To install system wide pass --prefix=/usr/local
 
   --rsh <bin>
       Specifies the remote shell for remote installation. Defaults to ssh.
