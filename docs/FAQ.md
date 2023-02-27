@@ -390,19 +390,13 @@ Theia doesn't allow you to reuse your existing VS Code config.
 ## What's the difference between code-server and OpenVSCode-Server?
 
 code-server and OpenVSCode-Server both allow you to access VS Code via a
-browser. The two projects also use their own [forks of VS Code](https://github.com/coder/vscode) to
-leverage modern VS Code APIs and stay up to date with the upsteam version.
+browser. The two projects also use their own [forks of VS
+Code](https://github.com/coder/vscode) to leverage modern VS Code APIs and stay
+up to date with the upsteam version.
 
-However, OpenVSCode-Server is scoped at only making VS Code available in the web browser.
-code-server includes some other features:
-
-- password auth
-- proxy web ports
-- certificate support
-- plugin API
-- settings sync (coming soon)
-
-For more details, see [this discussion post](https://github.com/coder/code-server/discussions/4267#discussioncomment-1411583).
+However, OpenVSCode-Server is scoped at only making VS Code available as-is in
+the web browser. code-server contains additional changes to make the self-hosted
+experience better (see the next section for details).
 
 ## What's the difference between code-server and GitHub Codespaces?
 
@@ -410,8 +404,22 @@ Both code-server and GitHub Codespaces allow you to access VS Code via a
 browser. GitHub Codespaces, however, is a closed-source, paid service offered by
 GitHub and Microsoft.
 
-On the other hand, code-server is self-hosted, free, open-source, and
-can be run on any machine with few limitations.
+On the other hand, code-server is self-hosted, free, open-source, and can be run
+on any machine with few limitations.
+
+Specific changes include:
+
+- Password authentication
+- The ability to host at sub-paths
+- Self-contained web views that do not call out to Microsoft's servers
+- The ability to use your own marketplace and collect your own telemetry
+- Built-in proxy for accessing ports on the remote machine integrated into
+  VS Code's ports panel
+- [Some other things](https://github.com/coder/code-server/tree/main/patches)
+
+Some of these changes appear very unlikely to ever be adopted by Microsoft.
+Some may make their way upstream, further closing the gap, but at the moment it
+looks like there will always be some subtle differences.
 
 ## Does code-server have any security login validation?
 
