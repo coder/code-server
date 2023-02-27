@@ -390,9 +390,9 @@ Theia doesn't allow you to reuse your existing VS Code config.
 ## What's the difference between code-server and OpenVSCode-Server?
 
 code-server and OpenVSCode-Server both allow you to access VS Code via a
-browser. The two projects also use their own [forks of VS
-Code](https://github.com/coder/vscode) to leverage modern VS Code APIs and stay
-up to date with the upsteam version.
+browser. OpenVSCode-Server is a direct fork of VS Code with changes comitted
+directly while code-server pulls VS Code in via a submodule and makes changes
+via patch files.
 
 However, OpenVSCode-Server is scoped at only making VS Code available as-is in
 the web browser. code-server contains additional changes to make the self-hosted
@@ -415,6 +415,8 @@ Specific changes include:
 - The ability to use your own marketplace and collect your own telemetry
 - Built-in proxy for accessing ports on the remote machine integrated into
   VS Code's ports panel
+- Wrapper process that spawns VS Code on-demand and has a separate CLI
+- Notification when updates are available
 - [Some other things](https://github.com/coder/code-server/tree/main/patches)
 
 Some of these changes appear very unlikely to ever be adopted by Microsoft.
