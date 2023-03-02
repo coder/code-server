@@ -601,3 +601,28 @@ describe("constructOpenOptions", () => {
     expect(urlSearch).toBe("?q=^&test")
   })
 })
+
+describe("splitOnFirstEquals", () => {
+  it("should split on the first equals", () => {
+    const testStr = "enabled-proposed-api=test=value"
+    const actual = util.splitOnFirstEquals(testStr)
+    const expected = ["enabled-proposed-api", "test=value"]
+    expect(actual).toEqual(expect.arrayContaining(expected))
+  })
+  it("should split on first equals regardless of multiple equals signs", () => {
+    const testStr =
+      "hashed-password=$argon2i$v=19$m=4096,t=3,p=1$0qR/o+0t00hsbJFQCKSfdQ$oFcM4rL6o+B7oxpuA4qlXubypbBPsf+8L531U7P9HYY"
+    const actual = util.splitOnFirstEquals(testStr)
+    const expected = [
+      "hashed-password",
+      "$argon2i$v=19$m=4096,t=3,p=1$0qR/o+0t00hsbJFQCKSfdQ$oFcM4rL6o+B7oxpuA4qlXubypbBPsf+8L531U7P9HYY",
+    ]
+    expect(actual).toEqual(expect.arrayContaining(expected))
+  })
+  it("should always return the first element before an equals", () => {
+    const testStr = "auth="
+    const actual = util.splitOnFirstEquals(testStr)
+    const expected = ["auth"]
+    expect(actual).toEqual(expect.arrayContaining(expected))
+  })
+})
