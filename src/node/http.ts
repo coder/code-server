@@ -12,7 +12,15 @@ import { version as codeServerVersion } from "./constants"
 import { Heart } from "./heart"
 import { CoderSettings, SettingsProvider } from "./settings"
 import { UpdateProvider } from "./update"
-import { getPasswordMethod, IsCookieValidArgs, isCookieValid, sanitizeString, escapeHtml, escapeJSON } from "./util"
+import {
+  getPasswordMethod,
+  IsCookieValidArgs,
+  isCookieValid,
+  sanitizeString,
+  escapeHtml,
+  escapeJSON,
+  splitOnFirstEquals,
+} from "./util"
 
 /**
  * Base options included on every page.
@@ -307,4 +315,69 @@ export const getCookieOptions = (req: express.Request): express.CookieOptions =>
  */
 export const self = (req: express.Request): string => {
   return normalize(`${req.baseUrl}${req.originalUrl.endsWith("/") ? "/" : ""}`, true)
+}
+
+function getFirstHeader(req: http.IncomingMessage, headerName: string): string | undefined {
+  const val = req.headers[headerName]
+  return Array.isArray(val) ? val[0] : val
+}
+
+/**
+ * Throw an error if origin checks fail. Call `next` if provided.
+ */
+export function ensureOrigin(req: express.Request, _?: express.Response, next?: express.NextFunction): void {
+  if (!authenticateOrigin(req)) {
+    throw new HttpError("Forbidden", HttpCode.Forbidden)
+  }
+  if (next) {
+    next()
+  }
+}
+
+/**
+ * Authenticate the request origin against the host.
+ */
+export function authenticateOrigin(req: express.Request): boolean {
+  // A missing origin probably means the source is non-browser.  Not sure we
+  // have a use case for this but let it through.
+  const originRaw = getFirstHeader(req, "origin")
+  if (!originRaw) {
+    return true
+  }
+
+  let origin: string
+  try {
+    origin = new URL(originRaw).host.trim().toLowerCase()
+  } catch (error) {
+    return false // Malformed URL.
+  }
+
+  // Honor Forwarded if present.
+  const forwardedRaw = getFirstHeader(req, "forwarded")
+  if (forwardedRaw) {
+    const parts = forwardedRaw.split(/[;,]/)
+    for (let i = 0; i < parts.length; ++i) {
+      const [key, value] = splitOnFirstEquals(parts[i])
+      if (key.trim().toLowerCase() === "host" && value) {
+        return origin === value.trim().toLowerCase()
+      }
+    }
+  }
+
+  // Honor X-Forwarded-Host if present.
+  const xHost = getFirstHeader(req, "x-forwarded-host")
+  if (xHost) {
+    return origin === xHost.trim().toLowerCase()
+  }
+
+  // A missing host likely means the reverse proxy has not been configured to
+  // forward the host which means we cannot perform the check.  Emit a warning
+  // so an admin can fix the issue.
+  const host = getFirstHeader(req, "host")
+  if (!host) {
+    logger.warn(`no host headers found; blocking request to ${req.originalUrl}`)
+    return false
+  }
+
+  return origin === host.trim().toLowerCase()
 }

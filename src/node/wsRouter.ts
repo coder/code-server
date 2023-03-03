@@ -32,6 +32,9 @@ export class WebsocketRouter {
   /**
    * Handle a websocket at this route. Note that websockets are immediately
    * paused when they come in.
+   *
+   * If the origin header exists it must match the host or the connection will
+   * be prevented.
    */
   public ws(route: expressCore.PathParams, ...handlers: pluginapi.WebSocketHandler[]): void {
     this.router.get(

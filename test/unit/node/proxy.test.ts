@@ -4,21 +4,26 @@ import * as http from "http"
 import nodeFetch from "node-fetch"
 import { HttpCode } from "../../../src/common/http"
 import { proxy } from "../../../src/node/proxy"
-import { getAvailablePort } from "../../utils/helpers"
+import { wss, Router as WsRouter } from "../../../src/node/wsRouter"
+import { getAvailablePort, mockLogger } from "../../utils/helpers"
 import * as httpserver from "../../utils/httpserver"
 import * as integration from "../../utils/integration"
 
 describe("proxy", () => {
   const nhooyrDevServer = new httpserver.HttpServer()
+  const wsApp = express.default()
+  const wsRouter = WsRouter()
   let codeServer: httpserver.HttpServer | undefined
   let proxyPath: string
   let absProxyPath: string
   let e: express.Express
 
   beforeAll(async () => {
+    wsApp.use("/", wsRouter.router)
     await nhooyrDevServer.listen((req, res) => {
       e(req, res)
     })
+    nhooyrDevServer.listenUpgrade(wsApp)
     proxyPath = `/proxy/${nhooyrDevServer.port()}/wsup`
     absProxyPath = proxyPath.replace("/proxy/", "/absproxy/")
   })
@@ -29,6 +34,7 @@ describe("proxy", () => {
 
   beforeEach(() => {
     e = express.default()
+    mockLogger()
   })
 
   afterEach(async () => {
@@ -36,6 +42,7 @@ describe("proxy", () => {
       await codeServer.dispose()
       codeServer = undefined
     }
+    jest.clearAllMocks()
   })
 
   it("should rewrite the base path", async () => {
@@ -151,6 +158,35 @@ describe("proxy", () => {
     expect(resp.status).toBe(500)
     expect(resp.statusText).toMatch("Internal Server Error")
   })
+
+  it("should pass origin check", async () => {
+    wsRouter.ws("/wsup", async (req) => {
+      wss.handleUpgrade(req, req.ws, req.head, (ws) => {
+        ws.send("hello")
+        req.ws.resume()
+      })
+    })
+    codeServer = await integration.setup(["--auth=none"], "")
+    const ws = await codeServer.wsWait(proxyPath, {
+      headers: {
+        host: "localhost:8080",
+        origin: "https://localhost:8080",
+      },
+    })
+    ws.terminate()
+  })
+
+  it("should fail origin check", async () => {
+    await expect(async () => {
+      codeServer = await integration.setup(["--auth=none"], "")
+      await codeServer.wsWait(proxyPath, {
+        headers: {
+          host: "localhost:8080",
+          origin: "https://evil.org",
+        },
+      })
+    }).rejects.toThrow()
+  })
 })
 
 // NOTE@jsjoeio
@@ -190,18 +226,18 @@ describe("proxy (standalone)", () => {
     })
 
     // Start both servers
-    await proxyTarget.listen(PROXY_PORT)
-    await testServer.listen(PORT)
+    proxyTarget.listen(PROXY_PORT)
+    testServer.listen(PORT)
   })
 
   afterEach(async () => {
-    await testServer.close()
-    await proxyTarget.close()
+    testServer.close()
+    proxyTarget.close()
   })
 
   it("should return a 500 when proxy target errors ", async () => {
     // Close the proxy target so that proxy errors
-    await proxyTarget.close()
+    proxyTarget.close()
     const errorResp = await nodeFetch(`${URL}/error`)
     expect(errorResp.status).toBe(HttpCode.ServerError)
     expect(errorResp.statusText).toBe("Internal Server Error")

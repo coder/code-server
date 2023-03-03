@@ -7,7 +7,6 @@ import { Disposable } from "../../src/common/emitter"
 import * as util from "../../src/common/util"
 import { ensureAddress } from "../../src/node/app"
 import { disposer } from "../../src/node/http"
-
 import { handleUpgrade } from "../../src/node/wsRouter"
 
 // Perhaps an abstraction similar to this should be used in app.ts as well.
@@ -76,14 +75,25 @@ export class HttpServer {
   /**
    * Open a websocket against the request path.
    */
-  public ws(requestPath: string): Websocket {
+  public ws(requestPath: string, options?: Websocket.ClientOptions): Websocket {
     const address = ensureAddress(this.hs, "ws")
     if (typeof address === "string") {
       throw new Error("Cannot open websocket to socket path")
     }
     address.pathname = requestPath
 
-    return new Websocket(address.toString())
+    return new Websocket(address.toString(), options)
+  }
+
+  /**
+   * Open a websocket and wait for it to fully open.
+   */
+  public wsWait(requestPath: string, options?: Websocket.ClientOptions): Promise<Websocket> {
+    const ws = this.ws(requestPath, options)
+    return new Promise<Websocket>((resolve, reject) => {
+      ws.on("error", (err) => reject(err))
+      ws.on("open", () => resolve(ws))
+    })
   }
 
   public port(): number {
