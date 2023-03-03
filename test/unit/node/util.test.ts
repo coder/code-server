@@ -603,26 +603,39 @@ describe("constructOpenOptions", () => {
 })
 
 describe("splitOnFirstEquals", () => {
-  it("should split on the first equals", () => {
-    const testStr = "enabled-proposed-api=test=value"
-    const actual = util.splitOnFirstEquals(testStr)
-    const expected = ["enabled-proposed-api", "test=value"]
-    expect(actual).toEqual(expect.arrayContaining(expected))
-  })
-  it("should split on first equals regardless of multiple equals signs", () => {
-    const testStr =
-      "hashed-password=$argon2i$v=19$m=4096,t=3,p=1$0qR/o+0t00hsbJFQCKSfdQ$oFcM4rL6o+B7oxpuA4qlXubypbBPsf+8L531U7P9HYY"
-    const actual = util.splitOnFirstEquals(testStr)
-    const expected = [
-      "hashed-password",
-      "$argon2i$v=19$m=4096,t=3,p=1$0qR/o+0t00hsbJFQCKSfdQ$oFcM4rL6o+B7oxpuA4qlXubypbBPsf+8L531U7P9HYY",
-    ]
-    expect(actual).toEqual(expect.arrayContaining(expected))
-  })
-  it("should always return the first element before an equals", () => {
-    const testStr = "auth="
-    const actual = util.splitOnFirstEquals(testStr)
-    const expected = ["auth"]
-    expect(actual).toEqual(expect.arrayContaining(expected))
+  const tests = [
+    {
+      name: "empty",
+      key: "",
+      value: "",
+    },
+    {
+      name: "split on first equals",
+      key: "foo",
+      value: "bar",
+    },
+    {
+      name: "split on first equals even with multiple equals",
+      key: "foo",
+      value: "bar=baz",
+    },
+    {
+      name: "split with empty value",
+      key: "foo",
+      value: "",
+    },
+    {
+      name: "split with no value",
+      key: "foo",
+      value: undefined,
+    },
+  ]
+  tests.forEach((test) => {
+    it("should ${test.name}", () => {
+      const input = test.key && typeof test.value !== "undefined" ? `${test.key}=${test.value}` : test.key
+      const [key, value] = util.splitOnFirstEquals(input)
+      expect(key).toStrictEqual(test.key)
+      expect(value).toStrictEqual(test.value || undefined)
+    })
   })
 })

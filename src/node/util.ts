@@ -542,15 +542,12 @@ export const loadAMDModule = async <T>(amdPath: string, exportName: string): Pro
   return module[exportName] as T
 }
 
-export function splitOnFirstEquals(str: string): string[] {
-  // we use regex instead of "=" to ensure we split at the first
-  // "=" and return the following substring with it
-  // important for the hashed-password which looks like this
-  // $argon2i$v=19$m=4096,t=3,p=1$0qR/o+0t00hsbJFQCKSfdQ$oFcM4rL6o+B7oxpuA4qlXubypbBPsf+8L531U7P9HYY
-  // 2 means return two items
-  // Source: https://stackoverflow.com/a/4607799/3015595
-  // We use the ? to say the the substr after the = is optional
+/**
+ * Split a string on the first equals.  The result will always be an array with
+ * two items regardless of how many equals there are.  The second item will be
+ * undefined if empty or missing.
+ */
+export function splitOnFirstEquals(str: string): [string, string | undefined] {
   const split = str.split(/=(.+)?/, 2)
-
-  return split
+  return [split[0], split[1]]
 }
