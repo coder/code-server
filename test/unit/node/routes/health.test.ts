@@ -21,8 +21,7 @@ describe("health", () => {
 
   it("/healthz (websocket)", async () => {
     codeServer = await integration.setup(["--auth=none"], "")
-    const ws = await codeServer.ws("/healthz")
-    ws.send(JSON.stringify({ event: "health" }))
+    const ws = codeServer.ws("/healthz")
     const message = await new Promise((resolve, reject) => {
       ws.on("error", (err) => {
         console.error("[healthz]", err)
@@ -35,6 +34,7 @@ describe("health", () => {
           reject(error)
         }
       })
+      ws.on("open", () => ws.send(JSON.stringify({ event: "health" })))
     })
     ws.terminate()
     expect(message).toStrictEqual({ event: "health", status: "expired", lastHeartbeat: 0 })
