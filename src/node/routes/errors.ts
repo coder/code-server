@@ -63,5 +63,11 @@ export const errorHandler: express.ErrorRequestHandler = async (err, req, res, n
 
 export const wsErrorHandler: express.ErrorRequestHandler = async (err, req, res, next) => {
   logger.error(`${err.message} ${err.stack}`)
-  ;(req as WebsocketRequest).ws.end()
+  let statusCode = 500
+  if (errorHasStatusCode(err)) {
+    statusCode = err.statusCode
+  } else if (errorHasCode(err) && notFoundCodes.includes(err.code)) {
+    statusCode = HttpCode.NotFound
+  }
+  ;(req as WebsocketRequest).ws.end(`HTTP/1.1 ${statusCode} ${err.message}\r\n\r\n`)
 }

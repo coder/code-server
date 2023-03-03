@@ -3,7 +3,15 @@ import { promises as fs } from "fs"
 import { load } from "js-yaml"
 import * as os from "os"
 import * as path from "path"
-import { canConnect, generateCertificate, generatePassword, humanPath, paths, isNodeJSErrnoException } from "./util"
+import {
+  canConnect,
+  generateCertificate,
+  generatePassword,
+  humanPath,
+  paths,
+  isNodeJSErrnoException,
+  splitOnFirstEquals,
+} from "./util"
 
 const DEFAULT_SOCKET_PATH = path.join(os.tmpdir(), "vscode-ipc")
 
@@ -290,19 +298,6 @@ export const optionDescriptions = (opts: Partial<Options<Required<UserProvidedAr
       (typeof v.type === "object" ? ` [${Object.values(v.type).join(", ")}]` : "")
     )
   })
-}
-
-export function splitOnFirstEquals(str: string): string[] {
-  // we use regex instead of "=" to ensure we split at the first
-  // "=" and return the following substring with it
-  // important for the hashed-password which looks like this
-  // $argon2i$v=19$m=4096,t=3,p=1$0qR/o+0t00hsbJFQCKSfdQ$oFcM4rL6o+B7oxpuA4qlXubypbBPsf+8L531U7P9HYY
-  // 2 means return two items
-  // Source: https://stackoverflow.com/a/4607799/3015595
-  // We use the ? to say the the substr after the = is optional
-  const split = str.split(/=(.+)?/, 2)
-
-  return split
 }
 
 /**

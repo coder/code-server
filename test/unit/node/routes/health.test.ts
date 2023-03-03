@@ -23,7 +23,9 @@ describe("health", () => {
     codeServer = await integration.setup(["--auth=none"], "")
     const ws = codeServer.ws("/healthz")
     const message = await new Promise((resolve, reject) => {
-      ws.on("error", console.error)
+      ws.on("error", (err) => {
+        console.error("[healthz]", err)
+      })
       ws.on("message", (message) => {
         try {
           const j = JSON.parse(message.toString())

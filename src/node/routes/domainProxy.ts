@@ -1,6 +1,6 @@
 import { Request, Router } from "express"
 import { HttpCode, HttpError } from "../../common/http"
-import { authenticated, ensureAuthenticated, redirect, self } from "../http"
+import { authenticated, ensureAuthenticated, ensureOrigin, redirect, self } from "../http"
 import { proxy } from "../proxy"
 import { Router as WsRouter } from "../wsRouter"
 
@@ -78,10 +78,8 @@ wsRouter.ws("*", async (req, _, next) => {
   if (!port) {
     return next()
   }
-
-  // Must be authenticated to use the proxy.
+  ensureOrigin(req)
   await ensureAuthenticated(req)
-
   proxy.ws(req, req.ws, req.head, {
     ignorePath: true,
     target: `http://0.0.0.0:${port}${req.originalUrl}`,

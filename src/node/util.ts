@@ -541,3 +541,13 @@ export const loadAMDModule = async <T>(amdPath: string, exportName: string): Pro
 
   return module[exportName] as T
 }
+
+/**
+ * Split a string on the first equals.  The result will always be an array with
+ * two items regardless of how many equals there are.  The second item will be
+ * undefined if empty or missing.
+ */
+export function splitOnFirstEquals(str: string): [string, string | undefined] {
+  const split = str.split(/=(.+)?/, 2)
+  return [split[0], split[1]]
+}
