@@ -20,17 +20,18 @@ Code v99.99.999
 
 -->
 
-## Unreleased
+## [4.10.1](https://github.com/coder/code-server/releases/tag/v4.10.1) - 2023-03-04
 
 Code v1.75.1
 
 ### Security
 
-Add an origin check to web sockets to prevent a cross-site hijacking attack that
-affects those who use older or niche browsers that do not support SameSite
-cookies and those who access code-server under a shared domain with other users
-on separate sub-domains. The check requires the host header to be set so if you
-use a reverse proxy ensure it forwards that information.
+Added an origin check to web sockets to prevent cross-site hijacking attacks on
+users using older or niche browser that do not support SameSite cookies and
+attacks across sub-domains that share the same root domain.
+
+The check requires the host header to be set so if you use a reverse proxy
+ensure it forwards that information otherwise web sockets will be blocked.
 
 ## [4.10.0](https://github.com/coder/code-server/releases/tag/v4.10.0) - 2023-02-15
 
