@@ -29,6 +29,12 @@ jobs:
       - name: Checkout code-server
         uses: actions/checkout@v3
 
+      - name: Install Node.js v16
+        uses: actions/setup-node@v3
+        with:
+          node-version: "16"
+          cache: "yarn"
+
       - name: Download npm package from release artifacts
         uses: robinraju/release-downloader@v1.7
         with:
@@ -141,7 +147,7 @@ jobs:
           VERSION: ${{ env.VERSION }}
         run: |
           git checkout -b update-version-${{ env.VERSION }}
-          git add . 
+          git add .
           git commit -m "chore: updating version to ${{ env.VERSION }}"
           git push -u origin $(git branch --show)
           gh pr create --repo coder/code-server-aur --title "chore: bump version to ${{ env.VERSION }}" --body "PR opened by @$GITHUB_ACTOR" --assignee $GITHUB_ACTOR
@@ -186,7 +192,7 @@ jobs:
           out-file-path: "release-packages"
 
       - name: Publish to Docker
-        run: yarn publish:docker
+        run: ./ci/steps/docker-buildx-push.sh
         env:
           VERSION: ${{ env.VERSION }}
           GITHUB_TOKEN: ${{ github.token }}
