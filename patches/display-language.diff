@@ -19,7 +19,7 @@ Index: code-server/lib/vscode/src/vs/server/node/serverServices.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/serverServices.ts
 +++ code-server/lib/vscode/src/vs/server/node/serverServices.ts
-@@ -220,6 +220,9 @@ export async function setupServerService
+@@ -234,6 +234,9 @@ export async function setupServerService
  		const channel = new ExtensionManagementChannel(extensionManagementService, (ctx: RemoteAgentConnectionContext) => getUriTransformer(ctx.remoteAuthority));
  		socketServer.registerChannel('extensions', channel);
  
@@ -138,7 +138,7 @@ Index: code-server/lib/vscode/src/vs/server/node/remoteLanguagePacks.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/remoteLanguagePacks.ts
 +++ code-server/lib/vscode/src/vs/server/node/remoteLanguagePacks.ts
-@@ -30,6 +30,12 @@ export function getNLSConfiguration(lang
+@@ -32,6 +32,12 @@ export function getNLSConfiguration(lang
  				if (InternalNLSConfiguration.is(value)) {
  					value._languagePackSupport = true;
  				}
@@ -151,7 +151,7 @@ Index: code-server/lib/vscode/src/vs/server/node/remoteLanguagePacks.ts
  				return value;
  			});
  			_cache.set(key, result);
-@@ -44,3 +50,43 @@ export namespace InternalNLSConfiguratio
+@@ -46,3 +52,43 @@ export namespace InternalNLSConfiguratio
  		return candidate && typeof candidate._languagePackId === 'string';
  	}
  }
@@ -264,9 +264,9 @@ Index: code-server/lib/vscode/src/vs/platform/languagePacks/browser/languagePack
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/platform/languagePacks/browser/languagePacks.ts
 +++ code-server/lib/vscode/src/vs/platform/languagePacks/browser/languagePacks.ts
-@@ -6,18 +6,24 @@
+@@ -5,18 +5,24 @@
+ 
  import { CancellationTokenSource } from 'vs/base/common/cancellation';
- import { Language } from 'vs/base/common/platform';
  import { URI } from 'vs/base/common/uri';
 +import { ProxyChannel } from 'vs/base/parts/ipc/common/ipc';
  import { IExtensionGalleryService } from 'vs/platform/extensionManagement/common/extensionManagement';
@@ -289,8 +289,8 @@ Index: code-server/lib/vscode/src/vs/platform/languagePacks/browser/languagePack
 +		this.languagePackService = ProxyChannel.toService<ILanguagePackService>(remoteAgentService.getConnection()!.getChannel('languagePacks'))
  	}
  
- 	async getBuiltInExtensionTranslationsUri(id: string): Promise<URI | undefined> {
-@@ -73,6 +79,6 @@ export class WebLanguagePacksService ext
+ 	async getBuiltInExtensionTranslationsUri(id: string, language: string): Promise<URI | undefined> {
+@@ -72,6 +78,6 @@ export class WebLanguagePacksService ext
  
  	// Web doesn't have a concept of language packs, so we just return an empty array
  	getInstalledLanguages(): Promise<ILanguagePackItem[]> {
@@ -298,11 +298,11 @@ Index: code-server/lib/vscode/src/vs/platform/languagePacks/browser/languagePack
 +		return this.languagePackService.getInstalledLanguages()
  	}
  }
-Index: code-server/lib/vscode/src/vs/workbench/contrib/localization/electron-sandbox/localeService.ts
+Index: code-server/lib/vscode/src/vs/workbench/services/localization/electron-sandbox/localeService.ts
 ===================================================================
---- code-server.orig/lib/vscode/src/vs/workbench/contrib/localization/electron-sandbox/localeService.ts
-+++ code-server/lib/vscode/src/vs/workbench/contrib/localization/electron-sandbox/localeService.ts
-@@ -41,7 +41,8 @@ export class NativeLocaleService impleme
+--- code-server.orig/lib/vscode/src/vs/workbench/services/localization/electron-sandbox/localeService.ts
++++ code-server/lib/vscode/src/vs/workbench/services/localization/electron-sandbox/localeService.ts
+@@ -51,7 +51,8 @@ class NativeLocaleService implements ILo
  		@IProductService private readonly productService: IProductService
  	) { }
  
@@ -312,7 +312,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/localization/electron-san
  		try {
  			const content = await this.textFileService.read(this.environmentService.argvResource, { encoding: 'utf8' });
  
-@@ -68,9 +69,6 @@ export class NativeLocaleService impleme
+@@ -78,9 +79,6 @@ class NativeLocaleService implements ILo
  	}
  
  	private async writeLocaleValue(locale: string | undefined): Promise<boolean> {
