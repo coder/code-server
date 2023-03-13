@@ -14,6 +14,8 @@ We can remove this once upstream supports all language packs.
    one but is worse because it does not handle non-existent or empty files.
 7. Replace some caching and Node requires because code-server does not restart
    when changing the language unlike native Code.
+8. Make language extensions installable like normal rather than using the
+   special set/clear language actions.
 
 Index: code-server/lib/vscode/src/vs/server/node/serverServices.ts
 ===================================================================
@@ -322,3 +324,61 @@ Index: code-server/lib/vscode/src/vs/workbench/services/localization/electron-sa
  		await this.jsonEditingService.write(this.environmentService.argvResource, [{ path: ['locale'], value: locale }], true);
  		return true;
  	}
+Index: code-server/lib/vscode/src/vs/workbench/contrib/extensions/browser/extensionsActions.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/workbench/contrib/extensions/browser/extensionsActions.ts
++++ code-server/lib/vscode/src/vs/workbench/contrib/extensions/browser/extensionsActions.ts
+@@ -318,9 +318,6 @@ export abstract class AbstractInstallAct
+ 		if (this.extension.isBuiltin) {
+ 			return;
+ 		}
+-		if (this.extensionsWorkbenchService.canSetLanguage(this.extension)) {
+-			return;
+-		}
+ 		if (this.extension.state === ExtensionState.Uninstalled && await this.extensionsWorkbenchService.canInstall(this.extension)) {
+ 			this.enabled = this.installPreReleaseVersion ? this.extension.hasPreReleaseVersion : this.extension.hasReleaseVersion;
+ 			this.updateLabel();
+@@ -1785,17 +1782,6 @@ export class SetLanguageAction extends E
+ 	update(): void {
+ 		this.enabled = false;
+ 		this.class = SetLanguageAction.DisabledClass;
+-		if (!this.extension) {
+-			return;
+-		}
+-		if (!this.extensionsWorkbenchService.canSetLanguage(this.extension)) {
+-			return;
+-		}
+-		if (this.extension.gallery && language === getLocale(this.extension.gallery)) {
+-			return;
+-		}
+-		this.enabled = true;
+-		this.class = SetLanguageAction.EnabledClass;
+ 	}
+ 
+ 	override async run(): Promise<any> {
+@@ -1812,7 +1798,6 @@ export class ClearLanguageAction extends
+ 	private static readonly DisabledClass = `${ClearLanguageAction.EnabledClass} disabled`;
+ 
+ 	constructor(
+-		@IExtensionsWorkbenchService private readonly extensionsWorkbenchService: IExtensionsWorkbenchService,
+ 		@ILocaleService private readonly localeService: ILocaleService,
+ 	) {
+ 		super(ClearLanguageAction.ID, ClearLanguageAction.TITLE.value, ClearLanguageAction.DisabledClass, false);
+@@ -1822,17 +1807,6 @@ export class ClearLanguageAction extends
+ 	update(): void {
+ 		this.enabled = false;
+ 		this.class = ClearLanguageAction.DisabledClass;
+-		if (!this.extension) {
+-			return;
+-		}
+-		if (!this.extensionsWorkbenchService.canSetLanguage(this.extension)) {
+-			return;
+-		}
+-		if (this.extension.gallery && language !== getLocale(this.extension.gallery)) {
+-			return;
+-		}
+-		this.enabled = true;
+-		this.class = ClearLanguageAction.EnabledClass;
+ 	}
+ 
+ 	override async run(): Promise<any> {
