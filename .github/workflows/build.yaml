@@ -45,7 +45,7 @@ jobs:
 
       - name: Get changed files
         id: changed-files
-        uses: tj-actions/changed-files@v26.1
+        uses: tj-actions/changed-files@v35
         with:
           files: |
             docs/**
@@ -76,7 +76,7 @@ jobs:
 
       - name: Get changed files
         id: changed-files
-        uses: tj-actions/changed-files@v26.1
+        uses: tj-actions/changed-files@v35
         with:
           files: |
             ci/helm-chart/**
@@ -107,7 +107,7 @@ jobs:
 
       - name: Get changed files
         id: changed-files
-        uses: tj-actions/changed-files@v26.1
+        uses: tj-actions/changed-files@v35
         with:
           files: |
             **/*.ts
@@ -163,7 +163,7 @@ jobs:
 
       - name: Get changed files
         id: changed-files
-        uses: tj-actions/changed-files@v26.1
+        uses: tj-actions/changed-files@v35
         with:
           files: |
             **/*.ts
@@ -248,7 +248,7 @@ jobs:
       # different and we need to rebuild.
       - name: Get latest lib/vscode rev
         id: vscode-rev
-        run: echo "::set-output name=rev::$(git rev-parse HEAD:./lib/vscode)"
+        run: echo "rev=$(git rev-parse HEAD:./lib/vscode)" >> $GITHUB_OUTPUT
 
       # We need to rebuild when we have a new version of Code, when any of
       # the patches changed, or when the code-server version changes (since
