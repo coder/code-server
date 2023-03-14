@@ -75,7 +75,7 @@ Index: code-server/lib/vscode/src/vs/platform/extensionResourceLoader/common/ext
  import { getTelemetryLevel, supportsTelemetry } from 'vs/platform/telemetry/common/telemetryUtils';
 -import { getRemoteServerRootPath } from 'vs/platform/remote/common/remoteHosts';
  
- export const WEB_EXTENSION_RESOURCE_END_POINT = 'web-extension-resource';
+ const WEB_EXTENSION_RESOURCE_END_POINT = 'web-extension-resource';
  
 @@ -60,7 +59,7 @@ export abstract class AbstractExtensionR
  		private readonly _environmentService: IEnvironmentService,

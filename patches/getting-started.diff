@@ -143,7 +143,7 @@ Index: code-server/lib/vscode/src/vs/workbench/browser/web.api.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/browser/web.api.ts
 +++ code-server/lib/vscode/src/vs/workbench/browser/web.api.ts
-@@ -271,6 +271,11 @@ export interface IWorkbenchConstructionO
+@@ -265,6 +265,11 @@ export interface IWorkbenchConstructionO
  	 */
  	readonly isEnabledFileDownloads?: boolean
  
@@ -201,7 +201,7 @@ Index: code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
  	'auth'?: string
  	'disable-file-downloads'?: boolean;
  	'locale'?: string
-+	'disable-getting-started-override'?: boolean;
++	'disable-getting-started-override'?: boolean,
  
  	/* ----- server setup ----- */
  
@@ -242,7 +242,7 @@ Index: code-server/lib/vscode/src/vs/workbench/common/contextkeys.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/common/contextkeys.ts
 +++ code-server/lib/vscode/src/vs/workbench/common/contextkeys.ts
-@@ -33,6 +33,7 @@ export const IsFullscreenContext = new R
+@@ -34,6 +34,7 @@ export const IsFullscreenContext = new R
  export const HasWebFileSystemAccess = new RawContextKey<boolean>('hasWebFileSystemAccess', false, true); // Support for FileSystemAccess web APIs (https://wicg.github.io/file-system-access)
  
  export const IsEnabledFileDownloads = new RawContextKey<boolean>('isEnabledFileDownloads', true, true);

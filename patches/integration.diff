@@ -107,7 +107,7 @@ Index: code-server/lib/vscode/src/vs/workbench/browser/parts/dialogs/dialogHandl
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/browser/parts/dialogs/dialogHandler.ts
 +++ code-server/lib/vscode/src/vs/workbench/browser/parts/dialogs/dialogHandler.ts
-@@ -145,8 +145,11 @@ export class BrowserDialogHandler implem
+@@ -76,8 +76,11 @@ export class BrowserDialogHandler extend
  
  	async about(): Promise<void> {
  		const detailString = (useAgo: boolean): string => {
@@ -198,7 +198,7 @@ Index: code-server/lib/vscode/src/vs/base/common/product.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/base/common/product.ts
 +++ code-server/lib/vscode/src/vs/base/common/product.ts
-@@ -31,6 +31,8 @@ export type ExtensionVirtualWorkspaceSup
+@@ -32,6 +32,8 @@ export type ExtensionVirtualWorkspaceSup
  };
  
  export interface IProductConfiguration {

@@ -93,7 +93,7 @@ Index: code-server/lib/vscode/src/vs/base/common/product.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/base/common/product.ts
 +++ code-server/lib/vscode/src/vs/base/common/product.ts
-@@ -33,6 +33,7 @@ export type ExtensionVirtualWorkspaceSup
+@@ -34,6 +34,7 @@ export type ExtensionVirtualWorkspaceSup
  export interface IProductConfiguration {
  	readonly codeServerVersion?: string
  	readonly rootEndpoint?: string
