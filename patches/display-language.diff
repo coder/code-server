@@ -338,6 +338,15 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/extensions/browser/extens
  		if (this.extension.state === ExtensionState.Uninstalled && await this.extensionsWorkbenchService.canInstall(this.extension)) {
  			this.enabled = this.installPreReleaseVersion ? this.extension.hasPreReleaseVersion : this.extension.hasReleaseVersion;
  			this.updateLabel();
+@@ -697,7 +694,7 @@ export abstract class InstallInOtherServ
+ 		}
+ 
+ 		if (isLanguagePackExtension(this.extension.local.manifest)) {
+-			return true;
++			return false;
+ 		}
+ 
+ 		// Prefers to run on UI
 @@ -1785,17 +1782,6 @@ export class SetLanguageAction extends E
  	update(): void {
  		this.enabled = false;
