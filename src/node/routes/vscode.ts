@@ -40,6 +40,7 @@ export class CodeServerRouteWrapper {
   //#region Route Handlers
 
   private manifest: express.Handler = async (req, res, next) => {
+    const appName = req.args["app-name"] || "code-server"
     res.writeHead(200, { "Content-Type": "application/manifest+json" })
 
     return res.end(
@@ -47,8 +48,8 @@ export class CodeServerRouteWrapper {
         req,
         JSON.stringify(
           {
-            name: "code-server",
-            short_name: "code-server",
+            name: appName,
+            short_name: appName,
             start_url: ".",
             display: "fullscreen",
             description: "Run Code on a remote server.",
