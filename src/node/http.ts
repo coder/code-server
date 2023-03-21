@@ -323,35 +323,57 @@ function getFirstHeader(req: http.IncomingMessage, headerName: string): string |
 }
 
 /**
- * Throw an error if origin checks fail. Call `next` if provided.
+ * Throw a forbidden error if origin checks fail. Call `next` if provided.
  */
 export function ensureOrigin(req: express.Request, _?: express.Response, next?: express.NextFunction): void {
-  if (!authenticateOrigin(req)) {
+  try {
+    authenticateOrigin(req)
+    if (next) {
+      next()
+    }
+  } catch (error) {
+    logger.debug(`${error instanceof Error ? error.message : error}; blocking request to ${req.originalUrl}`)
     throw new HttpError("Forbidden", HttpCode.Forbidden)
-  }
-  if (next) {
-    next()
   }
 }
 
 /**
- * Authenticate the request origin against the host.
+ * Authenticate the request origin against the host.  Throw if invalid.
  */
-export function authenticateOrigin(req: express.Request): boolean {
+export function authenticateOrigin(req: express.Request): void {
   // A missing origin probably means the source is non-browser.  Not sure we
   // have a use case for this but let it through.
   const originRaw = getFirstHeader(req, "origin")
   if (!originRaw) {
-    return true
+    return
   }
 
   let origin: string
   try {
     origin = new URL(originRaw).host.trim().toLowerCase()
   } catch (error) {
-    return false // Malformed URL.
+    throw new Error(`unable to parse malformed origin "${originRaw}"`)
   }
 
+  const host = getHost(req)
+  if (typeof host === "undefined") {
+    // A missing host likely means the reverse proxy has not been configured to
+    // forward the host which means we cannot perform the check.  Emit an error
+    // so an admin can fix the issue.
+    logger.error("No host headers found")
+    logger.error("Are you behind a reverse proxy that does not forward the host?")
+    throw new Error("no host headers found")
+  }
+
+  if (host !== origin) {
+    throw new Error(`host "${host}" does not match origin "${origin}"`)
+  }
+}
+
+/**
+ * Get the host from headers.  It will be trimmed and lowercased.
+ */
+function getHost(req: express.Request): string | undefined {
   // Honor Forwarded if present.
   const forwardedRaw = getFirstHeader(req, "forwarded")
   if (forwardedRaw) {
@@ -359,7 +381,7 @@ export function authenticateOrigin(req: express.Request): boolean {
     for (let i = 0; i < parts.length; ++i) {
       const [key, value] = splitOnFirstEquals(parts[i])
       if (key.trim().toLowerCase() === "host" && value) {
-        return origin === value.trim().toLowerCase()
+        return value.trim().toLowerCase()
       }
     }
   }
@@ -367,17 +389,9 @@ export function authenticateOrigin(req: express.Request): boolean {
   // Honor X-Forwarded-Host if present.
   const xHost = getFirstHeader(req, "x-forwarded-host")
   if (xHost) {
-    return origin === xHost.trim().toLowerCase()
+    return xHost.trim().toLowerCase()
   }
 
-  // A missing host likely means the reverse proxy has not been configured to
-  // forward the host which means we cannot perform the check.  Emit a warning
-  // so an admin can fix the issue.
   const host = getFirstHeader(req, "host")
-  if (!host) {
-    logger.warn(`no host headers found; blocking request to ${req.originalUrl}`)
-    return false
-  }
-
-  return origin === host.trim().toLowerCase()
+  return host ? host.trim().toLowerCase() : undefined
 }

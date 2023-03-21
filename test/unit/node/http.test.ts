@@ -24,32 +24,35 @@ describe("http", () => {
       {
         origin: "",
         host: "",
-        expected: true,
       },
       {
         origin: "http://localhost:8080",
         host: "",
-        expected: false,
+        expected: "no host headers",
+      },
+      {
+        origin: "http://localhost:8080",
+        host: " ",
+        expected: "does not match",
       },
       {
         origin: "http://localhost:8080",
         host: "localhost:8080",
-        expected: true,
       },
       {
         origin: "http://localhost:8080",
         host: "localhost:8081",
-        expected: false,
+        expected: "does not match",
       },
       {
         origin: "localhost:8080",
         host: "localhost:8080",
-        expected: false, // Gets parsed as host: localhost and path: 8080.
+        expected: "does not match", // Gets parsed as host: localhost and path: 8080.
       },
       {
         origin: "test.org",
         host: "localhost:8080",
-        expected: false, // Parsing fails completely.
+        expected: "malformed", // Parsing fails completely.
       },
     ].forEach((test) => {
       ;[
@@ -67,7 +70,11 @@ describe("http", () => {
               [key]: value,
             },
           })
-          expect(http.authenticateOrigin(req)).toBe(test.expected)
+          if (typeof test.expected === "string") {
+            expect(() => http.authenticateOrigin(req)).toThrow(test.expected)
+          } else {
+            expect(() => http.authenticateOrigin(req)).not.toThrow()
+          }
         })
       })
     })
