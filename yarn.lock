@@ -613,9 +613,9 @@ ast-types@^0.13.2:
     tslib "^2.0.1"
 
 audit-ci@^6.0.0:
-  version "6.0.0"
-  resolved "https://registry.yarnpkg.com/audit-ci/-/audit-ci-6.0.0.tgz#78b71ac2aa754218b16e224ef3aa649cfe3063f8"
-  integrity sha512-ZoJxM4FQvaWdabQvqA44PTg64Bm/a8B9dnL/ft33lygoQuKh+Oa0hwdc/VLsq/zrhNCC12uSUnnfYvgxgZLurw==
+  version "6.6.1"
+  resolved "https://registry.yarnpkg.com/audit-ci/-/audit-ci-6.6.1.tgz#7c53808f6f94adbe60baf1d7c24f53c626619453"
+  integrity sha512-zqZEoYfEC4QwX5yBkDNa0h7YhZC63HWtKtP19BVq+RS0dxRBInfmHogxe4VUeOzoADQjuTLZUI7zp3Pjyl+a5g==
   dependencies:
     JSONStream "^1.3.5"
     cross-spawn "^7.0.3"
