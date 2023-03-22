@@ -14,7 +14,7 @@
     "jest": "^27.3.1",
     "jest-fetch-mock": "^3.0.3",
     "jsdom": "^16.4.0",
-    "node-fetch": "^2.6.1",
+    "node-fetch": "^2.6.7",
     "playwright": "^1.16.3",
     "supertest": "^6.1.6",
     "ts-jest": "^27.0.7",
