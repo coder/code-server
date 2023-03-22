@@ -88,6 +88,12 @@ app (PWA):
 1. Start the editor
 2. Click the **plus** icon in the URL toolbar to install the PWA
 
+If you use Firefox, you can use the appropriate extension to install PWA.
+
+1. Go to the installation [website](https://addons.mozilla.org/en-US/firefox/addon/pwas-for-firefox/) of the add-on
+2. Add the add-on to Firefox
+3. Follow the os-specific instructions on how to install the runtime counterpart
+
 For other browsers, you'll have to remap keybindings for shortcuts to work.
 
 ## Why can't code-server use Microsoft's extension marketplace?
