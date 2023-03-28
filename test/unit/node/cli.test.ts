@@ -43,6 +43,7 @@ describe("parser", () => {
     delete process.env.PASSWORD
     delete process.env.CS_DISABLE_FILE_DOWNLOADS
     delete process.env.CS_DISABLE_GETTING_STARTED_OVERRIDE
+    delete process.env.VSCODE_PROXY_URI
     console.log = jest.fn()
   })
 
@@ -456,6 +457,31 @@ describe("parser", () => {
     expect(parse(["--port", "8081", "--port", "8082"])).toEqual({
       port: 8082,
     })
+  })
+
+  it("should not set proxy uri", async () => {
+    await setDefaults(parse([]))
+    expect(process.env.VSCODE_PROXY_URI).toBeUndefined()
+  })
+
+  it("should set proxy uri", async () => {
+    await setDefaults(parse(["--proxy-domain", "coder.org"]))
+    expect(process.env.VSCODE_PROXY_URI).toEqual("{{port}}.coder.org")
+  })
+
+  it("should set proxy uri to first domain", async () => {
+    await setDefaults(
+      parse(["--proxy-domain", "*.coder.com", "--proxy-domain", "coder.com", "--proxy-domain", "coder.org"]),
+    )
+    expect(process.env.VSCODE_PROXY_URI).toEqual("{{port}}.coder.com")
+  })
+
+  it("should not override existing proxy uri", async () => {
+    process.env.VSCODE_PROXY_URI = "foo"
+    await setDefaults(
+      parse(["--proxy-domain", "*.coder.com", "--proxy-domain", "coder.com", "--proxy-domain", "coder.org"]),
+    )
+    expect(process.env.VSCODE_PROXY_URI).toEqual("foo")
   })
 })
 
