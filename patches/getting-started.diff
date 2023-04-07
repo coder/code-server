@@ -19,7 +19,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/welcomeGettingStarted/bro
  import { OpenFolderViaWorkspaceAction } from 'vs/workbench/browser/actions/workspaceActions';
  import { OpenRecentAction } from 'vs/workbench/browser/actions/windowActions';
  import { Toggle } from 'vs/base/browser/ui/toggle/toggle';
-@@ -759,6 +759,72 @@ export class GettingStartedPage extends
+@@ -795,6 +795,72 @@ export class GettingStartedPage extends
  			$('p.subtitle.description', {}, localize({ key: 'gettingStarted.editingEvolved', comment: ['Shown as subtitle on the Welcome page.'] }, "Editing evolved"))
  		);
  
@@ -87,15 +87,55 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/welcomeGettingStarted/bro
 +					),
 +				),
 +			);
-+	   }
++		}
 +
- 
  		const leftColumn = $('.categories-column.categories-column-left', {},);
  		const rightColumn = $('.categories-column.categories-column-right', {},);
-@@ -776,13 +842,23 @@ export class GettingStartedPage extends
+ 
+@@ -813,13 +879,23 @@ export class GettingStartedPage extends
  		const layoutLists = () => {
  			if (gettingStartedList.itemCount) {
  				this.container.classList.remove('noWalkthroughs');
+-				reset(leftColumn, startList.getDomElement(), recentList.getDomElement());
+-				reset(rightColumn, featuredExtensionList.getDomElement(), gettingStartedList.getDomElement());
++				if (this.contextService.contextMatchesRules(IsEnabledCoderGettingStarted)) {
++					reset(leftColumn, startList.getDomElement(), recentList.getDomElement(), featuredExtensionList.getDomElement(), gettingStartedList.getDomElement());
++					reset(rightColumn, gettingStartedCoder);
++				} else {
++					reset(leftColumn, startList.getDomElement(), recentList.getDomElement());
++					reset(rightColumn, featuredExtensionList.getDomElement(), gettingStartedList.getDomElement());
++				}
+ 			}
+ 			else {
+ 				this.container.classList.add('noWalkthroughs');
+-				reset(leftColumn, startList.getDomElement(), recentList.getDomElement());
+-				reset(rightColumn, featuredExtensionList.getDomElement());
++				if (this.contextService.contextMatchesRules(IsEnabledCoderGettingStarted)) {
++					reset(leftColumn, startList.getDomElement(), recentList.getDomElement(), featuredExtensionList.getDomElement());
++					reset(rightColumn, gettingStartedCoder);
++				} else {
++					reset(leftColumn, startList.getDomElement(), recentList.getDomElement());
++					reset(rightColumn, featuredExtensionList.getDomElement());
++				}
+ 			}
+ 			setTimeout(() => this.categoriesPageScrollbar?.scanDomNode(), 50);
+ 		};
+@@ -827,13 +903,23 @@ export class GettingStartedPage extends
+ 		const layoutFeaturedExtension = () => {
+ 			if (featuredExtensionList.itemCount) {
+ 				this.container.classList.remove('noExtensions');
+-				reset(leftColumn, startList.getDomElement(), recentList.getDomElement());
+-				reset(rightColumn, featuredExtensionList.getDomElement(), gettingStartedList.getDomElement());
++				if (this.contextService.contextMatchesRules(IsEnabledCoderGettingStarted)) {
++					reset(leftColumn, startList.getDomElement(), recentList.getDomElement(), featuredExtensionList.getDomElement(), gettingStartedList.getDomElement());
++					reset(rightColumn, gettingStartedCoder);
++				} else {
++					reset(leftColumn, startList.getDomElement(), recentList.getDomElement());
++					reset(rightColumn, featuredExtensionList.getDomElement(), gettingStartedList.getDomElement());
++				}
+ 			}
+ 			else {
+ 				this.container.classList.add('noExtensions');
 -				reset(leftColumn, startList.getDomElement(), recentList.getDomElement());
 -				reset(rightColumn, gettingStartedList.getDomElement());
 +				if (this.contextService.contextMatchesRules(IsEnabledCoderGettingStarted)) {
@@ -105,20 +145,9 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/welcomeGettingStarted/bro
 +					reset(leftColumn, startList.getDomElement(), recentList.getDomElement());
 +					reset(rightColumn, gettingStartedList.getDomElement());
 +				}
-+
- 				recentList.setLimit(5);
  			}
- 			else {
- 				this.container.classList.add('noWalkthroughs');
--				reset(leftColumn, startList.getDomElement());
-+				if (this.contextService.contextMatchesRules(IsEnabledCoderGettingStarted)) {
-+					reset(leftColumn, startList.getDomElement(), gettingStartedCoder);
-+				} else {
-+					reset(leftColumn, startList.getDomElement());
-+				}
- 				reset(rightColumn, recentList.getDomElement());
- 				recentList.setLimit(10);
- 			}
+ 			setTimeout(() => this.categoriesPageScrollbar?.scanDomNode(), 50);
+ 		};
 Index: code-server/lib/vscode/src/vs/workbench/contrib/welcomeGettingStarted/browser/media/gettingStarted.css
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/contrib/welcomeGettingStarted/browser/media/gettingStarted.css
@@ -171,7 +200,7 @@ Index: code-server/lib/vscode/src/vs/workbench/services/environment/browser/envi
  }
  
  export class BrowserWorkbenchEnvironmentService implements IBrowserWorkbenchEnvironmentService {
-@@ -116,6 +121,13 @@ export class BrowserWorkbenchEnvironment
+@@ -113,6 +118,13 @@ export class BrowserWorkbenchEnvironment
  		return this.options.isEnabledFileDownloads;
  	}
  
@@ -223,14 +252,14 @@ Index: code-server/lib/vscode/src/vs/workbench/browser/contextkeys.ts
 +++ code-server/lib/vscode/src/vs/workbench/browser/contextkeys.ts
 @@ -7,7 +7,7 @@ import { Event } from 'vs/base/common/ev
  import { Disposable } from 'vs/base/common/lifecycle';
- import { IContextKeyService, IContextKey } from 'vs/platform/contextkey/common/contextkey';
+ import { IContextKeyService, IContextKey, setConstant as setConstantContextKey } from 'vs/platform/contextkey/common/contextkey';
  import { InputFocusedContext, IsMacContext, IsLinuxContext, IsWindowsContext, IsWebContext, IsMacNativeContext, IsDevelopmentContext, IsIOSContext, ProductQualityContext, IsMobileContext } from 'vs/platform/contextkey/common/contextkeys';
--import { SplitEditorsVertically, InEditorZenModeContext, ActiveEditorCanRevertContext, ActiveEditorGroupLockedContext, ActiveEditorCanSplitInGroupContext, SideBySideEditorActiveContext, AuxiliaryBarVisibleContext, SideBarVisibleContext, PanelAlignmentContext, PanelMaximizedContext, PanelVisibleContext, ActiveEditorContext, EditorsVisibleContext, TextCompareEditorVisibleContext, TextCompareEditorActiveContext, ActiveEditorGroupEmptyContext, MultipleEditorGroupsContext, EditorTabsVisibleContext, IsCenteredLayoutContext, ActiveEditorGroupIndexContext, ActiveEditorGroupLastContext, ActiveEditorReadonlyContext, EditorAreaVisibleContext, ActiveEditorAvailableEditorIdsContext, DirtyWorkingCopiesContext, EmptyWorkspaceSupportContext, EnterMultiRootWorkspaceSupportContext, HasWebFileSystemAccess, IsFullscreenContext, OpenFolderWorkspaceSupportContext, RemoteNameContext, VirtualWorkspaceContext, WorkbenchStateContext, WorkspaceFolderCountContext, PanelPositionContext, TemporaryWorkspaceContext, IsEnabledFileDownloads } from 'vs/workbench/common/contextkeys';
-+import { SplitEditorsVertically, InEditorZenModeContext, ActiveEditorCanRevertContext, ActiveEditorGroupLockedContext, ActiveEditorCanSplitInGroupContext, SideBySideEditorActiveContext, AuxiliaryBarVisibleContext, SideBarVisibleContext, PanelAlignmentContext, PanelMaximizedContext, PanelVisibleContext, ActiveEditorContext, EditorsVisibleContext, TextCompareEditorVisibleContext, TextCompareEditorActiveContext, ActiveEditorGroupEmptyContext, MultipleEditorGroupsContext, EditorTabsVisibleContext, IsCenteredLayoutContext, ActiveEditorGroupIndexContext, ActiveEditorGroupLastContext, ActiveEditorReadonlyContext, EditorAreaVisibleContext, ActiveEditorAvailableEditorIdsContext, DirtyWorkingCopiesContext, EmptyWorkspaceSupportContext, EnterMultiRootWorkspaceSupportContext, HasWebFileSystemAccess, IsFullscreenContext, OpenFolderWorkspaceSupportContext, RemoteNameContext, VirtualWorkspaceContext, WorkbenchStateContext, WorkspaceFolderCountContext, PanelPositionContext, TemporaryWorkspaceContext, IsEnabledFileDownloads, IsEnabledCoderGettingStarted } from 'vs/workbench/common/contextkeys';
+-import { SplitEditorsVertically, InEditorZenModeContext, ActiveEditorCanRevertContext, ActiveEditorGroupLockedContext, ActiveEditorCanSplitInGroupContext, SideBySideEditorActiveContext, AuxiliaryBarVisibleContext, SideBarVisibleContext, PanelAlignmentContext, PanelMaximizedContext, PanelVisibleContext, ActiveEditorContext, EditorsVisibleContext, TextCompareEditorVisibleContext, TextCompareEditorActiveContext, ActiveEditorGroupEmptyContext, MultipleEditorGroupsContext, EmbedderIdentifierContext, EditorTabsVisibleContext, IsCenteredLayoutContext, ActiveEditorGroupIndexContext, ActiveEditorGroupLastContext, ActiveEditorReadonlyContext, EditorAreaVisibleContext, ActiveEditorAvailableEditorIdsContext, DirtyWorkingCopiesContext, EmptyWorkspaceSupportContext, EnterMultiRootWorkspaceSupportContext, HasWebFileSystemAccess, IsFullscreenContext, OpenFolderWorkspaceSupportContext, RemoteNameContext, VirtualWorkspaceContext, WorkbenchStateContext, WorkspaceFolderCountContext, PanelPositionContext, TemporaryWorkspaceContext, IsEnabledFileDownloads } from 'vs/workbench/common/contextkeys';
++import { SplitEditorsVertically, InEditorZenModeContext, ActiveEditorCanRevertContext, ActiveEditorGroupLockedContext, ActiveEditorCanSplitInGroupContext, SideBySideEditorActiveContext, AuxiliaryBarVisibleContext, SideBarVisibleContext, PanelAlignmentContext, PanelMaximizedContext, PanelVisibleContext, ActiveEditorContext, EditorsVisibleContext, TextCompareEditorVisibleContext, TextCompareEditorActiveContext, ActiveEditorGroupEmptyContext, MultipleEditorGroupsContext, EmbedderIdentifierContext, EditorTabsVisibleContext, IsCenteredLayoutContext, ActiveEditorGroupIndexContext, ActiveEditorGroupLastContext, ActiveEditorReadonlyContext, EditorAreaVisibleContext, ActiveEditorAvailableEditorIdsContext, DirtyWorkingCopiesContext, EmptyWorkspaceSupportContext, EnterMultiRootWorkspaceSupportContext, HasWebFileSystemAccess, IsFullscreenContext, OpenFolderWorkspaceSupportContext, RemoteNameContext, VirtualWorkspaceContext, WorkbenchStateContext, WorkspaceFolderCountContext, PanelPositionContext, TemporaryWorkspaceContext, IsEnabledFileDownloads, IsEnabledCoderGettingStarted } from 'vs/workbench/common/contextkeys';
  import { TEXT_DIFF_EDITOR_ID, EditorInputCapabilities, SIDE_BY_SIDE_EDITOR_ID, DEFAULT_EDITOR_ASSOCIATION } from 'vs/workbench/common/editor';
  import { trackFocus, addDisposableListener, EventType } from 'vs/base/browser/dom';
  import { preferredSideBySideGroupDirection, GroupDirection, IEditorGroupsService } from 'vs/workbench/services/editor/common/editorGroupsService';
-@@ -204,6 +204,7 @@ export class WorkbenchContextKeysHandler
+@@ -207,6 +207,7 @@ export class WorkbenchContextKeysHandler
  
  		// code-server
  		IsEnabledFileDownloads.bindTo(this.contextKeyService).set(this.environmentService.isEnabledFileDownloads ?? true)
@@ -242,8 +271,8 @@ Index: code-server/lib/vscode/src/vs/workbench/common/contextkeys.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/common/contextkeys.ts
 +++ code-server/lib/vscode/src/vs/workbench/common/contextkeys.ts
-@@ -34,6 +34,7 @@ export const IsFullscreenContext = new R
- export const HasWebFileSystemAccess = new RawContextKey<boolean>('hasWebFileSystemAccess', false, true); // Support for FileSystemAccess web APIs (https://wicg.github.io/file-system-access)
+@@ -36,6 +36,7 @@ export const HasWebFileSystemAccess = ne
+ export const EmbedderIdentifierContext = new RawContextKey<string | undefined>('embedderIdentifier', undefined, localize('embedderIdentifier', 'The identifier of the embedder according to the product service, if one is defined'));
  
  export const IsEnabledFileDownloads = new RawContextKey<boolean>('isEnabledFileDownloads', true, true);
 +export const IsEnabledCoderGettingStarted = new RawContextKey<boolean>('isEnabledCoderGettingStarted', true, true);
