@@ -41,7 +41,7 @@ Index: code-server/lib/vscode/src/vs/workbench/services/environment/browser/envi
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/services/environment/browser/environmentService.ts
 +++ code-server/lib/vscode/src/vs/workbench/services/environment/browser/environmentService.ts
-@@ -224,7 +224,7 @@ export class BrowserWorkbenchEnvironment
+@@ -215,7 +215,7 @@ export class BrowserWorkbenchEnvironment
  
  	@memoize
  	get webviewExternalEndpoint(): string {
@@ -70,12 +70,12 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/index
  	<meta charset="UTF-8">
  
  	<meta http-equiv="Content-Security-Policy"
--		content="default-src 'none'; script-src 'sha256-RaCvj6SRgHm+2C3LKzSAamDwa3Bp4u4iQ1Y2Sm+97tE=' 'self'; frame-src 'self'; style-src 'unsafe-inline';">
-+		content="default-src 'none'; script-src 'sha256-mi72idjvdhsPSBMKFqU82FG/kZVJjKR0TfHLE13gB+w=' 'self'; frame-src 'self'; style-src 'unsafe-inline';">
+-		content="default-src 'none'; script-src 'sha256-4A7BC3A+gc8e1t5I0rfDNtBiGlA0/GTojKdfdDHAWYw=' 'self'; frame-src 'self'; style-src 'unsafe-inline';">
++		content="default-src 'none'; script-src 'sha256-8I6aYsGyWES1C043+SeEOyeZlC0Y0HN5WevEDh97c1Y=' 'self'; frame-src 'self'; style-src 'unsafe-inline';">
  
  	<!-- Disable pinch zooming -->
  	<meta name="viewport"
-@@ -325,6 +325,12 @@
+@@ -323,6 +323,12 @@
  
  				const hostname = location.hostname;
  
@@ -92,7 +92,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/index
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/index-no-csp.html
 +++ code-server/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/index-no-csp.html
-@@ -324,6 +324,12 @@
+@@ -322,6 +322,12 @@
  
  				const hostname = location.hostname;
  

@@ -198,7 +198,7 @@ Index: code-server/lib/vscode/src/vs/base/common/product.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/base/common/product.ts
 +++ code-server/lib/vscode/src/vs/base/common/product.ts
-@@ -32,6 +32,8 @@ export type ExtensionVirtualWorkspaceSup
+@@ -55,6 +55,8 @@ export type ExtensionVirtualWorkspaceSup
  };
  
  export interface IProductConfiguration {
