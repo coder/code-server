@@ -11,7 +11,7 @@ const getProxyTarget = (req: Request, passthroughPath?: boolean): string => {
     return `http://0.0.0.0:${req.params.port}/${req.originalUrl}`
   }
   const query = qs.stringify(req.query)
-  return `http://0.0.0.0:${req.params.port}/${req.params[0] || ""}${query ? `?${query}` : ""}`
+  return encodeURI(`http://0.0.0.0:${req.params.port}${req.params[0] || ""}${query ? `?${query}` : ""}`);
 }
 
 export async function proxy(
