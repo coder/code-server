@@ -187,6 +187,17 @@ describe("proxy", () => {
       })
     }).rejects.toThrow()
   })
+
+  it("should proxy non-ASCII", async () => {
+    e.get("*", (req, res) => {
+      res.json("ほげ")
+    })
+    codeServer = await integration.setup(["--auth=none"], "")
+    const resp = await codeServer.fetch(proxyPath.replace("wsup", "ほげ"))
+    expect(resp.status).toBe(200)
+    const json = await resp.json()
+    expect(json).toBe("ほげ")
+  })
 })
 
 // NOTE@jsjoeio
