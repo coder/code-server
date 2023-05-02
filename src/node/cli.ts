@@ -3,17 +3,8 @@ import { promises as fs } from "fs"
 import { load } from "js-yaml"
 import * as os from "os"
 import * as path from "path"
-import {
-  canConnect,
-  generateCertificate,
-  generatePassword,
-  humanPath,
-  paths,
-  isNodeJSErrnoException,
-  splitOnFirstEquals,
-} from "./util"
-
-const DEFAULT_SOCKET_PATH = path.join(os.tmpdir(), "vscode-ipc")
+import { generateCertificate, generatePassword, humanPath, paths, splitOnFirstEquals } from "./util"
+import { DEFAULT_SOCKET_PATH, EditorSessionManagerClient } from "./vscodeSocket"
 
 export enum Feature {
   // No current experimental features!
@@ -591,15 +582,17 @@ export async function setDefaults(cliArgs: UserProvidedArgs, configArgs?: Config
   }
   args["proxy-domain"] = finalProxies
 
-  if (typeof args._ === "undefined") {
-    args._ = []
-  }
+  args._ = getResolvedPathsFromArgs(args)
 
   return {
     ...args,
     usingEnvPassword,
     usingEnvHashedPassword,
   } as DefaultedArgs // TODO: Technically no guarantee this is fulfilled.
+}
+
+export function getResolvedPathsFromArgs(args: UserProvidedArgs): string[] {
+  return (args._ ?? []).map((p) => path.resolve(p))
 }
 
 /**
@@ -742,27 +735,6 @@ function bindAddrFromAllSources(...argsConfig: UserProvidedArgs[]): Addr {
 }
 
 /**
- * Reads the socketPath based on path passed in.
- *
- * The one usually passed in is the DEFAULT_SOCKET_PATH.
- *
- * If it can't read the path, it throws an error and returns undefined.
- */
-export async function readSocketPath(path: string): Promise<string | undefined> {
-  try {
-    return await fs.readFile(path, "utf8")
-  } catch (error) {
-    // If it doesn't exist, we don't care.
-    // But if it fails for some reason, we should throw.
-    // We want to surface that to the user.
-    if (!isNodeJSErrnoException(error) || error.code !== "ENOENT") {
-      throw error
-    }
-  }
-  return undefined
-}
-
-/**
  * Determine if it looks like the user is trying to open a file or folder in an
  * existing instance. The arguments here should be the arguments the user
  * explicitly passed on the command line, *NOT DEFAULTS* or the configuration.
@@ -774,6 +746,14 @@ export const shouldOpenInExistingInstance = async (args: UserProvidedArgs): Prom
     return process.env.VSCODE_IPC_HOOK_CLI
   }
 
+  const paths = getResolvedPathsFromArgs(args)
+  const client = new EditorSessionManagerClient(DEFAULT_SOCKET_PATH)
+
+  // If we can't connect to the socket then there's no existing instance.
+  if (!(await client.canConnect())) {
+    return undefined
+  }
+
   // If these flags are set then assume the user is trying to open in an
   // existing instance since these flags have no effect otherwise.
   const openInFlagCount = ["reuse-window", "new-window"].reduce((prev, cur) => {
@@ -781,7 +761,7 @@ export const shouldOpenInExistingInstance = async (args: UserProvidedArgs): Prom
   }, 0)
   if (openInFlagCount > 0) {
     logger.debug("Found --reuse-window or --new-window")
-    return readSocketPath(DEFAULT_SOCKET_PATH)
+    return await client.getConnectedSocketPath(paths[0])
   }
 
   // It's possible the user is trying to spawn another instance of code-server.
@@ -790,8 +770,8 @@ export const shouldOpenInExistingInstance = async (args: UserProvidedArgs): Prom
   // 2. That a file or directory was passed.
   // 3. That the socket is active.
   if (Object.keys(args).length === 1 && typeof args._ !== "undefined" && args._.length > 0) {
-    const socketPath = await readSocketPath(DEFAULT_SOCKET_PATH)
-    if (socketPath && (await canConnect(socketPath))) {
+    const socketPath = await client.getConnectedSocketPath(paths[0])
+    if (socketPath) {
       logger.debug("Found existing code-server socket")
       return socketPath
     }

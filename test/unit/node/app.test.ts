@@ -17,7 +17,7 @@ describe("createApp", () => {
   beforeAll(async () => {
     mockLogger()
 
-    const testName = "unlink-socket"
+    const testName = "app"
     await clean(testName)
     tmpDirPath = await tmpdir(testName)
     tmpFilePath = path.join(tmpDirPath, "unlink-socket-file")
@@ -103,7 +103,7 @@ describe("createApp", () => {
 
     const app = await createApp(defaultArgs)
 
-    expect(unlinkSpy).toHaveBeenCalledTimes(1)
+    expect(unlinkSpy).toHaveBeenCalledWith(tmpFilePath)
     app.dispose()
   })
 

@@ -1,14 +1,11 @@
 import { Level, logger } from "@coder/logger"
 import { promises as fs } from "fs"
-import * as net from "net"
-import * as os from "os"
 import * as path from "path"
 import {
   UserProvidedArgs,
   bindAddrFromArgs,
   defaultConfigFile,
   parse,
-  readSocketPath,
   setDefaults,
   shouldOpenInExistingInstance,
   toCodeArgs,
@@ -20,7 +17,13 @@ import {
 } from "../../../src/node/cli"
 import { shouldSpawnCliProcess } from "../../../src/node/main"
 import { generatePassword, paths } from "../../../src/node/util"
-import { clean, useEnv, tmpdir } from "../../utils/helpers"
+import {
+  DEFAULT_SOCKET_PATH,
+  EditorSessionManager,
+  EditorSessionManagerClient,
+  makeEditorSessionManagerServer,
+} from "../../../src/node/vscodeSocket"
+import { clean, useEnv, tmpdir, listenOn } from "../../utils/helpers"
 
 // The parser should not set any defaults so the caller can determine what
 // values the user actually set. These are only set after explicitly calling
@@ -487,7 +490,7 @@ describe("parser", () => {
 
 describe("cli", () => {
   const testName = "cli"
-  const vscodeIpcPath = path.join(os.tmpdir(), "vscode-ipc")
+  let tmpDirPath: string
 
   beforeAll(async () => {
     await clean(testName)
@@ -495,7 +498,7 @@ describe("cli", () => {
 
   beforeEach(async () => {
     delete process.env.VSCODE_IPC_HOOK_CLI
-    await fs.rm(vscodeIpcPath, { force: true, recursive: true })
+    tmpDirPath = await tmpdir(testName)
   })
 
   it("should use existing if inside code-server", async () => {
@@ -509,54 +512,152 @@ describe("cli", () => {
   })
 
   it("should use existing if --reuse-window is set", async () => {
+    const server = await makeEditorSessionManagerServer(DEFAULT_SOCKET_PATH, new EditorSessionManager())
+
     const args: UserProvidedArgs = {}
     args["reuse-window"] = true
     await expect(shouldOpenInExistingInstance(args)).resolves.toStrictEqual(undefined)
 
-    await fs.writeFile(vscodeIpcPath, "test")
-    await expect(shouldOpenInExistingInstance(args)).resolves.toStrictEqual("test")
+    const socketPath = path.join(tmpDirPath, "socket")
+    const client = new EditorSessionManagerClient(DEFAULT_SOCKET_PATH)
+    await client.addSession({
+      entry: {
+        workspace: {
+          id: "aaa",
+          folders: [
+            {
+              uri: {
+                path: "/aaa",
+              },
+            },
+          ],
+        },
+        socketPath,
+      },
+    })
+    const vscodeSockets = listenOn(socketPath)
+
+    await expect(shouldOpenInExistingInstance(args)).resolves.toStrictEqual(socketPath)
 
     args.port = 8081
-    await expect(shouldOpenInExistingInstance(args)).resolves.toStrictEqual("test")
+    await expect(shouldOpenInExistingInstance(args)).resolves.toStrictEqual(socketPath)
+
+    server.close()
+    vscodeSockets.close()
   })
 
   it("should use existing if --new-window is set", async () => {
+    const server = await makeEditorSessionManagerServer(DEFAULT_SOCKET_PATH, new EditorSessionManager())
+
     const args: UserProvidedArgs = {}
     args["new-window"] = true
-    expect(await shouldOpenInExistingInstance(args)).toStrictEqual(undefined)
+    await expect(shouldOpenInExistingInstance(args)).resolves.toStrictEqual(undefined)
 
-    await fs.writeFile(vscodeIpcPath, "test")
-    expect(await shouldOpenInExistingInstance(args)).toStrictEqual("test")
+    const socketPath = path.join(tmpDirPath, "socket")
+    const client = new EditorSessionManagerClient(DEFAULT_SOCKET_PATH)
+    await client.addSession({
+      entry: {
+        workspace: {
+          id: "aaa",
+          folders: [
+            {
+              uri: {
+                path: "/aaa",
+              },
+            },
+          ],
+        },
+        socketPath,
+      },
+    })
+    const vscodeSockets = listenOn(socketPath)
+
+    expect(await shouldOpenInExistingInstance(args)).toStrictEqual(socketPath)
 
     args.port = 8081
-    expect(await shouldOpenInExistingInstance(args)).toStrictEqual("test")
+    expect(await shouldOpenInExistingInstance(args)).toStrictEqual(socketPath)
+
+    server.close()
+    vscodeSockets.close()
   })
 
   it("should use existing if no unrelated flags are set, has positional, and socket is active", async () => {
+    const server = await makeEditorSessionManagerServer(DEFAULT_SOCKET_PATH, new EditorSessionManager())
+
     const args: UserProvidedArgs = {}
     expect(await shouldOpenInExistingInstance(args)).toStrictEqual(undefined)
 
     args._ = ["./file"]
     expect(await shouldOpenInExistingInstance(args)).toStrictEqual(undefined)
 
-    const testDir = await tmpdir(testName)
-    const socketPath = path.join(testDir, "socket")
-    await fs.writeFile(vscodeIpcPath, socketPath)
-    expect(await shouldOpenInExistingInstance(args)).toStrictEqual(undefined)
-
-    await new Promise((resolve) => {
-      const server = net.createServer(() => {
-        // Close after getting the first connection.
-        server.close()
-      })
-      server.once("listening", () => resolve(server))
-      server.listen(socketPath)
+    const client = new EditorSessionManagerClient(DEFAULT_SOCKET_PATH)
+    const socketPath = path.join(tmpDirPath, "socket")
+    await client.addSession({
+      entry: {
+        workspace: {
+          id: "aaa",
+          folders: [
+            {
+              uri: {
+                path: "/aaa",
+              },
+            },
+          ],
+        },
+        socketPath,
+      },
     })
+    const vscodeSockets = listenOn(socketPath)
 
     expect(await shouldOpenInExistingInstance(args)).toStrictEqual(socketPath)
 
     args.port = 8081
     expect(await shouldOpenInExistingInstance(args)).toStrictEqual(undefined)
+
+    server.close()
+    vscodeSockets.close()
+  })
+
+  it("should prefer matching sessions for only the first path", async () => {
+    const server = await makeEditorSessionManagerServer(DEFAULT_SOCKET_PATH, new EditorSessionManager())
+    const client = new EditorSessionManagerClient(DEFAULT_SOCKET_PATH)
+    await client.addSession({
+      entry: {
+        workspace: {
+          id: "aaa",
+          folders: [
+            {
+              uri: {
+                path: "/aaa",
+              },
+            },
+          ],
+        },
+        socketPath: `${tmpDirPath}/vscode-ipc-aaa.sock`,
+      },
+    })
+    await client.addSession({
+      entry: {
+        workspace: {
+          id: "bbb",
+          folders: [
+            {
+              uri: {
+                path: "/bbb",
+              },
+            },
+          ],
+        },
+        socketPath: `${tmpDirPath}/vscode-ipc-bbb.sock`,
+      },
+    })
+    listenOn(`${tmpDirPath}/vscode-ipc-aaa.sock`, `${tmpDirPath}/vscode-ipc-bbb.sock`)
+
+    const args: UserProvidedArgs = {}
+    args._ = ["/aaa/file", "/bbb/file"]
+    expect(await shouldOpenInExistingInstance(args)).toStrictEqual(`${tmpDirPath}/vscode-ipc-aaa.sock`)
+
+    server.close()
   })
 })
 
@@ -726,44 +827,6 @@ describe("defaultConfigFile", () => {
 auth: password
 password: ${password}
 cert: false`)
-  })
-})
-
-describe("readSocketPath", () => {
-  const fileContents = "readSocketPath file contents"
-  let tmpDirPath: string
-  let tmpFilePath: string
-
-  const testName = "readSocketPath"
-  beforeAll(async () => {
-    await clean(testName)
-  })
-
-  beforeEach(async () => {
-    tmpDirPath = await tmpdir(testName)
-    tmpFilePath = path.join(tmpDirPath, "readSocketPath.txt")
-    await fs.writeFile(tmpFilePath, fileContents)
-  })
-
-  it("should throw an error if it can't read the file", async () => {
-    // TODO@jsjoeio - implement
-    // Test it on a directory.... ESDIR
-    // TODO@jsjoeio - implement
-    expect(() => readSocketPath(tmpDirPath)).rejects.toThrow("EISDIR")
-  })
-  it("should return undefined if it can't read the file", async () => {
-    // TODO@jsjoeio - implement
-    const socketPath = await readSocketPath(path.join(tmpDirPath, "not-a-file"))
-    expect(socketPath).toBeUndefined()
-  })
-  it("should return the file contents", async () => {
-    const contents = await readSocketPath(tmpFilePath)
-    expect(contents).toBe(fileContents)
-  })
-  it("should return the same file contents for two different calls", async () => {
-    const contents1 = await readSocketPath(tmpFilePath)
-    const contents2 = await readSocketPath(tmpFilePath)
-    expect(contents2).toBe(contents1)
   })
 })
 
