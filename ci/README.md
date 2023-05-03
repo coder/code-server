@@ -29,7 +29,7 @@ This directory contains scripts used for the development of code-server.
 - [./ci/dev/watch.ts](./dev/watch.ts) (`yarn watch`)
   - Starts a process to build and launch code-server and restart on any code changes.
   - Example usage in [./docs/CONTRIBUTING.md](../docs/CONTRIBUTING.md).
-- [./ci/dev/gen_icons.sh](./ci/dev/gen_icons.sh) (`yarn icons`)
+- [./ci/dev/gen_icons.sh](./dev/gen_icons.sh) (`yarn icons`)
   - Generates the various icons from a single `.svg` favicon in
     `src/browser/media/favicon.svg`.
   - Requires [imagemagick](https://imagemagick.org/index.php)
@@ -75,7 +75,7 @@ You can disable minification by setting `MINIFY=`.
 
 This directory contains the release docker container image.
 
-- [./ci/steps/build-docker-buildx-push.sh](./ci/steps/docker-buildx-push.sh)
+- [./ci/steps/build-docker-buildx-push.sh](./steps/docker-buildx-push.sh)
   - Builds the release containers with tags `codercom/code-server-$ARCH:$VERSION` for amd64 and arm64 with `docker buildx` and pushes them.
   - Assumes debian releases are ready in `./release-packages`.
 
