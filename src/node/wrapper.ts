@@ -44,7 +44,7 @@ export function onMessage<M, T extends M>(
     }
 
     const onMessage = (message: M) => {
-      ;(customLogger || logger).trace("got message", field("message", message))
+      ;(customLogger || logger).debug("got message", field("message", message))
       if (fn(message)) {
         cleanup()
         resolve(message)
