@@ -435,15 +435,22 @@ export const parse = (
 
   logger.debug(() => [
     `parsed ${opts?.configFile ? "config" : "command line"}`,
-    field("args", {
+    field("args", redactArgs(args)),
+  ])
+
+  return args
+}
+
+/**
+ * Redact sensitive information from arguments for logging.
+ */
+export const redactArgs = (args: UserProvidedArgs): UserProvidedArgs => {
+  return {
       ...args,
       password: args.password ? "<redacted>" : undefined,
       "hashed-password": args["hashed-password"] ? "<redacted>" : undefined,
       "github-auth": args["github-auth"] ? "<redacted>" : undefined,
-    }),
-  ])
-
-  return args
+    }
 }
 
 /**

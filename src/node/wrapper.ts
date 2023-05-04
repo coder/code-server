@@ -3,7 +3,7 @@ import * as cp from "child_process"
 import * as path from "path"
 import * as rfs from "rotating-file-stream"
 import { Emitter } from "../common/emitter"
-import { DefaultedArgs } from "./cli"
+import { DefaultedArgs, redactArgs } from "./cli"
 import { paths } from "./util"
 
 const timeoutInterval = 10000 // 10s, matches VS Code's timeouts.
@@ -44,10 +44,11 @@ export function onMessage<M, T extends M>(
     }
 
     const onMessage = (message: M) => {
-      ;(customLogger || logger).debug("got message", field("message", message))
       if (fn(message)) {
         cleanup()
         resolve(message)
+      } else {
+        ;(customLogger || logger).debug("got unhandled message", field("message", message))
       }
     }
 
@@ -181,6 +182,10 @@ export class ChildProcess extends Process {
       },
       this.logger,
     )
+    this.logger.debug("got message", field("message", {
+      type: message.type,
+      args: redactArgs(message.args),
+    }))
     return message.args
   }
 
@@ -339,13 +344,14 @@ export class ParentProcess extends Process {
     if (!this.args) {
       throw new Error("started without args")
     }
-    await onMessage<ChildMessage, ChildHandshakeMessage>(
+    const message = await onMessage<ChildMessage, ChildHandshakeMessage>(
       child,
       (message): message is ChildHandshakeMessage => {
         return message.type === "handshake"
       },
       this.logger,
     )
+    this.logger.debug("got message", field("message", message))
     this.send(child, { type: "handshake", args: this.args })
   }
 
