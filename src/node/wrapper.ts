@@ -172,6 +172,7 @@ export class ChildProcess extends Process {
    * Initiate the handshake and wait for a response from the parent.
    */
   public async handshake(): Promise<DefaultedArgs> {
+    this.logger.debug("initiating handshake")
     this.send({ type: "handshake" })
     const message = await onMessage<ParentMessage, ParentHandshakeMessage>(
       process,
@@ -280,6 +281,10 @@ export class ParentProcess extends Process {
   }
 
   public start(args: DefaultedArgs): Promise<void> {
+    // Our logger was created before we parsed CLI arguments so update the level
+    // in case it has changed.
+    this.logger.level = logger.level
+
     // Store for relaunches.
     this.args = args
     if (!this.started) {
@@ -306,7 +311,7 @@ export class ParentProcess extends Process {
       })
     }
 
-    this.logger.debug(`spawned inner process ${child.pid}`)
+    this.logger.debug(`spawned child process ${child.pid}`)
 
     await this.handshake(child)
 
