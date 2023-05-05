@@ -182,10 +182,13 @@ export class ChildProcess extends Process {
       },
       this.logger,
     )
-    this.logger.debug("got message", field("message", {
-      type: message.type,
-      args: redactArgs(message.args),
-    }))
+    this.logger.debug(
+      "got message",
+      field("message", {
+        type: message.type,
+        args: redactArgs(message.args),
+      }),
+    )
     return message.args
   }
 

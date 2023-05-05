@@ -433,10 +433,7 @@ export const parse = (
     throw new Error("--cert-key is missing")
   }
 
-  logger.debug(() => [
-    `parsed ${opts?.configFile ? "config" : "command line"}`,
-    field("args", redactArgs(args)),
-  ])
+  logger.debug(() => [`parsed ${opts?.configFile ? "config" : "command line"}`, field("args", redactArgs(args))])
 
   return args
 }
@@ -446,11 +443,11 @@ export const parse = (
  */
 export const redactArgs = (args: UserProvidedArgs): UserProvidedArgs => {
   return {
-      ...args,
-      password: args.password ? "<redacted>" : undefined,
-      "hashed-password": args["hashed-password"] ? "<redacted>" : undefined,
-      "github-auth": args["github-auth"] ? "<redacted>" : undefined,
-    }
+    ...args,
+    password: args.password ? "<redacted>" : undefined,
+    "hashed-password": args["hashed-password"] ? "<redacted>" : undefined,
+    "github-auth": args["github-auth"] ? "<redacted>" : undefined,
+  }
 }
 
 /**
