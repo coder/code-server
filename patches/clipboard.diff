@@ -1,0 +1,76 @@
+Index: code-server/lib/vscode/src/vs/workbench/api/browser/mainThreadCLICommands.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/workbench/api/browser/mainThreadCLICommands.ts
++++ code-server/lib/vscode/src/vs/workbench/api/browser/mainThreadCLICommands.ts
+@@ -8,6 +8,7 @@ import { isWeb } from 'vs/base/common/pl
+ import { isString } from 'vs/base/common/types';
+ import { URI, UriComponents } from 'vs/base/common/uri';
+ import { localize } from 'vs/nls';
++import { IClipboardService } from 'vs/platform/clipboard/common/clipboardService';
+ import { CommandsRegistry, ICommandService } from 'vs/platform/commands/common/commands';
+ import { IExtensionGalleryService, IExtensionManagementService } from 'vs/platform/extensionManagement/common/extensionManagement';
+ import { ExtensionManagementCLI } from 'vs/platform/extensionManagement/common/extensionManagementCLI';
+@@ -90,6 +91,11 @@ CommandsRegistry.registerCommand('_remot
+ 	return lines.join('\n');
+ });
+ 
++CommandsRegistry.registerCommand('_remoteCLI.setClipboard', function (accessor: ServicesAccessor, content: string) {
++	const clipboardService = accessor.get(IClipboardService);
++	clipboardService.writeText(content);
++})
++
+ class RemoteExtensionManagementCLI extends ExtensionManagementCLI {
+ 
+ 	private _location: string | undefined;
+Index: code-server/lib/vscode/src/vs/workbench/api/node/extHostCLIServer.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/workbench/api/node/extHostCLIServer.ts
++++ code-server/lib/vscode/src/vs/workbench/api/node/extHostCLIServer.ts
+@@ -43,7 +43,12 @@ export interface ExtensionManagementPipe
+ 	force?: boolean;
+ }
+ 
+-export type PipeCommand = OpenCommandPipeArgs | StatusPipeArgs | OpenExternalCommandPipeArgs | ExtensionManagementPipeArgs;
++export interface ClipboardPipeArgs {
++	type: 'clipboard';
++	content: string;
++}
++
++export type PipeCommand = OpenCommandPipeArgs | StatusPipeArgs | OpenExternalCommandPipeArgs | ExtensionManagementPipeArgs | ClipboardPipeArgs;
+ 
+ export interface ICommandsExecuter {
+ 	executeCommand<T>(id: string, ...args: any[]): Promise<T>;
+@@ -105,6 +110,9 @@ export class CLIServerBase {
+ 					case 'extensionManagement':
+ 						returnObj = await this.manageExtensions(data);
+ 						break;
++					case 'clipboard':
++						returnObj = await this.clipboard(data);
++						break;
+ 					default:
+ 						sendResponse(404, `Unknown message type: ${data.type}`);
+ 						break;
+@@ -174,6 +182,10 @@ export class CLIServerBase {
+ 		return await this._commands.executeCommand('_remoteCLI.getSystemStatus');
+ 	}
+ 
++	private async clipboard(data: ClipboardPipeArgs) {
++		return await this._commands.executeCommand('_remoteCLI.setClipboard', data.content);
++	}
++
+ 	dispose(): void {
+ 		this._server.close();
+ 
+Index: code-server/lib/vscode/src/vs/workbench/contrib/terminal/browser/remoteTerminalBackend.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/workbench/contrib/terminal/browser/remoteTerminalBackend.ts
++++ code-server/lib/vscode/src/vs/workbench/contrib/terminal/browser/remoteTerminalBackend.ts
+@@ -91,7 +91,7 @@ class RemoteTerminalBackend extends Base
+ 			}
+ 		});
+ 
+-		const allowedCommands = ['_remoteCLI.openExternal', '_remoteCLI.windowOpen', '_remoteCLI.getSystemStatus', '_remoteCLI.manageExtensions'];
++		const allowedCommands = ['_remoteCLI.openExternal', '_remoteCLI.windowOpen', '_remoteCLI.getSystemStatus', '_remoteCLI.manageExtensions', '_remoteCLI.setClipboard'];
+ 		this._remoteTerminalChannel.onExecuteCommand(async e => {
+ 			// Ensure this request for for this window
+ 			const pty = this._ptys.get(e.persistentProcessId);
