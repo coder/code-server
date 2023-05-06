@@ -74,3 +74,63 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/terminal/browser/remoteTe
  		this._remoteTerminalChannel.onExecuteCommand(async e => {
  			// Ensure this request for for this window
  			const pty = this._ptys.get(e.persistentProcessId);
+Index: code-server/lib/vscode/src/vs/platform/environment/common/argv.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/platform/environment/common/argv.ts
++++ code-server/lib/vscode/src/vs/platform/environment/common/argv.ts
+@@ -112,6 +112,7 @@ export interface NativeParsedArgs {
+ 	'profile-temp'?: boolean;
+ 
+ 	'enable-coi'?: boolean;
++	'clipboard'?: boolean;
+ 
+ 	// chromium command line args: https://electronjs.org/docs/all#supported-chrome-command-line-switches
+ 	'no-proxy-server'?: boolean;
+Index: code-server/lib/vscode/src/vs/platform/environment/node/argv.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/platform/environment/node/argv.ts
++++ code-server/lib/vscode/src/vs/platform/environment/node/argv.ts
+@@ -79,6 +79,7 @@ export const OPTIONS: OptionDescriptions
+ 	'user-data-dir': { type: 'string', cat: 'o', args: 'dir', description: localize('userDataDir', "Specifies the directory that user data is kept in. Can be used to open multiple distinct instances of Code.") },
+ 	'profile': { type: 'string', 'cat': 'o', args: 'profileName', description: localize('profileName', "Opens the provided folder or workspace with the given profile and associates the profile with the workspace. If the profile does not exist, a new empty one is created. A folder or workspace must be provided for the profile to take effect.") },
+ 	'help': { type: 'boolean', cat: 'o', alias: 'h', description: localize('help', "Print usage.") },
++	'clipboard': { type: 'boolean', cat: 'o', alias: 'c', description: localize('clipboard', "copies the STDIN to the clipboard") },
+ 
+ 	'extensions-dir': { type: 'string', deprecates: ['extensionHomePath'], cat: 'e', args: 'dir', description: localize('extensionHomePath', "Set the root path for extensions.") },
+ 	'extensions-download-dir': { type: 'string' },
+Index: code-server/lib/vscode/src/vs/server/node/server.cli.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/server/node/server.cli.ts
++++ code-server/lib/vscode/src/vs/server/node/server.cli.ts
+@@ -74,6 +74,7 @@ const isSupportedForPipe = (optionId: ke
+ 		case 'verbose':
+ 		case 'remote':
+ 		case 'locate-shell-integration-path':
++		case 'clipboard':
+ 			return true;
+ 		default:
+ 			return false;
+@@ -274,6 +275,23 @@ export async function main(desc: Product
+ 			_cp.spawn(cliCommand, newCommandline, { cwd: cliCwd, env, stdio: ['inherit'] });
+ 		}
+ 	} else {
++		if (parsedArgs.clipboard) {
++			if(!hasStdinWithoutTty()) {
++				console.error("stdin has a tty.");
++				return;
++			}
++			const fs = require("fs");
++			const stdinBuffer = fs.readFileSync(0); // STDIN_FILENO = 0
++			const clipboardContent = stdinBuffer.toString();
++			sendToPipe({
++				type: 'clipboard',
++				content: clipboardContent
++			}, verbose).catch(e => {
++				console.error('Error when requesting status:', e);
++			});
++			return;
++		}
++
+ 		if (parsedArgs.status) {
+ 			sendToPipe({
+ 				type: 'status'
