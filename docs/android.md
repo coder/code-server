@@ -27,5 +27,5 @@ nvm use 16
 1. Install Nix-on-Droid from [F-Droid](https://f-droid.org/packages/com.termux.nix/)
 2. Start app
 3. Spawn a shell with code-server by running `nix-shell -p code-server`
-4. run code-server with `code-server
+4. Run code-server with `code-server`
 5. Access on localhost:8080 in your browser
