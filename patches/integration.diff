@@ -95,7 +95,7 @@ Index: code-server/lib/vscode/src/vs/base/common/processes.ts
 --- code-server.orig/lib/vscode/src/vs/base/common/processes.ts
 +++ code-server/lib/vscode/src/vs/base/common/processes.ts
 @@ -111,6 +111,8 @@ export function sanitizeProcessEnvironme
- 		/^VSCODE_(?!(PORTABLE|SHELL_LOGIN)).+$/,
+ 		/^VSCODE_(?!(PORTABLE|SHELL_LOGIN|ENV_REPLACE|ENV_APPEND|ENV_PREPEND)).+$/,
  		/^SNAP(|_.*)$/,
  		/^GDK_PIXBUF_.+$/,
 +		/^CODE_SERVER_.+$/,
@@ -107,7 +107,7 @@ Index: code-server/lib/vscode/src/vs/workbench/browser/parts/dialogs/dialogHandl
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/browser/parts/dialogs/dialogHandler.ts
 +++ code-server/lib/vscode/src/vs/workbench/browser/parts/dialogs/dialogHandler.ts
-@@ -76,8 +76,11 @@ export class BrowserDialogHandler extend
+@@ -77,8 +77,11 @@ export class BrowserDialogHandler extend
  
  	async about(): Promise<void> {
  		const detailString = (useAgo: boolean): string => {
@@ -184,7 +184,7 @@ Index: code-server/lib/vscode/src/vs/workbench/browser/web.main.ts
  import { ITelemetryService } from 'vs/platform/telemetry/common/telemetry';
  import { IProgressService } from 'vs/platform/progress/common/progress';
  import { DelayedLogChannel } from 'vs/workbench/services/output/common/delayedLogChannel';
-@@ -119,6 +120,9 @@ export class BrowserMain extends Disposa
+@@ -123,6 +124,9 @@ export class BrowserMain extends Disposa
  		// Startup
  		const instantiationService = workbench.startup();
  
@@ -264,11 +264,11 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -308,6 +308,7 @@ export class WebClientServer {
- 			folderUri: resolveWorkspaceURI(this._environmentService.args['default-folder']),
- 			workspaceUri: resolveWorkspaceURI(this._environmentService.args['default-workspace']),
- 			productConfiguration: <Partial<IProductConfiguration>>{
-+				codeServerVersion: this._productService.codeServerVersion,
- 				embedderIdentifier: 'server-distro',
- 				extensionsGallery: this._webExtensionResourceUrlTemplate ? {
- 					...this._productService.extensionsGallery,
+@@ -299,6 +299,7 @@ export class WebClientServer {
+ 		} : undefined;
+ 
+ 		const productConfiguration = <Partial<IProductConfiguration>>{
++			codeServerVersion: this._productService.codeServerVersion,
+ 			embedderIdentifier: 'server-distro',
+ 			extensionsGallery: this._webExtensionResourceUrlTemplate ? {
+ 				...this._productService.extensionsGallery,

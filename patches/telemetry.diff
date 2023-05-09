@@ -94,11 +94,11 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -321,6 +321,7 @@ export class WebClientServer {
- 					scope: vscodeBase + '/',
- 					path: base + '/_static/out/browser/serviceWorker.js',
- 				},
-+				enableTelemetry: this._productService.enableTelemetry,
- 				embedderIdentifier: 'server-distro',
- 				extensionsGallery: this._productService.extensionsGallery,
+@@ -310,6 +310,7 @@ export class WebClientServer {
+ 				scope: vscodeBase + '/',
+ 				path: base + '/_static/out/browser/serviceWorker.js',
  			},
++			enableTelemetry: this._productService.enableTelemetry,
+ 			embedderIdentifier: 'server-distro',
+ 			extensionsGallery: this._productService.extensionsGallery,
+ 		};

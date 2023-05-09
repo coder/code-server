@@ -211,23 +211,23 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
  import { CharCode } from 'vs/base/common/charCode';
  import { getRemoteServerRootPath } from 'vs/platform/remote/common/remoteHosts';
  
-@@ -299,6 +300,8 @@ export class WebClientServer {
+@@ -337,6 +338,8 @@ export class WebClientServer {
+ 			callbackRoute: this._callbackRoute
+ 		};
  
- 		const base = relativeRoot(getOriginalUrl(req))
- 		const vscodeBase = relativePath(getOriginalUrl(req))
 +		const locale = this._environmentService.args.locale || await getLocaleFromConfig(this._environmentService.argvResource.fsPath);
 +		const nlsConfiguration = await getNLSConfiguration(locale, this._environmentService.userDataPath)
- 
- 		const workbenchWebConfiguration = {
- 			remoteAuthority,
-@@ -336,6 +339,7 @@ export class WebClientServer {
+ 		const nlsBaseUrl = this._productService.extensionsGallery?.nlsBaseUrl;
+ 		const values: { [key: string]: string } = {
+ 			WORKBENCH_WEB_CONFIGURATION: asJSON(workbenchWebConfiguration),
+@@ -345,6 +348,7 @@ export class WebClientServer {
  			WORKBENCH_NLS_BASE_URL: vscodeBase + (nlsBaseUrl ? `${nlsBaseUrl}${!nlsBaseUrl.endsWith('/') ? '/' : ''}${this._productService.commit}/${this._productService.version}/` : ''),
  			BASE: base,
  			VS_BASE: vscodeBase,
 +			NLS_CONFIGURATION: asJSON(nlsConfiguration),
  		};
  
- 
+ 		let data;
 Index: code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
@@ -261,9 +261,9 @@ Index: code-server/lib/vscode/src/vs/workbench/workbench.web.main.ts
  import 'vs/workbench/services/path/browser/pathService';
  import 'vs/workbench/services/themes/browser/browserHostColorSchemeService';
  import 'vs/workbench/services/encryption/browser/encryptionService';
-@@ -119,8 +119,9 @@ import 'vs/workbench/contrib/logs/browse
- // Explorer
- import 'vs/workbench/contrib/files/browser/files.web.contribution';
+@@ -116,8 +116,9 @@ registerSingleton(ILanguagePackService,
+ // Logs
+ import 'vs/workbench/contrib/logs/browser/logs.contribution';
  
 -// Localization
 -import 'vs/workbench/contrib/localization/browser/localization.contribution';

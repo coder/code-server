@@ -19,7 +19,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/welcomeGettingStarted/bro
  import { OpenFolderViaWorkspaceAction } from 'vs/workbench/browser/actions/workspaceActions';
  import { OpenRecentAction } from 'vs/workbench/browser/actions/windowActions';
  import { Toggle } from 'vs/base/browser/ui/toggle/toggle';
-@@ -796,6 +796,72 @@ export class GettingStartedPage extends
+@@ -817,6 +817,72 @@ export class GettingStartedPage extends
  			$('p.subtitle.description', {}, localize({ key: 'gettingStarted.editingEvolved', comment: ['Shown as subtitle on the Welcome page.'] }, "Editing evolved"))
  		);
  
@@ -92,7 +92,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/welcomeGettingStarted/bro
  		const leftColumn = $('.categories-column.categories-column-left', {},);
  		const rightColumn = $('.categories-column.categories-column-right', {},);
  
-@@ -814,13 +880,23 @@ export class GettingStartedPage extends
+@@ -835,13 +901,23 @@ export class GettingStartedPage extends
  		const layoutLists = () => {
  			if (gettingStartedList.itemCount) {
  				this.container.classList.remove('noWalkthroughs');
@@ -120,7 +120,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/welcomeGettingStarted/bro
  			}
  			setTimeout(() => this.categoriesPageScrollbar?.scanDomNode(), 50);
  		};
-@@ -828,13 +904,23 @@ export class GettingStartedPage extends
+@@ -849,13 +925,23 @@ export class GettingStartedPage extends
  		const layoutFeaturedExtension = () => {
  			if (featuredExtensionList.itemCount) {
  				this.container.classList.remove('noExtensions');
@@ -238,7 +238,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -308,6 +308,7 @@ export class WebClientServer {
+@@ -328,6 +328,7 @@ export class WebClientServer {
  			webviewEndpoint: vscodeBase + this._staticRoute + '/out/vs/workbench/contrib/webview/browser/pre',
  			userDataPath: this._environmentService.userDataPath,
  			isEnabledFileDownloads: !this._environmentService.args['disable-file-downloads'],
