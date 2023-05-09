@@ -401,7 +401,7 @@ install_standalone() {
 
   # -w only works if the directory exists so try creating it first. If this
   # fails we can ignore the error as the -w check will then swap us to sudo.
-  sh_c mkdir -p "$STANDALONE_INSTALL_PREFIX" 2> /dev/null || true
+  sh_c 'mkdir -p "$STANDALONE_INSTALL_PREFIX"' 2> /dev/null || true
 
   sh_c="sh_c"
   if [ ! -w "$STANDALONE_INSTALL_PREFIX" ]; then
