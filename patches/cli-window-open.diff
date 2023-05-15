@@ -17,7 +17,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/terminal/browser/remoteTe
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/contrib/terminal/browser/remoteTerminalBackend.ts
 +++ code-server/lib/vscode/src/vs/workbench/contrib/terminal/browser/remoteTerminalBackend.ts
-@@ -100,10 +100,14 @@ class RemoteTerminalBackend extends Base
+@@ -97,10 +97,14 @@ class RemoteTerminalBackend extends Base
  			}
  			const reqId = e.reqId;
  			const commandId = e.commandId;
