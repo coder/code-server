@@ -12,7 +12,7 @@ describe("--install-extension", () => {
     setupFlags = ["--extensions-dir", tempDir]
   })
   it("should use EXTENSIONS_GALLERY when set", async () => {
-    const extName = `author.extension-1.0.0`
+    const extName = "author.extension"
     const { stderr } = await runCodeServerCommand([...setupFlags, "--install-extension", extName], {
       EXTENSIONS_GALLERY: "{}",
     })
