@@ -58,6 +58,7 @@ describe("http", () => {
       ;[
         ["host", test.host],
         ["x-forwarded-host", test.host],
+        ["x-forwarded-host", `${test.host}, ${test.host}`],
         ["forwarded", `for=127.0.0.1, host=${test.host}, proto=http`],
         ["forwarded", `for=127.0.0.1;proto=http;host=${test.host}`],
         ["forwarded", `proto=http;host=${test.host}, for=127.0.0.1`],

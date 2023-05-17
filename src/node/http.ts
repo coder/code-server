@@ -386,10 +386,14 @@ function getHost(req: express.Request): string | undefined {
     }
   }
 
-  // Honor X-Forwarded-Host if present.
+  // Honor X-Forwarded-Host if present.  Some reverse proxies will set multiple
+  // comma-separated hosts.
   const xHost = getFirstHeader(req, "x-forwarded-host")
   if (xHost) {
-    return xHost.trim().toLowerCase()
+    const firstXHost = xHost.split(",")[0]
+    if (firstXHost) {
+      return firstXHost.trim().toLowerCase()
+    }
   }
 
   const host = getFirstHeader(req, "host")
