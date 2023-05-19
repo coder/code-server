@@ -19,6 +19,18 @@ Code v99.99.999
 ### Security
 
 -->
+## [4.13.0](https://github.com/coder/code-server/releases/tag/v4.13.0) - 2023-05-19
+
+Code v1.78.2
+
+### Changed
+
+- Updated to Code 1.78.2.
+
+### Fixed
+
+- Proxying files that contain non-ASCII characters.
+- Origin check when X-Forwarded-Host contains comma-separated hosts.
 
 ## [4.12.0](https://github.com/coder/code-server/releases/tag/v4.12.0) - 2023-04-21
 
