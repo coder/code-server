@@ -89,17 +89,19 @@ Potential Workaround :
 
 ### Many extensions including language packs fail to install
 
-Issue: Android is not seen as a Linux environment but as a separate, unsupported platform, so code-server only allows [Web Extensions](https://code.visualstudio.com/api/extension-guides/web-extensions), refusing to install extensions that run on the server.
+Issue: Android is not seen as a Linux environment but as a separate, unsupported platform, so code-server only allows [Web Extensions](https://code.visualstudio.com/api/extension-guides/web-extensions), refusing to download extensions that run on the server.\
 Fix: None\
-Potential workaround :
+Potential workarounds :
 
-You can manually download extensions as `.vsix` file and install them via `Extensions: Install from VSIX...` in the Command Palette.
+Either
 
-Alternatively, you can override `process.platform` to `linux`:
+- Manually download extensions as `.vsix` file and install them via `Extensions: Install from VSIX...` in the Command Palette.
+
+- Use an override to pretend the platform is Linux:
 
 Create a JS script that patches `process.platform`:
 
-```
+```js
 // android-as-linux.js
 Object.defineProperty(process, 'platform', { get() { return 'linux' }});
 ```
@@ -110,7 +112,7 @@ Then use Node's `--require` option to make sure it is loaded before `code-server
 NODE_OPTIONS="--require /path/to/android-as-linux.js" code-server
 ```
 
-⚠️ Note that Android and Linux are not 100% compatible, so use these workarounds at your own risk. Extensions that have native dependencies other than Node or interact with the OS directly might cause issues. 
+⚠️ Note that Android and Linux are not 100% compatible, so use these workarounds at your own risk. Extensions that have native dependencies other than Node or that directly interact with the OS might cause issues. 
 
 ## Extra
 
