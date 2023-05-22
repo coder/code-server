@@ -19,6 +19,11 @@ Code v99.99.999
 ### Security
 
 -->
+
+## Unreleased
+
+Code v1.78.2
+
 ## [4.13.0](https://github.com/coder/code-server/releases/tag/v4.13.0) - 2023-05-19
 
 Code v1.78.2
