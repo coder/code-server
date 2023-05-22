@@ -112,7 +112,7 @@ EOF
   pushd lib/vscode-reh-web-linux-x64
   # Make sure Code took the version we set in the environment variable.  Not
   # having a version will break display languages.
-  if ! jq -e .commit product.json ; then
+  if ! jq -e .commit product.json; then
     echo "'commit' is missing from product.json"
     exit 1
   fi
