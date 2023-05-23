@@ -1,0 +1,16 @@
+Index: code-server/lib/vscode/src/vs/workbench/browser/parts/dialogs/dialogHandler.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/workbench/browser/parts/dialogs/dialogHandler.ts
++++ code-server/lib/vscode/src/vs/workbench/browser/parts/dialogs/dialogHandler.ts
+@@ -77,10 +77,7 @@ export class BrowserDialogHandler extend
+ 
+ 	async about(): Promise<void> {
+ 		const detailString = (useAgo: boolean): string => {
+-			return localize('aboutCodeServerDetail',
+-				"code-server: {0}",
+-				this.productService.codeServerVersion ? `v${this.productService.codeServerVersion}` : 'Unknown'
+-			) + '\n' + localize('aboutDetail',
++			return localize('aboutDetail',
+ 				"Code: {0}\nCommit: {1}\nDate: {2}\nBrowser: {3}",
+ 				this.productService.version || 'Unknown',
+ 				this.productService.commit || 'Unknown',
