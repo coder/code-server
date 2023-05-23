@@ -79,8 +79,7 @@ Proceed to [installing](#installing)
 ## FreeBSD
 
 ```sh
-pkg install -y git python npm-node16 pkgconf
-pkg install -y libinotify
+pkg install -y git python npm-node16 pkgconf libsecret
 ```
 
 Proceed to [installing](#installing)
