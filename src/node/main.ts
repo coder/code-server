@@ -149,7 +149,10 @@ export const runCodeServer = async (
 
   if (args["proxy-domain"].length > 0) {
     logger.info(`  - ${plural(args["proxy-domain"].length, "Proxying the following domain")}:`)
-    args["proxy-domain"].forEach((domain) => logger.info(`    - *.${domain}`))
+    args["proxy-domain"].forEach((domain) => logger.info(`    - ${domain}`))
+  }
+  if(process.env.VSCODE_PROXY_URI) {
+    logger.info(`using proxy uri in PORTS tab: ${process.env.VSCODE_PROXY_URI}`)
   }
 
   if (args.enable && args.enable.length > 0) {

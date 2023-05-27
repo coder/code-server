@@ -1,11 +1,32 @@
 import { Request, Router } from "express"
 import { HttpCode, HttpError } from "../../common/http"
+import { getHost } from "../http"
 import { authenticated, ensureAuthenticated, ensureOrigin, redirect, self } from "../http"
 import { proxy } from "../proxy"
 import { Router as WsRouter } from "../wsRouter"
 
 export const router = Router()
 
+const proxyDomainToRegex = (matchString: string): RegExp => {
+  let escapedMatchString = matchString.replace(/[.*+?^$()|[\]\\]/g, "\\$&");
+
+  // Replace {{port}} with a regex group to capture the port
+  // Replace {{host}} with .+ to allow any host match (so rely on DNS record here)
+  let regexString = escapedMatchString.replace("{{port}}", "(\\d+)");
+  regexString = regexString.replace("{{host}}", ".+");
+
+  regexString = regexString.replace(/[{}]/g, "\\$&"); //replace any '{}' that might be left
+
+  return new RegExp("^" + regexString + "$");
+}
+
+let proxyRegexes : RegExp[] = [];
+const proxyDomainsToRegex = (proxyDomains : string[]): RegExp[] => {
+  if(proxyDomains.length != proxyRegexes.length) {
+    proxyRegexes = proxyDomains.map(proxyDomainToRegex);
+  }
+  return proxyRegexes;
+}
 
 /**
  * Return the port if the request should be proxied. Anything that ends in a
@@ -16,56 +37,22 @@ export const router = Router()
  * but `8080.test.coder.com` and `test.8080.coder.com` will not.
  */
 const maybeProxy = (req: Request): string | undefined => {
-  // Split into parts.
-  const host = req.headers.host || ""
-  const idx = host.indexOf(":")
-  const domain = idx !== -1 ? host.substring(0, idx) : host
-  const parts = domain.split(".")
-
-  // There must be an exact match for proxy-domain
-  const port = parts.shift()
-  const proxyDomain = parts.join(".")
-  if (port && req.args["proxy-domain"].includes(proxyDomain)) {
-    return port
+  let reqDomain = getHost(req);
+  if (reqDomain === undefined) {
+    return undefined;
   }
 
-  // check based on VSCODE_PROXY_URI
-  const proxyTemplate = process.env.VSCODE_PROXY_URI
-  if(proxyTemplate) {
-    return matchVsCodeProxyUriAndExtractPort(proxyTemplate, domain)
+  let regexs = proxyDomainsToRegex(req.args["proxy-domain"]);
+
+  for(let regex of regexs){
+    let match = reqDomain.match(regex);
+
+    if (match) {
+      return match[1]; // match[1] contains the port
+    }
   }
-  
+
   return undefined
-}
-
-
-let regex : RegExp | undefined = undefined;
-const matchVsCodeProxyUriAndExtractPort = (matchString: string, domain: string): string | undefined => {
-  // init regex on first use
-  if(!regex) {
-    // Escape dot characters in the match string
-    let escapedMatchString = matchString.replace(/\./g, "\\.");
-
-    // Replace {{port}} with a regex group to capture the port
-    let regexString = escapedMatchString.replace("{{port}}", "(\\d+)");
-
-    // remove http:// and https:// from matchString as protocol cannot be determined based on the Host header
-    regexString = regexString.replace("https://", "").replace("http://", "");
-
-    // Replace {{host}} with .* to allow any host match (so rely on DNS record here)
-    regexString = regexString.replace("{{host}}", ".*");
-
-    regex = new RegExp("^" + regexString + "$");
-  }
-  
-  // Test the domain against the regex
-  let match = domain.match(regex);
-
-  if (match) {
-    return match[1]; // match[1] contains the port
-  }
-
-  return undefined;
 }
 
 router.all("*", async (req, res, next) => {

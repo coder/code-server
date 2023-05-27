@@ -573,11 +573,23 @@ export async function setDefaults(cliArgs: UserProvidedArgs, configArgs?: Config
   delete process.env.GITHUB_TOKEN
 
   // Filter duplicate proxy domains and remove any leading `*.`.
-  const proxyDomains = new Set((args["proxy-domain"] || []).map((d) => d.replace(/^\*\./, "")))
-  args["proxy-domain"] = Array.from(proxyDomains)
-  if (args["proxy-domain"].length > 0 && !process.env.VSCODE_PROXY_URI) {
-    process.env.VSCODE_PROXY_URI = `{{port}}.${args["proxy-domain"][0]}`
+  const proxyDomains = new Set((args["proxy-domain"] || []).map((d) => d.replace(/^\*\./, "")));
+  let finalProxies = [];
+
+  for(let proxyDomain of proxyDomains) {
+    if (!proxyDomain.includes("{{port}}")) {
+      finalProxies.push("{{port}}." + proxyDomain);
+    } else {
+      finalProxies.push(proxyDomain);
+    }
   }
+
+  // all proxies are of format anyprefix-{{port}}-anysuffix.{{host}}, where {{host}} is optional
+  // e.g. code-8080.domain.tld would match for code-{{port}}.domain.tld and code-{{port}}.{{host}}
+  if (finalProxies.length > 0 && !process.env.VSCODE_PROXY_URI) {
+    process.env.VSCODE_PROXY_URI = `//${finalProxies[0]}`;
+  }
+  args["proxy-domain"] = finalProxies
 
   if (typeof args._ === "undefined") {
     args._ = []
