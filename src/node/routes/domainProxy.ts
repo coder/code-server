@@ -1,53 +1,52 @@
 import { Request, Router } from "express"
 import { HttpCode, HttpError } from "../../common/http"
-import { getHost } from "../http"
-import { authenticated, ensureAuthenticated, ensureOrigin, redirect, self } from "../http"
+import { getHost, authenticated, ensureAuthenticated, ensureOrigin, redirect, self } from "../http"
 import { proxy } from "../proxy"
 import { Router as WsRouter } from "../wsRouter"
 
 export const router = Router()
 
 const proxyDomainToRegex = (matchString: string): RegExp => {
-  let escapedMatchString = matchString.replace(/[.*+?^$()|[\]\\]/g, "\\$&");
+  const escapedMatchString = matchString.replace(/[.*+?^$()|[\]\\]/g, "\\$&")
 
   // Replace {{port}} with a regex group to capture the port
   // Replace {{host}} with .+ to allow any host match (so rely on DNS record here)
-  let regexString = escapedMatchString.replace("{{port}}", "(\\d+)");
-  regexString = regexString.replace("{{host}}", ".+");
+  let regexString = escapedMatchString.replace("{{port}}", "(\\d+)")
+  regexString = regexString.replace("{{host}}", ".+")
 
-  regexString = regexString.replace(/[{}]/g, "\\$&"); //replace any '{}' that might be left
+  regexString = regexString.replace(/[{}]/g, "\\$&") //replace any '{}' that might be left
 
-  return new RegExp("^" + regexString + "$");
+  return new RegExp("^" + regexString + "$")
 }
 
-let proxyRegexes : RegExp[] = [];
-const proxyDomainsToRegex = (proxyDomains : string[]): RegExp[] => {
-  if(proxyDomains.length !== proxyRegexes.length) {
-    proxyRegexes = proxyDomains.map(proxyDomainToRegex);
+let proxyRegexes: RegExp[] = []
+const proxyDomainsToRegex = (proxyDomains: string[]): RegExp[] => {
+  if (proxyDomains.length !== proxyRegexes.length) {
+    proxyRegexes = proxyDomains.map(proxyDomainToRegex)
   }
-  return proxyRegexes;
+  return proxyRegexes
 }
 
 /**
  * Return the port if the request should be proxied.
- * 
+ *
  * The proxy-domain should be of format anyprefix-{{port}}-anysuffix.{{host}}, where {{host}} is optional
  * e.g. code-8080.domain.tld would match for code-{{port}}.domain.tld and code-{{port}}.{{host}}.
- * 
+ *
  */
 const maybeProxy = (req: Request): string | undefined => {
-  let reqDomain = getHost(req);
+  const reqDomain = getHost(req)
   if (reqDomain === undefined) {
-    return undefined;
+    return undefined
   }
 
-  let regexs = proxyDomainsToRegex(req.args["proxy-domain"]);
+  const regexs = proxyDomainsToRegex(req.args["proxy-domain"])
 
-  for(let regex of regexs){
-    let match = reqDomain.match(regex);
+  for (const regex of regexs) {
+    const match = reqDomain.match(regex)
 
     if (match) {
-      return match[1]; // match[1] contains the port
+      return match[1] // match[1] contains the port
     }
   }
 
