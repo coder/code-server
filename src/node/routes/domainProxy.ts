@@ -22,19 +22,18 @@ const proxyDomainToRegex = (matchString: string): RegExp => {
 
 let proxyRegexes : RegExp[] = [];
 const proxyDomainsToRegex = (proxyDomains : string[]): RegExp[] => {
-  if(proxyDomains.length != proxyRegexes.length) {
+  if(proxyDomains.length !== proxyRegexes.length) {
     proxyRegexes = proxyDomains.map(proxyDomainToRegex);
   }
   return proxyRegexes;
 }
 
 /**
- * Return the port if the request should be proxied. Anything that ends in a
- * proxy domain and has a *single* subdomain should be proxied. Anything else
- * should return `undefined` and will be handled as normal.
- *
- * For example if `coder.com` is specified `8080.coder.com` will be proxied
- * but `8080.test.coder.com` and `test.8080.coder.com` will not.
+ * Return the port if the request should be proxied.
+ * 
+ * The proxy-domain should be of format anyprefix-{{port}}-anysuffix.{{host}}, where {{host}} is optional
+ * e.g. code-8080.domain.tld would match for code-{{port}}.domain.tld and code-{{port}}.{{host}}.
+ * 
  */
 const maybeProxy = (req: Request): string | undefined => {
   let reqDomain = getHost(req);

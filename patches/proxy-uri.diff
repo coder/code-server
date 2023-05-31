@@ -127,7 +127,7 @@ Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench.ts
 +				if (config.productConfiguration && config.productConfiguration.proxyEndpointTemplate) {
 +					const renderedTemplate = config.productConfiguration.proxyEndpointTemplate
 +												.replace('{{port}}', localhostMatch.port.toString())
-+												.replace('{{host}}', window.location.hostname)
++												.replace('{{host}}', window.location.host)
 +												
 +					resolvedUri = URI.parse(new URL(renderedTemplate, window.location.href).toString())
 +				} else {
