@@ -373,7 +373,7 @@ export function authenticateOrigin(req: express.Request): void {
 /**
  * Get the host from headers.  It will be trimmed and lowercased.
  */
-function getHost(req: express.Request): string | undefined {
+export function getHost(req: express.Request): string | undefined {
   // Honor Forwarded if present.
   const forwardedRaw = getFirstHeader(req, "forwarded")
   if (forwardedRaw) {

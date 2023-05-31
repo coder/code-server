@@ -113,7 +113,7 @@ Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench.ts
  
  interface ICredential {
  	service: string;
-@@ -511,6 +512,38 @@ function doCreateUri(path: string, query
+@@ -511,6 +512,42 @@ function doCreateUri(path: string, query
  		} : undefined,
  		workspaceProvider: WorkspaceProvider.create(config),
  		urlCallbackProvider: new LocalStorageURLCallbackProvider(config.callbackRoute),
@@ -125,7 +125,11 @@ Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench.ts
 +
 +			if (localhostMatch && resolvedUri.authority !== location.host) {
 +				if (config.productConfiguration && config.productConfiguration.proxyEndpointTemplate) {
-+					resolvedUri = URI.parse(new URL(config.productConfiguration.proxyEndpointTemplate.replace('{{port}}', localhostMatch.port.toString()), window.location.href).toString())
++					const renderedTemplate = config.productConfiguration.proxyEndpointTemplate
++												.replace('{{port}}', localhostMatch.port.toString())
++												.replace('{{host}}', window.location.host)
++												
++					resolvedUri = URI.parse(new URL(renderedTemplate, window.location.href).toString())
 +				} else {
 +					throw new Error(`Failed to resolve external URI: ${uri.toString()}. Could not determine base url because productConfiguration missing.`)
 +				}

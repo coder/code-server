@@ -413,7 +413,7 @@ describe("parser", () => {
     const defaultArgs = await setDefaults(args)
     expect(defaultArgs).toEqual({
       ...defaults,
-      "proxy-domain": ["coder.com", "coder.org"],
+      "proxy-domain": ["{{port}}.coder.com", "{{port}}.coder.org"],
     })
   })
   it("should allow '=,$/' in strings", async () => {
@@ -466,14 +466,14 @@ describe("parser", () => {
 
   it("should set proxy uri", async () => {
     await setDefaults(parse(["--proxy-domain", "coder.org"]))
-    expect(process.env.VSCODE_PROXY_URI).toEqual("{{port}}.coder.org")
+    expect(process.env.VSCODE_PROXY_URI).toEqual("//{{port}}.coder.org")
   })
 
   it("should set proxy uri to first domain", async () => {
     await setDefaults(
       parse(["--proxy-domain", "*.coder.com", "--proxy-domain", "coder.com", "--proxy-domain", "coder.org"]),
     )
-    expect(process.env.VSCODE_PROXY_URI).toEqual("{{port}}.coder.com")
+    expect(process.env.VSCODE_PROXY_URI).toEqual("//{{port}}.coder.com")
   })
 
   it("should not override existing proxy uri", async () => {
