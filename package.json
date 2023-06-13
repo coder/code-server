@@ -49,7 +49,7 @@
     "@types/proxy-from-env": "^1.0.1",
     "@types/safe-compare": "^1.1.0",
     "@types/semver": "^7.1.0",
-    "@types/split2": "^3.2.0",
+    "@types/split2": "^4.2.0",
     "@types/trusted-types": "^2.0.2",
     "@types/ws": "^8.5.3",
     "@typescript-eslint/eslint-plugin": "^5.41.0",

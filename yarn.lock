@@ -332,10 +332,10 @@
     "@types/mime" "^1"
     "@types/node" "*"
 
-"@types/split2@^3.2.0":
-  version "3.2.1"
-  resolved "https://registry.yarnpkg.com/@types/split2/-/split2-3.2.1.tgz#97c42b560a1b41064d46cd728cf1267d5755ee34"
-  integrity sha512-7uz3yU+LooBq4yNOzlZD9PU9/1Eu0rTD1MjQ6apOVEoHsPrMUrFw7W8XrvWtesm2vK67SBK9AyJcOXtMpl9bgQ==
+"@types/split2@^4.2.0":
+  version "4.2.0"
+  resolved "https://registry.yarnpkg.com/@types/split2/-/split2-4.2.0.tgz#8c2d336676391cf45166f52c56e4fd3ba924644a"
+  integrity sha512-rwV0tC3XGQvQ8zdeYDZ+dLn4CJLKnYPBrSU8dRXvzMVLUPMsYTsy3/ZbE4OlejsT2D7MTGP8ePk05C98xl2seQ==
   dependencies:
     "@types/node" "*"
 
