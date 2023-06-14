@@ -98,7 +98,7 @@
     "js-yaml": "^4.0.0",
     "limiter": "^2.1.0",
     "pem": "^1.14.2",
-    "proxy-agent": "^5.0.0",
+    "proxy-agent": "^6.2.1",
     "qs": "6.11.0",
     "rotating-file-stream": "^3.0.0",
     "safe-buffer": "^5.1.1",
