@@ -31,10 +31,10 @@ Index: code-server/lib/vscode/src/vs/workbench/api/node/extHostExtensionService.
  import { realpathSync } from 'vs/base/node/extpath';
  import { ExtHostConsoleForwarder } from 'vs/workbench/api/node/extHostConsoleForwarder';
 +import { IExtHostWorkspace } from '../common/extHostWorkspace';
+ import { ExtHostDiskFileSystemProvider } from 'vs/workbench/api/node/extHostDiskFileSystemProvider';
  
  class NodeModuleRequireInterceptor extends RequireInterceptor {
- 
-@@ -79,6 +82,52 @@ export class ExtHostExtensionService ext
+@@ -83,6 +86,52 @@ export class ExtHostExtensionService ext
  		await interceptor.install();
  		performance.mark('code/extHost/didInitAPI');
  

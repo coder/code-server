@@ -32,7 +32,7 @@ Index: code-server/lib/vscode/src/vs/workbench/browser/web.api.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/browser/web.api.ts
 +++ code-server/lib/vscode/src/vs/workbench/browser/web.api.ts
-@@ -255,6 +255,11 @@ export interface IWorkbenchConstructionO
+@@ -276,6 +276,11 @@ export interface IWorkbenchConstructionO
  	 */
  	readonly configurationDefaults?: Record<string, any>;
  
@@ -48,7 +48,7 @@ Index: code-server/lib/vscode/src/vs/workbench/services/environment/browser/envi
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/services/environment/browser/environmentService.ts
 +++ code-server/lib/vscode/src/vs/workbench/services/environment/browser/environmentService.ts
-@@ -92,7 +92,14 @@ export class BrowserWorkbenchEnvironment
+@@ -102,7 +102,14 @@ export class BrowserWorkbenchEnvironment
  	get logFile(): URI { return joinPath(this.windowLogsPath, 'window.log'); }
  
  	@memoize
