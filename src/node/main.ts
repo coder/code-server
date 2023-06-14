@@ -1,7 +1,6 @@
 import { field, logger } from "@coder/logger"
 import http from "http"
 import * as os from "os"
-import path from "path"
 import { Disposable } from "../common/emitter"
 import { plural } from "../common/util"
 import { createApp, ensureAddress } from "./app"
@@ -70,9 +69,8 @@ export const openInExistingInstance = async (args: DefaultedArgs, socketPath: st
     forceNewWindow: args["new-window"],
     gotoLineMode: true,
   }
-  const paths = args._ || []
-  for (let i = 0; i < paths.length; i++) {
-    const fp = path.resolve(paths[i])
+  for (let i = 0; i < args._.length; i++) {
+    const fp = args._[i]
     if (await isDirectory(fp)) {
       pipeArgs.folderURIs.push(fp)
     } else {
@@ -123,10 +121,12 @@ export const runCodeServer = async (
   const app = await createApp(args)
   const protocol = args.cert ? "https" : "http"
   const serverAddress = ensureAddress(app.server, protocol)
+  const sessionServerAddress = app.editorSessionManagerServer.address()
   const disposeRoutes = await register(app, args)
 
   logger.info(`Using config file ${humanPath(os.homedir(), args.config)}`)
   logger.info(`${protocol.toUpperCase()} server listening on ${serverAddress.toString()}`)
+  logger.info(`Session server listening on ${sessionServerAddress?.toString()}`)
 
   if (args.auth === AuthType.Password) {
     logger.info("  - Authentication is enabled")

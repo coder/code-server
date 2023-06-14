@@ -150,3 +150,52 @@ export function getMaybeProxiedPathname(url: URL): string {
 
   return url.pathname
 }
+
+interface FakeVscodeSockets {
+  /* If called, closes all servers after the first connection. */
+  once(): FakeVscodeSockets
+
+  /* Manually close all servers. */
+  close(): Promise<void>
+}
+
+/**
+ * Creates servers for each socketPath specified.
+ */
+export function listenOn(...socketPaths: string[]): FakeVscodeSockets {
+  let once = false
+  const servers = socketPaths.map((socketPath) => {
+    const server = net.createServer(() => {
+      if (once) {
+        close()
+      }
+    })
+    server.listen(socketPath)
+    return server
+  })
+
+  async function close() {
+    await Promise.all(
+      servers.map(
+        (server) =>
+          new Promise<void>((resolve, reject) => {
+            server.close((err) => {
+              if (err) {
+                reject(err)
+                return
+              }
+              resolve()
+            })
+          }),
+      ),
+    )
+  }
+  const fakeVscodeSockets = {
+    close,
+    once: () => {
+      once = true
+      return fakeVscodeSockets
+    },
+  }
+  return fakeVscodeSockets
+}

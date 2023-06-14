@@ -1,4 +1,4 @@
-Store a static reference to the IPC socket
+Store the IPC socket with workspace metadata.
 
 This lets us use it to open files inside code-server from outside of
 code-server.
@@ -9,6 +9,8 @@ To test this:
 
 It should open in your existing code-server instance.
 
+When the extension host is terminated, the socket is unregistered.
+
 Index: code-server/lib/vscode/src/vs/workbench/api/node/extHostExtensionService.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/api/node/extHostExtensionService.ts
@@ -18,20 +20,114 @@ Index: code-server/lib/vscode/src/vs/workbench/api/node/extHostExtensionService.
   *  Licensed under the MIT License. See License.txt in the project root for license information.
   *--------------------------------------------------------------------------------------------*/
 -
-+import { promises as fs } from 'fs';
-+import * as os from 'os'
++import * as os from 'os';
++import * as _http from 'http';
 +import * as path from 'vs/base/common/path';
  import * as performance from 'vs/base/common/performance';
  import { createApiFactoryAndRegisterActors } from 'vs/workbench/api/common/extHost.api.impl';
  import { RequireInterceptor } from 'vs/workbench/api/common/extHostRequireInterceptor';
-@@ -72,6 +74,10 @@ export class ExtHostExtensionService ext
- 		if (this._initData.remote.isRemote && this._initData.remote.authority) {
- 			const cliServer = this._instaService.createInstance(CLIServer);
- 			process.env['VSCODE_IPC_HOOK_CLI'] = cliServer.ipcHandlePath;
-+
-+			fs.writeFile(path.join(os.tmpdir(), 'vscode-ipc'), cliServer.ipcHandlePath).catch((error) => {
-+				this._logService.error(error);
-+			});
- 		}
+@@ -17,6 +19,7 @@ import { ExtensionRuntime } from 'vs/wor
+ import { CLIServer } from 'vs/workbench/api/node/extHostCLIServer';
+ import { realpathSync } from 'vs/base/node/extpath';
+ import { ExtHostConsoleForwarder } from 'vs/workbench/api/node/extHostConsoleForwarder';
++import { IExtHostWorkspace } from '../common/extHostWorkspace';
  
- 		// Module loading tricks
+ class NodeModuleRequireInterceptor extends RequireInterceptor {
+ 
+@@ -79,6 +82,52 @@ export class ExtHostExtensionService ext
+ 		await interceptor.install();
+ 		performance.mark('code/extHost/didInitAPI');
+ 
++		(async () => {
++			const socketPath = process.env['VSCODE_IPC_HOOK_CLI'];
++			if (!socketPath) {
++				return;
++			}
++			const workspace = this._instaService.invokeFunction((accessor) => {
++				const workspaceService = accessor.get(IExtHostWorkspace);
++				return workspaceService.workspace;
++			});
++			const entry = {
++				workspace,
++				socketPath
++			};
++			const message = JSON.stringify({entry});
++			const codeServerSocketPath = path.join(os.tmpdir(), 'code-server-ipc.sock');
++			await new Promise<void>((resolve, reject) => {
++				const opts: _http.RequestOptions = {
++					path: '/add-session',
++					socketPath: codeServerSocketPath,
++					method: 'POST',
++					headers: {
++						'content-type': 'application/json',
++					}
++				};
++				const req = _http.request(opts, (res) => {
++					res.on('error', reject);
++					res.on('end', () => {
++						try {
++							if (res.statusCode === 200) {
++								resolve();
++							} else {
++								reject(new Error('Unexpected status code: ' + res.statusCode));
++							}
++						} catch (e: unknown) {
++							reject(e);
++						}
++					});
++				});
++				req.on('error', reject);
++				req.write(message);
++				req.end();
++			});
++		})().catch(error => {
++			this._logService.error(error);
++		});
++
+ 		// Do this when extension service exists, but extensions are not being activated yet.
+ 		const configProvider = await this._extHostConfiguration.getConfigProvider();
+ 		await connectProxyResolver(this._extHostWorkspace, configProvider, this, this._logService, this._mainThreadTelemetryProxy, this._initData);
+Index: code-server/lib/vscode/src/vs/workbench/api/node/extensionHostProcess.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/workbench/api/node/extensionHostProcess.ts
++++ code-server/lib/vscode/src/vs/workbench/api/node/extensionHostProcess.ts
+@@ -3,6 +3,9 @@
+  *  Licensed under the MIT License. See License.txt in the project root for license information.
+  *--------------------------------------------------------------------------------------------*/
+ 
++import * as os from 'os';
++import * as _http from 'http';
++import * as path from 'vs/base/common/path';
+ import * as nativeWatchdog from 'native-watchdog';
+ import * as net from 'net';
+ import * as minimist from 'minimist';
+@@ -400,7 +403,28 @@ async function startExtensionHostProcess
+ 	);
+ 
+ 	// rewrite onTerminate-function to be a proper shutdown
+-	onTerminate = (reason: string) => extensionHostMain.terminate(reason);
++	onTerminate = (reason: string) => {
++		extensionHostMain.terminate(reason);
++
++		const socketPath = process.env['VSCODE_IPC_HOOK_CLI'];
++		if (!socketPath) {
++			return;
++		}
++		const message = JSON.stringify({socketPath});
++		const codeServerSocketPath = path.join(os.tmpdir(), 'code-server-ipc.sock');
++		const opts: _http.RequestOptions = {
++			path: '/delete-session',
++			socketPath: codeServerSocketPath,
++			method: 'POST',
++			headers: {
++				'content-type': 'application/json',
++				'accept': 'application/json'
++			}
++		};
++		const req = _http.request(opts);
++		req.write(message);
++		req.end();
++	};
+ }
+ 
+ startExtensionHostProcess().catch((err) => console.log(err));
