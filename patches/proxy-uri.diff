@@ -42,17 +42,8 @@ Index: code-server/lib/vscode/src/vs/platform/remote/browser/remoteAuthorityReso
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/platform/remote/browser/remoteAuthorityResolverService.ts
 +++ code-server/lib/vscode/src/vs/platform/remote/browser/remoteAuthorityResolverService.ts
-@@ -11,7 +11,7 @@ import { StopWatch } from 'vs/base/commo
- import { URI } from 'vs/base/common/uri';
- import { ILogService } from 'vs/platform/log/common/log';
- import { IProductService } from 'vs/platform/product/common/productService';
--import { IRemoteAuthorityResolverService, IRemoteConnectionData, ResolvedAuthority, ResolverResult, getRemoteAuthorityPrefix } from 'vs/platform/remote/common/remoteAuthorityResolver';
-+import { IRemoteAuthorityResolverService, IRemoteConnectionData, ResolvedAuthority, ResolvedOptions, ResolverResult, getRemoteAuthorityPrefix } from 'vs/platform/remote/common/remoteAuthorityResolver';
- import { getRemoteServerRootPath, parseAuthorityWithOptionalPort } from 'vs/platform/remote/common/remoteHosts';
- 
- export class RemoteAuthorityResolverService extends Disposable implements IRemoteAuthorityResolverService {
-@@ -29,7 +29,7 @@ export class RemoteAuthorityResolverServ
- 	constructor(
+@@ -33,7 +33,7 @@ export class RemoteAuthorityResolverServ
+ 		isWorkbenchOptionsBasedResolution: boolean,
  		connectionToken: Promise<string> | string | undefined,
  		resourceUriProvider: ((uri: URI) => URI) | undefined,
 -		@IProductService productService: IProductService,
@@ -60,7 +51,7 @@ Index: code-server/lib/vscode/src/vs/platform/remote/browser/remoteAuthorityReso
  		@ILogService private readonly _logService: ILogService,
  	) {
  		super();
-@@ -75,9 +75,14 @@ export class RemoteAuthorityResolverServ
+@@ -84,9 +84,14 @@ export class RemoteAuthorityResolverServ
  		const connectionToken = await Promise.resolve(this._connectionTokens.get(authority) || this._connectionToken);
  		performance.mark(`code/didResolveConnectionToken/${authorityPrefix}`);
  		this._logService.info(`Resolved connection token (${authorityPrefix}) after ${sw.elapsed()} ms`);
@@ -71,9 +62,9 @@ Index: code-server/lib/vscode/src/vs/platform/remote/browser/remoteAuthorityReso
 +		}
  		const defaultPort = (/^https:/.test(window.location.href) ? 443 : 80);
  		const { host, port } = parseAuthorityWithOptionalPort(authority, defaultPort);
--		const result: ResolverResult = { authority: { authority, host: host, port: port, connectionToken } };
-+		const result: ResolverResult = { authority: { authority, host: host, port: port, connectionToken }, options };
- 		RemoteAuthorities.set(authority, result.authority.host, result.authority.port);
+-		const result: ResolverResult = { authority: { authority, connectTo: new WebSocketRemoteConnection(host, port), connectionToken } };
++		const result: ResolverResult = { authority: { authority, connectTo: new WebSocketRemoteConnection(host, port), connectionToken }, options };
+ 		RemoteAuthorities.set(authority, host, port);
  		this._cache.set(authority, result);
  		this._onDidChangeConnectionData.fire();
 Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
@@ -92,7 +83,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/terminal/common/terminalE
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/contrib/terminal/common/terminalEnvironment.ts
 +++ code-server/lib/vscode/src/vs/workbench/contrib/terminal/common/terminalEnvironment.ts
-@@ -383,7 +383,7 @@ export async function createTerminalEnvi
+@@ -384,7 +384,7 @@ export async function createTerminalEnvi
  
  		// Sanitize the environment, removing any undesirable VS Code and Electron environment
  		// variables
@@ -113,29 +104,26 @@ Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench.ts
  
  interface ICredential {
  	service: string;
-@@ -511,6 +512,42 @@ function doCreateUri(path: string, query
- 		} : undefined,
+@@ -505,6 +506,39 @@ function doCreateUri(path: string, query
+ 		settingsSyncOptions: config.settingsSyncOptions ? { enabled: config.settingsSyncOptions.enabled, } : undefined,
  		workspaceProvider: WorkspaceProvider.create(config),
  		urlCallbackProvider: new LocalStorageURLCallbackProvider(config.callbackRoute),
--		credentialsProvider: config.remoteAuthority ? undefined : new LocalStorageCredentialsProvider() // with a remote, we don't use a local credentials provider
-+		credentialsProvider: config.remoteAuthority ? undefined : new LocalStorageCredentialsProvider(), // with a remote, we don't use a local credentials provider
+-		credentialsProvider: config.remoteAuthority ? undefined /* with a remote, we don't use a local credentials provider */ : new LocalStorageCredentialsProvider()
++		credentialsProvider: config.remoteAuthority ? undefined /* with a remote, we don't use a local credentials provider */ : new LocalStorageCredentialsProvider(),
 +		resolveExternalUri: (uri: URI): Promise<URI> => {
 +			let resolvedUri = uri
 +			const localhostMatch = extractLocalHostUriMetaDataForPortMapping(resolvedUri)
-+
 +			if (localhostMatch && resolvedUri.authority !== location.host) {
 +				if (config.productConfiguration && config.productConfiguration.proxyEndpointTemplate) {
 +					const renderedTemplate = config.productConfiguration.proxyEndpointTemplate
-+												.replace('{{port}}', localhostMatch.port.toString())
-+												.replace('{{host}}', window.location.host)
-+												
++						.replace('{{port}}', localhostMatch.port.toString())
++						.replace('{{host}}', window.location.host)
 +					resolvedUri = URI.parse(new URL(renderedTemplate, window.location.href).toString())
 +				} else {
 +					throw new Error(`Failed to resolve external URI: ${uri.toString()}. Could not determine base url because productConfiguration missing.`)
 +				}
 +			}
-+
-+			// If not localhost, return unmodified
++			// If not localhost, return unmodified.
 +			return Promise.resolve(resolvedUri)
 +		},
 +		tunnelProvider: {

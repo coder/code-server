@@ -99,21 +99,14 @@ Index: code-server/lib/vscode/src/vs/platform/remote/browser/browserSocketFactor
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/platform/remote/browser/browserSocketFactory.ts
 +++ code-server/lib/vscode/src/vs/platform/remote/browser/browserSocketFactory.ts
-@@ -274,6 +274,7 @@ export class BrowserSocketFactory implem
- 
- 	connect(host: string, port: number, path: string, query: string, debugLabel: string, callback: IConnectCallback): void {
- 		const webSocketSchema = (/^https:/.test(window.location.href) ? 'wss' : 'ws');
-+		path = (window.location.pathname + "/" + path).replace(/\/\/+/g, "/")
- 		const socket = this._webSocketFactory.create(`${webSocketSchema}://${(/:/.test(host) && !/\[/.test(host)) ? `[${host}]` : host}:${port}${path}?${query}&skipWebSocketFrames=false`, debugLabel);
- 		const errorListener = socket.onError((err) => callback(err, undefined));
- 		socket.onOpen(() => {
-@@ -282,6 +283,3 @@ export class BrowserSocketFactory implem
- 		});
- 	}
- }
--
--
--
+@@ -280,6 +280,7 @@ export class BrowserSocketFactory implem
+ 	connect({ host, port }: WebSocketRemoteConnection, path: string, query: string, debugLabel: string): Promise<ISocket> {
+ 		return new Promise<ISocket>((resolve, reject) => {
+ 			const webSocketSchema = (/^https:/.test(window.location.href) ? 'wss' : 'ws');
++			path = (window.location.pathname + "/" + path).replace(/\/\/+/g, "/")
+ 			const socket = this._webSocketFactory.create(`${webSocketSchema}://${(/:/.test(host) && !/\[/.test(host)) ? `[${host}]` : host}:${port}${path}?${query}&skipWebSocketFrames=false`, debugLabel);
+ 			const errorListener = socket.onError(reject);
+ 			socket.onOpen(() => {
 Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
@@ -261,7 +254,7 @@ Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/code/browser/workbench/workbench.ts
 +++ code-server/lib/vscode/src/vs/code/browser/workbench/workbench.ts
-@@ -489,6 +489,7 @@ function doCreateUri(path: string, query
+@@ -484,6 +484,7 @@ function doCreateUri(path: string, query
  		});
  	}
  
@@ -269,7 +262,7 @@ Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench.ts
  	return URI.parse(window.location.href).with({ path, query });
  }
  
-@@ -500,7 +501,7 @@ function doCreateUri(path: string, query
+@@ -495,7 +496,7 @@ function doCreateUri(path: string, query
  	if (!configElement || !configElementAttribute) {
  		throw new Error('Missing web configuration element');
  	}
@@ -288,12 +281,12 @@ Index: code-server/lib/vscode/src/vs/platform/extensionResourceLoader/common/ext
  import { getTelemetryLevel, supportsTelemetry } from 'vs/platform/telemetry/common/telemetryUtils';
 -import { RemoteAuthorities } from 'vs/base/common/network';
  import { getRemoteServerRootPath } from 'vs/platform/remote/common/remoteHosts';
+ import { TargetPlatform } from 'vs/platform/extensions/common/extensions';
  
- const WEB_EXTENSION_RESOURCE_END_POINT = 'web-extension-resource';
-@@ -75,7 +74,7 @@ export abstract class AbstractExtensionR
- 	public getExtensionGalleryResourceURL(galleryExtension: { publisher: string; name: string; version: string }, path?: string): URI | undefined {
- 		if (this._extensionGalleryResourceUrlTemplate) {
- 			const uri = URI.parse(format2(this._extensionGalleryResourceUrlTemplate, { publisher: galleryExtension.publisher, name: galleryExtension.name, version: galleryExtension.version, path: 'extension' }));
+@@ -102,7 +101,7 @@ export abstract class AbstractExtensionR
+ 					: version,
+ 				path: 'extension'
+ 			}));
 -			return this._isWebExtensionResourceEndPoint(uri) ? uri.with({ scheme: RemoteAuthorities.getPreferredWebSchema() }) : uri;
 +			return this._isWebExtensionResourceEndPoint(uri) ? URI.joinPath(URI.parse(window.location.href), uri.path) : uri;
  		}

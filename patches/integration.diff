@@ -176,7 +176,7 @@ Index: code-server/lib/vscode/src/vs/workbench/browser/web.main.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/browser/web.main.ts
 +++ code-server/lib/vscode/src/vs/workbench/browser/web.main.ts
-@@ -69,6 +69,7 @@ import { IndexedDB } from 'vs/base/brows
+@@ -67,6 +67,7 @@ import { IndexedDB } from 'vs/base/brows
  import { BrowserCredentialsService } from 'vs/workbench/services/credentials/browser/credentialsService';
  import { IWorkspace } from 'vs/workbench/services/host/browser/browserHostService';
  import { WebFileSystemAccess } from 'vs/platform/files/browser/webFileSystemAccess';
@@ -184,7 +184,7 @@ Index: code-server/lib/vscode/src/vs/workbench/browser/web.main.ts
  import { ITelemetryService } from 'vs/platform/telemetry/common/telemetry';
  import { IProgressService } from 'vs/platform/progress/common/progress';
  import { DelayedLogChannel } from 'vs/workbench/services/output/common/delayedLogChannel';
-@@ -123,6 +124,9 @@ export class BrowserMain extends Disposa
+@@ -127,6 +128,9 @@ export class BrowserMain extends Disposa
  		// Startup
  		const instantiationService = workbench.startup();
  
