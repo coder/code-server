@@ -22,7 +22,21 @@ Code v99.99.999
 
 ## Unreleased
 
-Code v1.78.2
+Code v1.79.2
+
+## [4.14.0](https://github.com/coder/code-server/releases/tag/v4.14.0) - 2023-06-16
+
+Code v1.79.2
+
+### Added
+
+- `--domain-proxy` now supports `{{port}}` and `{{host}}` template variables.
+
+### Changed
+
+- Updated to Code 1.79.2
+- Files opened from an external terminal will now open in the most closely
+  related window rather than in the last opened window.
 
 ## [4.13.0](https://github.com/coder/code-server/releases/tag/v4.13.0) - 2023-05-19
 
