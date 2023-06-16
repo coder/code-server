@@ -414,6 +414,26 @@ In order to use code-server's built-in proxy with Angular, you need to make the 
 
 For additional context, see [this GitHub Discussion](https://github.com/coder/code-server/discussions/5439#discussioncomment-3371983).
 
+### Proxying to a Svelte app
+
+In order to use code-server's built-in proxy with Svelte, you need to make the following changes in your app:
+
+1. Add `svelte.config.js` if you don't already have one
+2. Update the values to match this (you can use any free port):
+
+```js
+const config = {
+  kit: {
+    paths: {
+			base: '/absproxy/5173'
+		}
+  }
+};
+```
+3. Access ap at `<code-server-root>/absproxy/5173/` e.g. `http://localhost:8080/absproxy/5173/
+
+For additional context, see [this Github Issue](https://github.com/sveltejs/kit/issues/2958)
+
 ## SSH into code-server on VS Code
 
 [![SSH](https://img.shields.io/badge/SSH-363636?style=for-the-badge&logo=GNU+Bash&logoColor=ffffff)](https://ohmyz.sh/) [![Terminal](https://img.shields.io/badge/Terminal-2E2E2E?style=for-the-badge&logo=Windows+Terminal&logoColor=ffffff)](https://img.shields.io/badge/Terminal-2E2E2E?style=for-the-badge&logo=Windows+Terminal&logoColor=ffffff) [![Visual Studio Code](https://img.shields.io/badge/Visual_Studio_Code-007ACC?style=for-the-badge&logo=Visual+Studio+Code&logoColor=ffffff)](vscode:extension/ms-vscode-remote.remote-ssh)
