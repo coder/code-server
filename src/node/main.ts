@@ -126,7 +126,9 @@ export const runCodeServer = async (
 
   logger.info(`Using config file ${humanPath(os.homedir(), args.config)}`)
   logger.info(`${protocol.toUpperCase()} server listening on ${serverAddress.toString()}`)
-  logger.info(`Session server listening on ${sessionServerAddress?.toString()}`)
+  if (sessionServerAddress) {
+    logger.info(`Session server listening on ${sessionServerAddress.toString()}`)
+  }
 
   if (args.auth === AuthType.Password) {
     logger.info("  - Authentication is enabled")

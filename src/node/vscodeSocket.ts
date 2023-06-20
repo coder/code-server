@@ -78,7 +78,11 @@ export async function makeEditorSessionManagerServer(
   })
 
   const server = http.createServer(router)
-  await listen(server, { socket: codeServerSocketPath })
+  try {
+    await listen(server, { socket: codeServerSocketPath })
+  } catch (e) {
+    logger.warn(`Could not create socket at ${codeServerSocketPath}`)
+  }
   return server
 }
 
