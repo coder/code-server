@@ -1,14 +1,13 @@
 import { logger } from "@coder/logger"
 import express from "express"
 import * as http from "http"
-import * as os from "os"
 import * as path from "path"
 import { HttpCode } from "../common/http"
 import { listen } from "./app"
-import { canConnect } from "./util"
+import { canConnect, paths } from "./util"
 
 // Socket path of the daemonized code-server instance.
-export const DEFAULT_SOCKET_PATH = path.join(os.tmpdir(), "code-server-ipc.sock")
+export const DEFAULT_SOCKET_PATH = path.join(paths.data, `code-server-ipc.sock`)
 
 export interface EditorSessionEntry {
   workspace: {

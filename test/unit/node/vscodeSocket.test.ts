@@ -1,7 +1,18 @@
 import { logger } from "@coder/logger"
 import * as app from "../../../src/node/app"
-import { EditorSessionManager, makeEditorSessionManagerServer } from "../../../src/node/vscodeSocket"
+import { paths } from "../../../src/node/util"
+import {
+  DEFAULT_SOCKET_PATH,
+  EditorSessionManager,
+  makeEditorSessionManagerServer,
+} from "../../../src/node/vscodeSocket"
 import { clean, tmpdir, listenOn, mockLogger } from "../../utils/helpers"
+
+describe("DEFAULT_SOCKET_PATH", () => {
+  it("should be a unique path per user", () => {
+    expect(DEFAULT_SOCKET_PATH.startsWith(paths.data)).toBe(true)
+  })
+})
 
 describe("makeEditorSessionManagerServer", () => {
   let tmpDirPath: string
