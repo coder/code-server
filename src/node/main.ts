@@ -121,15 +121,10 @@ export const runCodeServer = async (
   const app = await createApp(args)
   const protocol = args.cert ? "https" : "http"
   const serverAddress = ensureAddress(app.server, protocol)
-  const sessionServerAddress = app.editorSessionManagerServer.address()
   const disposeRoutes = await register(app, args)
 
   logger.info(`Using config file ${humanPath(os.homedir(), args.config)}`)
   logger.info(`${protocol.toUpperCase()} server listening on ${serverAddress.toString()}`)
-  if (sessionServerAddress) {
-    logger.info(`Session server listening on ${sessionServerAddress.toString()}`)
-  }
-
   if (args.auth === AuthType.Password) {
     logger.info("  - Authentication is enabled")
     if (args.usingEnvPassword) {
@@ -155,6 +150,11 @@ export const runCodeServer = async (
   }
   if (process.env.VSCODE_PROXY_URI) {
     logger.info(`Using proxy URI in PORTS tab: ${process.env.VSCODE_PROXY_URI}`)
+  }
+
+  const sessionServerAddress = app.editorSessionManagerServer.address()
+  if (sessionServerAddress) {
+    logger.info(`Session server listening on ${sessionServerAddress.toString()}`)
   }
 
   if (args.enable && args.enable.length > 0) {
