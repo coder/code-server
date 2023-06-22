@@ -117,40 +117,26 @@ export class CodeServer {
    * directories.
    */
   private async spawn(): Promise<CodeServerProcess> {
-    // This will be used both as the workspace and data directory to ensure
-    // instances don't bleed into each other.
     const dir = await this.createWorkspace()
-
+    const args = await this.argsWithDefaults([
+      "--auth",
+      "none",
+      // The workspace to open.
+      ...(this.args.includes("--ignore-last-opened") ? [] : [dir]),
+      ...this.args,
+      // Using port zero will spawn on a random port.
+      "--bind-addr",
+      "127.0.0.1:0",
+    ])
     return new Promise((resolve, reject) => {
-      const args = [
-        this.entry,
-        "--extensions-dir",
-        path.join(dir, "extensions"),
-        "--auth",
-        "none",
-        // The workspace to open.
-        ...(this.args.includes("--ignore-last-opened") ? [] : [dir]),
-        ...this.args,
-        // Using port zero will spawn on a random port.
-        "--bind-addr",
-        "127.0.0.1:0",
-        // Setting the XDG variables would be easier and more thorough but the
-        // modules we import ignores those variables for non-Linux operating
-        // systems so use these flags instead.
-        "--config",
-        path.join(dir, "config.yaml"),
-        "--user-data-dir",
-        dir,
-      ]
       this.logger.debug("spawning `node " + args.join(" ") + "`")
       const proc = cp.spawn("node", args, {
         cwd: path.join(__dirname, "../../.."),
         env: {
           ...process.env,
           ...this.env,
-          // Set to empty string to prevent code-server from
-          // using the existing instance when running the e2e tests
-          // from an integrated terminal.
+          // Prevent code-server from using the existing instance when running
+          // the e2e tests from an integrated terminal.
           VSCODE_IPC_HOOK_CLI: "",
           PASSWORD,
         },
@@ -173,11 +159,15 @@ export class CodeServer {
         reject(error)
       })
 
+      // Tracks when the HTTP and session servers are ready.
+      let httpAddress: string | undefined
+      let sessionAddress: string | undefined
+
       let resolved = false
       proc.stdout.setEncoding("utf8")
       onLine(proc, (line) => {
         // As long as we are actively getting input reset the timer.  If we stop
-        // getting input and still have not found the address the timer will
+        // getting input and still have not found the addresses the timer will
         // reject.
         timer.reset()
 
@@ -186,18 +176,67 @@ export class CodeServer {
         if (resolved) {
           return
         }
-        const match = line.trim().match(/HTTPS? server listening on (https?:\/\/[.:\d]+)\/?$/)
+
+        let match = line.trim().match(/HTTPS? server listening on (https?:\/\/[.:\d]+)\/?$/)
         if (match) {
-          // Cookies don't seem to work on IP address so swap to localhost.
+          // Cookies don't seem to work on IP addresses so swap to localhost.
           // TODO: Investigate whether this is a bug with code-server.
-          const address = match[1].replace("127.0.0.1", "localhost")
-          this.logger.debug(`spawned on ${address}`)
+          httpAddress = match[1].replace("127.0.0.1", "localhost")
+        }
+
+        match = line.trim().match(/Session server listening on (.+)$/)
+        if (match) {
+          sessionAddress = match[1]
+        }
+
+        if (typeof httpAddress !== "undefined" && typeof sessionAddress !== "undefined") {
           resolved = true
           timer.dispose()
-          resolve({ process: proc, address })
+          this.logger.debug(`code-server is ready: ${httpAddress} ${sessionAddress}`)
+          resolve({ process: proc, address: httpAddress })
         }
       })
     })
+  }
+
+  /**
+   * Execute a short-lived command.
+   */
+  async run(args: string[]): Promise<void> {
+    args = await this.argsWithDefaults(args)
+    this.logger.debug("executing `node " + args.join(" ") + "`")
+    await util.promisify(cp.exec)("node " + args.join(" "), {
+      cwd: path.join(__dirname, "../../.."),
+      env: {
+        ...process.env,
+        ...this.env,
+        // Prevent code-server from using the existing instance when running
+        // the e2e tests from an integrated terminal.
+        VSCODE_IPC_HOOK_CLI: "",
+      },
+    })
+  }
+
+  /**
+   * Combine arguments with defaults.
+   */
+  private async argsWithDefaults(args: string[]): Promise<string[]> {
+    // This will be used both as the workspace and data directory to ensure
+    // instances don't bleed into each other.
+    const dir = await this.workspaceDir
+    return [
+      this.entry,
+      "--extensions-dir",
+      path.join(dir, "extensions"),
+      ...args,
+      // Setting the XDG variables would be easier and more thorough but the
+      // modules we import ignores those variables for non-Linux operating
+      // systems so use these flags instead.
+      "--config",
+      path.join(dir, "config.yaml"),
+      "--user-data-dir",
+      dir,
+    ]
   }
 
   /**
@@ -362,6 +401,13 @@ export class CodeServerPage {
     await this.navigateMenus(["File", "Open File"])
     await this.navigateQuickInput([path.basename(file)])
     await this.waitForTab(file)
+  }
+
+  /**
+   * Open a file through an external command.
+   */
+  async openFileExternally(file: string) {
+    await this.codeServer.run(["--reuse-window", file])
   }
 
   /**
