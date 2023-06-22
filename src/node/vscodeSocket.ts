@@ -4,10 +4,7 @@ import * as http from "http"
 import * as path from "path"
 import { HttpCode } from "../common/http"
 import { listen } from "./app"
-import { canConnect, paths } from "./util"
-
-// Socket path of the daemonized code-server instance.
-export const DEFAULT_SOCKET_PATH = path.join(paths.data, `code-server-ipc.sock`)
+import { canConnect } from "./util"
 
 export interface EditorSessionEntry {
   workspace: {

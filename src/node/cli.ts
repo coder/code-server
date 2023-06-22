@@ -4,7 +4,7 @@ import { load } from "js-yaml"
 import * as os from "os"
 import * as path from "path"
 import { generateCertificate, generatePassword, humanPath, paths, splitOnFirstEquals } from "./util"
-import { DEFAULT_SOCKET_PATH, EditorSessionManagerClient } from "./vscodeSocket"
+import { EditorSessionManagerClient } from "./vscodeSocket"
 
 export enum Feature {
   // No current experimental features!
@@ -51,6 +51,7 @@ export interface UserProvidedCodeArgs {
   "disable-file-downloads"?: boolean
   "disable-workspace-trust"?: boolean
   "disable-getting-started-override"?: boolean
+  "session-socket"?: string
 }
 
 /**
@@ -159,6 +160,9 @@ export const options: Options<Required<UserProvidedArgs>> = {
     description:
       "Disable update check. Without this flag, code-server checks every 6 hours against the latest github release and \n" +
       "then notifies you once every week that a new release is available.",
+  },
+  "session-socket": {
+    type: "string",
   },
   "disable-file-downloads": {
     type: "boolean",
@@ -459,6 +463,7 @@ export interface DefaultedArgs extends ConfigArgs {
   usingEnvHashedPassword: boolean
   "extensions-dir": string
   "user-data-dir": string
+  "session-socket": string
   /* Positional arguments. */
   _: string[]
 }
@@ -478,6 +483,11 @@ export async function setDefaults(cliArgs: UserProvidedArgs, configArgs?: Config
   if (!args["extensions-dir"]) {
     args["extensions-dir"] = path.join(args["user-data-dir"], "extensions")
   }
+
+  if (!args["session-socket"]) {
+    args["session-socket"] = path.join(args["user-data-dir"], "code-server-ipc.sock")
+  }
+  process.env.CODE_SERVER_SESSION_SOCKET = args["session-socket"]
 
   // --verbose takes priority over --log and --log takes priority over the
   // environment variable.
@@ -739,7 +749,10 @@ function bindAddrFromAllSources(...argsConfig: UserProvidedArgs[]): Addr {
  * existing instance. The arguments here should be the arguments the user
  * explicitly passed on the command line, *NOT DEFAULTS* or the configuration.
  */
-export const shouldOpenInExistingInstance = async (args: UserProvidedArgs): Promise<string | undefined> => {
+export const shouldOpenInExistingInstance = async (
+  args: UserProvidedArgs,
+  sessionSocket: string,
+): Promise<string | undefined> => {
   // Always use the existing instance if we're running from VS Code's terminal.
   if (process.env.VSCODE_IPC_HOOK_CLI) {
     logger.debug("Found VSCODE_IPC_HOOK_CLI")
@@ -747,7 +760,7 @@ export const shouldOpenInExistingInstance = async (args: UserProvidedArgs): Prom
   }
 
   const paths = getResolvedPathsFromArgs(args)
-  const client = new EditorSessionManagerClient(DEFAULT_SOCKET_PATH)
+  const client = new EditorSessionManagerClient(sessionSocket)
 
   // If these flags are set then assume the user is trying to open in an
   // existing instance since these flags have no effect otherwise.  That means

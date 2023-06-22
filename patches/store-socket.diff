@@ -15,18 +15,16 @@ Index: code-server/lib/vscode/src/vs/workbench/api/node/extHostExtensionService.
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/api/node/extHostExtensionService.ts
 +++ code-server/lib/vscode/src/vs/workbench/api/node/extHostExtensionService.ts
-@@ -2,7 +2,9 @@
+@@ -2,7 +2,7 @@
   *  Copyright (c) Microsoft Corporation. All rights reserved.
   *  Licensed under the MIT License. See License.txt in the project root for license information.
   *--------------------------------------------------------------------------------------------*/
 -
-+import * as os from 'os';
 +import * as _http from 'http';
-+import * as path from 'vs/base/common/path';
  import * as performance from 'vs/base/common/performance';
  import { createApiFactoryAndRegisterActors } from 'vs/workbench/api/common/extHost.api.impl';
  import { RequireInterceptor } from 'vs/workbench/api/common/extHostRequireInterceptor';
-@@ -17,6 +19,7 @@ import { ExtensionRuntime } from 'vs/wor
+@@ -17,6 +17,7 @@ import { ExtensionRuntime } from 'vs/wor
  import { CLIServer } from 'vs/workbench/api/node/extHostCLIServer';
  import { realpathSync } from 'vs/base/node/extpath';
  import { ExtHostConsoleForwarder } from 'vs/workbench/api/node/extHostConsoleForwarder';
@@ -34,13 +32,14 @@ Index: code-server/lib/vscode/src/vs/workbench/api/node/extHostExtensionService.
  import { ExtHostDiskFileSystemProvider } from 'vs/workbench/api/node/extHostDiskFileSystemProvider';
  
  class NodeModuleRequireInterceptor extends RequireInterceptor {
-@@ -83,6 +86,52 @@ export class ExtHostExtensionService ext
+@@ -83,6 +84,52 @@ export class ExtHostExtensionService ext
  		await interceptor.install();
  		performance.mark('code/extHost/didInitAPI');
  
 +		(async () => {
 +			const socketPath = process.env['VSCODE_IPC_HOOK_CLI'];
-+			if (!socketPath) {
++			const codeServerSocketPath = process.env['CODE_SERVER_SESSION_SOCKET']
++			if (!socketPath || !codeServerSocketPath) {
 +				return;
 +			}
 +			const workspace = this._instaService.invokeFunction((accessor) => {
@@ -52,7 +51,6 @@ Index: code-server/lib/vscode/src/vs/workbench/api/node/extHostExtensionService.
 +				socketPath
 +			};
 +			const message = JSON.stringify({entry});
-+			const codeServerSocketPath = path.join(os.tmpdir(), 'code-server-ipc.sock');
 +			await new Promise<void>((resolve, reject) => {
 +				const opts: _http.RequestOptions = {
 +					path: '/add-session',
@@ -91,17 +89,15 @@ Index: code-server/lib/vscode/src/vs/workbench/api/node/extensionHostProcess.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/api/node/extensionHostProcess.ts
 +++ code-server/lib/vscode/src/vs/workbench/api/node/extensionHostProcess.ts
-@@ -3,6 +3,9 @@
+@@ -3,6 +3,7 @@
   *  Licensed under the MIT License. See License.txt in the project root for license information.
   *--------------------------------------------------------------------------------------------*/
  
-+import * as os from 'os';
 +import * as _http from 'http';
-+import * as path from 'vs/base/common/path';
  import * as nativeWatchdog from 'native-watchdog';
  import * as net from 'net';
  import * as minimist from 'minimist';
-@@ -400,7 +403,28 @@ async function startExtensionHostProcess
+@@ -400,7 +401,28 @@ async function startExtensionHostProcess
  	);
  
  	// rewrite onTerminate-function to be a proper shutdown
@@ -110,11 +106,11 @@ Index: code-server/lib/vscode/src/vs/workbench/api/node/extensionHostProcess.ts
 +		extensionHostMain.terminate(reason);
 +
 +		const socketPath = process.env['VSCODE_IPC_HOOK_CLI'];
-+		if (!socketPath) {
++		const codeServerSocketPath = process.env['CODE_SERVER_SESSION_SOCKET']
++		if (!socketPath || !codeServerSocketPath) {
 +			return;
 +		}
 +		const message = JSON.stringify({socketPath});
-+		const codeServerSocketPath = path.join(os.tmpdir(), 'code-server-ipc.sock');
 +		const opts: _http.RequestOptions = {
 +			path: '/delete-session',
 +			socketPath: codeServerSocketPath,

@@ -43,6 +43,7 @@ describe("plugin", () => {
         usingEnvHashedPassword: false,
         "extensions-dir": "",
         "user-data-dir": "",
+        "session-socket": "",
       }
       next()
     }
