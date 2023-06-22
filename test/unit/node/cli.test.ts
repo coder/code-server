@@ -18,7 +18,6 @@ import {
 import { shouldSpawnCliProcess } from "../../../src/node/main"
 import { generatePassword, paths } from "../../../src/node/util"
 import {
-  DEFAULT_SOCKET_PATH,
   EditorSessionManager,
   EditorSessionManagerClient,
   makeEditorSessionManagerServer,
@@ -37,6 +36,7 @@ const defaults = {
   usingEnvHashedPassword: false,
   "extensions-dir": path.join(paths.data, "extensions"),
   "user-data-dir": paths.data,
+  "session-socket": path.join(paths.data, "code-server-ipc.sock"),
   _: [],
 }
 
@@ -103,6 +103,8 @@ describe("parser", () => {
 
           "--disable-getting-started-override",
 
+          ["--session-socket", "/tmp/override-code-server-ipc-socket"],
+
           ["--host", "0.0.0.0"],
           "4",
           "--",
@@ -136,6 +138,7 @@ describe("parser", () => {
       "welcome-text": "welcome to code",
       version: true,
       "bind-addr": "192.169.0.1:8080",
+      "session-socket": "/tmp/override-code-server-ipc-socket",
     })
   })
 
@@ -504,22 +507,23 @@ describe("cli", () => {
   it("should use existing if inside code-server", async () => {
     process.env.VSCODE_IPC_HOOK_CLI = "test"
     const args: UserProvidedArgs = {}
-    expect(await shouldOpenInExistingInstance(args)).toStrictEqual("test")
+    expect(await shouldOpenInExistingInstance(args, "")).toStrictEqual("test")
 
     args.port = 8081
     args._ = ["./file"]
-    expect(await shouldOpenInExistingInstance(args)).toStrictEqual("test")
+    expect(await shouldOpenInExistingInstance(args, "")).toStrictEqual("test")
   })
 
   it("should use existing if --reuse-window is set", async () => {
-    const server = await makeEditorSessionManagerServer(DEFAULT_SOCKET_PATH, new EditorSessionManager())
+    const sessionSocket = path.join(tmpDirPath, "session-socket")
+    const server = await makeEditorSessionManagerServer(sessionSocket, new EditorSessionManager())
 
     const args: UserProvidedArgs = {}
     args["reuse-window"] = true
-    await expect(shouldOpenInExistingInstance(args)).resolves.toStrictEqual(undefined)
+    await expect(shouldOpenInExistingInstance(args, sessionSocket)).rejects.toThrow()
 
     const socketPath = path.join(tmpDirPath, "socket")
-    const client = new EditorSessionManagerClient(DEFAULT_SOCKET_PATH)
+    const client = new EditorSessionManagerClient(sessionSocket)
     await client.addSession({
       entry: {
         workspace: {
@@ -537,24 +541,25 @@ describe("cli", () => {
     })
     const vscodeSockets = listenOn(socketPath)
 
-    await expect(shouldOpenInExistingInstance(args)).resolves.toStrictEqual(socketPath)
+    await expect(shouldOpenInExistingInstance(args, sessionSocket)).resolves.toStrictEqual(socketPath)
 
     args.port = 8081
-    await expect(shouldOpenInExistingInstance(args)).resolves.toStrictEqual(socketPath)
+    await expect(shouldOpenInExistingInstance(args, sessionSocket)).resolves.toStrictEqual(socketPath)
 
     server.close()
     vscodeSockets.close()
   })
 
   it("should use existing if --new-window is set", async () => {
-    const server = await makeEditorSessionManagerServer(DEFAULT_SOCKET_PATH, new EditorSessionManager())
+    const sessionSocket = path.join(tmpDirPath, "session-socket")
+    const server = await makeEditorSessionManagerServer(sessionSocket, new EditorSessionManager())
 
     const args: UserProvidedArgs = {}
     args["new-window"] = true
-    await expect(shouldOpenInExistingInstance(args)).resolves.toStrictEqual(undefined)
+    await expect(shouldOpenInExistingInstance(args, sessionSocket)).rejects.toThrow()
 
     const socketPath = path.join(tmpDirPath, "socket")
-    const client = new EditorSessionManagerClient(DEFAULT_SOCKET_PATH)
+    const client = new EditorSessionManagerClient(sessionSocket)
     await client.addSession({
       entry: {
         workspace: {
@@ -572,25 +577,26 @@ describe("cli", () => {
     })
     const vscodeSockets = listenOn(socketPath)
 
-    expect(await shouldOpenInExistingInstance(args)).toStrictEqual(socketPath)
+    expect(await shouldOpenInExistingInstance(args, sessionSocket)).toStrictEqual(socketPath)
 
     args.port = 8081
-    expect(await shouldOpenInExistingInstance(args)).toStrictEqual(socketPath)
+    expect(await shouldOpenInExistingInstance(args, sessionSocket)).toStrictEqual(socketPath)
 
     server.close()
     vscodeSockets.close()
   })
 
   it("should use existing if no unrelated flags are set, has positional, and socket is active", async () => {
-    const server = await makeEditorSessionManagerServer(DEFAULT_SOCKET_PATH, new EditorSessionManager())
+    const sessionSocket = path.join(tmpDirPath, "session-socket")
+    const server = await makeEditorSessionManagerServer(sessionSocket, new EditorSessionManager())
 
     const args: UserProvidedArgs = {}
-    expect(await shouldOpenInExistingInstance(args)).toStrictEqual(undefined)
+    expect(await shouldOpenInExistingInstance(args, sessionSocket)).toStrictEqual(undefined)
 
     args._ = ["./file"]
-    expect(await shouldOpenInExistingInstance(args)).toStrictEqual(undefined)
+    expect(await shouldOpenInExistingInstance(args, sessionSocket)).toStrictEqual(undefined)
 
-    const client = new EditorSessionManagerClient(DEFAULT_SOCKET_PATH)
+    const client = new EditorSessionManagerClient(sessionSocket)
     const socketPath = path.join(tmpDirPath, "socket")
     await client.addSession({
       entry: {
@@ -609,18 +615,19 @@ describe("cli", () => {
     })
     const vscodeSockets = listenOn(socketPath)
 
-    expect(await shouldOpenInExistingInstance(args)).toStrictEqual(socketPath)
+    expect(await shouldOpenInExistingInstance(args, sessionSocket)).toStrictEqual(socketPath)
 
     args.port = 8081
-    expect(await shouldOpenInExistingInstance(args)).toStrictEqual(undefined)
+    expect(await shouldOpenInExistingInstance(args, sessionSocket)).toStrictEqual(undefined)
 
     server.close()
     vscodeSockets.close()
   })
 
   it("should prefer matching sessions for only the first path", async () => {
-    const server = await makeEditorSessionManagerServer(DEFAULT_SOCKET_PATH, new EditorSessionManager())
-    const client = new EditorSessionManagerClient(DEFAULT_SOCKET_PATH)
+    const sessionSocket = path.join(tmpDirPath, "session-socket")
+    const server = await makeEditorSessionManagerServer(sessionSocket, new EditorSessionManager())
+    const client = new EditorSessionManagerClient(sessionSocket)
     await client.addSession({
       entry: {
         workspace: {
@@ -655,7 +662,7 @@ describe("cli", () => {
 
     const args: UserProvidedArgs = {}
     args._ = ["/aaa/file", "/bbb/file"]
-    expect(await shouldOpenInExistingInstance(args)).toStrictEqual(`${tmpDirPath}/vscode-ipc-aaa.sock`)
+    expect(await shouldOpenInExistingInstance(args, sessionSocket)).toStrictEqual(`${tmpDirPath}/vscode-ipc-aaa.sock`)
 
     server.close()
   })
