@@ -516,7 +516,7 @@ describe("cli", () => {
 
     const args: UserProvidedArgs = {}
     args["reuse-window"] = true
-    await expect(shouldOpenInExistingInstance(args)).resolves.toStrictEqual(undefined)
+    await expect(shouldOpenInExistingInstance(args)).rejects.toThrow()
 
     const socketPath = path.join(tmpDirPath, "socket")
     const client = new EditorSessionManagerClient(DEFAULT_SOCKET_PATH)
@@ -551,7 +551,7 @@ describe("cli", () => {
 
     const args: UserProvidedArgs = {}
     args["new-window"] = true
-    await expect(shouldOpenInExistingInstance(args)).resolves.toStrictEqual(undefined)
+    await expect(shouldOpenInExistingInstance(args)).rejects.toThrow()
 
     const socketPath = path.join(tmpDirPath, "socket")
     const client = new EditorSessionManagerClient(DEFAULT_SOCKET_PATH)

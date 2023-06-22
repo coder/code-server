@@ -749,19 +749,20 @@ export const shouldOpenInExistingInstance = async (args: UserProvidedArgs): Prom
   const paths = getResolvedPathsFromArgs(args)
   const client = new EditorSessionManagerClient(DEFAULT_SOCKET_PATH)
 
-  // If we can't connect to the socket then there's no existing instance.
-  if (!(await client.canConnect())) {
-    return undefined
-  }
-
   // If these flags are set then assume the user is trying to open in an
-  // existing instance since these flags have no effect otherwise.
+  // existing instance since these flags have no effect otherwise.  That means
+  // if there is no existing instance we should error rather than falling back
+  // to spawning code-server normally.
   const openInFlagCount = ["reuse-window", "new-window"].reduce((prev, cur) => {
     return args[cur as keyof UserProvidedArgs] ? prev + 1 : prev
   }, 0)
   if (openInFlagCount > 0) {
     logger.debug("Found --reuse-window or --new-window")
-    return await client.getConnectedSocketPath(paths[0])
+    const socketPath = await client.getConnectedSocketPath(paths[0])
+    if (!socketPath) {
+      throw new Error(`No opened code-server instances found to handle ${paths[0]}`)
+    }
+    return socketPath
   }
 
   // It's possible the user is trying to spawn another instance of code-server.
@@ -769,7 +770,11 @@ export const shouldOpenInExistingInstance = async (args: UserProvidedArgs): Prom
   //    code-server is invoked exactly like this: `code-server my-file`).
   // 2. That a file or directory was passed.
   // 3. That the socket is active.
+  // 4. That an instance exists to handle the path (implied by #3).
   if (Object.keys(args).length === 1 && typeof args._ !== "undefined" && args._.length > 0) {
+    if (!(await client.canConnect())) {
+      return undefined
+    }
     const socketPath = await client.getConnectedSocketPath(paths[0])
     if (socketPath) {
       logger.debug("Found existing code-server socket")
