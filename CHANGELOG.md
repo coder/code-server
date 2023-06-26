@@ -24,15 +24,24 @@ Code v99.99.999
 
 Code v1.79.2
 
+## [4.14.1](https://github.com/coder/code-server/releases/tag/v4.14.1) - 2023-06-26
+
+Code v1.79.2
+
+### Security
+
+- Remove extra write permissions on the Node binary bundled with the linux-amd64
+  tarball. If you extract the tar without a umask this could mean the Node
+  binary would be unexpectedly writable.
+
 ### Fixed
 
-- Fix being unable to launch multiple instances of code-server for different
-  users.
+- Inability to launch multiple instances of code-server for different users.
 
 ### Added
 
 - `--session-socket` CLI flag to configure the location of the session socket.
-  By default it will be placed in `--user-data-dir`.
+  By default it will be placed in `<user data dir>/code-server-ipc.sock`.
 
 ## [4.14.0](https://github.com/coder/code-server/releases/tag/v4.14.0) - 2023-06-16
 
