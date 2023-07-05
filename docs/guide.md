@@ -430,7 +430,7 @@ const config = {
   }
 };
 ```
-3. Access ap at `<code-server-root>/absproxy/5173/` e.g. `http://localhost:8080/absproxy/5173/
+3. Access app at `<code-server-root>/absproxy/5173/` e.g. `http://localhost:8080/absproxy/5173/
 
 For additional context, see [this Github Issue](https://github.com/sveltejs/kit/issues/2958)
 
