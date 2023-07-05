@@ -9,7 +9,7 @@ import * as util from "../common/util"
 import { DefaultedArgs } from "./cli"
 import { disposer } from "./http"
 import { isNodeJSErrnoException } from "./util"
-import { DEFAULT_SOCKET_PATH, EditorSessionManager, makeEditorSessionManagerServer } from "./vscodeSocket"
+import { EditorSessionManager, makeEditorSessionManagerServer } from "./vscodeSocket"
 import { handleUpgrade } from "./wsRouter"
 
 type SocketOptions = { socket: string; "socket-mode"?: string }
@@ -88,7 +88,7 @@ export const createApp = async (args: DefaultedArgs): Promise<App> => {
   handleUpgrade(wsRouter, server)
 
   const editorSessionManager = new EditorSessionManager()
-  const editorSessionManagerServer = await makeEditorSessionManagerServer(DEFAULT_SOCKET_PATH, editorSessionManager)
+  const editorSessionManagerServer = await makeEditorSessionManagerServer(args["session-socket"], editorSessionManager)
   const disposeEditorSessionManagerServer = disposer(editorSessionManagerServer)
 
   const dispose = async () => {

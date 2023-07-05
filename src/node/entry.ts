@@ -51,7 +51,7 @@ async function entry(): Promise<void> {
     return runCodeCli(args)
   }
 
-  const socketPath = await shouldOpenInExistingInstance(cliArgs)
+  const socketPath = await shouldOpenInExistingInstance(cliArgs, args["session-socket"])
   if (socketPath) {
     logger.debug("Trying to open in existing instance")
     return openInExistingInstance(args, socketPath)
