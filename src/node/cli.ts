@@ -47,6 +47,7 @@ export interface UserProvidedCodeArgs {
   "show-versions"?: boolean
   category?: string
   "github-auth"?: string
+  "disable-authenticate-origin"?: boolean
   "disable-update-check"?: boolean
   "disable-file-downloads"?: boolean
   "disable-workspace-trust"?: boolean
@@ -163,6 +164,12 @@ export const options: Options<Required<UserProvidedArgs>> = {
   },
   "session-socket": {
     type: "string",
+  },
+  "disable-authenticate-origin": {
+    type: "boolean",
+    description:
+      "Disable check that the origin of the request is the same as the host. Notice that this disables a safety feature. \n" +
+      "(Useful when using a reverse proxy)",
   },
   "disable-file-downloads": {
     type: "boolean",

@@ -327,7 +327,9 @@ function getFirstHeader(req: http.IncomingMessage, headerName: string): string |
  */
 export function ensureOrigin(req: express.Request, _?: express.Response, next?: express.NextFunction): void {
   try {
-    authenticateOrigin(req)
+    if (!req.args["disable-authenticate-origin"]) {
+      authenticateOrigin(req)
+    }
     if (next) {
       next()
     }
