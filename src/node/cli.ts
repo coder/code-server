@@ -80,6 +80,7 @@ export interface UserProvidedArgs extends UserProvidedCodeArgs {
   "bind-addr"?: string
   socket?: string
   "socket-mode"?: string
+  "trusted-origins"?: string[]
   version?: boolean
   "proxy-domain"?: string[]
   "reuse-window"?: boolean
@@ -165,12 +166,6 @@ export const options: Options<Required<UserProvidedArgs>> = {
   "session-socket": {
     type: "string",
   },
-  "disable-authenticate-origin": {
-    type: "boolean",
-    description:
-      "Disable check that the origin of the request is the same as the host. Notice that this disables a safety feature. \n" +
-      "(Useful when using a reverse proxy)",
-  },
   "disable-file-downloads": {
     type: "boolean",
     description:
@@ -215,6 +210,11 @@ export const options: Options<Required<UserProvidedArgs>> = {
 
   socket: { type: "string", path: true, description: "Path to a socket (bind-addr will be ignored)." },
   "socket-mode": { type: "string", description: "File mode of the socket." },
+  "trusted-origins": {
+    type: "string[]",
+    description:
+      "Disables authenticate origin check for trusted origin. Useful if not able to access reverse proxy configuration.",
+  },
   version: { type: "boolean", short: "v", description: "Display version information." },
   _: { type: "string[]" },
 

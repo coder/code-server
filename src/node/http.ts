@@ -327,9 +327,7 @@ function getFirstHeader(req: http.IncomingMessage, headerName: string): string |
  */
 export function ensureOrigin(req: express.Request, _?: express.Response, next?: express.NextFunction): void {
   try {
-    if (!req.args["disable-authenticate-origin"]) {
-      authenticateOrigin(req)
-    }
+    authenticateOrigin(req)
     if (next) {
       next()
     }
@@ -355,6 +353,11 @@ export function authenticateOrigin(req: express.Request): void {
     origin = new URL(originRaw).host.trim().toLowerCase()
   } catch (error) {
     throw new Error(`unable to parse malformed origin "${originRaw}"`)
+  }
+
+  const trustedOrigins = req.args["trusted-origins"] || []
+  if (trustedOrigins.includes(origin) || trustedOrigins.includes("*")) {
+    return
   }
 
   const host = getHost(req)
