@@ -19,6 +19,7 @@
   - [Proxying to create a React app](#proxying-to-create-a-react-app)
   - [Proxying to a Vue app](#proxying-to-a-vue-app)
   - [Proxying to an Angular app](#proxying-to-an-angular-app)
+  - [Proxying to a Svelte app](#proxying-to-a-svelte-app)
 - [SSH into code-server on VS Code](#ssh-into-code-server-on-vs-code)
   - [Option 1: cloudflared tunnel](#option-1-cloudflared-tunnel)
   - [Option 2: ngrok tunnel](#option-2-ngrok-tunnel)
@@ -425,11 +426,12 @@ In order to use code-server's built-in proxy with Svelte, you need to make the f
 const config = {
   kit: {
     paths: {
-			base: '/absproxy/5173'
-		}
-  }
-};
+      base: "/absproxy/5173",
+    },
+  },
+}
 ```
+
 3. Access app at `<code-server-root>/absproxy/5173/` e.g. `http://localhost:8080/absproxy/5173/
 
 For additional context, see [this Github Issue](https://github.com/sveltejs/kit/issues/2958)
