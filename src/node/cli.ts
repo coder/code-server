@@ -47,7 +47,6 @@ export interface UserProvidedCodeArgs {
   "show-versions"?: boolean
   category?: string
   "github-auth"?: string
-  "disable-authenticate-origin"?: boolean
   "disable-update-check"?: boolean
   "disable-file-downloads"?: boolean
   "disable-workspace-trust"?: boolean
