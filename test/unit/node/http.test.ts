@@ -70,6 +70,7 @@ describe("http", () => {
               origin: test.origin,
               [key]: value,
             },
+            args: {},
           })
           if (typeof test.expected === "string") {
             expect(() => http.authenticateOrigin(req)).toThrow(test.expected)

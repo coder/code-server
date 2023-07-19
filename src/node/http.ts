@@ -355,6 +355,11 @@ export function authenticateOrigin(req: express.Request): void {
     throw new Error(`unable to parse malformed origin "${originRaw}"`)
   }
 
+  const trustedOrigins = req.args["trusted-origins"] || []
+  if (trustedOrigins.includes(origin) || trustedOrigins.includes("*")) {
+    return
+  }
+
   const host = getHost(req)
   if (typeof host === "undefined") {
     // A missing host likely means the reverse proxy has not been configured to
