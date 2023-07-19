@@ -203,7 +203,7 @@ jobs:
   build:
     name: Build code-server
     runs-on: ubuntu-20.04
-    timeout-minutes: 30
+    timeout-minutes: 40
     env:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
     steps:
