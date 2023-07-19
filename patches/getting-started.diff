@@ -28,7 +28,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/welcomeGettingStarted/bro
  import { OpenFolderAction, OpenFileFolderAction, OpenFolderViaWorkspaceAction } from 'vs/workbench/browser/actions/workspaceActions';
  import { OpenRecentAction } from 'vs/workbench/browser/actions/windowActions';
  import { Toggle } from 'vs/base/browser/ui/toggle/toggle';
-@@ -770,6 +770,72 @@ export class GettingStartedPage extends
+@@ -782,6 +782,72 @@ export class GettingStartedPage extends
  			$('p.subtitle.description', {}, localize({ key: 'gettingStarted.editingEvolved', comment: ['Shown as subtitle on the Welcome page.'] }, "Editing evolved"))
  		);
  
@@ -101,7 +101,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/welcomeGettingStarted/bro
  		const leftColumn = $('.categories-column.categories-column-left', {},);
  		const rightColumn = $('.categories-column.categories-column-right', {},);
  
-@@ -819,6 +885,9 @@ export class GettingStartedPage extends
+@@ -831,6 +897,9 @@ export class GettingStartedPage extends
  				recentList.setLimit(5);
  				reset(leftColumn, startList.getDomElement(), recentList.getDomElement());
  			}
@@ -135,7 +135,7 @@ Index: code-server/lib/vscode/src/vs/workbench/browser/web.api.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/browser/web.api.ts
 +++ code-server/lib/vscode/src/vs/workbench/browser/web.api.ts
-@@ -286,6 +286,11 @@ export interface IWorkbenchConstructionO
+@@ -293,6 +293,11 @@ export interface IWorkbenchConstructionO
  	 */
  	readonly isEnabledFileDownloads?: boolean
  
@@ -189,7 +189,7 @@ Index: code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
  
  	/* ----- server setup ----- */
  
-@@ -98,6 +99,7 @@ export interface ServerParsedArgs {
+@@ -99,6 +100,7 @@ export interface ServerParsedArgs {
  	'auth'?: string
  	'disable-file-downloads'?: boolean;
  	'locale'?: string
@@ -201,7 +201,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -328,6 +328,7 @@ export class WebClientServer {
+@@ -334,6 +334,7 @@ export class WebClientServer {
  			webviewEndpoint: vscodeBase + this._staticRoute + '/out/vs/workbench/contrib/webview/browser/pre',
  			userDataPath: this._environmentService.userDataPath,
  			isEnabledFileDownloads: !this._environmentService.args['disable-file-downloads'],

@@ -10,7 +10,7 @@ Index: code-server/lib/vscode/src/vs/base/common/network.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/base/common/network.ts
 +++ code-server/lib/vscode/src/vs/base/common/network.ts
-@@ -167,7 +167,9 @@ class RemoteAuthoritiesImpl {
+@@ -168,7 +168,9 @@ class RemoteAuthoritiesImpl {
  		return URI.from({
  			scheme: platform.isWeb ? this._preferredWebSchema : Schemas.vscodeRemoteResource,
  			authority: `${host}:${port}`,
@@ -111,7 +111,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -267,12 +267,11 @@ export class WebClientServer {
+@@ -268,16 +268,15 @@ export class WebClientServer {
  			return void res.end();
  		}
  
@@ -120,16 +120,20 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 -			return Array.isArray(val) ? val[0] : val;
 -		};
 -
--		const remoteAuthority = getFirstHeader('x-original-host') || getFirstHeader('x-forwarded-host') || req.headers.host;
+ 		const useTestResolver = (!this._environmentService.isBuilt && this._environmentService.args['use-test-resolver']);
 +		// For now we are getting the remote authority from the client to avoid
 +		// needing specific configuration for reverse proxies to work.  Set this to
 +		// something invalid to make sure we catch code that is using this value
 +		// from the backend when it should not.
-+		const remoteAuthority = 'remote';
+ 		const remoteAuthority = (
+ 			useTestResolver
+ 				? 'test+test'
+-				: (getFirstHeader('x-original-host') || getFirstHeader('x-forwarded-host') || req.headers.host)
++				: 'remote'
+ 		);
  		if (!remoteAuthority) {
  			return serveError(req, res, 400, `Bad request.`);
- 		}
-@@ -298,8 +297,12 @@ export class WebClientServer {
+@@ -304,8 +303,12 @@ export class WebClientServer {
  			scopes: [['user:email'], ['repo']]
  		} : undefined;
  
@@ -142,7 +146,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
  			embedderIdentifier: 'server-distro',
  			extensionsGallery: this._webExtensionResourceUrlTemplate ? {
  				...this._productService.extensionsGallery,
-@@ -334,11 +337,12 @@ export class WebClientServer {
+@@ -340,8 +343,10 @@ export class WebClientServer {
  		const values: { [key: string]: string } = {
  			WORKBENCH_WEB_CONFIGURATION: asJSON(workbenchWebConfiguration),
  			WORKBENCH_AUTH_SESSION: authSessionInfo ? asJSON(authSessionInfo) : '',
@@ -154,20 +158,17 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 +			VS_BASE: vscodeBase,
  		};
  
--
- 		let data;
- 		try {
- 			const workbenchTemplate = (await fsp.readFile(filePath)).toString();
-@@ -352,7 +356,7 @@ export class WebClientServer {
+ 		if (useTestResolver) {
+@@ -366,7 +371,7 @@ export class WebClientServer {
  			'default-src \'self\';',
  			'img-src \'self\' https: data: blob:;',
  			'media-src \'self\';',
--			`script-src 'self' 'unsafe-eval' ${this._getScriptCspHashes(data).join(' ')} 'sha256-fh3TwPMflhsEIpR8g1OYTIMVWhXTLcjQ9kh2tIpmv54=' http://${remoteAuthority};`, // the sha is the same as in src/vs/workbench/services/extensions/worker/webWorkerExtensionHostIframe.html
-+			`script-src 'self' 'unsafe-eval' ${this._getScriptCspHashes(data).join(' ')} 'sha256-fh3TwPMflhsEIpR8g1OYTIMVWhXTLcjQ9kh2tIpmv54=';`, // the sha is the same as in src/vs/workbench/services/extensions/worker/webWorkerExtensionHostIframe.html
+-			`script-src 'self' 'unsafe-eval' ${this._getScriptCspHashes(data).join(' ')} 'sha256-fh3TwPMflhsEIpR8g1OYTIMVWhXTLcjQ9kh2tIpmv54=' ${useTestResolver ? '' : `http://${remoteAuthority}`};`, // the sha is the same as in src/vs/workbench/services/extensions/worker/webWorkerExtensionHostIframe.html
++			`script-src 'self' 'unsafe-eval' ${this._getScriptCspHashes(data).join(' ')} 'sha256-fh3TwPMflhsEIpR8g1OYTIMVWhXTLcjQ9kh2tIpmv54=' ${useTestResolver ? '' : ''};`, // the sha is the same as in src/vs/workbench/services/extensions/worker/webWorkerExtensionHostIframe.html
  			'child-src \'self\';',
  			`frame-src 'self' https://*.vscode-cdn.net data:;`,
  			'worker-src \'self\' data: blob:;',
-@@ -425,3 +429,70 @@ export class WebClientServer {
+@@ -439,3 +444,70 @@ export class WebClientServer {
  		return void res.end(data);
  	}
  }

@@ -71,7 +71,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -305,6 +305,7 @@ export class WebClientServer {
+@@ -311,6 +311,7 @@ export class WebClientServer {
  			rootEndpoint: base,
  			updateEndpoint: !this._environmentService.args['disable-update-check'] ? base + '/update/check' : undefined,
  			logoutEndpoint: this._environmentService.args['auth'] && this._environmentService.args['auth'] !== "none" ? base + '/logout' : undefined,
@@ -83,7 +83,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/terminal/common/terminalE
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/contrib/terminal/common/terminalEnvironment.ts
 +++ code-server/lib/vscode/src/vs/workbench/contrib/terminal/common/terminalEnvironment.ts
-@@ -384,7 +384,7 @@ export async function createTerminalEnvi
+@@ -271,7 +271,7 @@ export async function createTerminalEnvi
  
  		// Sanitize the environment, removing any undesirable VS Code and Electron environment
  		// variables
@@ -149,7 +149,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/remote/browser/remoteExpl
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/contrib/remote/browser/remoteExplorer.ts
 +++ code-server/lib/vscode/src/vs/workbench/contrib/remote/browser/remoteExplorer.ts
-@@ -73,7 +73,7 @@ export class ForwardedPortsView extends
+@@ -74,7 +74,7 @@ export class ForwardedPortsView extends
  			this.contextKeyListener = undefined;
  		}
  
