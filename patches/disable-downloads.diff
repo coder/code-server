@@ -12,7 +12,7 @@ Index: code-server/lib/vscode/src/vs/workbench/browser/web.api.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/browser/web.api.ts
 +++ code-server/lib/vscode/src/vs/workbench/browser/web.api.ts
-@@ -281,6 +281,11 @@ export interface IWorkbenchConstructionO
+@@ -288,6 +288,11 @@ export interface IWorkbenchConstructionO
  	 */
  	readonly userDataPath?: string
  
@@ -66,7 +66,7 @@ Index: code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
  
  	/* ----- server setup ----- */
  
-@@ -94,6 +95,7 @@ export interface ServerParsedArgs {
+@@ -95,6 +96,7 @@ export interface ServerParsedArgs {
  	/* ----- code-server ----- */
  	'disable-update-check'?: boolean;
  	'auth'?: string
@@ -78,7 +78,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -325,6 +325,7 @@ export class WebClientServer {
+@@ -331,6 +331,7 @@ export class WebClientServer {
  			remoteAuthority,
  			webviewEndpoint: vscodeBase + this._staticRoute + '/out/vs/workbench/contrib/webview/browser/pre',
  			userDataPath: this._environmentService.userDataPath,

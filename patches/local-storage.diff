@@ -20,7 +20,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -320,6 +320,7 @@ export class WebClientServer {
+@@ -326,6 +326,7 @@ export class WebClientServer {
  		const workbenchWebConfiguration = {
  			remoteAuthority,
  			webviewEndpoint: vscodeBase + this._staticRoute + '/out/vs/workbench/contrib/webview/browser/pre',
@@ -32,7 +32,7 @@ Index: code-server/lib/vscode/src/vs/workbench/browser/web.api.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/browser/web.api.ts
 +++ code-server/lib/vscode/src/vs/workbench/browser/web.api.ts
-@@ -276,6 +276,11 @@ export interface IWorkbenchConstructionO
+@@ -283,6 +283,11 @@ export interface IWorkbenchConstructionO
  	 */
  	readonly configurationDefaults?: Record<string, any>;
  

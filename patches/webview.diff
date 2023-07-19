@@ -54,7 +54,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -316,6 +316,7 @@ export class WebClientServer {
+@@ -322,6 +322,7 @@ export class WebClientServer {
  
  		const workbenchWebConfiguration = {
  			remoteAuthority,
@@ -70,8 +70,8 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/index
  	<meta charset="UTF-8">
  
  	<meta http-equiv="Content-Security-Policy"
--		content="default-src 'none'; script-src 'sha256-N4YFn5ze5crjPqMK/opogKs7bSGWtf3lmjV/3LfbSOs=' 'self'; frame-src 'self'; style-src 'unsafe-inline';">
-+		content="default-src 'none'; script-src 'sha256-B5FRTRmagxqZ2yiS/ip5EgFZJPHAF0G0O3NgwgN6hhg=' 'self'; frame-src 'self'; style-src 'unsafe-inline';">
+-		content="default-src 'none'; script-src 'sha256-7Y08cqii1UgeZbSST9r8UPSownOSMa3/PiKe77avh7I=' 'self'; frame-src 'self'; style-src 'unsafe-inline';">
++		content="default-src 'none'; script-src 'sha256-h057XKGlOvyFweE9mchggtfdly92LQuQ9vKfYvNy7us=' 'self'; frame-src 'self'; style-src 'unsafe-inline';">
  
  	<!-- Disable pinch zooming -->
  	<meta name="viewport"
