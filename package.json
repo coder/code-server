@@ -94,7 +94,7 @@
     "express": "5.0.0-alpha.8",
     "http-proxy": "^1.18.0",
     "httpolyglot": "^0.1.2",
-    "i18next": "^22.4.6",
+    "i18next": "^23.2.11",
     "js-yaml": "^4.0.0",
     "limiter": "^2.1.0",
     "pem": "^1.14.2",
