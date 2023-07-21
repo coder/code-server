@@ -47,6 +47,7 @@ describe("parser", () => {
     delete process.env.CS_DISABLE_FILE_DOWNLOADS
     delete process.env.CS_DISABLE_GETTING_STARTED_OVERRIDE
     delete process.env.VSCODE_PROXY_URI
+    delete process.env.CS_DISABLE_PROXY
     console.log = jest.fn()
   })
 
@@ -103,6 +104,8 @@ describe("parser", () => {
 
           "--disable-getting-started-override",
 
+          "--disable-proxy",
+
           ["--session-socket", "/tmp/override-code-server-ipc-socket"],
 
           ["--host", "0.0.0.0"],
@@ -123,6 +126,7 @@ describe("parser", () => {
       },
       "disable-file-downloads": true,
       "disable-getting-started-override": true,
+      "disable-proxy": true,
       enable: ["feature1", "feature2"],
       help: true,
       host: "0.0.0.0",
@@ -389,6 +393,30 @@ describe("parser", () => {
     expect(defaultArgs).toEqual({
       ...defaults,
       "disable-getting-started-override": true,
+    })
+  })
+
+  it("should use env var CS_DISABLE_PROXY", async () => {
+    process.env.CS_DISABLE_PROXY = "1"
+    const args = parse([])
+    expect(args).toEqual({})
+
+    const defaultArgs = await setDefaults(args)
+    expect(defaultArgs).toEqual({
+      ...defaults,
+      "disable-proxy": true,
+    })
+  })
+
+  it("should use env var CS_DISABLE_PROXY set to true", async () => {
+    process.env.CS_DISABLE_PROXY = "true"
+    const args = parse([])
+    expect(args).toEqual({})
+
+    const defaultArgs = await setDefaults(args)
+    expect(defaultArgs).toEqual({
+      ...defaults,
+      "disable-proxy": true,
     })
   })
 

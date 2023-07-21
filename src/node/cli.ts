@@ -51,6 +51,7 @@ export interface UserProvidedCodeArgs {
   "disable-file-downloads"?: boolean
   "disable-workspace-trust"?: boolean
   "disable-getting-started-override"?: boolean
+  "disable-proxy"?: boolean
   "session-socket"?: string
 }
 
@@ -177,6 +178,10 @@ export const options: Options<Required<UserProvidedArgs>> = {
   "disable-getting-started-override": {
     type: "boolean",
     description: "Disable the coder/coder override in the Help: Getting Started page.",
+  },
+  "disable-proxy": {
+    type: "boolean",
+    description: "Disable domain and path proxy routes.",
   },
   // --enable can be used to enable experimental features. These features
   // provide no guarantees.
@@ -562,6 +567,10 @@ export async function setDefaults(cliArgs: UserProvidedArgs, configArgs?: Config
 
   if (process.env.CS_DISABLE_GETTING_STARTED_OVERRIDE?.match(/^(1|true)$/)) {
     args["disable-getting-started-override"] = true
+  }
+
+  if (process.env.CS_DISABLE_PROXY?.match(/^(1|true)$/)) {
+    args["disable-proxy"] = true
   }
 
   const usingEnvHashedPassword = !!process.env.HASHED_PASSWORD

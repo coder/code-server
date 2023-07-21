@@ -45,6 +45,17 @@ describe("proxy", () => {
     jest.clearAllMocks()
   })
 
+  it("should return 403 Forbidden if proxy is disabled", async () => {
+    e.get("/wsup", (req, res) => {
+      res.json("you cannot see this")
+    })
+    codeServer = await integration.setup(["--auth=none", "--disable-proxy"], "")
+    const resp = await codeServer.fetch(proxyPath)
+    expect(resp.status).toBe(403)
+    const json = await resp.json()
+    expect(json).toEqual({ error: "Forbidden" })
+  })
+
   it("should rewrite the base path", async () => {
     e.get("/wsup", (req, res) => {
       res.json("asher is the best")
