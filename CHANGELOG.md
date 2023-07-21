@@ -22,6 +22,25 @@ Code v99.99.999
 
 ## Unreleased
 
+### Added
+
+- `--disable-proxy` flag. This disables the domain and path proxies but it does
+  not disable the ports panel in Code. That can be disabled by using
+  `remote.autoForwardPorts=false` in your settings.
+
+## [4.15.0](https://github.com/coder/code-server/releases/tag/v4.15.0) - 2023-07-21
+
+Code v1.80.1
+
+### Changed
+
+- Updated to Code 1.80.1.
+
+### Added
+
+- `--trusted-origin` flag for specifying origins that you trust but do not
+  control (for example a reverse proxy).
+
 Code v1.79.2
 
 ## [4.14.1](https://github.com/coder/code-server/releases/tag/v4.14.1) - 2023-06-26
