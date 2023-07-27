@@ -144,7 +144,9 @@ export const runCodeServer = async (
     logger.info("  - Not serving HTTPS")
   }
 
-  if (args["proxy-domain"].length > 0) {
+  if (args["disable-proxy"]) {
+    logger.info("  - Proxy disabled")
+  } else if (args["proxy-domain"].length > 0) {
     logger.info(`  - ${plural(args["proxy-domain"].length, "Proxying the following domain")}:`)
     args["proxy-domain"].forEach((domain) => logger.info(`    - ${domain}`))
   }
