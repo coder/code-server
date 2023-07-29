@@ -22,6 +22,10 @@ Code v99.99.999
 
 ## Unreleased
 
+## [4.16.0](https://github.com/coder/code-server/releases/tag/v4.16.0) - 2023-07-28
+
+Code v1.80.1
+
 ### Added
 
 - `--disable-proxy` flag. This disables the domain and path proxies but it does
