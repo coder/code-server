@@ -192,10 +192,20 @@ docs](https://github.com/VSCodium/vscodium/blob/master/DOCS.md#extensions--marke
 
 ## Where are extensions stored?
 
-Extensions are store, by default, to `~/.local/share/code-server/extensions`.
+Extensions are stored in `~/.local/share/code-server/extensions` by default.
 
-If you set the `XDG_DATA_HOME` environment variable, the data directory will be
-`$XDG_DATA_HOME/code-server/extensions`. In general, we try to follow the XDG directory spec.
+On Linux and macOS if you set the `XDG_DATA_HOME` environment variable, the
+extensions directory will be `$XDG_DATA_HOME/code-server/extensions`. In
+general, we try to follow the XDG directory spec.
+
+## Where is VS Code configuration stored?
+
+VS Code configuration such as settings and keybindings are stored in
+`~/.local/share/code-server` by default.
+
+On Linux and macOS if you set the `XDG_DATA_HOME` environment variable, the data
+directory will be `$XDG_DATA_HOME/code-server`. In general, we try to follow the
+XDG directory spec.
 
 ## How can I reuse my VS Code configuration?
 
