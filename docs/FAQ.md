@@ -14,6 +14,7 @@
 - [How do I install an extension manually?](#how-do-i-install-an-extension-manually)
 - [How do I use my own extensions marketplace?](#how-do-i-use-my-own-extensions-marketplace)
 - [Where are extensions stored?](#where-are-extensions-stored)
+- [Where is VS Code configuration stored?](#where-is-vs-code-configuration-stored)
 - [How can I reuse my VS Code configuration?](#how-can-i-reuse-my-vs-code-configuration)
 - [How does code-server decide what workspace or folder to open?](#how-does-code-server-decide-what-workspace-or-folder-to-open)
 - [How do I access my Documents/Downloads/Desktop folders in code-server on macOS?](#how-do-i-access-my-documentsdownloadsdesktop-folders-in-code-server-on-macos)
