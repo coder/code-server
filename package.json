@@ -60,8 +60,8 @@
     "eslint-import-resolver-typescript": "^3.5.2",
     "eslint-plugin-import": "^2.26.0",
     "eslint-plugin-prettier": "^4.2.1",
-    "prettier": "2.8.0",
-    "prettier-plugin-sh": "^0.12.8",
+    "prettier": "3.0.0",
+    "prettier-plugin-sh": "^0.13.1",
     "ts-node": "^10.0.0",
     "typescript": "^5.0.4"
   },
