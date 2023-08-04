@@ -96,20 +96,20 @@ Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/code/browser/workbench/workbench.ts
 +++ code-server/lib/vscode/src/vs/code/browser/workbench/workbench.ts
-@@ -21,6 +21,7 @@ import type { ICredentialsProvider } fro
+@@ -18,6 +18,7 @@ import { ltrim } from 'vs/base/common/st
  import type { IURLCallbackProvider } from 'vs/workbench/services/url/browser/urlService';
  import type { IWorkbenchConstructionOptions } from 'vs/workbench/browser/web.api';
  import type { IWorkspace, IWorkspaceProvider } from 'vs/workbench/services/host/browser/browserHostService';
 +import { extractLocalHostUriMetaDataForPortMapping, TunnelOptions, TunnelCreationOptions } from 'vs/platform/tunnel/common/tunnel';
+ import { ISecretStorageProvider } from 'vs/platform/secrets/common/secrets';
+ import { AuthenticationSessionInfo } from 'vs/workbench/services/authentication/browser/authenticationService';
  
- interface ICredential {
- 	service: string;
-@@ -505,6 +506,39 @@ function doCreateUri(path: string, query
+@@ -407,6 +408,39 @@ class WorkspaceProvider implements IWork
  		settingsSyncOptions: config.settingsSyncOptions ? { enabled: config.settingsSyncOptions.enabled, } : undefined,
  		workspaceProvider: WorkspaceProvider.create(config),
  		urlCallbackProvider: new LocalStorageURLCallbackProvider(config.callbackRoute),
--		credentialsProvider: config.remoteAuthority ? undefined /* with a remote, we don't use a local credentials provider */ : new LocalStorageCredentialsProvider()
-+		credentialsProvider: config.remoteAuthority ? undefined /* with a remote, we don't use a local credentials provider */ : new LocalStorageCredentialsProvider(),
+-		secretStorageProvider: config.remoteAuthority ? undefined /* with a remote, we don't use a local secret storage provider */ : new LocalStorageSecretStorageProvider()
++		secretStorageProvider: config.remoteAuthority ? undefined /* with a remote, we don't use a local secret storage provider */ : new LocalStorageSecretStorageProvider(),
 +		resolveExternalUri: (uri: URI): Promise<URI> => {
 +			let resolvedUri = uri
 +			const localhostMatch = extractLocalHostUriMetaDataForPortMapping(resolvedUri)
@@ -156,5 +156,5 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/remote/browser/remoteExpl
 -		const viewEnabled: boolean = !!forwardedPortsViewEnabled.getValue(this.contextKeyService);
 +		const viewEnabled: boolean = true;
  
- 		if (this.environmentService.remoteAuthority && viewEnabled) {
+ 		if (viewEnabled) {
  			const viewContainer = await this.getViewContainer();

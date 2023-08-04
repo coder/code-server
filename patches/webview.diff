@@ -70,12 +70,12 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/index
  	<meta charset="UTF-8">
  
  	<meta http-equiv="Content-Security-Policy"
--		content="default-src 'none'; script-src 'sha256-7Y08cqii1UgeZbSST9r8UPSownOSMa3/PiKe77avh7I=' 'self'; frame-src 'self'; style-src 'unsafe-inline';">
-+		content="default-src 'none'; script-src 'sha256-h057XKGlOvyFweE9mchggtfdly92LQuQ9vKfYvNy7us=' 'self'; frame-src 'self'; style-src 'unsafe-inline';">
+-		content="default-src 'none'; script-src 'sha256-Rb9injxD1VMV/uzNjbZ78NhEoDuUnHcJBfN1KZ9nE7U=' 'self'; frame-src 'self'; style-src 'unsafe-inline';">
++		content="default-src 'none'; script-src 'sha256-fwkL2MOozvJflk2SG782Nvdy5+dQJodEsFpbodDmagg=' 'self'; frame-src 'self'; style-src 'unsafe-inline';">
  
  	<!-- Disable pinch zooming -->
  	<meta name="viewport"
-@@ -334,6 +334,12 @@
+@@ -335,6 +335,12 @@
  
  				const hostname = location.hostname;
  
@@ -92,7 +92,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/index
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/index-no-csp.html
 +++ code-server/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/index-no-csp.html
-@@ -333,6 +333,12 @@
+@@ -334,6 +334,12 @@
  
  				const hostname = location.hostname;
  

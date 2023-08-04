@@ -21,7 +21,7 @@ Index: code-server/lib/vscode/src/vs/server/node/serverServices.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/serverServices.ts
 +++ code-server/lib/vscode/src/vs/server/node/serverServices.ts
-@@ -230,6 +230,9 @@ export async function setupServerService
+@@ -231,6 +231,9 @@ export async function setupServerService
  		const channel = new ExtensionManagementChannel(extensionManagementService, (ctx: RemoteAgentConnectionContext) => getUriTransformer(ctx.remoteAuthority));
  		socketServer.registerChannel('extensions', channel);
  
@@ -89,10 +89,10 @@ Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench.html
  		<!-- Workbench Icon/Manifest/CSS -->
  		<link rel="icon" href="{{BASE}}/_static/src/browser/media/favicon-dark-support.svg" />
  		<link rel="alternate icon" href="{{BASE}}/_static/src/browser/media/favicon.ico" type="image/x-icon" />
-@@ -46,15 +49,26 @@
- 		// Set up nls if the user is not using the default language (English)
- 		const nlsConfig = {};
- 		const locale = window.localStorage.getItem('vscode.nls.locale') || navigator.language;
+@@ -48,15 +51,26 @@
+ 		// Normalize locale to lowercase because translationServiceUrl is case-sensitive.
+ 		// ref: https://github.com/microsoft/vscode/issues/187795
+ 		const locale = window.localStorage.getItem('vscode.nls.locale') || navigator.language.toLowerCase();
 -		if (!locale.startsWith('en')) {
 -			nlsConfig['vs/nls'] = {
 -				availableLanguages: {
@@ -232,7 +232,7 @@ Index: code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
 +++ code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
-@@ -15,6 +15,7 @@ export const serverOptions: OptionDescri
+@@ -17,6 +17,7 @@ export const serverOptions: OptionDescri
  	'disable-update-check': { type: 'boolean' },
  	'auth': { type: 'string' },
  	'disable-file-downloads': { type: 'boolean' },
@@ -240,7 +240,7 @@ Index: code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
  
  	/* ----- server setup ----- */
  
-@@ -97,6 +98,7 @@ export interface ServerParsedArgs {
+@@ -99,6 +100,7 @@ export interface ServerParsedArgs {
  	'disable-update-check'?: boolean;
  	'auth'?: string
  	'disable-file-downloads'?: boolean;
@@ -339,7 +339,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/extensions/browser/extens
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/contrib/extensions/browser/extensionsActions.ts
 +++ code-server/lib/vscode/src/vs/workbench/contrib/extensions/browser/extensionsActions.ts
-@@ -337,9 +337,6 @@ export class InstallAction extends Exten
+@@ -321,9 +321,6 @@ export class InstallAction extends Exten
  		if (this.extension.isBuiltin) {
  			return;
  		}
@@ -349,7 +349,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/extensions/browser/extens
  		if (this.extension.state === ExtensionState.Uninstalled && await this.extensionsWorkbenchService.canInstall(this.extension)) {
  			this.enabled = this.options.installPreReleaseVersion ? this.extension.hasPreReleaseVersion : this.extension.hasReleaseVersion;
  			this.updateLabel();
-@@ -607,7 +604,7 @@ export abstract class InstallInOtherServ
+@@ -591,7 +588,7 @@ export abstract class InstallInOtherServ
  		}
  
  		if (isLanguagePackExtension(this.extension.local.manifest)) {
@@ -358,7 +358,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/extensions/browser/extens
  		}
  
  		// Prefers to run on UI
-@@ -1695,17 +1692,6 @@ export class SetLanguageAction extends E
+@@ -1684,17 +1681,6 @@ export class SetLanguageAction extends E
  	update(): void {
  		this.enabled = false;
  		this.class = SetLanguageAction.DisabledClass;
@@ -376,7 +376,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/extensions/browser/extens
  	}
  
  	override async run(): Promise<any> {
-@@ -1722,7 +1708,6 @@ export class ClearLanguageAction extends
+@@ -1711,7 +1697,6 @@ export class ClearLanguageAction extends
  	private static readonly DisabledClass = `${ClearLanguageAction.EnabledClass} disabled`;
  
  	constructor(
@@ -384,7 +384,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/extensions/browser/extens
  		@ILocaleService private readonly localeService: ILocaleService,
  	) {
  		super(ClearLanguageAction.ID, ClearLanguageAction.TITLE.value, ClearLanguageAction.DisabledClass, false);
-@@ -1732,17 +1717,6 @@ export class ClearLanguageAction extends
+@@ -1721,17 +1706,6 @@ export class ClearLanguageAction extends
  	update(): void {
  		this.enabled = false;
  		this.class = ClearLanguageAction.DisabledClass;
