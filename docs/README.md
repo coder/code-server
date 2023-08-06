@@ -5,7 +5,8 @@
 Run [VS Code](https://github.com/Microsoft/vscode) on any machine anywhere and
 access it in the browser.
 
-![Screenshot](./assets/screenshot.png)
+![Screenshot](./assets/screenshot-1.png)
+![Screenshot](./assets/screenshot-2.png)
 
 ## Highlights
 
