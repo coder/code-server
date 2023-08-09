@@ -14,7 +14,7 @@
             nativeBuildInputs = with pkgs; [
               nodejs yarn' python3 pkg-config git rsync jq moreutils quilt bats
             ];
-            buildInputs = with pkgs; (lib.optionals (!stdenv.isDarwin) [ libsecret ]
+            buildInputs = with pkgs; (lib.optionals (!stdenv.isDarwin) [ libsecret libkrb5 ]
                           ++ (with xorg; [ libX11 libxkbfile ])
                           ++ lib.optionals stdenv.isDarwin (with pkgs.darwin.apple_sdk.frameworks; [
                             AppKit Cocoa CoreServices Security xcbuild
