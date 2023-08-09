@@ -139,9 +139,9 @@ sudo apt install caddy
 1. Replace `/etc/caddy/Caddyfile` using `sudo` so that the file looks like this:
 
    ```text
-   mydomain.com
-
-   reverse_proxy 127.0.0.1:8080
+   mydomain.com {
+     reverse_proxy 127.0.0.1:8080
+   }
    ```
 
    If you want to serve code-server from a sub-path, you can do so as follows:
