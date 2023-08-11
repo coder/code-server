@@ -63,7 +63,7 @@ Here is what is needed:
 If you're developing code-server on Linux, make sure you have installed or install the following dependencies:
 
 ```shell
-sudo apt-get install build-essential g++ libx11-dev libxkbfile-dev libsecret-1-dev python-is-python3
+sudo apt-get install build-essential g++ libx11-dev libxkbfile-dev libsecret-1-dev libkrb5-dev python-is-python3
 ```
 
 These are required by Code. See [their Wiki](https://github.com/microsoft/vscode/wiki/How-to-Contribute#prerequisites) for more information.

@@ -212,6 +212,9 @@ jobs:
         with:
           submodules: true
 
+      - name: Install system dependencies
+        run: sudo apt update && sudo apt install -y libkrb5-dev
+
       - name: Install quilt
         uses: awalsh128/cache-apt-pkgs-action@latest
         with:

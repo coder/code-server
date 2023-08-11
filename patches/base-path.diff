@@ -255,15 +255,7 @@ Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/code/browser/workbench/workbench.ts
 +++ code-server/lib/vscode/src/vs/code/browser/workbench/workbench.ts
-@@ -484,6 +484,7 @@ function doCreateUri(path: string, query
- 		});
- 	}
- 
-+	path = (window.location.pathname + "/" + path).replace(/\/\/+/g, "/")
- 	return URI.parse(window.location.href).with({ path, query });
- }
- 
-@@ -495,7 +496,7 @@ function doCreateUri(path: string, query
+@@ -398,7 +398,7 @@ class WorkspaceProvider implements IWork
  	if (!configElement || !configElementAttribute) {
  		throw new Error('Missing web configuration element');
  	}
