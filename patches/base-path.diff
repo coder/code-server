@@ -255,7 +255,17 @@ Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/code/browser/workbench/workbench.ts
 +++ code-server/lib/vscode/src/vs/code/browser/workbench/workbench.ts
-@@ -398,7 +398,7 @@ class WorkspaceProvider implements IWork
+@@ -144,7 +144,8 @@ class LocalStorageURLCallbackProvider ex
+ 			this.startListening();
+ 		}
+ 
+-		return URI.parse(window.location.href).with({ path: this._callbackRoute, query: queryParams.join('&') });
++		const path = (window.location.pathname + "/" + this._callbackRoute).replace(/\/\/+/g, "/");
++		return URI.parse(window.location.href).with({ path: path, query: queryParams.join('&') });
+ 	}
+ 
+ 	private startListening(): void {
+@@ -398,7 +399,7 @@ class WorkspaceProvider implements IWork
  	if (!configElement || !configElementAttribute) {
  		throw new Error('Missing web configuration element');
  	}
