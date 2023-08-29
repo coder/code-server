@@ -1,9 +1,8 @@
 import { field, Level, logger } from "@coder/logger"
 import { promises as fs } from "fs"
 import { load } from "js-yaml"
-import * as os from "os"
 import * as path from "path"
-import { generateCertificate, generatePassword, humanPath, paths, splitOnFirstEquals } from "./util"
+import { generateCertificate, generatePassword, paths, splitOnFirstEquals } from "./util"
 import { EditorSessionManagerClient } from "./vscodeSocket"
 
 export enum Feature {
@@ -663,7 +662,7 @@ export async function readConfigFile(configPath?: string): Promise<ConfigArgs> {
     await fs.writeFile(configPath, defaultConfigFile(generatedPassword), {
       flag: "wx", // wx means to fail if the path exists.
     })
-    logger.info(`Wrote default config file to ${humanPath(os.homedir(), configPath)}`)
+    logger.info(`Wrote default config file to ${configPath}`)
   } catch (error: any) {
     // EEXIST is fine; we don't want to overwrite existing configurations.
     if (error.code !== "EEXIST") {
