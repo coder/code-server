@@ -15,9 +15,9 @@
     regenerator-runtime "^0.13.11"
 
 "@coder/logger@^3.0.0":
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/@coder/logger/-/logger-3.0.0.tgz#fd4d2332ca375412c75cb5ba7767d3290b106dec"
-  integrity sha512-a0TYwulM+LiKBDKK7ZtKrOmOaEDR1yonCEOZbA+lNfVpmn7gWJBRdgg1O5Jj7ElKd4s9/w9udPVJfVxciyHfhA==
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/@coder/logger/-/logger-3.0.1.tgz#36d35d664c464c1fc2bf5900eee742065c5057e4"
+  integrity sha512-G/wWSaNZW8HvQZWXlXdbZbp/MOQBPH4W1AKSEI3PBfr0qc9G+pdLrXvm3XakQpNVqmD6WFAbLfcjdG0BuoAO0g==
 
 "@cspotcode/source-map-support@^0.8.0":
   version "0.8.1"
