@@ -280,7 +280,7 @@ brew services start code-server
 # outside the container.
 mkdir -p ~/.config
 docker run -it --name code-server -p 127.0.0.1:8080:8080 \
-  -v "$HOME/.config:/home/coder/.config" \
+  -v "$HOME/.local:/home/coder/.local" \
   -v "$PWD:/home/coder/project" \
   -u "$(id -u):$(id -g)" \
   -e "DOCKER_USER=$USER" \
