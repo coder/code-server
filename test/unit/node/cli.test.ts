@@ -789,6 +789,50 @@ describe("bindAddrFromArgs", () => {
     expect(actual).toStrictEqual(expected)
   })
 
+  it("should use process.env.CODE_SERVER_HOST if set", () => {
+    const [setValue, resetValue] = useEnv("CODE_SERVER_HOST")
+    setValue("coder")
+
+    const args: UserProvidedArgs = {}
+
+    const addr = {
+      host: "localhost",
+      port: 8080,
+    }
+
+    const actual = bindAddrFromArgs(addr, args)
+    const expected = {
+      host: "coder",
+      port: 8080,
+    }
+
+    expect(actual).toStrictEqual(expected)
+    resetValue()
+  })
+
+  it("should use the args.host over process.env.CODE_SERVER_HOST if both set", () => {
+    const [setValue, resetValue] = useEnv("CODE_SERVER_HOST")
+    setValue("coder")
+
+    const args: UserProvidedArgs = {
+      host: "123.123.123.123",
+    }
+
+    const addr = {
+      host: "localhost",
+      port: 8080,
+    }
+
+    const actual = bindAddrFromArgs(addr, args)
+    const expected = {
+      host: "123.123.123.123",
+      port: 8080,
+    }
+
+    expect(actual).toStrictEqual(expected)
+    resetValue()
+  })
+
   it("should use process.env.PORT if set", () => {
     const [setValue, resetValue] = useEnv("PORT")
     setValue("8000")
