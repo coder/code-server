@@ -789,8 +789,8 @@ describe("bindAddrFromArgs", () => {
     expect(actual).toStrictEqual(expected)
   })
 
-  it("should use process.env.HOST if set", () => {
-    const [setValue, resetValue] = useEnv("HOST")
+  it("should use process.env.CODE_SERVER_HOST if set", () => {
+    const [setValue, resetValue] = useEnv("CODE_SERVER_HOST")
     setValue("coder")
 
     const args: UserProvidedArgs = {}
@@ -810,8 +810,8 @@ describe("bindAddrFromArgs", () => {
     resetValue()
   })
 
-  it("should use the args.host over process.env.HOST if both set", () => {
-    const [setValue, resetValue] = useEnv("HOST")
+  it("should use the args.host over process.env.CODE_SERVER_HOST if both set", () => {
+    const [setValue, resetValue] = useEnv("CODE_SERVER_HOST")
     setValue("coder")
 
     const args: UserProvidedArgs = {

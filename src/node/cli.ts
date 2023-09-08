@@ -732,8 +732,8 @@ export function bindAddrFromArgs(addr: Addr, args: UserProvidedArgs): Addr {
   if (args["bind-addr"]) {
     addr = parseBindAddr(args["bind-addr"])
   }
-  if (process.env.HOST) {
-    addr.host = process.env.HOST
+  if (process.env.CODE_SERVER_HOST) {
+    addr.host = process.env.CODE_SERVER_HOST
   }
   if (args.host) {
     addr.host = args.host
