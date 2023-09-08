@@ -732,6 +732,9 @@ export function bindAddrFromArgs(addr: Addr, args: UserProvidedArgs): Addr {
   if (args["bind-addr"]) {
     addr = parseBindAddr(args["bind-addr"])
   }
+  if (process.env.HOST) {
+    addr.host = process.env.HOST
+  }
   if (args.host) {
     addr.host = args.host
   }
