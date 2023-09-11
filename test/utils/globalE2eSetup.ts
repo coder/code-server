@@ -1,8 +1,8 @@
+import { promises as fs } from "fs"
+import * as path from "path"
 import { workspaceDir } from "./constants"
 import { clean, tmpdir } from "./helpers"
 import * as wtfnode from "./wtfnode"
-import * as path from "path"
-import { promises as fs } from "fs"
 
 /**
  * Perform workspace cleanup and authenticate. This should be ran before e2e

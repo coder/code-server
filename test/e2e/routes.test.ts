@@ -1,5 +1,5 @@
-import { describe, test, expect } from "./baseFixture"
 import { clean, getMaybeProxiedPathname } from "../utils/helpers"
+import { describe, test, expect } from "./baseFixture"
 
 const routes = ["/", "/vscode", "/vscode/"]
 
@@ -103,7 +103,7 @@ describe("VS Code Routes with no workspace or folder", ["--disable-workspace-tru
 
     // Closing the folder should stop the redirecting.
     await codeServerPage.navigate("/?ew=true")
-    let url = new URL(codeServerPage.page.url())
+    const url = new URL(codeServerPage.page.url())
     const pathname = getMaybeProxiedPathname(url)
     expect(pathname).toBe("/")
     expect(url.search).toBe("?ew=true")

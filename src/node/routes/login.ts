@@ -5,8 +5,8 @@ import * as path from "path"
 import { CookieKeys } from "../../common/http"
 import { rootPath } from "../constants"
 import { authenticated, getCookieOptions, redirect, replaceTemplates } from "../http"
-import { getPasswordMethod, handlePasswordValidation, sanitizeString, escapeHtml } from "../util"
 import i18n from "../i18n"
+import { getPasswordMethod, handlePasswordValidation, sanitizeString, escapeHtml } from "../util"
 
 // RateLimiter wraps around the limiter library for logins.
 // It allows 2 logins every minute plus 12 logins every hour.
