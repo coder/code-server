@@ -113,29 +113,40 @@ install_with_yarn_or_npm() {
       # HACK: NPM's use of semver doesn't like resolving some peerDependencies that vscode (upstream) brings in the form of pre-releases.
       # The legacy behavior doesn't complain about pre-releases being used, falling back to that for now.
       # See https://github.com//pull/5071
-      npm install --unsafe-perm --legacy-peer-deps --omit=dev
+      if ! npm install --unsafe-perm --legacy-peer-deps --omit=dev; then
+        return 1
+      fi
       ;;
     yarn*)
-      yarn --production --frozen-lockfile --no-default-rc
+      if ! yarn --production --frozen-lockfile --no-default-rc; then
+        return 1
+      fi
       ;;
     *)
       echo "Could not determine which package manager is being used to install code-server"
       exit 1
       ;;
   esac
+  return 0
 }
 
 vscode_install() {
   echo 'Installing Code dependencies...'
   cd lib/vscode
-  install_with_yarn_or_npm
+  if ! install_with_yarn_or_npm; then
+    return 1
+  fi
 
   symlink_asar
   symlink_bin_script remote-cli code code-server
   symlink_bin_script helpers browser browser .sh
 
   cd extensions
-  install_with_yarn_or_npm
+  if ! install_with_yarn_or_npm; then
+    return 1
+  fi
+
+  return 0
 }
 
 main "$@"
