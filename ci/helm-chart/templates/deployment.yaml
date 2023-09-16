@@ -20,6 +20,9 @@ spec:
       labels:
         app.kubernetes.io/name: {{ include "code-server.name" . }}
         app.kubernetes.io/instance: {{ .Release.Name }}
+      {{- if .Values.podAnnotations }}
+      annotations: {{- toYaml .Values.podAnnotations | nindent 8 }}
+      {{- end }}
     spec:
       imagePullSecrets: {{- toYaml .Values.imagePullSecrets | nindent 8 }}
       {{- if .Values.hostnameOverride }}
