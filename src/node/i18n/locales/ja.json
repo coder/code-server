@@ -1,0 +1,13 @@
+{
+  "LOGIN_TITLE": "{{app}} ログイン",
+  "LOGIN_BELOW": "以下によりログインしてください。",
+  "WELCOME": "ようこそ {{app}} へ！",
+  "LOGIN_PASSWORD": "パスワードは設定ファイル（ {{configFile}} ）を確認してください。",
+  "LOGIN_USING_ENV_PASSWORD": "パスワードは環境変数 $PASSWORD で設定されています。",
+  "LOGIN_USING_HASHED_PASSWORD": "パスワードは環境変数 $HASHED_PASSWORD で設定されています。",
+  "SUBMIT": "実行",
+  "PASSWORD_PLACEHOLDER": "パスワード",
+  "LOGIN_RATE_LIMIT": "ログイン制限を超えました！",
+  "MISS_PASSWORD": "パスワードを入力してください。",
+  "INCORRECT_PASSWORD": "パスワードが間違っています。"
+}
