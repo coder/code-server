@@ -212,6 +212,9 @@ jobs:
         with:
           submodules: true
 
+      - name: Install system dependencies
+        run: sudo apt update && sudo apt install -y libkrb5-dev
+
       - name: Install quilt
         uses: awalsh128/cache-apt-pkgs-action@latest
         with:
@@ -292,6 +295,9 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
 
+      - name: Install system dependencies
+        run: sudo apt update && sudo apt install -y libkrb5-dev
+
       - name: Install Node.js v16
         uses: actions/setup-node@v3
         with:
@@ -347,6 +353,9 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
+
+      - name: Install system dependencies
+        run: sudo apt update && sudo apt install -y libkrb5-dev
 
       - name: Install Node.js v16
         uses: actions/setup-node@v3
