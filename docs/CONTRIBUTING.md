@@ -37,7 +37,7 @@ for [VS
 Code](https://github.com/Microsoft/vscode/wiki/How-to-Contribute#prerequisites).
 Here is what is needed:
 
-- `node` v16.x
+- `node` v18.x
 - `git` v2.x or greater
 - [`git-lfs`](https://git-lfs.github.com)
 - [`yarn`](https://classic.yarnpkg.com/en/)

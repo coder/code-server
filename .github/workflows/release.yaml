@@ -35,10 +35,10 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
 
-      - name: Install Node.js v16
+      - name: Install Node.js v18
         uses: actions/setup-node@v3
         with:
-          node-version: "16"
+          node-version: "18"
 
       - name: Install development tools
         run: |
@@ -142,16 +142,16 @@ jobs:
       CXX: ${{ format('{0}-g++', matrix.prefix) }}
       LINK: ${{ format('{0}-g++', matrix.prefix) }}
       NPM_CONFIG_ARCH: ${{ matrix.arch }}
-      NODE_VERSION: v16.13.0
+      NODE_VERSION: v18.15.0
 
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
 
-      - name: Install Node.js v16
+      - name: Install Node.js v18
         uses: actions/setup-node@v3
         with:
-          node-version: "16"
+          node-version: "18"
 
       - name: Install nfpm
         run: |
@@ -210,10 +210,10 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
 
-      - name: Install Node.js v16
+      - name: Install Node.js v18
         uses: actions/setup-node@v3
         with:
-          node-version: "16"
+          node-version: "18"
 
       - name: Install nfpm
         run: |
