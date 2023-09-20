@@ -7,7 +7,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/extensions/browser/extens
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/contrib/extensions/browser/extensionsWorkbenchService.ts
 +++ code-server/lib/vscode/src/vs/workbench/contrib/extensions/browser/extensionsWorkbenchService.ts
-@@ -243,6 +243,10 @@ export class Extension implements IExten
+@@ -244,6 +244,10 @@ export class Extension implements IExten
  			if (this.type === ExtensionType.System && this.productService.quality === 'stable') {
  				return false;
  			}

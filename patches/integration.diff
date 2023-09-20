@@ -184,7 +184,7 @@ Index: code-server/lib/vscode/src/vs/workbench/browser/web.main.ts
  import { ITelemetryService } from 'vs/platform/telemetry/common/telemetry';
  import { IProgressService } from 'vs/platform/progress/common/progress';
  import { DelayedLogChannel } from 'vs/workbench/services/output/common/delayedLogChannel';
-@@ -127,6 +128,9 @@ export class BrowserMain extends Disposa
+@@ -132,6 +133,9 @@ export class BrowserMain extends Disposa
  		// Startup
  		const instantiationService = workbench.startup();
  
@@ -264,7 +264,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -305,6 +305,7 @@ export class WebClientServer {
+@@ -306,6 +306,7 @@ export class WebClientServer {
  		} : undefined;
  
  		const productConfiguration = <Partial<IProductConfiguration>>{

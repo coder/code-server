@@ -105,7 +105,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -309,6 +309,7 @@ export class WebClientServer {
+@@ -310,6 +310,7 @@ export class WebClientServer {
  		const productConfiguration = <Partial<IProductConfiguration>>{
  			codeServerVersion: this._productService.codeServerVersion,
  			rootEndpoint: base,
@@ -117,8 +117,8 @@ Index: code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
 +++ code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
-@@ -11,6 +11,8 @@ import { refineServiceDecorator } from '
- import { IEnvironmentService, INativeEnvironmentService } from 'vs/platform/environment/common/environment';
+@@ -13,6 +13,8 @@ import { memoize } from 'vs/base/common/
+ import { URI } from 'vs/base/common/uri';
  
  export const serverOptions: OptionDescriptions<Required<ServerParsedArgs>> = {
 +	/* ----- code-server ----- */
@@ -126,7 +126,7 @@ Index: code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
  
  	/* ----- server setup ----- */
  
-@@ -89,6 +91,8 @@ export const serverOptions: OptionDescri
+@@ -91,6 +93,8 @@ export const serverOptions: OptionDescri
  };
  
  export interface ServerParsedArgs {

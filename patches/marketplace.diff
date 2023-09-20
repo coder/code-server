@@ -40,7 +40,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -112,7 +112,7 @@ export class WebClientServer {
+@@ -113,7 +113,7 @@ export class WebClientServer {
  		const serverRootPath = getRemoteServerRootPath(_productService);
  		this._staticRoute = `${serverRootPath}/static`;
  		this._callbackRoute = `${serverRootPath}/callback`;
@@ -49,7 +49,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
  	}
  
  	/**
-@@ -310,14 +310,7 @@ export class WebClientServer {
+@@ -311,14 +311,7 @@ export class WebClientServer {
  			codeServerVersion: this._productService.codeServerVersion,
  			rootEndpoint: base,
  			embedderIdentifier: 'server-distro',

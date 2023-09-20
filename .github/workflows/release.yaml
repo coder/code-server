@@ -35,10 +35,10 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
 
-      - name: Install Node.js v16
+      - name: Install Node.js v18
         uses: actions/setup-node@v3
         with:
-          node-version: "16"
+          node-version: "18"
 
       - name: Install development tools
         run: |
@@ -46,6 +46,8 @@ jobs:
           yum install -y devtoolset-9-{make,gcc,gcc-c++} jq rsync python3
           # for keytar
           yum install -y libsecret-devel
+          # for kerberos
+          yum install -y krb5-devel
 
       - name: Install nfpm and envsubst
         run: |
@@ -140,16 +142,16 @@ jobs:
       CXX: ${{ format('{0}-g++', matrix.prefix) }}
       LINK: ${{ format('{0}-g++', matrix.prefix) }}
       NPM_CONFIG_ARCH: ${{ matrix.arch }}
-      NODE_VERSION: v16.13.0
+      NODE_VERSION: v18.15.0
 
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
 
-      - name: Install Node.js v16
+      - name: Install Node.js v18
         uses: actions/setup-node@v3
         with:
-          node-version: "16"
+          node-version: "18"
 
       - name: Install nfpm
         run: |
@@ -157,8 +159,8 @@ jobs:
           curl -sSfL https://github.com/goreleaser/nfpm/releases/download/v2.3.1/nfpm_2.3.1_`uname -s`_`uname -m`.tar.gz | tar -C ~/.local/bin -zxv nfpm
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
-      - name: Install cross-compiler
-        run: sudo apt update && sudo apt install $PACKAGE
+      - name: Install cross-compiler and system dependencies
+        run: sudo apt update && sudo apt install -y $PACKAGE libkrb5-dev
         env:
           PACKAGE: ${{ format('g++-{0}', matrix.prefix) }}
 
@@ -208,10 +210,10 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
 
-      - name: Install Node.js v16
+      - name: Install Node.js v18
         uses: actions/setup-node@v3
         with:
-          node-version: "16"
+          node-version: "18"
 
       - name: Install nfpm
         run: |
@@ -305,7 +307,7 @@ jobs:
           npm version --prefix release "$VERSION"
 
           echo "Updating version in lib/vscode/product.json"
-          tmp=$(mktemp) 
+          tmp=$(mktemp)
           jq ".codeServerVersion = \"$VERSION\"" release/lib/vscode/product.json > "$tmp" && mv "$tmp" release/lib/vscode/product.json
           # Ensure it has the same permissions as before
           chmod 644 release/lib/vscode/product.json
