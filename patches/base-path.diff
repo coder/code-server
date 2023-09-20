@@ -111,7 +111,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -268,16 +268,15 @@ export class WebClientServer {
+@@ -269,16 +269,15 @@ export class WebClientServer {
  			return void res.end();
  		}
  
@@ -133,7 +133,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
  		);
  		if (!remoteAuthority) {
  			return serveError(req, res, 400, `Bad request.`);
-@@ -304,8 +303,12 @@ export class WebClientServer {
+@@ -305,8 +304,12 @@ export class WebClientServer {
  			scopes: [['user:email'], ['repo']]
  		} : undefined;
  
@@ -146,7 +146,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
  			embedderIdentifier: 'server-distro',
  			extensionsGallery: this._webExtensionResourceUrlTemplate ? {
  				...this._productService.extensionsGallery,
-@@ -340,8 +343,10 @@ export class WebClientServer {
+@@ -341,8 +344,10 @@ export class WebClientServer {
  		const values: { [key: string]: string } = {
  			WORKBENCH_WEB_CONFIGURATION: asJSON(workbenchWebConfiguration),
  			WORKBENCH_AUTH_SESSION: authSessionInfo ? asJSON(authSessionInfo) : '',
@@ -159,7 +159,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
  		};
  
  		if (useTestResolver) {
-@@ -366,7 +371,7 @@ export class WebClientServer {
+@@ -367,7 +372,7 @@ export class WebClientServer {
  			'default-src \'self\';',
  			'img-src \'self\' https: data: blob:;',
  			'media-src \'self\';',
@@ -168,7 +168,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
  			'child-src \'self\';',
  			`frame-src 'self' https://*.vscode-cdn.net data:;`,
  			'worker-src \'self\' data: blob:;',
-@@ -439,3 +444,70 @@ export class WebClientServer {
+@@ -440,3 +445,70 @@ export class WebClientServer {
  		return void res.end(data);
  	}
  }
@@ -255,23 +255,25 @@ Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/code/browser/workbench/workbench.ts
 +++ code-server/lib/vscode/src/vs/code/browser/workbench/workbench.ts
-@@ -484,6 +484,7 @@ function doCreateUri(path: string, query
- 		});
+@@ -304,7 +304,8 @@ class LocalStorageURLCallbackProvider ex
+ 			this.startListening();
+ 		}
+ 
+-		return URI.parse(window.location.href).with({ path: this._callbackRoute, query: queryParams.join('&') });
++		const path = (window.location.pathname + "/" + this._callbackRoute).replace(/\/\/+/g, "/");
++		return URI.parse(window.location.href).with({ path: path, query: queryParams.join('&') });
  	}
  
-+	path = (window.location.pathname + "/" + path).replace(/\/\/+/g, "/")
- 	return URI.parse(window.location.href).with({ path, query });
- }
- 
-@@ -495,7 +496,7 @@ function doCreateUri(path: string, query
+ 	private startListening(): void {
+@@ -569,7 +570,7 @@ function readCookie(name: string): strin
  	if (!configElement || !configElementAttribute) {
  		throw new Error('Missing web configuration element');
  	}
 -	const config: IWorkbenchConstructionOptions & { folderUri?: UriComponents; workspaceUri?: UriComponents; callbackRoute: string } = JSON.parse(configElementAttribute);
 +	const config: IWorkbenchConstructionOptions & { folderUri?: UriComponents; workspaceUri?: UriComponents; callbackRoute: string } = { ...JSON.parse(configElementAttribute), remoteAuthority: location.host }
- 
- 	// Create workbench
- 	create(document.body, {
+ 	const secretStorageKeyPath = readCookie('vscode-secret-key-path');
+ 	const secretStorageCrypto = secretStorageKeyPath && ServerKeyedAESCrypto.supported()
+ 		? new ServerKeyedAESCrypto(secretStorageKeyPath) : new TransparentCrypto();
 Index: code-server/lib/vscode/src/vs/platform/extensionResourceLoader/common/extensionResourceLoader.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/platform/extensionResourceLoader/common/extensionResourceLoader.ts
