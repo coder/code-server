@@ -25,20 +25,16 @@ jobs:
   package-linux-amd64:
     name: x86-64 Linux build
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 60
     needs: npm-version
     container: "centos:7"
     env:
+      NODE_VERSION: "18.15.0"
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
-
-      - name: Install Node.js v18
-        uses: actions/setup-node@v3
-        with:
-          node-version: "18"
 
       - name: Install development tools
         run: |
@@ -57,6 +53,33 @@ jobs:
           chmod +x envsubst
           mv envsubst ~/.local/bin
           echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      # Node dropped support for CentOS 7 so we have to build it.
+      - name: Fetch Node from cache
+        id: cache-node
+        uses: actions/cache@v3
+        with:
+          path: "lib/node"
+          key: "node-${env.NODE_VERSION}"
+
+      - name: Download Node source code
+        if: steps.cache-node.outputs.cache-hit != 'true'
+        run: |
+          wget https://nodejs.org/dist/v${env.NODE_VERSION}/node-v${env.NODE_VERSION}.tar.xz
+          tar -Jxf node-v${env.NODE_VERSION}.tar.xz
+
+      - name: Build Node
+        if: steps.cache-node.outputs.cache-hit != 'true'
+        run: |
+          source scl_source enable devtoolset-9
+          cd node-v${{ env.NODE_VERSION }}
+          ./configure --prefix=../node-v${{ env.NODE_VERSION }}-linux-x$(getconf LONG_BIT)
+          make -j$(($(nproc --all)+1)) && make install && cp -a ./{LICENSE,CHANGELOG.md,README.md} ../node-v${{ env.NODE_VERSION }}-linux-x$(getconf LONG_BIT)/
+          strip ../node-v${{ env.NODE_VERSION }}-linux-x$(getconf LONG_BIT)/bin/node
+          mv ../node-v${{ env.VERSION }}-linux-x$(getconf LONG_BIT)/bin/node ../lib/node
+
+      - name: Install Node
+        run: cp lib/node /usr/local/bin/node
 
       - name: Install yarn
         run: npm install -g yarn
