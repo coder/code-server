@@ -27,7 +27,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     needs: npm-version
-    container: "centos:7"
+    container: "centos:8"
     env:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
@@ -42,12 +42,10 @@ jobs:
 
       - name: Install development tools
         run: |
-          yum install -y epel-release centos-release-scl make
-          yum install -y devtoolset-9-{make,gcc,gcc-c++} jq rsync python3
-          # for keytar
-          yum install -y libsecret-devel
-          # for kerberos
-          yum install -y krb5-devel
+          cd /etc/yum.repos.d/
+          sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-*
+          sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-*
+          yum install -y gcc-c++ make jq rsync python3 libsecret-devel krb5-devel
 
       - name: Install nfpm and envsubst
         run: |
@@ -69,10 +67,8 @@ jobs:
       - name: Decompress npm package
         run: tar -xzf package.tar.gz
 
-      # NOTE: && here is deliberate - GitHub puts each line in its own `.sh`
-      # file when running inside a docker container.
       - name: Build standalone release
-        run: source scl_source enable devtoolset-9 && npm run release:standalone
+        run: npm run release:standalone
 
       - name: Install test dependencies
         run: SKIP_SUBMODULE_DEPS=1 yarn --frozen-lockfile
@@ -104,25 +100,7 @@ jobs:
           discussion_category_name: "📣 Announcements"
           files: ./release-packages/*
 
-  # NOTE@oxy:
-  # We use Ubuntu 16.04 here, so that our build is more compatible
-  # with older libc versions. We used to (Q1'20) use CentOS 7 here,
-  # but it has a full update EOL of Q4'20 and a 'critical security'
-  # update EOL of 2024. We're dropping full support a few years before
-  # the final EOL, but I don't believe CentOS 7 has a large arm64 userbase.
-  # It is not feasible to cross-compile with CentOS.
-
-  # Cross-compile notes: To compile native dependencies for arm64,
-  # we install the aarch64/armv7l cross toolchain and then set it as the default
-  # compiler/linker/etc. with the AR/CC/CXX/LINK environment variables.
-  # qemu-user-static on ubuntu-16.04 currently doesn't run Node correctly,
-  # so we just build with "native"/x86_64 node, then download arm64/armv7l node
-  # and then put it in our release. We can't smoke test the cross build this way,
-  # but this means we don't need to maintain a self-hosted runner!
-
-  # NOTE@jsjoeio:
-  # We used to use 18.04 until GitHub browned it out on December 15, 2022
-  # See here: https://github.com/actions/runner-images/issues/6002
+  # TODO: We should use the same CentOS image to cross-compile if possible?
   package-linux-cross:
     name: Linux cross-compile builds
     runs-on: ubuntu-20.04
