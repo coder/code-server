@@ -103,10 +103,9 @@ _exact_ same commands presented in the rest of this document.
 We recommend installing with `npm` when:
 
 1. You aren't using a machine with `amd64` or `arm64`.
-1. You are installing code-server on Windows
-1. You're on Linux with `glibc` < v2.17, `glibcxx` < v3.4.18 on `amd64`, `glibc`
-   < v2.23, or `glibcxx` < v3.4.21 on `arm64`.
-1. You're running Alpine Linux or are using a non-glibc libc. See
+2. You are installing code-server on Windows.
+3. You're on Linux with `glibc` < v2.28 or `glibcxx` < v3.4.21.
+4. You're running Alpine Linux or are using a non-glibc libc. See
    [#1430](https://github.com/coder/code-server/issues/1430#issuecomment-629883198)
    for more information.
 
@@ -123,8 +122,8 @@ node binary and node modules.
 We create the standalone releases using the [npm package](#npm), and we
 then create the remaining releases using the standalone version.
 
-The only requirement to use the standalone release is `glibc` >= 2.17 and
-`glibcxx` >= v3.4.18 on Linux (for macOS, there is no minimum system
+The only requirement to use the standalone release is `glibc` >= 2.28 and
+`glibcxx` >= v3.4.21 on Linux (for macOS, there is no minimum system
 requirement).
 
 To use a standalone release:
