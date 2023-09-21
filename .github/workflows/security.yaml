@@ -47,8 +47,12 @@ jobs:
         if: steps.cache-yarn.outputs.cache-hit != 'true'
         run: SKIP_SUBMODULE_DEPS=1 yarn --frozen-lockfile
 
-      - name: Audit for vulnerabilities
+      - name: Audit yarn for vulnerabilities
         run: yarn _audit
+        if: success()
+
+      - name: Audit npm for vulnerabilities
+        run: npm shrinkwrap && npm audit
         if: success()
 
   trivy-scan-repo:
