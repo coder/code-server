@@ -1,4 +1,3 @@
-import * as bodyParser from "body-parser"
 import * as express from "express"
 import * as http from "http"
 import nodeFetch from "node-fetch"
@@ -110,7 +109,7 @@ describe("proxy", () => {
   })
 
   it("should allow post bodies", async () => {
-    e.use(bodyParser.json({ strict: false }))
+    e.use(express.json({ strict: false }))
     e.post("/wsup", (req, res) => {
       res.json(req.body)
     })
@@ -127,7 +126,7 @@ describe("proxy", () => {
   })
 
   it("should handle bad requests", async () => {
-    e.use(bodyParser.json({ strict: false }))
+    e.use(express.json({ strict: false }))
     e.post("/wsup", (req, res) => {
       res.json(req.body)
     })
@@ -154,7 +153,7 @@ describe("proxy", () => {
   })
 
   it("should handle errors", async () => {
-    e.use(bodyParser.json({ strict: false }))
+    e.use(express.json({ strict: false }))
     e.post("/wsup", (req, res) => {
       throw new Error("BROKEN")
     })
