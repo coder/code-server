@@ -129,7 +129,7 @@ jobs:
       - name: Install Node.js v18
         uses: actions/setup-node@v3
         with:
-          node-version: "18"
+          node-version: "18.15.0"
 
       - name: Install nfpm
         run: |
@@ -137,8 +137,21 @@ jobs:
           curl -sSfL https://github.com/goreleaser/nfpm/releases/download/v2.3.1/nfpm_2.3.1_`uname -s`_`uname -m`.tar.gz | tar -C ~/.local/bin -zxv nfpm
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
-      - name: Install cross-compiler and system dependencies
+      - name: Install cross-compiler and system dependencies (arm64)
+        if: ${{ matrix.arch != 'armv7l' }}
         run: sudo apt update && sudo apt install -y $PACKAGE libkrb5-dev
+        env:
+          PACKAGE: ${{ format('g++-{0}', matrix.prefix) }}
+
+      - name: Install cross-compiler and system dependencies (armv7l)
+        if: ${{ matrix.arch == 'armv7l' }}
+        run: |
+          sudo sed -i "s/^deb/deb [arch=amd64,i386]/g" /etc/apt/sources.list
+          echo "deb [arch=arm64,armhf] http://ports.ubuntu.com/ $(lsb_release -s -c) main universe multiverse restricted" | sudo tee -a /etc/apt/sources.list
+          echo "deb [arch=arm64,armhf] http://ports.ubuntu.com/ $(lsb_release -s -c)-updates main universe multiverse restricted" | sudo tee -a /etc/apt/sources.list
+          sudo dpkg --add-architecture armhf
+          sudo apt update
+          sudo apt install -y $PACKAGE libkrb5-dev:armhf
         env:
           PACKAGE: ${{ format('g++-{0}', matrix.prefix) }}
 
