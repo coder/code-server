@@ -119,7 +119,7 @@ jobs:
       CC: ${{ format('{0}-gcc', matrix.prefix) }}
       CXX: ${{ format('{0}-g++', matrix.prefix) }}
       LINK: ${{ format('{0}-g++', matrix.prefix) }}
-      NPM_CONFIG_ARCH: ${{ matrix.arch }}
+      npm_config_arch: ${{ matrix.arch }}
       NODE_VERSION: v18.15.0
 
     steps:
@@ -150,15 +150,13 @@ jobs:
       - name: Decompress npm package
         run: tar -xzf package.tar.gz
 
-      # NOTE@jsjoeio - npm fails here
-      # so use yarn
       - name: Build standalone release
-        run: yarn release:standalone
+        run: npm run release:standalone
 
       - name: Replace node with cross-compile equivalent
         run: |
-          wget https://nodejs.org/dist/${NODE_VERSION}/node-${NODE_VERSION}-linux-${NPM_CONFIG_ARCH}.tar.xz
-          tar -xf node-${NODE_VERSION}-linux-${NPM_CONFIG_ARCH}.tar.xz node-${NODE_VERSION}-linux-${NPM_CONFIG_ARCH}/bin/node --strip-components=2
+          wget https://nodejs.org/dist/${NODE_VERSION}/node-${NODE_VERSION}-linux-${npm_config_arch}.tar.xz
+          tar -xf node-${NODE_VERSION}-linux-${npm_config_arch}.tar.xz node-${NODE_VERSION}-linux-${npm_config_arch}/bin/node --strip-components=2
           mv ./node ./release-standalone/lib/node
 
       # NOTE@jsjoeio - we do this so we can strip out the v
@@ -171,7 +169,7 @@ jobs:
       - name: Build packages with nfpm
         env:
           VERSION: ${{ env.VERSION }}
-        run: yarn package ${NPM_CONFIG_ARCH}
+        run: yarn package ${npm_config_arch}
 
       - uses: softprops/action-gh-release@v1
         with:

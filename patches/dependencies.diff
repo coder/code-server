@@ -1,0 +1,62 @@
+Modify VS Code dependencies
+
+1. Kerberos: this is not building in our cross-compile step.  It does not look
+   like something code-server uses right now anyway.
+
+Index: code-server/lib/vscode/remote/package.json
+===================================================================
+--- code-server.orig/lib/vscode/remote/package.json
++++ code-server/lib/vscode/remote/package.json
+@@ -18,7 +18,6 @@
+     "http-proxy-agent": "^2.1.0",
+     "https-proxy-agent": "^2.2.3",
+     "jschardet": "3.0.0",
+-    "kerberos": "^2.0.1",
+     "keytar": "7.9.0",
+     "minimist": "^1.2.6",
+     "native-watchdog": "^1.4.1",
+Index: code-server/lib/vscode/remote/yarn.lock
+===================================================================
+--- code-server.orig/lib/vscode/remote/yarn.lock
++++ code-server/lib/vscode/remote/yarn.lock
+@@ -454,15 +454,6 @@ jschardet@3.0.0:
+   resolved "https://registry.yarnpkg.com/jschardet/-/jschardet-3.0.0.tgz#898d2332e45ebabbdb6bf2feece9feea9a99e882"
+   integrity sha512-lJH6tJ77V8Nzd5QWRkFYCLc13a3vADkh3r/Fi8HupZGWk2OVVDfnZP8V/VgQgZ+lzW0kG2UGb5hFgt3V3ndotQ==
+ 
+-kerberos@^2.0.1:
+-  version "2.0.1"
+-  resolved "https://registry.yarnpkg.com/kerberos/-/kerberos-2.0.1.tgz#663b0b46883b4da84495f60f2e9e399a43a33ef5"
+-  integrity sha512-O/jIgbdGK566eUhFwIcgalbqirYU/r76MW7/UFw06Fd9x5bSwgyZWL/Vm26aAmezQww/G9KYkmmJBkEkPk5HLw==
+-  dependencies:
+-    bindings "^1.5.0"
+-    node-addon-api "^4.3.0"
+-    prebuild-install "7.1.1"
+-
+ keytar@7.9.0:
+   version "7.9.0"
+   resolved "https://registry.yarnpkg.com/keytar/-/keytar-7.9.0.tgz#4c6225708f51b50cbf77c5aae81721964c2918cb"
+@@ -604,24 +595,6 @@ picomatch@^2.3.1:
+   resolved "https://registry.yarnpkg.com/picomatch/-/picomatch-2.3.1.tgz#3ba3833733646d9d3e4995946c1365a67fb07a42"
+   integrity sha512-JU3teHTNjmE2VCGFzuY8EXzCDVwEqB2a8fsIvwaStHhAWJEeVd1o1QD80CU6+ZdEXXSLbSsuLwJjkCBWqRQUVA==
+ 
+-prebuild-install@7.1.1:
+-  version "7.1.1"
+-  resolved "https://registry.yarnpkg.com/prebuild-install/-/prebuild-install-7.1.1.tgz#de97d5b34a70a0c81334fd24641f2a1702352e45"
+-  integrity sha512-jAXscXWMcCK8GgCoHOfIr0ODh5ai8mj63L2nWrjuAgXE6tDyYGnx4/8o/rCgU+B4JSyZBKbeZqzhtwtC3ovxjw==
+-  dependencies:
+-    detect-libc "^2.0.0"
+-    expand-template "^2.0.3"
+-    github-from-package "0.0.0"
+-    minimist "^1.2.3"
+-    mkdirp-classic "^0.5.3"
+-    napi-build-utils "^1.0.1"
+-    node-abi "^3.3.0"
+-    pump "^3.0.0"
+-    rc "^1.2.7"
+-    simple-get "^4.0.0"
+-    tar-fs "^2.0.0"
+-    tunnel-agent "^0.6.0"
+-
+ prebuild-install@^7.0.1:
+   version "7.0.1"
+   resolved "https://registry.yarnpkg.com/prebuild-install/-/prebuild-install-7.0.1.tgz#c10075727c318efe72412f333e0ef625beaf3870"
