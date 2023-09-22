@@ -150,10 +150,8 @@ jobs:
       - name: Decompress npm package
         run: tar -xzf package.tar.gz
 
-      # NOTE@jsjoeio - npm fails here
-      # so use yarn
       - name: Build standalone release
-        run: yarn release:standalone
+        run: npm run release:standalone
 
       - name: Replace node with cross-compile equivalent
         run: |
