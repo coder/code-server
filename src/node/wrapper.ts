@@ -78,7 +78,10 @@ type ChildMessage = RelaunchMessage | ChildHandshakeMessage
 type ParentMessage = ParentHandshakeMessage
 
 class ProcessError extends Error {
-  public constructor(message: string, public readonly code: number | undefined) {
+  public constructor(
+    message: string,
+    public readonly code: number | undefined,
+  ) {
     super(message)
     this.name = this.constructor.name
     Error.captureStackTrace(this, this.constructor)

@@ -269,7 +269,10 @@ export class CodeServer {
 export class CodeServerPage {
   private readonly editorSelector = "div.monaco-workbench"
 
-  constructor(private readonly codeServer: CodeServer, public readonly page: Page) {
+  constructor(
+    private readonly codeServer: CodeServer,
+    public readonly page: Page,
+  ) {
     this.page.on("console", (message) => {
       this.codeServer.logger.debug(message.text())
     })

@@ -31,7 +31,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Run prettier with actionsx/prettier
-        uses: actionsx/prettier@v2
+        uses: actionsx/prettier@v3
         with:
           args: --check --loglevel=warn .
 

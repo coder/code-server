@@ -35,7 +35,7 @@ export class HttpServer {
     return new Promise((resolve, reject) => {
       this.hs.on("error", reject)
 
-      this.hs.listen(0, "localhost", () => {
+      this.hs.listen(0, "127.0.0.1", () => {
         this.hs.off("error", reject)
         resolve()
 

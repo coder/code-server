@@ -1,10 +1,10 @@
 import { logger } from "@coder/logger"
 import * as http from "http"
-import { AddressInfo } from "net"
 import * as path from "path"
+import { ensureAddress } from "../../../src/node/app"
 import { SettingsProvider, UpdateSettings } from "../../../src/node/settings"
 import { LatestResponse, UpdateProvider } from "../../../src/node/update"
-import { clean, isAddressInfo, mockLogger, tmpdir } from "../../utils/helpers"
+import { clean, mockLogger, tmpdir } from "../../utils/helpers"
 
 describe("update", () => {
   let version = "1.0.0"
@@ -79,7 +79,6 @@ describe("update", () => {
   }
 
   let _provider: UpdateProvider | undefined
-  let _address: string | AddressInfo | null
   const provider = (): UpdateProvider => {
     if (!_provider) {
       throw new Error("Update provider has not been created")
@@ -87,6 +86,7 @@ describe("update", () => {
     return _provider
   }
 
+  let address = new URL("http://localhost")
   beforeAll(async () => {
     mockLogger()
 
@@ -105,12 +105,13 @@ describe("update", () => {
       })
     })
 
-    _address = server.address()
-    if (!isAddressInfo(_address)) {
-      throw new Error("unexpected address")
+    const addr = ensureAddress(server, "http")
+    if (typeof addr === "string") {
+      throw new Error("unable to run update tests with unix sockets")
     }
-
-    _provider = new UpdateProvider(`http://${_address?.address}:${_address?.port}/latest`, _settings)
+    address = addr
+    address.pathname = "/latest"
+    _provider = new UpdateProvider(address.toString(), _settings)
   })
 
   afterAll(() => {
@@ -220,59 +221,51 @@ describe("update", () => {
   })
 
   it("should reject if response has status code 500", async () => {
-    if (isAddressInfo(_address)) {
-      const mockURL = `http://${_address.address}:${_address.port}/reject-status-code`
-      const provider = new UpdateProvider(mockURL, settings())
-      const update = await provider.getUpdate(true)
+    address.pathname = "/reject-status-code"
+    const provider = new UpdateProvider(address.toString(), settings())
+    const update = await provider.getUpdate(true)
 
-      expect(update.version).toBe("unknown")
-      expect(logger.error).toHaveBeenCalled()
-      expect(logger.error).toHaveBeenCalledWith("Failed to get latest version", {
-        identifier: "error",
-        value: `${mockURL}: 500`,
-      })
-    }
+    expect(update.version).toBe("unknown")
+    expect(logger.error).toHaveBeenCalled()
+    expect(logger.error).toHaveBeenCalledWith("Failed to get latest version", {
+      identifier: "error",
+      value: `${address.toString()}: 500`,
+    })
   })
 
   it("should reject if no location header provided", async () => {
-    if (isAddressInfo(_address)) {
-      const mockURL = `http://${_address.address}:${_address.port}/no-location-header`
-      const provider = new UpdateProvider(mockURL, settings())
-      const update = await provider.getUpdate(true)
+    address.pathname = "/no-location-header"
+    const provider = new UpdateProvider(address.toString(), settings())
+    const update = await provider.getUpdate(true)
 
-      expect(update.version).toBe("unknown")
-      expect(logger.error).toHaveBeenCalled()
-      expect(logger.error).toHaveBeenCalledWith("Failed to get latest version", {
-        identifier: "error",
-        value: `received redirect with no location header`,
-      })
-    }
+    expect(update.version).toBe("unknown")
+    expect(logger.error).toHaveBeenCalled()
+    expect(logger.error).toHaveBeenCalledWith("Failed to get latest version", {
+      identifier: "error",
+      value: `received redirect with no location header`,
+    })
   })
 
   it("should resolve the request with response.headers.location", async () => {
     version = "4.1.1"
-    if (isAddressInfo(_address)) {
-      const mockURL = `http://${_address.address}:${_address.port}/with-location-header`
-      const provider = new UpdateProvider(mockURL, settings())
-      const update = await provider.getUpdate(true)
+    address.pathname = "/with-location-header"
+    const provider = new UpdateProvider(address.toString(), settings())
+    const update = await provider.getUpdate(true)
 
-      expect(logger.error).not.toHaveBeenCalled()
-      expect(update.version).toBe("4.1.1")
-    }
+    expect(logger.error).not.toHaveBeenCalled()
+    expect(update.version).toBe("4.1.1")
   })
 
   it("should reject if more than 10 redirects", async () => {
-    if (isAddressInfo(_address)) {
-      const mockURL = `http://${_address.address}:${_address.port}/redirect/11`
-      const provider = new UpdateProvider(mockURL, settings())
-      const update = await provider.getUpdate(true)
+    address.pathname = "/redirect/11"
+    const provider = new UpdateProvider(address.toString(), settings())
+    const update = await provider.getUpdate(true)
 
-      expect(update.version).toBe("unknown")
-      expect(logger.error).toHaveBeenCalled()
-      expect(logger.error).toHaveBeenCalledWith("Failed to get latest version", {
-        identifier: "error",
-        value: `reached max redirects`,
-      })
-    }
+    expect(update.version).toBe("unknown")
+    expect(logger.error).toHaveBeenCalled()
+    expect(logger.error).toHaveBeenCalledWith("Failed to get latest version", {
+      identifier: "error",
+      value: `reached max redirects`,
+    })
   })
 })

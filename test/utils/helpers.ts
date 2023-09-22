@@ -109,20 +109,6 @@ export function idleTimer(message: string, reject: (error: Error) => void, delay
 }
 
 /**
- * A helper function which returns a boolean indicating whether
- * the given address is AddressInfo and has .address
- * and a .port property.
- */
-export function isAddressInfo(address: unknown): address is net.AddressInfo {
-  return (
-    address !== null &&
-    typeof address !== "string" &&
-    (address as net.AddressInfo).port !== undefined &&
-    (address as net.AddressInfo).address !== undefined
-  )
-}
-
-/**
  * If using a proxy, return the address of the proxy.
  *
  * Otherwise, return the direct address of code-server.

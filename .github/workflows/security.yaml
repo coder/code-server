@@ -34,21 +34,12 @@ jobs:
         with:
           node-version: "18"
 
-      - name: Fetch dependencies from cache
-        id: cache-yarn
-        uses: actions/cache@v3
-        with:
-          path: "**/node_modules"
-          key: yarn-build-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            yarn-build-
+      - name: Audit yarn for vulnerabilities
+        run: yarn audit
+        if: success()
 
-      - name: Install dependencies
-        if: steps.cache-yarn.outputs.cache-hit != 'true'
-        run: SKIP_SUBMODULE_DEPS=1 yarn --frozen-lockfile
-
-      - name: Audit for vulnerabilities
-        run: yarn _audit
+      - name: Audit npm for vulnerabilities
+        run: npm shrinkwrap && npm audit
         if: success()
 
   trivy-scan-repo:

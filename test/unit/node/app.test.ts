@@ -92,7 +92,7 @@ describe("createApp", () => {
       app.dispose()
     }
 
-    expect(() => masterBall()).rejects.toThrow(`listen EACCES: permission denied 127.0.0.1:${port}`)
+    expect(() => masterBall()).rejects.toThrow("listen EACCES: permission denied")
   })
 
   it("should unlink a socket before listening on the socket", async () => {
