@@ -3,6 +3,8 @@ import * as en from "./locales/en.json"
 import * as ja from "./locales/ja.json"
 import * as th from "./locales/th.json"
 import * as zhCn from "./locales/zh-cn.json"
+import * as ur from "./locales/ur.json"
+
 init({
   lng: "en",
   fallbackLng: "en", // language to use if translations in user language are not available.
@@ -22,6 +24,9 @@ init({
     ja: {
       translation: ja,
     },
+    ur: {
+      translation: ur
+    }
   },
 })
 
