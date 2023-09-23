@@ -2,8 +2,8 @@ import i18next, { init } from "i18next"
 import * as en from "./locales/en.json"
 import * as ja from "./locales/ja.json"
 import * as th from "./locales/th.json"
-import * as zhCn from "./locales/zh-cn.json"
 import * as ur from "./locales/ur.json"
+import * as zhCn from "./locales/zh-cn.json"
 
 init({
   lng: "en",
@@ -25,8 +25,8 @@ init({
       translation: ja,
     },
     ur: {
-      translation: ur
-    }
+      translation: ur,
+    },
   },
 })
 
