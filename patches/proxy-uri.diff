@@ -104,7 +104,7 @@ Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench.ts
  import type { IURLCallbackProvider } from 'vs/workbench/services/url/browser/urlService';
  import { create } from 'vs/workbench/workbench.web.main';
  
-@@ -582,6 +583,39 @@ function readCookie(name: string): strin
+@@ -571,6 +572,39 @@ class WorkspaceProvider implements IWork
  		settingsSyncOptions: config.settingsSyncOptions ? { enabled: config.settingsSyncOptions.enabled, } : undefined,
  		workspaceProvider: WorkspaceProvider.create(config),
  		urlCallbackProvider: new LocalStorageURLCallbackProvider(config.callbackRoute),
