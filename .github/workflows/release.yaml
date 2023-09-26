@@ -121,6 +121,7 @@ jobs:
       LINK: ${{ format('{0}-g++', matrix.prefix) }}
       npm_config_arch: ${{ matrix.arch }}
       NODE_VERSION: v18.15.0
+      npm_config_build_from_source: true
 
     steps:
       - name: Checkout repo
