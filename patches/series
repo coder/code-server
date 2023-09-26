@@ -9,7 +9,6 @@ update-check.diff
 logout.diff
 store-socket.diff
 proxy-uri.diff
-github-auth.diff
 unique-db.diff
 local-storage.diff
 service-worker.diff

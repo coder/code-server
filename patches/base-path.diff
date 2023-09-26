@@ -265,15 +265,35 @@ Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench.ts
  	}
  
  	private startListening(): void {
-@@ -569,7 +570,7 @@ function readCookie(name: string): strin
+@@ -550,17 +551,6 @@ class WorkspaceProvider implements IWork
+ 	}
+ }
+ 
+-function readCookie(name: string): string | undefined {
+-	const cookies = document.cookie.split('; ');
+-	for (const cookie of cookies) {
+-		if (cookie.startsWith(name + '=')) {
+-			return cookie.substring(name.length + 1);
+-		}
+-	}
+-
+-	return undefined;
+-}
+-
+ (function () {
+ 
+ 	// Find config by checking for DOM
+@@ -569,8 +559,8 @@ function readCookie(name: string): strin
  	if (!configElement || !configElementAttribute) {
  		throw new Error('Missing web configuration element');
  	}
 -	const config: IWorkbenchConstructionOptions & { folderUri?: UriComponents; workspaceUri?: UriComponents; callbackRoute: string } = JSON.parse(configElementAttribute);
+-	const secretStorageKeyPath = readCookie('vscode-secret-key-path');
 +	const config: IWorkbenchConstructionOptions & { folderUri?: UriComponents; workspaceUri?: UriComponents; callbackRoute: string } = { ...JSON.parse(configElementAttribute), remoteAuthority: location.host }
- 	const secretStorageKeyPath = readCookie('vscode-secret-key-path');
++	const secretStorageKeyPath = (window.location.pathname + "/mint-key").replace(/\/\/+/g, "/");
  	const secretStorageCrypto = secretStorageKeyPath && ServerKeyedAESCrypto.supported()
  		? new ServerKeyedAESCrypto(secretStorageKeyPath) : new TransparentCrypto();
+ 
 Index: code-server/lib/vscode/src/vs/platform/extensionResourceLoader/common/extensionResourceLoader.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/platform/extensionResourceLoader/common/extensionResourceLoader.ts
