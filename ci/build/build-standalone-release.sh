@@ -9,11 +9,11 @@ main() {
   rsync "$RELEASE_PATH/" "$RELEASE_PATH-standalone"
   RELEASE_PATH+=-standalone
 
-  # We cannot find the path to node from $PATH because yarn shims a script to ensure
-  # we use the same version it's using so we instead run a script with yarn that
-  # will print the path to node.
+  # We cannot get the path to Node from $PATH (for example via `which node`)
+  # because Yarn shims a script called `node` and we would end up just copying
+  # that script.  Instead we run Node and have it print its actual path.
   local node_path
-  node_path="$(yarn -s node <<< 'console.info(process.execPath)')"
+  node_path="$(node <<< 'console.info(process.execPath)')"
 
   mkdir -p "$RELEASE_PATH/bin"
   mkdir -p "$RELEASE_PATH/lib"

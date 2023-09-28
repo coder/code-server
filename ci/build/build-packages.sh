@@ -27,7 +27,7 @@ main() {
 release_archive() {
   local release_name="code-server-$VERSION-$OS-$ARCH"
   if [[ $OS == "linux" ]]; then
-    tar -czf "release-packages/$release_name.tar.gz" --transform "s/^\.\/release-standalone/$release_name/" ./release-standalone
+    tar -czf "release-packages/$release_name.tar.gz" --owner=0 --group=0 --transform "s/^\.\/release-standalone/$release_name/" ./release-standalone
   else
     tar -czf "release-packages/$release_name.tar.gz" -s "/^release-standalone/$release_name/" release-standalone
   fi

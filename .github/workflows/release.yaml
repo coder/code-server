@@ -38,7 +38,7 @@ jobs:
       - name: Install Node.js v18
         uses: actions/setup-node@v3
         with:
-          node-version: "18"
+          node-version: "18.15.0"
 
       - name: Install development tools
         run: |
@@ -100,27 +100,37 @@ jobs:
           discussion_category_name: "📣 Announcements"
           files: ./release-packages/*
 
-  # TODO: We should use the same CentOS image to cross-compile if possible?
   package-linux-cross:
     name: Linux cross-compile builds
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     timeout-minutes: 15
     needs: npm-version
+    container: "debian:buster"
     strategy:
       matrix:
         include:
           - prefix: aarch64-linux-gnu
-            arch: arm64
+            npm_arch: arm64
+            apt_arch: arm64
           - prefix: arm-linux-gnueabihf
-            arch: armv7l
+            npm_arch: armv7l
+            apt_arch: armhf
 
     env:
       AR: ${{ format('{0}-ar', matrix.prefix) }}
+      AS: ${{ format('{0}-as', matrix.prefix) }}
       CC: ${{ format('{0}-gcc', matrix.prefix) }}
+      CPP: ${{ format('{0}-cpp', matrix.prefix) }}
       CXX: ${{ format('{0}-g++', matrix.prefix) }}
-      LINK: ${{ format('{0}-g++', matrix.prefix) }}
-      npm_config_arch: ${{ matrix.arch }}
+      FC: ${{ format('{0}-gfortran', matrix.prefix) }}
+      LD: ${{ format('{0}-ld', matrix.prefix) }}
+      STRIP: ${{ format('{0}-strip', matrix.prefix) }}
+      PKG_CONFIG_PATH: ${{ format('/usr/lib/{0}/pkgconfig', matrix.prefix) }}
+      TARGET_ARCH: ${{ matrix.apt_arch }}
+      npm_config_arch: ${{ matrix.npm_arch }}
       NODE_VERSION: v18.15.0
+      # Not building from source results in an x86_64 argon2, as if
+      # npm_config_arch is being ignored.
       npm_config_build_from_source: true
 
     steps:
@@ -132,29 +142,24 @@ jobs:
         with:
           node-version: "18.15.0"
 
+      - name: Install cross-compiler and system dependencies
+        run: |
+          dpkg --add-architecture $TARGET_ARCH
+          apt-get update && apt-get install -y --no-install-recommends \
+            crossbuild-essential-$TARGET_ARCH \
+            libx11-dev:$TARGET_ARCH \
+            libx11-xcb-dev:$TARGET_ARCH \
+            libxkbfile-dev:$TARGET_ARCH \
+            libsecret-1-dev:$TARGET_ARCH \
+            libkrb5-dev:$TARGET_ARCH \
+            ca-certificates \
+            curl wget rsync gettext-base
+
       - name: Install nfpm
         run: |
           mkdir -p ~/.local/bin
           curl -sSfL https://github.com/goreleaser/nfpm/releases/download/v2.3.1/nfpm_2.3.1_`uname -s`_`uname -m`.tar.gz | tar -C ~/.local/bin -zxv nfpm
           echo "$HOME/.local/bin" >> $GITHUB_PATH
-
-      - name: Install cross-compiler and system dependencies (arm64)
-        if: ${{ matrix.arch != 'armv7l' }}
-        run: sudo apt update && sudo apt install -y $PACKAGE libkrb5-dev
-        env:
-          PACKAGE: ${{ format('g++-{0}', matrix.prefix) }}
-
-      - name: Install cross-compiler and system dependencies (armv7l)
-        if: ${{ matrix.arch == 'armv7l' }}
-        run: |
-          sudo sed -i "s/^deb/deb [arch=amd64,i386]/g" /etc/apt/sources.list
-          echo "deb [arch=arm64,armhf] http://ports.ubuntu.com/ $(lsb_release -s -c) main universe multiverse restricted" | sudo tee -a /etc/apt/sources.list
-          echo "deb [arch=arm64,armhf] http://ports.ubuntu.com/ $(lsb_release -s -c)-updates main universe multiverse restricted" | sudo tee -a /etc/apt/sources.list
-          sudo dpkg --add-architecture armhf
-          sudo apt update
-          sudo apt install -y $PACKAGE libkrb5-dev:armhf
-        env:
-          PACKAGE: ${{ format('g++-{0}', matrix.prefix) }}
 
       - name: Download npm package
         uses: actions/download-artifact@v3
@@ -183,7 +188,7 @@ jobs:
       - name: Build packages with nfpm
         env:
           VERSION: ${{ env.VERSION }}
-        run: yarn package ${npm_config_arch}
+        run: npm run package ${npm_config_arch}
 
       - uses: softprops/action-gh-release@v1
         with:
@@ -203,7 +208,7 @@ jobs:
       - name: Install Node.js v18
         uses: actions/setup-node@v3
         with:
-          node-version: "18"
+          node-version: "18.15.0"
 
       - name: Install nfpm
         run: |
