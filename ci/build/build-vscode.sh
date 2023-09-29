@@ -54,8 +54,11 @@ main() {
   export BUILD_SOURCEVERSION
   BUILD_SOURCEVERSION=$(git rev-parse HEAD)
 
-  # Add the date, our name, links, and enable telemetry (this just makes
-  # telemetry available; telemetry can still be disabled by flag or setting).
+  # Add the date, our name, links, enable telemetry (this just makes telemetry
+  # available; telemetry can still be disabled by flag or setting), and
+  # configure trusted extensions (since some, like github.copilot-chat, never
+  # ask to be trusted and this is the only way to get auth working).
+  #
   # This needs to be done before building as Code will read this file and embed
   # it into the client-side code.
   git checkout product.json             # Reset in case the script exited early.
@@ -87,7 +90,13 @@ main() {
     "tipsAndTricksUrl": "https://go.microsoft.com/fwlink/?linkid=852118",
     "newsletterSignupUrl": "https://www.research.net/r/vsc-newsletter",
     "linkProtectionTrustedDomains": [
-      "https://open-vsx.org"
+      "https://open-vsx.org",
+      "https://*.github.com"
+    ],
+    "trustedExtensionAuthAccess": [
+      "vscode.git", "vscode.github",
+      "github.vscode-pull-request-github",
+      "github.copilot", "github.copilot-chat"
     ],
     "aiConfig": {
       "ariaKey": "code-server"
