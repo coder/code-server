@@ -22,6 +22,16 @@ Code v99.99.999
 
 ## Unreleased
 
+## [4.17.1](https://github.com/coder/code-server/releases/tag/v4.17.1) - 2023-09-29
+
+Code v1.82.2
+
+### Fixed
+
+- Make secret storage persistent. For example, logging in with GitHub should
+  persist between browser refreshes and code-server restarts.
+- Issues with argon2 on arm builds should be fixed now.
+
 ## [4.17.0](https://github.com/coder/code-server/releases/tag/v4.17.0) - 2023-09-22
 
 Code v1.82.2
@@ -298,7 +308,7 @@ Code v1.71.0
 
 ### Fixed
 
-- Add flags --unsafe-perm --legacy-peer-deps in `npm-postinstsall.sh` which ensures installing with npm works correctly
+- Add flags --unsafe-perm --legacy-peer-deps in `npm-postinstall.sh` which ensures installing with npm works correctly
 
 ## [4.6.1](https://github.com/coder/code-server/releases/tag/v4.6.1) - 2022-09-31
 
