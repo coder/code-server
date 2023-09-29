@@ -40,6 +40,16 @@ main() {
 
   source ./ci/lib.sh
 
+  # Set the commit Code will embed into the product.json.  We need to do this
+  # since Code tries to get the commit from the `.git` directory which will fail
+  # as it is a submodule.
+  #
+  # Also, we use code-server's commit rather than VS Code's otherwise it would
+  # not update when only our patch files change, and that will cause caching
+  # issues where the browser keeps using outdated code.
+  export BUILD_SOURCEVERSION
+  BUILD_SOURCEVERSION=$(git rev-parse HEAD)
+
   pushd lib/vscode
 
   if [[ ! ${VERSION-} ]]; then
@@ -47,12 +57,6 @@ main() {
     echo "VERSION='0.0.0' yarn build:vscode"
     exit 1
   fi
-
-  # Set the commit Code will embed into the product.json.  We need to do this
-  # since Code tries to get the commit from the `.git` directory which will fail
-  # as it is a submodule.
-  export BUILD_SOURCEVERSION
-  BUILD_SOURCEVERSION=$(git rev-parse HEAD)
 
   # Add the date, our name, links, enable telemetry (this just makes telemetry
   # available; telemetry can still be disabled by flag or setting), and
@@ -90,8 +94,7 @@ main() {
     "tipsAndTricksUrl": "https://go.microsoft.com/fwlink/?linkid=852118",
     "newsletterSignupUrl": "https://www.research.net/r/vsc-newsletter",
     "linkProtectionTrustedDomains": [
-      "https://open-vsx.org",
-      "https://*.github.com"
+      "https://open-vsx.org"
     ],
     "trustedExtensionAuthAccess": [
       "vscode.git", "vscode.github",
