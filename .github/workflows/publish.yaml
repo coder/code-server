@@ -27,7 +27,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code-server
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Install Node.js v18
         uses: actions/setup-node@v3
@@ -70,7 +70,7 @@ jobs:
         uses: Homebrew/actions/setup-homebrew@master
 
       - name: Checkout code-server
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Configure git
         run: |
@@ -101,13 +101,13 @@ jobs:
     steps:
       # We need to checkout code-server so we can get the version
       - name: Checkout code-server
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
           path: "./code-server"
 
       - name: Checkout code-server-aur repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: "cdrci/code-server-aur"
           token: ${{ secrets.HOMEBREW_GITHUB_API_TOKEN }}
@@ -155,7 +155,7 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout code-server
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
