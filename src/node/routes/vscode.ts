@@ -55,6 +55,7 @@ export class CodeServerRouteWrapper {
             short_name: appName,
             start_url: ".",
             display: "fullscreen",
+            display_override: ["window-controls-overlay"],
             description: "Run Code on a remote server.",
             icons: [192, 512].map((size) => ({
               src: `{{BASE}}/_static/src/browser/media/pwa-icon-${size}.png`,
