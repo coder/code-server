@@ -191,7 +191,7 @@ At this point, you should be able to access code-server via
 
        location / {
          proxy_pass http://localhost:8080/;
-         proxy_set_header Host $host;
+         proxy_set_header Host $http_host;
          proxy_set_header Upgrade $http_upgrade;
          proxy_set_header Connection upgrade;
          proxy_set_header Accept-Encoding gzip;
