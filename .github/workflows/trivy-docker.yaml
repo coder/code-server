@@ -48,7 +48,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Run Trivy vulnerability scanner in image mode
         uses: aquasecurity/trivy-action@fbd16365eb88e12433951383f5e99bd901fc618f
