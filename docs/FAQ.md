@@ -177,10 +177,10 @@ If you own a marketplace that implements the VS Code Extension Gallery API, you
 can point code-server to it by setting `$EXTENSIONS_GALLERY`.
 This corresponds directly with the `extensionsGallery` entry in in VS Code's `product.json`.
 
-For example, to use the legacy Coder extensions marketplace:
+For example:
 
 ```bash
-export EXTENSIONS_GALLERY='{"serviceUrl": "https://extensions.coder.com/api"}'
+export EXTENSIONS_GALLERY='{"serviceUrl": "https://my-extensions/api"}'
 ```
 
 Though you can technically use Microsoft's marketplace in this manner, we

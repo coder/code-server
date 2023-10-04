@@ -12,7 +12,7 @@ in-between and has web extensions install directly from the marketplace.
 
 This can be tested by setting EXTENSIONS_GALLERY set to:
 
-    '{"serviceUrl": "https://extensions.coder.com/api"}'
+    '{"serviceUrl": "https://my-extensions/api"}'
 
 
 Index: code-server/lib/vscode/src/vs/platform/product/common/product.ts
