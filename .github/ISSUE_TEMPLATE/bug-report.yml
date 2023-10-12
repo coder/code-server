@@ -75,10 +75,10 @@ body:
           required: true
   - type: checkboxes
     attributes:
-      label: Are you accessing code-server over HTTPS?
-      description: code-server relies on service workers for many features. Double-check that you are using HTTPS.
+      label: Are you accessing code-server over a secure context?
+      description: code-server relies on service workers (which only work in secure contexts) for many features. Double-check that you are using a secure context like HTTPS or localhost.
       options:
-        - label: I am using HTTPS.
+        - label: I am using a secure context.
           required: true
   - type: textarea
     attributes:
