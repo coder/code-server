@@ -220,7 +220,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
  import { CharCode } from 'vs/base/common/charCode';
  import { getRemoteServerRootPath } from 'vs/platform/remote/common/remoteHosts';
  import { IExtensionManifest } from 'vs/platform/extensions/common/extensions';
-@@ -344,6 +345,8 @@ export class WebClientServer {
+@@ -345,6 +346,8 @@ export class WebClientServer {
  			callbackRoute: this._callbackRoute
  		};
  
@@ -229,7 +229,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
  		const nlsBaseUrl = this._productService.extensionsGallery?.nlsBaseUrl;
  		const values: { [key: string]: string } = {
  			WORKBENCH_WEB_CONFIGURATION: asJSON(workbenchWebConfiguration),
-@@ -352,6 +355,7 @@ export class WebClientServer {
+@@ -353,6 +356,7 @@ export class WebClientServer {
  			WORKBENCH_NLS_BASE_URL: vscodeBase + (nlsBaseUrl ? `${nlsBaseUrl}${!nlsBaseUrl.endsWith('/') ? '/' : ''}${this._productService.commit}/${this._productService.version}/` : ''),
  			BASE: base,
  			VS_BASE: vscodeBase,
@@ -241,22 +241,26 @@ Index: code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
 +++ code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
-@@ -17,6 +17,7 @@ export const serverOptions: OptionDescri
+@@ -17,8 +17,9 @@ export const serverOptions: OptionDescri
  	'disable-update-check': { type: 'boolean' },
  	'auth': { type: 'string' },
  	'disable-file-downloads': { type: 'boolean' },
+	'disable-file-uploads': { type: 'boolean' },
 +	'locale': { type: 'string' },
  
  	/* ----- server setup ----- */
  
-@@ -99,6 +100,7 @@ export interface ServerParsedArgs {
+ 	'host': { type: 'string', cat: 'o', args: 'ip-address', description: nls.localize('host', "The host name or IP address the server should listen to. If not set, defaults to 'localhost'.") },
+@@ -100,8 +100,9 @@ export interface ServerParsedArgs {
  	'disable-update-check'?: boolean;
  	'auth'?: string
  	'disable-file-downloads'?: boolean;
+	'disable-file-uploads'?: boolean;
 +	'locale'?: string
  
  	/* ----- server setup ----- */
  
+ 	host?: string;
 Index: code-server/lib/vscode/src/vs/workbench/workbench.web.main.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/workbench.web.main.ts
