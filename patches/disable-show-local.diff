@@ -1,0 +1,137 @@
+Index: code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
++++ code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
+@@ -17,6 +17,7 @@ export const serverOptions: OptionDescri
+ 	'disable-update-check': { type: 'boolean' },
+ 	'auth': { type: 'string' },
+ 	'disable-file-downloads': { type: 'boolean' },
++	'disable-show-local': { type: 'boolean' },
+ 	'locale': { type: 'string' },
+ 	'disable-getting-started-override': { type: 'boolean' },
+ 
+@@ -101,6 +102,7 @@ export interface ServerParsedArgs {
+ 	'disable-update-check'?: boolean;
+ 	'auth'?: string
+ 	'disable-file-downloads'?: boolean;
++	'disable-show-local'?: boolean;
+ 	'locale'?: string
+ 	'disable-getting-started-override'?: boolean,
+ 
+Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
++++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
+@@ -335,6 +335,7 @@ export class WebClientServer {
+ 			webviewEndpoint: vscodeBase + this._staticRoute + '/out/vs/workbench/contrib/webview/browser/pre',
+ 			userDataPath: this._environmentService.userDataPath,
+ 			isEnabledFileDownloads: !this._environmentService.args['disable-file-downloads'],
++			isEnabledShowLocal: !this._environmentService.args['disable-show-local'],
+ 			isEnabledCoderGettingStarted: !this._environmentService.args['disable-getting-started-override'],
+ 			_wrapWebWorkerExtHostInIframe,
+ 			developmentOptions: { enableSmokeTestDriver: this._environmentService.args['enable-smoke-test-driver'] ? true : undefined, logLevel: this._logService.getLevel() },
+Index: code-server/lib/vscode/src/vs/workbench/browser/web.api.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/workbench/browser/web.api.ts
++++ code-server/lib/vscode/src/vs/workbench/browser/web.api.ts
+@@ -287,6 +287,11 @@ export interface IWorkbenchConstructionO
+ 	readonly isEnabledFileDownloads?: boolean
+ 
+ 	/**
++	 * Whether the "Show local" button is enabled.
++	 */
++	readonly isEnabledShowLocal?: boolean
++
++	/**
+ 	 * Whether to use Coder's custom Getting Started text.
+ 	 */
+ 	readonly isEnabledCoderGettingStarted?: boolean
+Index: code-server/lib/vscode/src/vs/workbench/services/environment/browser/environmentService.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/workbench/services/environment/browser/environmentService.ts
++++ code-server/lib/vscode/src/vs/workbench/services/environment/browser/environmentService.ts
+@@ -39,6 +39,11 @@ export interface IBrowserWorkbenchEnviro
+ 	readonly isEnabledFileDownloads?: boolean;
+ 
+ 	/**
++	 * Enable Show Local button on File Dialogs.
++	 */
++	readonly isEnabledShowLocal?: boolean;
++
++	/**
+ 	 * Enable Coder's custom getting started text.
+ 	 */
+ 	readonly isEnabledCoderGettingStarted?: boolean;
+@@ -128,6 +133,13 @@ export class BrowserWorkbenchEnvironment
+ 		return this.options.isEnabledFileDownloads;
+ 	}
+ 
++	get isEnabledShowLocal(): boolean {
++		if (typeof this.options.isEnabledShowLocal === "undefined") {
++			throw new Error('isEnabledShowLocal was not provided to the browser');
++		}
++		return this.options.isEnabledShowLocal;
++	}
++
+ 	get isEnabledCoderGettingStarted(): boolean {
+ 		if (typeof this.options.isEnabledCoderGettingStarted === "undefined") {
+ 			throw new Error('isEnabledCoderGettingStarted was not provided to the browser');
+Index: code-server/lib/vscode/src/vs/workbench/services/dialogs/browser/simpleFileDialog.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/workbench/services/dialogs/browser/simpleFileDialog.ts
++++ code-server/lib/vscode/src/vs/workbench/services/dialogs/browser/simpleFileDialog.ts
+@@ -18,7 +18,7 @@ import { IModelService } from 'vs/editor
+ import { ILanguageService } from 'vs/editor/common/languages/language';
+ import { getIconClasses } from 'vs/editor/common/services/getIconClasses';
+ import { Schemas } from 'vs/base/common/network';
+-import { IWorkbenchEnvironmentService } from 'vs/workbench/services/environment/common/environmentService';
++import { IBrowserWorkbenchEnvironmentService } from 'vs/workbench/services/environment/browser/environmentService';
+ import { IRemoteAgentService } from 'vs/workbench/services/remote/common/remoteAgentService';
+ import { IContextKeyService, IContextKey, RawContextKey } from 'vs/platform/contextkey/common/contextkey';
+ import { equalsIgnoreCase, format, startsWithIgnoreCase } from 'vs/base/common/strings';
+@@ -142,7 +142,7 @@ export class SimpleFileDialog implements
+ 		@IFileDialogService private readonly fileDialogService: IFileDialogService,
+ 		@IModelService private readonly modelService: IModelService,
+ 		@ILanguageService private readonly languageService: ILanguageService,
+-		@IWorkbenchEnvironmentService protected readonly environmentService: IWorkbenchEnvironmentService,
++		@IBrowserWorkbenchEnvironmentService protected readonly environmentService: IBrowserWorkbenchEnvironmentService,
+ 		@IRemoteAgentService private readonly remoteAgentService: IRemoteAgentService,
+ 		@IPathService protected readonly pathService: IPathService,
+ 		@IKeybindingService private readonly keybindingService: IKeybindingService,
+@@ -286,20 +286,22 @@ export class SimpleFileDialog implements
+ 			this.filePickBox.autoFocusOnList = false;
+ 			this.filePickBox.ignoreFocusOut = true;
+ 			this.filePickBox.ok = true;
+-			if ((this.scheme !== Schemas.file) && this.options && this.options.availableFileSystems && (this.options.availableFileSystems.length > 1) && (this.options.availableFileSystems.indexOf(Schemas.file) > -1)) {
+-				this.filePickBox.customButton = true;
+-				this.filePickBox.customLabel = nls.localize('remoteFileDialog.local', 'Show Local');
+-				let action;
+-				if (isSave) {
+-					action = SaveLocalFileCommand;
+-				} else {
+-					action = this.allowFileSelection ? (this.allowFolderSelection ? OpenLocalFileFolderCommand : OpenLocalFileCommand) : OpenLocalFolderCommand;
+-				}
+-				const keybinding = this.keybindingService.lookupKeybinding(action.ID);
+-				if (keybinding) {
+-					const label = keybinding.getLabel();
+-					if (label) {
+-						this.filePickBox.customHover = format('{0} ({1})', action.LABEL, label);
++			if ((this.environmentService.isEnabledFileDownloads || !isSave) && this.environmentService.isEnabledShowLocal) {
++				if ((this.scheme !== Schemas.file) && this.options && this.options.availableFileSystems && (this.options.availableFileSystems.length > 1) && (this.options.availableFileSystems.indexOf(Schemas.file) > -1)) {
++					this.filePickBox.customButton = true;
++					this.filePickBox.customLabel = nls.localize('remoteFileDialog.local', 'Show Local');
++					let action;
++					if (isSave) {
++						action = SaveLocalFileCommand;
++					} else {
++						action = this.allowFileSelection ? (this.allowFolderSelection ? OpenLocalFileFolderCommand : OpenLocalFileCommand) : OpenLocalFolderCommand;
++					}
++					const keybinding = this.keybindingService.lookupKeybinding(action.ID);
++					if (keybinding) {
++						const label = keybinding.getLabel();
++						if (label) {
++							this.filePickBox.customHover = format('{0} ({1})', action.LABEL, label);
++						}
+ 					}
+ 				}
+ 			}
