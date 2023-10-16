@@ -1,2 +1,1 @@
-git remote add origin [https://github.com/saranya2619/webdev_lab1
-]
+git remote add origin [https://github.com/saranya2619/code-server]
