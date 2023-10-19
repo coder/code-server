@@ -66,3 +66,17 @@ Index: code-server/lib/vscode/build/lib/tsb/transpiler.ts
  			loose: false,
  			minify: {
  				compress: false,
+Index: code-server/lib/vscode/src/vs/base/common/tfIdf.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/base/common/tfIdf.ts
++++ code-server/lib/vscode/src/vs/base/common/tfIdf.ts
+@@ -88,8 +88,7 @@ export class TfIdfCalculator {
+ 		for (const [word] of input.matchAll(/\b\p{Letter}[\p{Letter}\d]{2,}\b/gu)) {
+ 			yield normalize(word);
+ 
+-			// eslint-disable-next-line local/code-no-look-behind-regex
+-			const camelParts = word.split(/(?<=[a-z])(?=[A-Z])/g);
++			const camelParts = word.split(/(?=[A-Z])/g);
+ 			if (camelParts.length > 1) {
+ 				for (const part of camelParts) {
+ 					// Require at least 3 letters in the parts of a camel case word
