@@ -52,7 +52,7 @@ jobs:
 
       - name: Install Node.js v18
         if: steps.changed-files.outputs.any_changed == 'true'
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: "18"
           cache: "yarn"
@@ -117,7 +117,7 @@ jobs:
 
       - name: Install Node.js v18
         if: steps.changed-files.outputs.any_changed == 'true'
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: "18"
 
@@ -172,7 +172,7 @@ jobs:
 
       - name: Install Node.js v18
         if: steps.changed-files.outputs.any_changed == 'true'
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: "18"
 
@@ -225,7 +225,7 @@ jobs:
         run: quilt push -a
 
       - name: Install Node.js v18
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: "18"
 
@@ -299,7 +299,7 @@ jobs:
         run: sudo apt update && sudo apt install -y libkrb5-dev
 
       - name: Install Node.js v18
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: "18"
 
@@ -358,7 +358,7 @@ jobs:
         run: sudo apt update && sudo apt install -y libkrb5-dev
 
       - name: Install Node.js v18
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: "18"
 

@@ -36,7 +36,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install Node.js v18
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: "18.15.0"
 
@@ -138,7 +138,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install Node.js v18
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: "18.15.0"
 
@@ -206,7 +206,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install Node.js v18
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: "18.15.0"
 
