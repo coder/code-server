@@ -29,10 +29,10 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Install Node.js v18
+      - name: Install Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "18"
+          node-version-file: .node-version
 
       - name: Audit yarn for vulnerabilities
         run: yarn audit
