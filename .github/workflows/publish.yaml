@@ -29,10 +29,10 @@ jobs:
       - name: Checkout code-server
         uses: actions/checkout@v4
 
-      - name: Install Node.js v18
+      - name: Install Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "18"
+          node-version-file: .node-version
           cache: "yarn"
 
       - name: Download npm package from release artifacts

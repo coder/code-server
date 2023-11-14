@@ -50,11 +50,11 @@ jobs:
           files: |
             docs/**
 
-      - name: Install Node.js v18
+      - name: Install Node.js
         if: steps.changed-files.outputs.any_changed == 'true'
         uses: actions/setup-node@v4
         with:
-          node-version: "18"
+          node-version-file: .node-version
           cache: "yarn"
 
       - name: Install doctoc
@@ -115,11 +115,11 @@ jobs:
           files_ignore: |
             lib/vscode/**
 
-      - name: Install Node.js v18
+      - name: Install Node.js
         if: steps.changed-files.outputs.any_changed == 'true'
         uses: actions/setup-node@v4
         with:
-          node-version: "18"
+          node-version-file: .node-version
 
       - name: Fetch dependencies from cache
         if: steps.changed-files.outputs.any_changed == 'true'
@@ -170,11 +170,11 @@ jobs:
           files_ignore: |
             lib/vscode/**
 
-      - name: Install Node.js v18
+      - name: Install Node.js
         if: steps.changed-files.outputs.any_changed == 'true'
         uses: actions/setup-node@v4
         with:
-          node-version: "18"
+          node-version-file: .node-version
 
       - name: Fetch dependencies from cache
         if: steps.changed-files.outputs.any_changed == 'true'
@@ -224,10 +224,10 @@ jobs:
       - name: Patch Code
         run: quilt push -a
 
-      - name: Install Node.js v18
+      - name: Install Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "18"
+          node-version-file: .node-version
 
       - name: Fetch dependencies from cache
         id: cache-node-modules
@@ -298,10 +298,10 @@ jobs:
       - name: Install system dependencies
         run: sudo apt update && sudo apt install -y libkrb5-dev
 
-      - name: Install Node.js v18
+      - name: Install Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "18"
+          node-version-file: .node-version
 
       - name: Fetch dependencies from cache
         id: cache-node-modules
@@ -357,10 +357,10 @@ jobs:
       - name: Install system dependencies
         run: sudo apt update && sudo apt install -y libkrb5-dev
 
-      - name: Install Node.js v18
+      - name: Install Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "18"
+          node-version-file: .node-version
 
       - name: Fetch dependencies from cache
         id: cache-node-modules
