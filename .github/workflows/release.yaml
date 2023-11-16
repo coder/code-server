@@ -216,6 +216,13 @@ jobs:
           curl -sSfL https://github.com/goreleaser/nfpm/releases/download/v2.3.1/nfpm_2.3.1_`uname -s`_`uname -m`.tar.gz | tar -C ~/.local/bin -zxv nfpm
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
+      # The version of node-gyp we use depends on distutils but it was removed
+      # in Python 3.12.  It seems to be fixed in the latest node-gyp so when we
+      # next update Node we can probably remove this.  For now, install
+      # setuptools since it contains distutils.
+      - name: Install Python utilities
+        run: python3 -m pip install setuptools
+
       - name: Download npm package
         uses: actions/download-artifact@v3
         with:
