@@ -10,6 +10,7 @@
   - [Git won't work in `/sdcard`](#git-wont-work-in-sdcard)
   - [Many extensions including language packs fail to install](#many-extensions-including-language-packs-fail-to-install)
 - [Extra](#extra)
+  - [Keyboard Shortcuts and Tab Key](#keyboard-shortcuts-and-tab-key)
   - [Create a new user](#create-a-new-user)
   - [Install Go](#install-go)
   - [Install Python](#install-python)
@@ -120,6 +121,16 @@ NODE_OPTIONS="--require /path/to/android-as-linux.js" code-server
 ⚠️ Note that Android and Linux are not 100% compatible, so use these workarounds at your own risk. Extensions that have native dependencies other than Node or that directly interact with the OS might cause issues.
 
 ## Extra
+
+### Keyboard Shortcuts and Tab Key
+
+In order to support the tab key and use keyboard shortcuts, add this to your
+settings.json:
+```json
+{
+    "keyboard.dispatch": "keyCode"
+}
+```
 
 ### Create a new user
 
