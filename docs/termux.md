@@ -126,9 +126,10 @@ NODE_OPTIONS="--require /path/to/android-as-linux.js" code-server
 
 In order to support the tab key and use keyboard shortcuts, add this to your
 settings.json:
+
 ```json
 {
-    "keyboard.dispatch": "keyCode"
+  "keyboard.dispatch": "keyCode"
 }
 ```
 
