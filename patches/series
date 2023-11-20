@@ -10,7 +10,6 @@ logout.diff
 store-socket.diff
 proxy-uri.diff
 unique-db.diff
-local-storage.diff
 service-worker.diff
 sourcemaps.diff
 disable-downloads.diff

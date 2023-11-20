@@ -220,7 +220,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
  import { CharCode } from 'vs/base/common/charCode';
  import { getRemoteServerRootPath } from 'vs/platform/remote/common/remoteHosts';
  import { IExtensionManifest } from 'vs/platform/extensions/common/extensions';
-@@ -344,6 +345,8 @@ export class WebClientServer {
+@@ -343,6 +344,8 @@ export class WebClientServer {
  			callbackRoute: this._callbackRoute
  		};
  
@@ -229,7 +229,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
  		const nlsBaseUrl = this._productService.extensionsGallery?.nlsBaseUrl;
  		const values: { [key: string]: string } = {
  			WORKBENCH_WEB_CONFIGURATION: asJSON(workbenchWebConfiguration),
-@@ -352,6 +355,7 @@ export class WebClientServer {
+@@ -351,6 +354,7 @@ export class WebClientServer {
  			WORKBENCH_NLS_BASE_URL: vscodeBase + (nlsBaseUrl ? `${nlsBaseUrl}${!nlsBaseUrl.endsWith('/') ? '/' : ''}${this._productService.commit}/${this._productService.version}/` : ''),
  			BASE: base,
  			VS_BASE: vscodeBase,

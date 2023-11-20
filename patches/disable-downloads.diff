@@ -12,9 +12,9 @@ Index: code-server/lib/vscode/src/vs/workbench/browser/web.api.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/browser/web.api.ts
 +++ code-server/lib/vscode/src/vs/workbench/browser/web.api.ts
-@@ -281,6 +281,11 @@ export interface IWorkbenchConstructionO
+@@ -276,6 +276,11 @@ export interface IWorkbenchConstructionO
  	 */
- 	readonly userDataPath?: string
+ 	readonly configurationDefaults?: Record<string, any>;
  
 +	/**
 +	 * Whether the "Download..." option is enabled for files.
@@ -40,9 +40,9 @@ Index: code-server/lib/vscode/src/vs/workbench/services/environment/browser/envi
  	 * Gets whether a resolver extension is expected for the environment.
  	 */
  	readonly expectsResolverExtension: boolean;
-@@ -111,6 +116,13 @@ export class BrowserWorkbenchEnvironment
- 		return this.options.userDataPath;
- 	}
+@@ -110,6 +115,13 @@ export class BrowserWorkbenchEnvironment
+ 	@memoize
+ 	get cacheHome(): URI { return joinPath(this.userRoamingDataHome, 'caches'); }
  
 +	get isEnabledFileDownloads(): boolean {
 +		if (typeof this.options.isEnabledFileDownloads === "undefined") {
@@ -52,7 +52,7 @@ Index: code-server/lib/vscode/src/vs/workbench/services/environment/browser/envi
 +	}
 +
  	@memoize
- 	get argvResource(): URI { return joinPath(this.userRoamingDataHome, 'argv.json'); }
+ 	get workspaceStorageHome(): URI { return joinPath(this.userRoamingDataHome, 'workspaceStorage'); }
  
 Index: code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
 ===================================================================
@@ -78,10 +78,10 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -332,6 +332,7 @@ export class WebClientServer {
+@@ -331,6 +331,7 @@ export class WebClientServer {
+ 		const workbenchWebConfiguration = {
  			remoteAuthority,
  			webviewEndpoint: vscodeBase + this._staticRoute + '/out/vs/workbench/contrib/webview/browser/pre',
- 			userDataPath: this._environmentService.userDataPath,
 +			isEnabledFileDownloads: !this._environmentService.args['disable-file-downloads'],
  			_wrapWebWorkerExtHostInIframe,
  			developmentOptions: { enableSmokeTestDriver: this._environmentService.args['enable-smoke-test-driver'] ? true : undefined, logLevel: this._logService.getLevel() },
