@@ -77,9 +77,9 @@ export class CodeServer {
    */
   private async createWorkspace(): Promise<string> {
     const dir = await this.workspaceDir
-    await fs.mkdir(path.join(dir, "User"), { recursive: true })
+    await fs.mkdir(path.join(dir, "Machine"), { recursive: true })
     await fs.writeFile(
-      path.join(dir, "User/settings.json"),
+      path.join(dir, "Machine/settings.json"),
       JSON.stringify({
         "workbench.startupEditor": "none",
       }),
