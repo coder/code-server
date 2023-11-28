@@ -79,12 +79,16 @@ Index: code-server/lib/vscode/src/vs/workbench/services/configuration/browser/co
  			});
  		}));
  
-@@ -550,6 +552,8 @@ export class WorkspaceService extends Di
+@@ -550,6 +552,12 @@ export class WorkspaceService extends Di
  			previousFolders = this.workspace.folders;
  			this.workspace.update(workspace);
  		} else {
-+			// The configuration could have updated before the promise resolved.
-+			workspace.initialized = this.workspaceConfiguration.initialized;
++			// It is possible for the configuration to become initialized in between
++			// when the workspace was created and this function was called, so check
++			// the configuration again now.
++			if (!workspace.initialized && this.workspaceConfiguration.initialized) {
++				workspace.initialized = true;
++			}
  			this.workspace = workspace;
  		}
  
