@@ -135,7 +135,7 @@ Index: code-server/lib/vscode/src/vs/workbench/browser/web.api.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/browser/web.api.ts
 +++ code-server/lib/vscode/src/vs/workbench/browser/web.api.ts
-@@ -281,6 +281,11 @@ export interface IWorkbenchConstructionO
+@@ -286,6 +286,11 @@ export interface IWorkbenchConstructionO
  	 */
  	readonly isEnabledFileDownloads?: boolean
  
@@ -163,7 +163,7 @@ Index: code-server/lib/vscode/src/vs/workbench/services/environment/browser/envi
  	 * Gets whether a resolver extension is expected for the environment.
  	 */
  	readonly expectsResolverExtension: boolean;
-@@ -122,6 +127,13 @@ export class BrowserWorkbenchEnvironment
+@@ -123,6 +128,13 @@ export class BrowserWorkbenchEnvironment
  		return this.options.isEnabledFileDownloads;
  	}
  
@@ -175,7 +175,7 @@ Index: code-server/lib/vscode/src/vs/workbench/services/environment/browser/envi
 +	}
 +
  	@memoize
- 	get workspaceStorageHome(): URI { return joinPath(this.userRoamingDataHome, 'workspaceStorage'); }
+ 	get argvResource(): URI { return joinPath(this.userRoamingDataHome, 'argv.json'); }
  
 Index: code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
 ===================================================================
@@ -201,9 +201,9 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -334,6 +334,7 @@ export class WebClientServer {
- 			remoteAuthority,
+@@ -335,6 +335,7 @@ export class WebClientServer {
  			webviewEndpoint: vscodeBase + this._staticRoute + '/out/vs/workbench/contrib/webview/browser/pre',
+ 			userDataPath: this._environmentService.userDataPath,
  			isEnabledFileDownloads: !this._environmentService.args['disable-file-downloads'],
 +			isEnabledCoderGettingStarted: !this._environmentService.args['disable-getting-started-override'],
  			_wrapWebWorkerExtHostInIframe,
