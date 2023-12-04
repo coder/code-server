@@ -71,7 +71,7 @@ extraArgs: []
 # Optional additional environment variables
 extraVars: []
 #  - name: DISABLE_TELEMETRY
-#    value: true
+#    value: "true"
 #  - name: DOCKER_HOST
 #    value: "tcp://localhost:2375"
 
