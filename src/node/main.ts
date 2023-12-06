@@ -109,7 +109,7 @@ export const runCodeServer = async (
   logger.info(`code-server ${version} ${commit}`)
 
   logger.info(`Using user-data-dir ${args["user-data-dir"]}`)
-  logger.trace(`Using extensions-dir ${args["extensions-dir"]}`)
+  logger.debug(`Using extensions-dir ${args["extensions-dir"]}`)
 
   if (args.auth === AuthType.Password && !args.password && !args["hashed-password"]) {
     throw new Error(

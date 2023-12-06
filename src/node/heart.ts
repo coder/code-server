@@ -31,7 +31,7 @@ export class Heart {
       return
     }
 
-    logger.trace("heartbeat")
+    logger.debug("heartbeat")
     this.lastHeartbeat = Date.now()
     if (typeof this.heartbeatTimer !== "undefined") {
       clearTimeout(this.heartbeatTimer)
