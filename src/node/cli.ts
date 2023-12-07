@@ -48,6 +48,7 @@ export interface UserProvidedCodeArgs {
   "github-auth"?: string
   "disable-update-check"?: boolean
   "disable-file-downloads"?: boolean
+  "disable-file-uploads"?: boolean
   "disable-workspace-trust"?: boolean
   "disable-getting-started-override"?: boolean
   "disable-proxy"?: boolean
@@ -169,6 +170,10 @@ export const options: Options<Required<UserProvidedArgs>> = {
     type: "boolean",
     description:
       "Disable file downloads from Code. This can also be set with CS_DISABLE_FILE_DOWNLOADS set to 'true' or '1'.",
+  },
+  "disable-file-uploads": {
+    type: "boolean",
+    description: "Disable file uploads.",
   },
   "disable-workspace-trust": {
     type: "boolean",

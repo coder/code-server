@@ -1,0 +1,360 @@
+Add option to disable file downloads and uploads via cli
+
+This patch adds support for a new CLI flag called `--disable-file-downloads`
+which allows a user to remove the "Download..." option that shows up when you
+right-click files in Code. It also disables the "Show Local" button on the dialog 
+for Save, Save-As and Save Workspace. The default value for this is `false`.
+
+This patch also add support for a new CLI flag called `--disable-file-uploads`
+which disables the drag to upload functionality and the "Upload..." option when you
+right-click folders in Code. It also disables the "Show Local" button on the dialog 
+for opening a file. The default value for this is `false`.
+
+This patch also adds trace log statements for when a file is read and written to disk.
+
+To test disabling downloads, start code-server with `--disable-file-downloads`, open editor,
+right-click on a file (not a folder) and you should **not** see the
+"Download..." option. When saving a file or workspace, the "Show Local" button 
+should **not** appear on the dialog that comes on screen.
+
+To test disabling uploads, start code-server with `--disable-file-uploads`, open editor,
+right-click on a folder (not a file) and you should **not** see the
+"Upload..." option. If you drag a file into the file navigator, the file should **not** upload 
+and appear in the file navigator. When opening a file, the "Show Local" button 
+should **not** appear on the dialog that comes on screen.
+
+Index: code-server/lib/vscode/src/vs/workbench/browser/web.api.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/workbench/browser/web.api.ts
++++ code-server/lib/vscode/src/vs/workbench/browser/web.api.ts
+@@ -281,6 +281,16 @@ export interface IWorkbenchConstructionO
+ 	 */
+ 	readonly userDataPath?: string
+ 
++	/**
++	 * Whether the "Download..." option is enabled for files.
++	 */
++	readonly isEnabledFileDownloads?: boolean
++
++	/**
++	 * Whether the "Upload..." button is enabled.
++	 */
++	readonly isEnabledFileUploads?: boolean
++
+ 	//#endregion
+ 
+ 	//#region Profile options
+Index: code-server/lib/vscode/src/vs/workbench/services/environment/browser/environmentService.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/workbench/services/environment/browser/environmentService.ts
++++ code-server/lib/vscode/src/vs/workbench/services/environment/browser/environmentService.ts
+@@ -34,6 +34,16 @@ export interface IBrowserWorkbenchEnviro
+ 	readonly options?: IWorkbenchConstructionOptions;
+ 
+ 	/**
++	 * Enable downloading files via menu actions.
++	 */
++	readonly isEnabledFileDownloads?: boolean;
++
++	/**
++	 * Enable uploading files via menu actions.
++	 */
++	readonly isEnabledFileUploads?: boolean;
++
++	/**
+ 	 * Gets whether a resolver extension is expected for the environment.
+ 	 */
+ 	readonly expectsResolverExtension: boolean;
+@@ -111,6 +121,20 @@ export class BrowserWorkbenchEnvironment
+ 		return this.options.userDataPath;
+ 	}
+ 
++	get isEnabledFileDownloads(): boolean {
++		if (typeof this.options.isEnabledFileDownloads === "undefined") {
++			throw new Error('isEnabledFileDownloads was not provided to the browser');
++		}
++		return this.options.isEnabledFileDownloads;
++	}
++
++	get isEnabledFileUploads(): boolean {
++		if (typeof this.options.isEnabledFileUploads === "undefined") {
++			throw new Error('isEnabledFileUploads was not provided to the browser');
++		}
++		return this.options.isEnabledFileUploads;
++	}
++
+ 	@memoize
+ 	get argvResource(): URI { return joinPath(this.userRoamingDataHome, 'argv.json'); }
+ 
+Index: code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
++++ code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
+@@ -16,6 +16,8 @@ export const serverOptions: OptionDescri
+ 	/* ----- code-server ----- */
+ 	'disable-update-check': { type: 'boolean' },
+ 	'auth': { type: 'string' },
++	'disable-file-downloads': { type: 'boolean' },
++	'disable-file-uploads': { type: 'boolean' },
+ 
+ 	/* ----- server setup ----- */
+ 
+@@ -97,6 +99,8 @@ export interface ServerParsedArgs {
+ 	/* ----- code-server ----- */
+ 	'disable-update-check'?: boolean;
+ 	'auth'?: string
++	'disable-file-downloads'?: boolean;
++	'disable-file-uploads'?: boolean;
+ 
+ 	/* ----- server setup ----- */
+ 
+Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
++++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
+@@ -331,8 +331,10 @@ export class WebClientServer {
+ 		const workbenchWebConfiguration = {
+ 			remoteAuthority,
+ 			webviewEndpoint: vscodeBase + this._staticRoute + '/out/vs/workbench/contrib/webview/browser/pre',
+ 			userDataPath: this._environmentService.userDataPath,
++			isEnabledFileDownloads: !this._environmentService.args['disable-file-downloads'],
++			isEnabledFileUploads: !this._environmentService.args['disable-file-uploads'],
+ 			_wrapWebWorkerExtHostInIframe,
+ 			developmentOptions: { enableSmokeTestDriver: this._environmentService.args['enable-smoke-test-driver'] ? true : undefined, logLevel: this._logService.getLevel() },
+ 			settingsSyncOptions: !this._environmentService.isBuilt && this._environmentService.args['enable-sync'] ? { enabled: true } : undefined,
+			enableWorkspaceTrust: !this._environmentService.args['disable-workspace-trust'],
+Index: code-server/lib/vscode/src/vs/workbench/browser/contextkeys.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/workbench/browser/contextkeys.ts
++++ code-server/lib/vscode/src/vs/workbench/browser/contextkeys.ts
+@@ -7,12 +7,12 @@ import { Event } from 'vs/base/common/ev
+ import { Disposable } from 'vs/base/common/lifecycle';
+ import { IContextKeyService, IContextKey, setConstant as setConstantContextKey } from 'vs/platform/contextkey/common/contextkey';
+ import { InputFocusedContext, IsMacContext, IsLinuxContext, IsWindowsContext, IsWebContext, IsMacNativeContext, IsDevelopmentContext, IsIOSContext, ProductQualityContext, IsMobileContext } from 'vs/platform/contextkey/common/contextkeys';
+-import { SplitEditorsVertically, InEditorZenModeContext, ActiveEditorCanRevertContext, ActiveEditorGroupLockedContext, ActiveEditorCanSplitInGroupContext, SideBySideEditorActiveContext, AuxiliaryBarVisibleContext, SideBarVisibleContext, PanelAlignmentContext, PanelMaximizedContext, PanelVisibleContext, ActiveEditorContext, EditorsVisibleContext, TextCompareEditorVisibleContext, TextCompareEditorActiveContext, ActiveEditorGroupEmptyContext, MultipleEditorGroupsContext, EmbedderIdentifierContext, EditorTabsVisibleContext, IsCenteredLayoutContext, ActiveEditorGroupIndexContext, ActiveEditorGroupLastContext, ActiveEditorReadonlyContext, EditorAreaVisibleContext, ActiveEditorAvailableEditorIdsContext, DirtyWorkingCopiesContext, EmptyWorkspaceSupportContext, EnterMultiRootWorkspaceSupportContext, HasWebFileSystemAccess, IsFullscreenContext, OpenFolderWorkspaceSupportContext, RemoteNameContext, VirtualWorkspaceContext, WorkbenchStateContext, WorkspaceFolderCountContext, PanelPositionContext, TemporaryWorkspaceContext, ActiveEditorCanToggleReadonlyContext, applyAvailableEditorIds, MaximizedEditorGroupContext, TitleBarVisibleContext, TitleBarStyleContext } from 'vs/workbench/common/contextkeys';
++import { SplitEditorsVertically, InEditorZenModeContext, ActiveEditorCanRevertContext, ActiveEditorGroupLockedContext, ActiveEditorCanSplitInGroupContext, SideBySideEditorActiveContext, AuxiliaryBarVisibleContext, SideBarVisibleContext, PanelAlignmentContext, PanelMaximizedContext, PanelVisibleContext, ActiveEditorContext, EditorsVisibleContext, TextCompareEditorVisibleContext, TextCompareEditorActiveContext, ActiveEditorGroupEmptyContext, MultipleEditorGroupsContext, EmbedderIdentifierContext, EditorTabsVisibleContext, IsCenteredLayoutContext, ActiveEditorGroupIndexContext, ActiveEditorGroupLastContext, ActiveEditorReadonlyContext, EditorAreaVisibleContext, ActiveEditorAvailableEditorIdsContext, DirtyWorkingCopiesContext, EmptyWorkspaceSupportContext, EnterMultiRootWorkspaceSupportContext, HasWebFileSystemAccess, IsFullscreenContext, OpenFolderWorkspaceSupportContext, RemoteNameContext, VirtualWorkspaceContext, WorkbenchStateContext, WorkspaceFolderCountContext, PanelPositionContext, TemporaryWorkspaceContext, ActiveEditorCanToggleReadonlyContext, applyAvailableEditorIds ,MaximizedEditorGroupContext, TitleBarVisibleContext, TitleBarStyleContext, IsEnabledFileDownloads, IsEnabledFileUploads } from 'vs/workbench/common/contextkeys';
+ import { TEXT_DIFF_EDITOR_ID, EditorInputCapabilities, SIDE_BY_SIDE_EDITOR_ID, EditorResourceAccessor, SideBySideEditor } from 'vs/workbench/common/editor';
+ import { trackFocus, addDisposableListener, EventType, onDidRegisterWindow } from 'vs/base/browser/dom';
+ import { preferredSideBySideGroupDirection, GroupDirection, IEditorGroupsService } from 'vs/workbench/services/editor/common/editorGroupsService';
+ import { IConfigurationService } from 'vs/platform/configuration/common/configuration';
+-import { IWorkbenchEnvironmentService } from 'vs/workbench/services/environment/common/environmentService';
++import { IBrowserWorkbenchEnvironmentService } from 'vs/workbench/services/environment/browser/environmentService';
+ import { IEditorService } from 'vs/workbench/services/editor/common/editorService';
+ import { WorkbenchState, IWorkspaceContextService, isTemporaryWorkspace } from 'vs/platform/workspace/common/workspace';
+ import { IWorkbenchLayoutService, Parts, positionToString } from 'vs/workbench/services/layout/browser/layoutService';
+@@ -83,7 +83,7 @@ export class WorkbenchContextKeysHandler
+ 		@IContextKeyService private readonly contextKeyService: IContextKeyService,
+ 		@IWorkspaceContextService private readonly contextService: IWorkspaceContextService,
+ 		@IConfigurationService private readonly configurationService: IConfigurationService,
+-		@IWorkbenchEnvironmentService private readonly environmentService: IWorkbenchEnvironmentService,
++		@IBrowserWorkbenchEnvironmentService private readonly environmentService: IBrowserWorkbenchEnvironmentService,
+ 		@IProductService private readonly productService: IProductService,
+ 		@IEditorService private readonly editorService: IEditorService,
+ 		@IEditorResolverService private readonly editorResolverService: IEditorResolverService,
+@@ -219,6 +219,10 @@ export class WorkbenchContextKeysHandler
+ 		this.auxiliaryBarVisibleContext = AuxiliaryBarVisibleContext.bindTo(this.contextKeyService);
+ 		this.auxiliaryBarVisibleContext.set(this.layoutService.isVisible(Parts.AUXILIARYBAR_PART));
+ 
++		// code-server
++		IsEnabledFileDownloads.bindTo(this.contextKeyService).set(this.environmentService.isEnabledFileDownloads ?? true)
++		IsEnabledFileUploads.bindTo(this.contextKeyService).set(this.environmentService.isEnabledFileUploads ?? true)
++
+ 		this.registerListeners();
+ 	}
+ 
+Index: code-server/lib/vscode/src/vs/workbench/contrib/files/browser/fileActions.contribution.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/workbench/contrib/files/browser/fileActions.contribution.ts
++++ code-server/lib/vscode/src/vs/workbench/contrib/files/browser/fileActions.contribution.ts
+@@ -20,7 +20,7 @@ import { CLOSE_SAVED_EDITORS_COMMAND_ID,
+ import { AutoSaveAfterShortDelayContext } from 'vs/workbench/services/filesConfiguration/common/filesConfigurationService';
+ import { WorkbenchListDoubleSelection } from 'vs/platform/list/browser/listService';
+ import { Schemas } from 'vs/base/common/network';
+-import { DirtyWorkingCopiesContext, EnterMultiRootWorkspaceSupportContext, HasWebFileSystemAccess, WorkbenchStateContext, WorkspaceFolderCountContext, SidebarFocusContext, ActiveEditorCanRevertContext, ActiveEditorContext, ResourceContextKey, ActiveEditorAvailableEditorIdsContext } from 'vs/workbench/common/contextkeys';
++import { DirtyWorkingCopiesContext, EnterMultiRootWorkspaceSupportContext, HasWebFileSystemAccess, WorkbenchStateContext, WorkspaceFolderCountContext, SidebarFocusContext, ActiveEditorCanRevertContext, ActiveEditorContext, ResourceContextKey, ActiveEditorAvailableEditorIdsContext, IsEnabledFileDownloads, IsEnabledFileUploads } from 'vs/workbench/common/contextkeys';
+ import { IsWebContext } from 'vs/platform/contextkey/common/contextkeys';
+ import { ServicesAccessor } from 'vs/platform/instantiation/common/instantiation';
+ import { ThemeIcon } from 'vs/base/common/themables';
+@@ -549,13 +549,16 @@ MenuRegistry.appendMenuItem(MenuId.Explo
+ 		id: DOWNLOAD_COMMAND_ID,
+ 		title: DOWNLOAD_LABEL
+ 	},
+-	when: ContextKeyExpr.or(
+-		// native: for any remote resource
+-		ContextKeyExpr.and(IsWebContext.toNegated(), ResourceContextKey.Scheme.notEqualsTo(Schemas.file)),
+-		// web: for any files
+-		ContextKeyExpr.and(IsWebContext, ExplorerFolderContext.toNegated(), ExplorerRootContext.toNegated()),
+-		// web: for any folders if file system API support is provided
+-		ContextKeyExpr.and(IsWebContext, HasWebFileSystemAccess)
++	when: ContextKeyExpr.and(
++		IsEnabledFileDownloads,
++		ContextKeyExpr.or(
++			// native: for any remote resource
++			ContextKeyExpr.and(IsWebContext.toNegated(), ResourceContextKey.Scheme.notEqualsTo(Schemas.file)),
++			// web: for any files
++			ContextKeyExpr.and(IsWebContext, ExplorerFolderContext.toNegated(), ExplorerRootContext.toNegated()),
++			// web: for any folders if file system API support is provided
++			ContextKeyExpr.and(IsWebContext, HasWebFileSystemAccess)
++		)
+ 	)
+ }));
+ 
+@@ -567,6 +570,7 @@ MenuRegistry.appendMenuItem(MenuId.Explo
+ 		title: UPLOAD_LABEL,
+ 	},
+ 	when: ContextKeyExpr.and(
++		IsEnabledFileUploads,
+ 		// only in web
+ 		IsWebContext,
+ 		// only on folders
+Index: code-server/lib/vscode/src/vs/workbench/common/contextkeys.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/workbench/common/contextkeys.ts
++++ code-server/lib/vscode/src/vs/workbench/common/contextkeys.ts
+@@ -39,6 +39,9 @@ export const HasWebFileSystemAccess = ne
+ 
+ export const EmbedderIdentifierContext = new RawContextKey<string | undefined>('embedderIdentifier', undefined, localize('embedderIdentifier', 'The identifier of the embedder according to the product service, if one is defined'));
+ 
++export const IsEnabledFileDownloads = new RawContextKey<boolean>('isEnabledFileDownloads', true, true);
++export const IsEnabledFileUploads = new RawContextKey<boolean>('isEnabledFileUploads', true, true);
++
+ //#endregion
+ 
+ 
+Index: code-server/lib/vscode/src/vs/workbench/services/dialogs/browser/simpleFileDialog.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/workbench/services/dialogs/browser/simpleFileDialog.ts
++++ code-server/lib/vscode/src/vs/workbench/services/dialogs/browser/simpleFileDialog.ts
+@@ -18,7 +18,7 @@ import { IModelService } from 'vs/editor
+ import { ILanguageService } from 'vs/editor/common/languages/language';
+ import { getIconClasses } from 'vs/editor/common/services/getIconClasses';
+ import { Schemas } from 'vs/base/common/network';
+-import { IWorkbenchEnvironmentService } from 'vs/workbench/services/environment/common/environmentService';
++import { IBrowserWorkbenchEnvironmentService } from 'vs/workbench/services/environment/browser/environmentService';
+ import { IRemoteAgentService } from 'vs/workbench/services/remote/common/remoteAgentService';
+ import { IContextKeyService, IContextKey, RawContextKey } from 'vs/platform/contextkey/common/contextkey';
+ import { equalsIgnoreCase, format, startsWithIgnoreCase } from 'vs/base/common/strings';
+@@ -142,7 +142,7 @@ export class SimpleFileDialog implements
+ 		@IFileDialogService private readonly fileDialogService: IFileDialogService,
+ 		@IModelService private readonly modelService: IModelService,
+ 		@ILanguageService private readonly languageService: ILanguageService,
+-		@IWorkbenchEnvironmentService protected readonly environmentService: IWorkbenchEnvironmentService,
++		@IBrowserWorkbenchEnvironmentService protected readonly environmentService: IBrowserWorkbenchEnvironmentService,
+ 		@IRemoteAgentService private readonly remoteAgentService: IRemoteAgentService,
+ 		@IPathService protected readonly pathService: IPathService,
+ 		@IKeybindingService private readonly keybindingService: IKeybindingService,
+@@ -286,20 +286,22 @@ export class SimpleFileDialog implements
+ 			this.filePickBox.autoFocusOnList = false;
+ 			this.filePickBox.ignoreFocusOut = true;
+ 			this.filePickBox.ok = true;
+-			if ((this.scheme !== Schemas.file) && this.options && this.options.availableFileSystems && (this.options.availableFileSystems.length > 1) && (this.options.availableFileSystems.indexOf(Schemas.file) > -1)) {
+-				this.filePickBox.customButton = true;
+-				this.filePickBox.customLabel = nls.localize('remoteFileDialog.local', 'Show Local');
+-				let action;
+-				if (isSave) {
+-					action = SaveLocalFileCommand;
+-				} else {
+-					action = this.allowFileSelection ? (this.allowFolderSelection ? OpenLocalFileFolderCommand : OpenLocalFileCommand) : OpenLocalFolderCommand;
+-				}
+-				const keybinding = this.keybindingService.lookupKeybinding(action.ID);
+-				if (keybinding) {
+-					const label = keybinding.getLabel();
+-					if (label) {
+-						this.filePickBox.customHover = format('{0} ({1})', action.LABEL, label);
++			if ((isSave && this.environmentService.isEnabledFileDownloads) || (!isSave && this.environmentService.isEnabledFileUploads)) {
++				if ((this.scheme !== Schemas.file) && this.options && this.options.availableFileSystems && (this.options.availableFileSystems.length > 1) && (this.options.availableFileSystems.indexOf(Schemas.file) > -1)) {
++					this.filePickBox.customButton = true;
++					this.filePickBox.customLabel = nls.localize('remoteFileDialog.local', 'Show Local');
++					let action;
++					if (isSave) {
++						action = SaveLocalFileCommand;
++					} else {
++						action = this.allowFileSelection ? (this.allowFolderSelection ? OpenLocalFileFolderCommand : OpenLocalFileCommand) : OpenLocalFolderCommand;
++					}
++					const keybinding = this.keybindingService.lookupKeybinding(action.ID);
++					if (keybinding) {
++						const label = keybinding.getLabel();
++						if (label) {
++							this.filePickBox.customHover = format('{0} ({1})', action.LABEL, label);
++						}
+ 					}
+ 				}
+ 			}
+Index: code-server/lib/vscode/src/vs/workbench/contrib/files/browser/views/explorerViewer.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/workbench/contrib/files/browser/views/explorerViewer.ts
++++ code-server/lib/vscode/src/vs/workbench/contrib/files/browser/views/explorerViewer.ts
+@@ -66,6 +66,7 @@ import { IHoverDelegate, IHoverDelegateO
+ import { IHoverService } from 'vs/workbench/services/hover/browser/hover';
+ import { HoverPosition } from 'vs/base/browser/ui/hover/hoverWidget';
+ import { IFilesConfigurationService } from 'vs/workbench/services/filesConfiguration/common/filesConfigurationService';
++import { IBrowserWorkbenchEnvironmentService } from 'vs/workbench/services/environment/browser/environmentService';
+ 
+ export class ExplorerDelegate implements IListVirtualDelegate<ExplorerItem> {
+ 
+@@ -1053,7 +1054,8 @@ export class FileDragAndDrop implements
+ 		@IConfigurationService private configurationService: IConfigurationService,
+ 		@IInstantiationService private instantiationService: IInstantiationService,
+ 		@IWorkspaceEditingService private workspaceEditingService: IWorkspaceEditingService,
+-		@IUriIdentityService private readonly uriIdentityService: IUriIdentityService
++		@IUriIdentityService private readonly uriIdentityService: IUriIdentityService,
++		@IBrowserWorkbenchEnvironmentService protected readonly environmentService: IBrowserWorkbenchEnvironmentService
+ 	) {
+ 		const updateDropEnablement = (e: IConfigurationChangeEvent | undefined) => {
+ 			if (!e || e.affectsConfiguration('explorer.enableDragAndDrop')) {
+@@ -1257,15 +1259,17 @@ export class FileDragAndDrop implements
+ 
+ 			// External file DND (Import/Upload file)
+ 			if (data instanceof NativeDragAndDropData) {
+-				// Use local file import when supported
+-				if (!isWeb || (isTemporaryWorkspace(this.contextService.getWorkspace()) && WebFileSystemAccess.supported(window))) {
+-					const fileImport = this.instantiationService.createInstance(ExternalFileImport);
+-					await fileImport.import(resolvedTarget, originalEvent);
+-				}
+-				// Otherwise fallback to browser based file upload
+-				else {
+-					const browserUpload = this.instantiationService.createInstance(BrowserFileUpload);
+-					await browserUpload.upload(target, originalEvent);
++				if (this.environmentService.isEnabledFileUploads) {
++					// Use local file import when supported
++					if (!isWeb || (isTemporaryWorkspace(this.contextService.getWorkspace()) && WebFileSystemAccess.supported(window))) {
++						const fileImport = this.instantiationService.createInstance(ExternalFileImport);
++						await fileImport.import(resolvedTarget, originalEvent);
++					}
++					// Otherwise fallback to browser based file upload
++					else {
++						const browserUpload = this.instantiationService.createInstance(BrowserFileUpload);
++						await browserUpload.upload(target, originalEvent);
++					}
+ 				}
+ 			}
+ 
+Index: code-server/lib/vscode/src/vs/platform/files/node/diskFileSystemProviderServer.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/platform/files/node/diskFileSystemProviderServer.ts
++++ code-server/lib/vscode/src/vs/platform/files/node/diskFileSystemProviderServer.ts
+@@ -92,6 +92,7 @@ export abstract class AbstractDiskFileSy
+ 
+ 	private async readFile(uriTransformer: IURITransformer, _resource: UriComponents, opts?: IFileAtomicReadOptions): Promise<VSBuffer> {
+ 		const resource = this.transformIncoming(uriTransformer, _resource, true);
++		this.logService.trace(`File action: readFile ${resource.path}`);
+ 		const buffer = await this.provider.readFile(resource, opts);
+ 
+ 		return VSBuffer.wrap(buffer);
+@@ -110,6 +111,7 @@ export abstract class AbstractDiskFileSy
+ 			}
+ 		});
+ 
++		this.logService.trace(`File action: readFileStream ${resource.path}`);
+ 		const fileStream = this.provider.readFileStream(resource, opts, cts.token);
+ 		listenStream(fileStream, {
+ 			onData: chunk => emitter.fire(VSBuffer.wrap(chunk)),
+@@ -130,7 +132,7 @@ export abstract class AbstractDiskFileSy
+ 
+ 	private writeFile(uriTransformer: IURITransformer, _resource: UriComponents, content: VSBuffer, opts: IFileWriteOptions): Promise<void> {
+ 		const resource = this.transformIncoming(uriTransformer, _resource);
+-
++		this.logService.trace(`File action: writeFile ${resource.path}`);
+ 		return this.provider.writeFile(resource, content.buffer, opts);
+ 	}
+ 
