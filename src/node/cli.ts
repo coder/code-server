@@ -173,8 +173,7 @@ export const options: Options<Required<UserProvidedArgs>> = {
   },
   "disable-file-uploads": {
     type: "boolean",
-    description:
-      "Disable file uploads.",
+    description: "Disable file uploads.",
   },
   "disable-workspace-trust": {
     type: "boolean",

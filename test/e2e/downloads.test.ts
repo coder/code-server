@@ -23,7 +23,7 @@ describe("Downloads (enabled)", ["--disable-workspace-trust"], {}, async () => {
 
     expect(await codeServerPage.page.isVisible("text=Download...")).toBe(true)
   })
-  
+
   test("should see the 'Show Local' button on Save As", async ({ codeServerPage }) => {
     // Setup
     const workspaceDir = await codeServerPage.workspaceDir
@@ -44,7 +44,6 @@ describe("Downloads (enabled)", ["--disable-workspace-trust"], {}, async () => {
   })
 
   test("should see the 'Show Local' button on Save File", async ({ codeServerPage }) => {
-
     // Action
     await codeServerPage.navigateMenus(["File", "New Text File"])
     await codeServerPage.waitForTab("Untitled-1")
@@ -59,7 +58,6 @@ describe("Downloads (enabled)", ["--disable-workspace-trust"], {}, async () => {
     await codeServerPage.page.waitForSelector(".quick-input-widget")
     expect(await codeServerPage.page.isVisible("text=Show Local")).toBe(true)
   })
-  
 })
 
 describe("Downloads (disabled)", ["--disable-workspace-trust", "--disable-file-downloads"], {}, async () => {
@@ -113,5 +111,4 @@ describe("Downloads (disabled)", ["--disable-workspace-trust", "--disable-file-d
     await codeServerPage.page.waitForSelector(".quick-input-widget")
     expect(await codeServerPage.page.isVisible("text=Show Local")).toBe(false)
   })
-
 })

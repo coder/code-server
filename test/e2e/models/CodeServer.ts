@@ -432,7 +432,7 @@ export class CodeServerPage {
    * it then clicking the match from the results.
    */
   async executeCommandViaMenus(command: string) {
-    await this.navigateMenus(["View", "Command Palette"])
+    await this.navigateMenus(["View", "Command Palette..."])
 
     await this.page.keyboard.type(command)
 

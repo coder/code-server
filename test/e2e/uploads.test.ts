@@ -29,7 +29,6 @@ describe("Uploads (enabled)", ["--disable-workspace-trust"], {}, () => {
     await codeServerPage.page.waitForSelector(".quick-input-widget")
     expect(await codeServerPage.page.isVisible("text=Show Local")).toBe(true)
   })
-
 })
 
 describe("Uploads (disabled)", ["--disable-workspace-trust", "--disable-file-uploads"], {}, () => {
@@ -59,5 +58,4 @@ describe("Uploads (disabled)", ["--disable-workspace-trust", "--disable-file-upl
     await codeServerPage.page.waitForSelector(".quick-input-widget")
     expect(await codeServerPage.page.isVisible("text=Show Local")).toBe(false)
   })
-
 })
