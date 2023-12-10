@@ -1,13 +1,13 @@
 # syntax=docker/dockerfile:experimental
 
-ARG BASE=debian:11
+ARG BASE=debian:12
 FROM scratch AS packages
 COPY release-packages/code-server*.deb /tmp/
 
 FROM $BASE
 
 RUN apt-get update \
-  && apt-get install -y \
+  && apt-get install --no-install-recommends -y \
     curl \
     dumb-init \
     zsh \
