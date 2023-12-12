@@ -73,7 +73,7 @@ details.
 Interested in [working at Coder](https://coder.com/careers)? Check out [our open
 positions](https://coder.com/careers#openings)!
 
-## For Organizations
+## For Teams
 
-Want remote development for your organization or enterprise? Visit [our
-website](https://coder.com) to learn more about Coder.
+We develop [coder/coder](https://cdr.co/coder-github) to help teams to
+adopt remote development.
