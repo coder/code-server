@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:experimental
 
-ARG BASE=debian:11
+ARG BASE=debian:12
 FROM scratch AS packages
 COPY release-packages/code-server*.deb /tmp/
 
