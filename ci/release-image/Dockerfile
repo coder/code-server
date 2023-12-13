@@ -21,6 +21,7 @@ RUN apt-get update \
     procps \
     sudo \
     vim-tiny \
+    wget \
     zsh \
   && git lfs install \
   && rm -rf /var/lib/apt/lists/*
