@@ -66,7 +66,7 @@ Index: code-server/lib/vscode/src/vs/workbench/services/configuration/browser/co
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/services/configuration/browser/configurationService.ts
 +++ code-server/lib/vscode/src/vs/workbench/services/configuration/browser/configurationService.ts
-@@ -143,8 +143,10 @@ export class WorkspaceService extends Di
+@@ -145,8 +145,10 @@ export class WorkspaceService extends Di
  		this.workspaceConfiguration = this._register(new WorkspaceConfiguration(configurationCache, fileService, uriIdentityService, logService));
  		this._register(this.workspaceConfiguration.onDidUpdateConfiguration(fromCache => {
  			this.onWorkspaceConfigurationChanged(fromCache).then(() => {
@@ -79,7 +79,7 @@ Index: code-server/lib/vscode/src/vs/workbench/services/configuration/browser/co
  			});
  		}));
  
-@@ -550,6 +552,12 @@ export class WorkspaceService extends Di
+@@ -552,6 +554,12 @@ export class WorkspaceService extends Di
  			previousFolders = this.workspace.folders;
  			this.workspace.update(workspace);
  		} else {

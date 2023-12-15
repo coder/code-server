@@ -42,7 +42,7 @@ Index: code-server/lib/vscode/src/vs/platform/remote/browser/remoteAuthorityReso
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/platform/remote/browser/remoteAuthorityResolverService.ts
 +++ code-server/lib/vscode/src/vs/platform/remote/browser/remoteAuthorityResolverService.ts
-@@ -33,7 +33,7 @@ export class RemoteAuthorityResolverServ
+@@ -34,7 +34,7 @@ export class RemoteAuthorityResolverServ
  		isWorkbenchOptionsBasedResolution: boolean,
  		connectionToken: Promise<string> | string | undefined,
  		resourceUriProvider: ((uri: URI) => URI) | undefined,
@@ -51,16 +51,16 @@ Index: code-server/lib/vscode/src/vs/platform/remote/browser/remoteAuthorityReso
  		@ILogService private readonly _logService: ILogService,
  	) {
  		super();
-@@ -84,9 +84,14 @@ export class RemoteAuthorityResolverServ
+@@ -85,9 +85,14 @@ export class RemoteAuthorityResolverServ
  		const connectionToken = await Promise.resolve(this._connectionTokens.get(authority) || this._connectionToken);
  		performance.mark(`code/didResolveConnectionToken/${authorityPrefix}`);
  		this._logService.info(`Resolved connection token (${authorityPrefix}) after ${sw.elapsed()} ms`);
 +		let options: ResolvedOptions | undefined;
 +		if (this.productService.proxyEndpointTemplate) {
-+			const proxyUrl = new URL(this.productService.proxyEndpointTemplate, window.location.href);
++			const proxyUrl = new URL(this.productService.proxyEndpointTemplate, mainWindow.location.href);
 +			options = { extensionHostEnv: { VSCODE_PROXY_URI: decodeURIComponent(proxyUrl.toString()) }}
 +		}
- 		const defaultPort = (/^https:/.test(window.location.href) ? 443 : 80);
+ 		const defaultPort = (/^https:/.test(mainWindow.location.href) ? 443 : 80);
  		const { host, port } = parseAuthorityWithOptionalPort(authority, defaultPort);
 -		const result: ResolverResult = { authority: { authority, connectTo: new WebSocketRemoteConnection(host, port), connectionToken } };
 +		const result: ResolverResult = { authority: { authority, connectTo: new WebSocketRemoteConnection(host, port), connectionToken }, options };
@@ -96,10 +96,10 @@ Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/code/browser/workbench/workbench.ts
 +++ code-server/lib/vscode/src/vs/code/browser/workbench/workbench.ts
-@@ -19,6 +19,7 @@ import { isFolderToOpen, isWorkspaceToOp
- import type { IWorkbenchConstructionOptions } from 'vs/workbench/browser/web.api';
+@@ -19,6 +19,7 @@ import { ISecretStorageProvider } from '
+ import { isFolderToOpen, isWorkspaceToOpen } from 'vs/platform/window/common/window';
+ import type { IWorkbenchConstructionOptions, IWorkspace, IWorkspaceProvider } from 'vs/workbench/browser/web.api';
  import { AuthenticationSessionInfo } from 'vs/workbench/services/authentication/browser/authenticationService';
- import type { IWorkspace, IWorkspaceProvider } from 'vs/workbench/services/host/browser/browserHostService';
 +import { extractLocalHostUriMetaDataForPortMapping, TunnelOptions, TunnelCreationOptions } from 'vs/platform/tunnel/common/tunnel';
  import type { IURLCallbackProvider } from 'vs/workbench/services/url/browser/urlService';
  import { create } from 'vs/workbench/workbench.web.main';
@@ -148,7 +148,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/remote/browser/remoteExpl
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/contrib/remote/browser/remoteExplorer.ts
 +++ code-server/lib/vscode/src/vs/workbench/contrib/remote/browser/remoteExplorer.ts
-@@ -76,7 +76,7 @@ export class ForwardedPortsView extends
+@@ -81,7 +81,7 @@ export class ForwardedPortsView extends
  			this.contextKeyListener = undefined;
  		}
  
