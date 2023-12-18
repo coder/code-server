@@ -36,7 +36,7 @@ body:
         2. install extension
         3. run command
       value: |
-        1. 
+        1.
         2.
         3.
     validations:
@@ -67,19 +67,23 @@ body:
   - type: checkboxes
     attributes:
       label: Does this issue happen in VS Code or GitHub Codespaces?
-      description: Please try reproducing this issue in VS Code or GitHub Codespaces
+      description: Please try reproducing this issue in VS Code and GitHub Codespaces.  If the bug reproduces in either VS Code or GitHub Codespaces, please submit the issue upstream instead (https://github.com/microsoft/vscode).
       options:
-        - label: I cannot reproduce this in VS Code.
-          required: true
-        - label: I cannot reproduce this in GitHub Codespaces.
-          required: true
+        - label: I tested this in native VS Code.
+          required: false
+        - label: This does not happen in native VS Code.
+          required: false
+        - label: I tested this in GitHub Codespaces.
+          required: false
+        - label: This does not happen in GitHub Codespaces.
+          required: false
   - type: checkboxes
     attributes:
       label: Are you accessing code-server over a secure context?
       description: code-server relies on service workers (which only work in secure contexts) for many features. Double-check that you are using a secure context like HTTPS or localhost.
       options:
         - label: I am using a secure context.
-          required: true
+          required: false
   - type: textarea
     attributes:
       label: Notes
