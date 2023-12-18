@@ -50,7 +50,7 @@ target "code-server-debian-12" {
     tags = concat(
         gen_tags_for_docker_and_ghcr(""),
         gen_tags_for_docker_and_ghcr("debian"),
-        gen_tags_for_docker_and_ghcr("bookwork"),
+        gen_tags_for_docker_and_ghcr("bookworm"),
     )
     platforms = ["linux/amd64", "linux/arm64"]
 }
