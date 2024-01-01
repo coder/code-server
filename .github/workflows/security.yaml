@@ -55,7 +55,7 @@ jobs:
           fetch-depth: 0
 
       - name: Run Trivy vulnerability scanner in repo mode
-        uses: aquasecurity/trivy-action@2b6a709cf9c4025c5438138008beaddbb02086f0
+        uses: aquasecurity/trivy-action@91713af97dc80187565512baba96e4364e983601
         with:
           scan-type: "fs"
           scan-ref: "."
