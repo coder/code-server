@@ -1,0 +1,6 @@
+resources:
+  limits:
+    nvidia.com/gpu: 1 # requesting 1 GPU
+
+service:
+  type: NodePort

@@ -1,0 +1,62 @@
+service:
+  type: NodePort
+
+extraVars: 
+#  - name: DISABLE_TELEMETRY
+#    value: true
+  - name: DOCKER_HOST
+    value: "tcp://localhost:2375"
+
+# If docker-dind is used, DOCKER_HOST env is mandatory to set in "extraVars"
+extraContainers: | 
+  - name: docker-dind
+    image: docker:19.03-dind
+    imagePullPolicy: IfNotPresent
+    resources:
+      requests:
+        cpu: 250m
+        memory: 256M
+    securityContext:
+      privileged: true
+      procMount: Default
+    env:
+    - name: DOCKER_TLS_CERTDIR
+      value: ""
+    - name: DOCKER_DRIVER
+      value: "overlay2"
+
+
+extraInitContainers: |
+  - name: path-export
+    image: ghcr.io/rampart-aios/conda-code-server:0.1.0-3035168
+    imagePullPolicy: IfNotPresent
+    command:
+      - sh
+      - -c
+      - |
+        cd && pwd
+        bash /downloads/Miniconda3-latest-Linux-x86_64.sh -b
+        ./miniconda3/bin/conda init bash
+        tar zxvf /downloads/docker-19.03.15.tgz --strip 1 -C ./miniconda3/bin docker/docker
+
+    volumeMounts:
+      - name: data
+        mountPath: /home/coder
+
+
+## Persist data to a persistent volume
+persistence:
+  enabled: true
+  ## code-server data Persistent Volume Storage Class
+  ## If defined, storageClassName: <storageClass>
+  ## If set to "-", storageClassName: "", which disables dynamic provisioning
+  ## If undefined (the default) or set to null, no storageClassName spec is
+  ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
+  ##   GKE, AWS & OpenStack)
+  ##
+  # storageClass: "custom-hostpath-89"
+  accessMode: ReadWriteOnce
+  size: 10Gi
+  annotations: {}
+  # existingClaim: ""
+  # hostPath: /data
