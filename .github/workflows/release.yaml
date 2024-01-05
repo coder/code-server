@@ -318,7 +318,7 @@ jobs:
         run: tar -czf package.tar.gz release
 
       - name: Upload npm package artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: npm-release-package
           path: ./package.tar.gz
