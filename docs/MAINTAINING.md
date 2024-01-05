@@ -171,7 +171,7 @@ We publish to AUR as a package [here](https://aur.archlinux.org/packages/code-se
 
 #### Docker
 
-We publish code-server as a Docker image [here](https://registry.hub.docker.com/r/codercom/code-server), tagging it both with the version and latest.
+We publish code-server as a Docker image [here](https://hub.docker.com/r/codercom/code-server), tagging it both with the version and latest.
 
 This is currently automated with the release process.
 
