@@ -54,6 +54,7 @@ export const runCodeCli = async (args: DefaultedArgs): Promise<void> => {
     await spawnCli(await toCodeArgs(args))
   } catch (error: any) {
     logger.error("Got error from Code", error)
+    process.exit(1)
   }
 
   process.exit(0)
