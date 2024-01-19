@@ -1,0 +1,18 @@
+service:
+  type: NodePort
+
+extraInitContainers: |
+  - name: path-export
+    image: ghcr.io/rampart-aios/conda-code-server:0.1.0-3035168
+    imagePullPolicy: IfNotPresent
+    command:
+      - sh
+      - -c
+      - |
+        cd && pwd
+        bash /downloads/Miniconda3-latest-Linux-x86_64.sh -b
+        ./miniconda3/bin/conda init bash
+
+    volumeMounts:
+      - name: data
+        mountPath: /home/coder

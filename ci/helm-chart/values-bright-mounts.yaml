@@ -1,0 +1,23 @@
+## Additional code-server volume mounts
+extraVolumeMounts:
+  # - name: extra-volume
+  #   mountPath: /mnt/volume
+  #   readOnly: true
+  #   existingClaim: volume-claim
+  #   hostPath: ""
+  - name: srv-nfs
+    mountPath: /srv/nfs
+    readOnly: false
+    hostPath: "/srv/nfs"
+  - name: model
+    mountPath: /model
+    readOnly: false
+    hostPath: "/model"
+  - name: aios-store
+    mountPath: /aios-store
+    readOnly: false
+    hostPath: "/aios-store"
+  - name: rampart-stor
+    mountPath: /rampart-stor
+    readOnly: false
+    hostPath: "/rampart-stor"

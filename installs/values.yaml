@@ -1,0 +1,43 @@
+image:
+  repository: ghcr.io/rampart-aios/conda-code-server
+  tag: 0.0.1-eec8879
+service:
+  type: NodePort
+resources:
+  limits:
+    nvidia.com/gpu: 4 # requesting 1 GPU
+
+extraVars: 
+#  - name: DISABLE_TELEMETRY
+#    value: true
+  - name: DOCKER_HOST
+    value: "tcp://localhost:2375"
+extraContainers: | 
+  - name: docker-dind
+    image: docker:19.03-dind
+    imagePullPolicy: IfNotPresent
+    resources:
+      requests:
+        cpu: 250m
+        memory: 256M
+    securityContext:
+      privileged: true
+      procMount: Default
+    env:
+    - name: DOCKER_TLS_CERTDIR
+      value: ""
+    - name: DOCKER_DRIVER
+      value: "overlay2"
+extraInitContainers: |
+  - name: path-export
+    image: ghcr.io/rampart-aios/conda-code-server:0.0.1-3a2bfc8
+    imagePullPolicy: IfNotPresent
+    command:
+      - sh
+      - -c
+      - |
+        /tools/miniconda3/bin/conda init bash
+        
+    volumeMounts:
+      - name: data
+        mountPath: /home/coder

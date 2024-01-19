@@ -1,0 +1,66 @@
+extraVars: 
+#  - name: DISABLE_TELEMETRY
+#    value: true
+  - name: DOCKER_HOST
+    value: "tcp://localhost:2375"
+
+# If docker-dind is used, DOCKER_HOST env is mandatory to set in "extraVars"
+extraContainers: | 
+  - name: docker-dind
+    image: docker:19.03-dind
+    imagePullPolicy: IfNotPresent
+    resources:
+      requests:
+        cpu: 250m
+        memory: 256M
+    securityContext:
+      privileged: true
+      procMount: Default
+    env:
+    - name: DOCKER_TLS_CERTDIR
+      value: ""
+    - name: DOCKER_DRIVER
+      value: "overlay2"
+
+image:
+  repository: ghcr.io/rampart-aios/conda-code-server
+  tag: 0.0.1-eec8879
+service:
+  type: NodePort
+extraInitContainers: |
+  - name: path-export
+    image: ghcr.io/rampart-aios/conda-code-server:0.0.1-3a2bfc8
+    imagePullPolicy: IfNotPresent
+    command:
+      - sh
+      - -c
+      - |
+        /tools/miniconda3/bin/conda init bash
+        
+    volumeMounts:
+      - name: data
+        mountPath: /home/coder
+
+## Additional code-server volume mounts
+extraVolumeMounts:
+  # - name: extra-volume
+  #   mountPath: /mnt/volume
+  #   readOnly: true
+  #   existingClaim: volume-claim
+  #   hostPath: ""
+  - name: srv-nfs
+    mountPath: /srv/nfs
+    readOnly: false
+    hostPath: "/srv/nfs"
+  - name: model
+    mountPath: /model
+    readOnly: false
+    hostPath: "/model"
+  - name: aios-store
+    mountPath: /aios-store
+    readOnly: false
+    hostPath: "/aios-store"
+  - name: rampart-stor
+    mountPath: /rampart-stor
+    readOnly: false
+    hostPath: "/rampart-stor"

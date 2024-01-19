@@ -1,0 +1,1 @@
+kubectl scale deploy -n <namespace> --replicas=0 --all

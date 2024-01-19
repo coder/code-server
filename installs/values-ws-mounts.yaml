@@ -1,0 +1,11 @@
+## Additional code-server volume mounts
+extraVolumeMounts:
+  # - name: extra-volume
+  #   mountPath: /mnt/volume
+  #   readOnly: true
+  #   existingClaim: volume-claim
+  #   hostPath: ""
+  - name: model
+    mountPath: /models
+    readOnly: false
+    hostPath: "/mnt/nfs_share89/models"
