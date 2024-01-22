@@ -22,6 +22,18 @@ Code v99.99.999
 
 ## Unreleased
 
+## [4.20.1](https://github.com/coder/code-server/releases/tag/v4.20.1) - 2021-01-22
+
+Code v1.85.2
+
+## Changed
+
+- Updated to Code 1.85.2.
+
+## Fixed
+
+- Query variables are no longer double-encoded when going over the path proxy.
+
 ## [4.20.0](https://github.com/coder/code-server/releases/tag/v4.20.0) - 2023-12-21
 
 Code v1.85.1

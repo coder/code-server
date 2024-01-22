@@ -67,7 +67,7 @@ body:
   - type: checkboxes
     attributes:
       label: Does this issue happen in VS Code or GitHub Codespaces?
-      description: Please try reproducing this issue in VS Code and GitHub Codespaces.  If the bug reproduces in either VS Code or GitHub Codespaces, please submit the issue upstream instead (https://github.com/microsoft/vscode).
+      description: Please try reproducing this issue in VS Code and GitHub Codespaces. If the bug reproduces in either VS Code or GitHub Codespaces, please submit the issue upstream instead (https://github.com/microsoft/vscode).
       options:
         - label: I tested this in native VS Code.
           required: false
