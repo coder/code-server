@@ -13,3 +13,6 @@ helm upgrade --install cs-ws-gpu3 ../ci/helm-chart -f values-base-docker.yaml -f
 
 helm upgrade --install gpu-12a ../ci/helm-chart -f values-base-docker.yaml -f values-4gpu.yaml -f values-bright-mounts.yaml -n gpu-12a
 helm upgrade --install gpu-12b ../ci/helm-chart -f values-base-docker.yaml -f values-4gpu.yaml -f values-ws-mounts.yaml -n gpu-12b --create-namespace
+
+helm upgrade --install cs-ridwan2 ../ci/helm-chart -f values-base-docker.yaml -f values-4gpu.yaml -f values-bright-mounts.yaml -n cs-ridwan2 --create-namespace
+helm upgrade --install cs-akhmed ../ci/helm-chart -f values-base-docker.yaml -f values-bright-mounts.yaml -n cs-akhmed --create-namespace
