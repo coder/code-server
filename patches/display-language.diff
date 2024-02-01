@@ -53,7 +53,7 @@ Index: code-server/lib/vscode/src/vs/base/common/platform.ts
  export const LANGUAGE_DEFAULT = 'en';
  
  let _isWindows = false;
-@@ -85,17 +83,21 @@ if (typeof navigator === 'object' && !is
+@@ -111,17 +109,21 @@ else if (typeof navigator === 'object' &
  	_isMobile = _userAgent?.indexOf('Mobi') >= 0;
  	_isWeb = true;
  
@@ -83,7 +83,7 @@ Index: code-server/lib/vscode/src/vs/base/common/platform.ts
 +	}
  }
  
- // Native environment
+ // Unknown environment
 Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench.html
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/code/browser/workbench/workbench.html
@@ -249,7 +249,7 @@ Index: code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
  
  	/* ----- server setup ----- */
  
-@@ -101,6 +102,7 @@ export interface ServerParsedArgs {
+@@ -102,6 +103,7 @@ export interface ServerParsedArgs {
  	'auth'?: string
  	'disable-file-downloads'?: boolean;
  	'disable-file-uploads'?: boolean;
@@ -348,7 +348,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/extensions/browser/extens
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/contrib/extensions/browser/extensionsActions.ts
 +++ code-server/lib/vscode/src/vs/workbench/contrib/extensions/browser/extensionsActions.ts
-@@ -321,9 +321,6 @@ export class InstallAction extends Exten
+@@ -338,9 +338,6 @@ export class InstallAction extends Exten
  		if (this.extension.isBuiltin) {
  			return;
  		}
@@ -358,7 +358,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/extensions/browser/extens
  		if (this.extension.state === ExtensionState.Uninstalled && await this.extensionsWorkbenchService.canInstall(this.extension)) {
  			this.enabled = this.options.installPreReleaseVersion ? this.extension.hasPreReleaseVersion : this.extension.hasReleaseVersion;
  			this.updateLabel();
-@@ -591,7 +588,7 @@ export abstract class InstallInOtherServ
+@@ -608,7 +605,7 @@ export abstract class InstallInOtherServ
  		}
  
  		if (isLanguagePackExtension(this.extension.local.manifest)) {
@@ -367,7 +367,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/extensions/browser/extens
  		}
  
  		// Prefers to run on UI
-@@ -1751,17 +1748,6 @@ export class SetLanguageAction extends E
+@@ -1780,17 +1777,6 @@ export class SetLanguageAction extends E
  	update(): void {
  		this.enabled = false;
  		this.class = SetLanguageAction.DisabledClass;
@@ -385,7 +385,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/extensions/browser/extens
  	}
  
  	override async run(): Promise<any> {
-@@ -1778,7 +1764,6 @@ export class ClearLanguageAction extends
+@@ -1807,7 +1793,6 @@ export class ClearLanguageAction extends
  	private static readonly DisabledClass = `${ClearLanguageAction.EnabledClass} disabled`;
  
  	constructor(
@@ -393,7 +393,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/extensions/browser/extens
  		@ILocaleService private readonly localeService: ILocaleService,
  	) {
  		super(ClearLanguageAction.ID, ClearLanguageAction.TITLE.value, ClearLanguageAction.DisabledClass, false);
-@@ -1788,17 +1773,6 @@ export class ClearLanguageAction extends
+@@ -1817,17 +1802,6 @@ export class ClearLanguageAction extends
  	update(): void {
  		this.enabled = false;
  		this.class = ClearLanguageAction.DisabledClass;
