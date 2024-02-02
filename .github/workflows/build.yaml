@@ -124,7 +124,7 @@ jobs:
       - name: Fetch dependencies from cache
         if: steps.changed-files.outputs.any_changed == 'true'
         id: cache-node-modules
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: "**/node_modules"
           key: yarn-build-${{ hashFiles('**/yarn.lock') }}
@@ -179,7 +179,7 @@ jobs:
       - name: Fetch dependencies from cache
         if: steps.changed-files.outputs.any_changed == 'true'
         id: cache-node-modules
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: "**/node_modules"
           key: yarn-build-${{ hashFiles('**/yarn.lock') }}
@@ -231,7 +231,7 @@ jobs:
 
       - name: Fetch dependencies from cache
         id: cache-node-modules
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: "**/node_modules"
           key: yarn-build-code-server-${{ hashFiles('**/yarn.lock') }}
@@ -259,7 +259,7 @@ jobs:
       # force a rebuild.
       - name: Fetch prebuilt Code package from cache
         id: cache-vscode
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: lib/vscode-reh-web-*
           key: vscode-reh-package-${{ secrets.VSCODE_CACHE_VERSION }}-${{ steps.vscode-rev.outputs.rev }}-${{ hashFiles('patches/*.diff', 'ci/build/build-vscode.sh') }}
@@ -305,7 +305,7 @@ jobs:
 
       - name: Fetch dependencies from cache
         id: cache-node-modules
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: "**/node_modules"
           key: yarn-build-${{ hashFiles('**/yarn.lock') }}
@@ -364,7 +364,7 @@ jobs:
 
       - name: Fetch dependencies from cache
         id: cache-node-modules
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: "**/node_modules"
           key: yarn-build-${{ hashFiles('**/yarn.lock') }}
@@ -392,7 +392,7 @@ jobs:
           ./test/node_modules/.bin/playwright install
 
       - name: Cache Caddy
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         id: caddy-cache
         with:
           path: |
