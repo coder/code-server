@@ -78,3 +78,15 @@ target "code-server-fedora-39" {
     }
     platforms = ["linux/amd64", "linux/arm64"]
 }
+
+target "code-server-opensuse-tumbleweed" {
+    dockerfile = "ci/release-image/Dockerfile.opensuse"
+    tags = concat(
+        gen_tags_for_docker_and_ghcr("opensuse"),
+        gen_tags_for_docker_and_ghcr("tumbleweed"),
+    )
+    args = {
+        BASE = "opensuse/tumbleweed"
+    }
+    platforms = ["linux/amd64", "linux/arm64"]
+}
