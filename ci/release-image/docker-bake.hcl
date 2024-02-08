@@ -66,3 +66,15 @@ target "code-server-ubuntu-focal" {
     }
     platforms = ["linux/amd64", "linux/arm64"]
 }
+
+target "code-server-fedora-39" {
+    dockerfile = "ci/release-image/Dockerfile.fedora"
+    tags = concat(
+        gen_tags_for_docker_and_ghcr("fedora"),
+        gen_tags_for_docker_and_ghcr("39"),
+    )
+    args = {
+        BASE = "fedora:39"
+    }
+    platforms = ["linux/amd64", "linux/arm64"]
+}
