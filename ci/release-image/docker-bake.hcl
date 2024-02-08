@@ -18,6 +18,8 @@ group "default" {
     targets = [
         "code-server-debian-12",
         "code-server-ubuntu-focal",
+        "code-server-fedora-39",
+        "code-server-opensuse-tumbleweed",
     ]
 }
 
