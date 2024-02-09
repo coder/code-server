@@ -35,7 +35,7 @@ RUN ARCH="$(uname -m | sed 's/x86_64/amd64/g' | sed 's/aarch64/arm64/g')" \
   && printf "user: coder\ngroup: coder\n" > /etc/fixuid/config.yml
 
 COPY ci/release-image/entrypoint.sh /usr/bin/entrypoint.sh
-RUN --mount=from=packages,src=/tmp,dst=/tmp/packages dnf install -y /tmp/packages/code-server*$(uname -m | sed 's/x86_64/amd64/g' | sed 's/aarch64/arm64/g').rpm
+RUN --mount=from=packages,src=/tmp,dst=/tmp/packages rpm -i /tmp/packages/code-server*$(uname -m | sed 's/x86_64/amd64/g' | sed 's/aarch64/arm64/g').rpm
 
 # Allow users to have scripts run on container startup to prepare workspace.
 # https://github.com/coder/code-server/issues/5177
