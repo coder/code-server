@@ -30,7 +30,7 @@ Index: code-server/lib/vscode/src/vs/workbench/browser/web.api.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/browser/web.api.ts
 +++ code-server/lib/vscode/src/vs/workbench/browser/web.api.ts
-@@ -276,6 +276,11 @@ export interface IWorkbenchConstructionO
+@@ -277,6 +277,11 @@ export interface IWorkbenchConstructionO
  	 */
  	readonly configurationDefaults?: Record<string, any>;
  

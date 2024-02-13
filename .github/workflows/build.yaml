@@ -45,7 +45,7 @@ jobs:
 
       - name: Get changed files
         id: changed-files
-        uses: tj-actions/changed-files@v40
+        uses: tj-actions/changed-files@v42
         with:
           files: |
             docs/**
@@ -76,7 +76,7 @@ jobs:
 
       - name: Get changed files
         id: changed-files
-        uses: tj-actions/changed-files@v40
+        uses: tj-actions/changed-files@v42
         with:
           files: |
             ci/helm-chart/**
@@ -107,7 +107,7 @@ jobs:
 
       - name: Get changed files
         id: changed-files
-        uses: tj-actions/changed-files@v40
+        uses: tj-actions/changed-files@v42
         with:
           files: |
             **/*.ts
@@ -124,7 +124,7 @@ jobs:
       - name: Fetch dependencies from cache
         if: steps.changed-files.outputs.any_changed == 'true'
         id: cache-node-modules
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: "**/node_modules"
           key: yarn-build-${{ hashFiles('**/yarn.lock') }}
@@ -163,7 +163,7 @@ jobs:
 
       - name: Get changed files
         id: changed-files
-        uses: tj-actions/changed-files@v40
+        uses: tj-actions/changed-files@v42
         with:
           files: |
             **/*.ts
@@ -179,7 +179,7 @@ jobs:
       - name: Fetch dependencies from cache
         if: steps.changed-files.outputs.any_changed == 'true'
         id: cache-node-modules
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: "**/node_modules"
           key: yarn-build-${{ hashFiles('**/yarn.lock') }}
@@ -195,7 +195,7 @@ jobs:
         run: yarn test:unit
 
       - name: Upload coverage report to Codecov
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
         if: success()
@@ -231,7 +231,7 @@ jobs:
 
       - name: Fetch dependencies from cache
         id: cache-node-modules
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: "**/node_modules"
           key: yarn-build-code-server-${{ hashFiles('**/yarn.lock') }}
@@ -259,7 +259,7 @@ jobs:
       # force a rebuild.
       - name: Fetch prebuilt Code package from cache
         id: cache-vscode
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: lib/vscode-reh-web-*
           key: vscode-reh-package-${{ secrets.VSCODE_CACHE_VERSION }}-${{ steps.vscode-rev.outputs.rev }}-${{ hashFiles('patches/*.diff', 'ci/build/build-vscode.sh') }}
@@ -281,7 +281,7 @@ jobs:
         run: tar -czf package.tar.gz release
 
       - name: Upload npm package artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: npm-package
           path: ./package.tar.gz
@@ -305,7 +305,7 @@ jobs:
 
       - name: Fetch dependencies from cache
         id: cache-node-modules
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: "**/node_modules"
           key: yarn-build-${{ hashFiles('**/yarn.lock') }}
@@ -313,7 +313,7 @@ jobs:
             yarn-build-
 
       - name: Download npm package
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: npm-package
 
@@ -337,7 +337,7 @@ jobs:
 
       - name: Upload test artifacts
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: failed-test-videos
           path: ./test/test-results
@@ -364,7 +364,7 @@ jobs:
 
       - name: Fetch dependencies from cache
         id: cache-node-modules
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: "**/node_modules"
           key: yarn-build-${{ hashFiles('**/yarn.lock') }}
@@ -372,7 +372,7 @@ jobs:
             yarn-build-
 
       - name: Download npm package
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: npm-package
 
@@ -392,7 +392,7 @@ jobs:
           ./test/node_modules/.bin/playwright install
 
       - name: Cache Caddy
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         id: caddy-cache
         with:
           path: |
@@ -420,7 +420,7 @@ jobs:
 
       - name: Upload test artifacts
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: failed-test-videos-proxy
           path: ./test/test-results

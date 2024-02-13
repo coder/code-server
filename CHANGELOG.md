@@ -22,6 +22,39 @@ Code v99.99.999
 
 ## Unreleased
 
+## [4.21.1](https://github.com/coder/code-server/releases/tag/v4.21.1) - 2021-02-09
+
+Code v1.86.1
+
+## Changed
+
+- Updated to Code 1.86.1.
+- Updated to Node 18.17.1.
+
+## Added
+
+- Docker images for Fedora and openSUSE.
+
+## [4.21.0](https://github.com/coder/code-server/releases/tag/v4.21.0) - 2021-02-05
+
+Code v1.86.0
+
+## Changed
+
+- Updated to Code 1.86.0.
+
+## [4.20.1](https://github.com/coder/code-server/releases/tag/v4.20.1) - 2021-01-22
+
+Code v1.85.2
+
+## Changed
+
+- Updated to Code 1.85.2.
+
+## Fixed
+
+- Query variables are no longer double-encoded when going over the path proxy.
+
 ## [4.20.0](https://github.com/coder/code-server/releases/tag/v4.20.0) - 2023-12-21
 
 Code v1.85.1

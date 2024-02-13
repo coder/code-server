@@ -60,7 +60,7 @@ jobs:
         run: npm install -g yarn
 
       - name: Download npm package
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: npm-release-package
 
@@ -77,7 +77,7 @@ jobs:
         run: yarn test:integration
 
       - name: Upload coverage report to Codecov
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
         if: success()
@@ -161,7 +161,7 @@ jobs:
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
       - name: Download npm package
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: npm-release-package
 
@@ -224,7 +224,7 @@ jobs:
         run: python3 -m pip install setuptools
 
       - name: Download npm package
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: npm-release-package
 
@@ -265,7 +265,7 @@ jobs:
     needs: npm-version
     steps:
       - name: Download npm package
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: npm-release-package
 
@@ -281,7 +281,7 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Download artifacts
-        uses: dawidd6/action-download-artifact@v2
+        uses: dawidd6/action-download-artifact@v3
         id: download
         with:
           branch: ${{ github.ref }}
@@ -318,7 +318,7 @@ jobs:
         run: tar -czf package.tar.gz release
 
       - name: Upload npm package artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: npm-release-package
           path: ./package.tar.gz

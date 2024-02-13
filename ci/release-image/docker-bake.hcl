@@ -18,6 +18,8 @@ group "default" {
     targets = [
         "code-server-debian-12",
         "code-server-ubuntu-focal",
+        "code-server-fedora-39",
+        "code-server-opensuse-tumbleweed",
     ]
 }
 
@@ -63,6 +65,30 @@ target "code-server-ubuntu-focal" {
     )
     args = {
         BASE = "ubuntu:focal"
+    }
+    platforms = ["linux/amd64", "linux/arm64"]
+}
+
+target "code-server-fedora-39" {
+    dockerfile = "ci/release-image/Dockerfile.fedora"
+    tags = concat(
+        gen_tags_for_docker_and_ghcr("fedora"),
+        gen_tags_for_docker_and_ghcr("39"),
+    )
+    args = {
+        BASE = "fedora:39"
+    }
+    platforms = ["linux/amd64", "linux/arm64"]
+}
+
+target "code-server-opensuse-tumbleweed" {
+    dockerfile = "ci/release-image/Dockerfile.opensuse"
+    tags = concat(
+        gen_tags_for_docker_and_ghcr("opensuse"),
+        gen_tags_for_docker_and_ghcr("tumbleweed"),
+    )
+    args = {
+        BASE = "opensuse/tumbleweed"
     }
     platforms = ["linux/amd64", "linux/arm64"]
 }

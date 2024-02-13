@@ -123,19 +123,19 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/welcomeGettingStarted/bro
 +	margin-bottom: 0.2em;
 +}
 +
-+.monaco-workbench .part.editor>.content .gettingStartedContainer .coder-coder {
++.monaco-workbench .part.editor > .content .gettingStartedContainer .coder-coder {
 +	font-size: 1em;
 +	margin-top: 0.2em;
 +}
 +
- .monaco-workbench.hc-black .part.editor>.content .gettingStartedContainer .subtitle,
- .monaco-workbench.hc-light .part.editor>.content .gettingStartedContainer .subtitle {
+ .monaco-workbench.hc-black .part.editor > .content .gettingStartedContainer .subtitle,
+ .monaco-workbench.hc-light .part.editor > .content .gettingStartedContainer .subtitle {
  	font-weight: 200;
 Index: code-server/lib/vscode/src/vs/workbench/browser/web.api.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/browser/web.api.ts
 +++ code-server/lib/vscode/src/vs/workbench/browser/web.api.ts
-@@ -291,6 +291,11 @@ export interface IWorkbenchConstructionO
+@@ -292,6 +292,11 @@ export interface IWorkbenchConstructionO
  	 */
  	readonly isEnabledFileUploads?: boolean
  
@@ -189,7 +189,7 @@ Index: code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
  
  	/* ----- server setup ----- */
  
-@@ -103,6 +104,7 @@ export interface ServerParsedArgs {
+@@ -104,6 +105,7 @@ export interface ServerParsedArgs {
  	'disable-file-downloads'?: boolean;
  	'disable-file-uploads'?: boolean;
  	'locale'?: string
@@ -217,12 +217,12 @@ Index: code-server/lib/vscode/src/vs/workbench/browser/contextkeys.ts
  import { Disposable } from 'vs/base/common/lifecycle';
  import { IContextKeyService, IContextKey, setConstant as setConstantContextKey } from 'vs/platform/contextkey/common/contextkey';
  import { InputFocusedContext, IsMacContext, IsLinuxContext, IsWindowsContext, IsWebContext, IsMacNativeContext, IsDevelopmentContext, IsIOSContext, ProductQualityContext, IsMobileContext } from 'vs/platform/contextkey/common/contextkeys';
--import { SplitEditorsVertically, InEditorZenModeContext, ActiveEditorCanRevertContext, ActiveEditorGroupLockedContext, ActiveEditorCanSplitInGroupContext, SideBySideEditorActiveContext, AuxiliaryBarVisibleContext, SideBarVisibleContext, PanelAlignmentContext, PanelMaximizedContext, PanelVisibleContext, ActiveEditorContext, EditorsVisibleContext, TextCompareEditorVisibleContext, TextCompareEditorActiveContext, ActiveEditorGroupEmptyContext, EmbedderIdentifierContext, EditorTabsVisibleContext, IsCenteredLayoutContext, ActiveEditorGroupIndexContext, ActiveEditorGroupLastContext, ActiveEditorReadonlyContext, MainEditorAreaVisibleContext, ActiveEditorAvailableEditorIdsContext, DirtyWorkingCopiesContext, EmptyWorkspaceSupportContext, EnterMultiRootWorkspaceSupportContext, HasWebFileSystemAccess, IsFullscreenContext, OpenFolderWorkspaceSupportContext, RemoteNameContext, VirtualWorkspaceContext, WorkbenchStateContext, WorkspaceFolderCountContext, PanelPositionContext, TemporaryWorkspaceContext, ActiveEditorCanToggleReadonlyContext, applyAvailableEditorIds, TitleBarVisibleContext, TitleBarStyleContext, MultipleEditorGroupsContext, IsAuxiliaryWindowFocusedContext, IsEnabledFileDownloads, IsEnabledFileUploads } from 'vs/workbench/common/contextkeys';
-+import { SplitEditorsVertically, InEditorZenModeContext, ActiveEditorCanRevertContext, ActiveEditorGroupLockedContext, ActiveEditorCanSplitInGroupContext, SideBySideEditorActiveContext, AuxiliaryBarVisibleContext, SideBarVisibleContext, PanelAlignmentContext, PanelMaximizedContext, PanelVisibleContext, ActiveEditorContext, EditorsVisibleContext, TextCompareEditorVisibleContext, TextCompareEditorActiveContext, ActiveEditorGroupEmptyContext, EmbedderIdentifierContext, EditorTabsVisibleContext, IsCenteredLayoutContext, ActiveEditorGroupIndexContext, ActiveEditorGroupLastContext, ActiveEditorReadonlyContext, MainEditorAreaVisibleContext, ActiveEditorAvailableEditorIdsContext, DirtyWorkingCopiesContext, EmptyWorkspaceSupportContext, EnterMultiRootWorkspaceSupportContext, HasWebFileSystemAccess, IsFullscreenContext, OpenFolderWorkspaceSupportContext, RemoteNameContext, VirtualWorkspaceContext, WorkbenchStateContext, WorkspaceFolderCountContext, PanelPositionContext, TemporaryWorkspaceContext, ActiveEditorCanToggleReadonlyContext, applyAvailableEditorIds, TitleBarVisibleContext, TitleBarStyleContext, MultipleEditorGroupsContext, IsAuxiliaryWindowFocusedContext, IsEnabledFileDownloads, IsEnabledFileUploads, IsEnabledCoderGettingStarted, } from 'vs/workbench/common/contextkeys';
+-import { SplitEditorsVertically, InEditorZenModeContext, ActiveEditorCanRevertContext, ActiveEditorGroupLockedContext, ActiveEditorCanSplitInGroupContext, SideBySideEditorActiveContext, AuxiliaryBarVisibleContext, SideBarVisibleContext, PanelAlignmentContext, PanelMaximizedContext, PanelVisibleContext, ActiveEditorContext, EditorsVisibleContext, TextCompareEditorVisibleContext, TextCompareEditorActiveContext, ActiveEditorGroupEmptyContext, EmbedderIdentifierContext, EditorTabsVisibleContext, IsCenteredLayoutContext, ActiveEditorGroupIndexContext, ActiveEditorGroupLastContext, ActiveEditorReadonlyContext, MainEditorAreaVisibleContext, ActiveEditorAvailableEditorIdsContext, DirtyWorkingCopiesContext, EmptyWorkspaceSupportContext, EnterMultiRootWorkspaceSupportContext, HasWebFileSystemAccess, IsMainWindowFullscreenContext, OpenFolderWorkspaceSupportContext, RemoteNameContext, VirtualWorkspaceContext, WorkbenchStateContext, WorkspaceFolderCountContext, PanelPositionContext, TemporaryWorkspaceContext, ActiveEditorCanToggleReadonlyContext, applyAvailableEditorIds, TitleBarVisibleContext, TitleBarStyleContext, MultipleEditorGroupsContext, IsAuxiliaryWindowFocusedContext, ActiveCompareEditorOriginalWriteableContext, IsEnabledFileDownloads, IsEnabledFileUploads } from 'vs/workbench/common/contextkeys';
++import { SplitEditorsVertically, InEditorZenModeContext, ActiveEditorCanRevertContext, ActiveEditorGroupLockedContext, ActiveEditorCanSplitInGroupContext, SideBySideEditorActiveContext, AuxiliaryBarVisibleContext, SideBarVisibleContext, PanelAlignmentContext, PanelMaximizedContext, PanelVisibleContext, ActiveEditorContext, EditorsVisibleContext, TextCompareEditorVisibleContext, TextCompareEditorActiveContext, ActiveEditorGroupEmptyContext, EmbedderIdentifierContext, EditorTabsVisibleContext, IsCenteredLayoutContext, ActiveEditorGroupIndexContext, ActiveEditorGroupLastContext, ActiveEditorReadonlyContext, MainEditorAreaVisibleContext, ActiveEditorAvailableEditorIdsContext, DirtyWorkingCopiesContext, EmptyWorkspaceSupportContext, EnterMultiRootWorkspaceSupportContext, HasWebFileSystemAccess, IsMainWindowFullscreenContext, OpenFolderWorkspaceSupportContext, RemoteNameContext, VirtualWorkspaceContext, WorkbenchStateContext, WorkspaceFolderCountContext, PanelPositionContext, TemporaryWorkspaceContext, ActiveEditorCanToggleReadonlyContext, applyAvailableEditorIds, TitleBarVisibleContext, TitleBarStyleContext, MultipleEditorGroupsContext, IsAuxiliaryWindowFocusedContext, ActiveCompareEditorOriginalWriteableContext, IsEnabledFileDownloads, IsEnabledFileUploads, IsEnabledCoderGettingStarted, } from 'vs/workbench/common/contextkeys';
  import { TEXT_DIFF_EDITOR_ID, EditorInputCapabilities, SIDE_BY_SIDE_EDITOR_ID, EditorResourceAccessor, SideBySideEditor } from 'vs/workbench/common/editor';
  import { trackFocus, addDisposableListener, EventType, onDidRegisterWindow, getActiveWindow } from 'vs/base/browser/dom';
  import { preferredSideBySideGroupDirection, GroupDirection, IEditorGroupsService } from 'vs/workbench/services/editor/common/editorGroupsService';
-@@ -223,6 +223,7 @@ export class WorkbenchContextKeysHandler
+@@ -227,6 +227,7 @@ export class WorkbenchContextKeysHandler
  		// code-server
  		IsEnabledFileDownloads.bindTo(this.contextKeyService).set(this.environmentService.isEnabledFileDownloads ?? true)
  		IsEnabledFileUploads.bindTo(this.contextKeyService).set(this.environmentService.isEnabledFileUploads ?? true)

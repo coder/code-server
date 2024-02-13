@@ -36,7 +36,7 @@ jobs:
           cache: "yarn"
 
       - name: Download npm package from release artifacts
-        uses: robinraju/release-downloader@v1.8
+        uses: robinraju/release-downloader@v1.9
         with:
           repository: "coder/code-server"
           tag: ${{ github.event.inputs.version || github.ref_name }}
@@ -183,12 +183,20 @@ jobs:
           TAG="${{ github.event.inputs.version || github.ref_name }}"
           echo "VERSION=${TAG#v}" >> $GITHUB_ENV
 
-      - name: Download release artifacts
-        uses: robinraju/release-downloader@v1.8
+      - name: Download deb artifacts
+        uses: robinraju/release-downloader@v1.9
         with:
           repository: "coder/code-server"
           tag: v${{ env.VERSION }}
           fileName: "*.deb"
+          out-file-path: "release-packages"
+
+      - name: Download rpm artifacts
+        uses: robinraju/release-downloader@v1.9
+        with:
+          repository: "coder/code-server"
+          tag: v${{ env.VERSION }}
+          fileName: "*.rpm"
           out-file-path: "release-packages"
 
       - name: Publish to Docker
