@@ -33,5 +33,16 @@ resource "coder_app" "code-server" {
 }
 ```
 
+or use our official [`code-server`](https://registry.coder.com/modules/code-server) module from Coder [module registry](htpps://registry.coder.com/modules).
+
+```terraform
+module "code-server" {
+  source     = "registry.coder.com/modules/code-server/coder"
+  version    = "1.0.5"
+  agent_id   = coder_agent.example.id
+  extensions = ["dracula-theme.theme-dracula", "ms-azuretools.vscode-docker"]
+}
+```
+
 If you run into issues, ask for help on the `coder/coder` [Discussions
 here](https://github.com/coder/coder/discussions).
