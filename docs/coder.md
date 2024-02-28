@@ -33,7 +33,7 @@ resource "coder_app" "code-server" {
 }
 ```
 
-or use our official [`code-server`](https://registry.coder.com/modules/code-server) module from Coder [module registry](htpps://registry.coder.com/modules).
+Or use our official [`code-server`](https://registry.coder.com/modules/code-server) module from the Coder [module registry](htpps://registry.coder.com/modules):
 
 ```terraform
 module "code-server" {
