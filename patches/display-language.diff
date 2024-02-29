@@ -348,7 +348,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/extensions/browser/extens
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/contrib/extensions/browser/extensionsActions.ts
 +++ code-server/lib/vscode/src/vs/workbench/contrib/extensions/browser/extensionsActions.ts
-@@ -338,9 +338,6 @@ export class InstallAction extends Exten
+@@ -340,9 +340,6 @@ export class InstallAction extends Exten
  		if (this.extension.isBuiltin) {
  			return;
  		}
@@ -358,7 +358,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/extensions/browser/extens
  		if (this.extension.state === ExtensionState.Uninstalled && await this.extensionsWorkbenchService.canInstall(this.extension)) {
  			this.enabled = this.options.installPreReleaseVersion ? this.extension.hasPreReleaseVersion : this.extension.hasReleaseVersion;
  			this.updateLabel();
-@@ -608,7 +605,7 @@ export abstract class InstallInOtherServ
+@@ -610,7 +607,7 @@ export abstract class InstallInOtherServ
  		}
  
  		if (isLanguagePackExtension(this.extension.local.manifest)) {
@@ -367,7 +367,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/extensions/browser/extens
  		}
  
  		// Prefers to run on UI
-@@ -1780,17 +1777,6 @@ export class SetLanguageAction extends E
+@@ -1782,17 +1779,6 @@ export class SetLanguageAction extends E
  	update(): void {
  		this.enabled = false;
  		this.class = SetLanguageAction.DisabledClass;
@@ -385,7 +385,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/extensions/browser/extens
  	}
  
  	override async run(): Promise<any> {
-@@ -1807,7 +1793,6 @@ export class ClearLanguageAction extends
+@@ -1809,7 +1795,6 @@ export class ClearLanguageAction extends
  	private static readonly DisabledClass = `${ClearLanguageAction.EnabledClass} disabled`;
  
  	constructor(
@@ -393,7 +393,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/extensions/browser/extens
  		@ILocaleService private readonly localeService: ILocaleService,
  	) {
  		super(ClearLanguageAction.ID, ClearLanguageAction.TITLE.value, ClearLanguageAction.DisabledClass, false);
-@@ -1817,17 +1802,6 @@ export class ClearLanguageAction extends
+@@ -1819,17 +1804,6 @@ export class ClearLanguageAction extends
  	update(): void {
  		this.enabled = false;
  		this.class = ClearLanguageAction.DisabledClass;
