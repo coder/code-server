@@ -70,8 +70,8 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/index
  	<meta charset="UTF-8">
  
  	<meta http-equiv="Content-Security-Policy"
--		content="default-src 'none'; script-src 'sha256-frEVWVmmI4TWHGHXZaCTWqGQI9jv+i8hv+sOa87Gqlc=' 'self'; frame-src 'self'; style-src 'unsafe-inline';">
-+		content="default-src 'none'; script-src 'sha256-1BNp/IJ0Swu9k0gYe2BJz18zVYJ4emIdN3fjPgGScQI=' 'self'; frame-src 'self'; style-src 'unsafe-inline';">
+-		content="default-src 'none'; script-src 'sha256-MbYFw/X6HjRtVlnfFTL3ylPDt3RsDzWrYVjfrzKJbMA=' 'self'; frame-src 'self'; style-src 'unsafe-inline';">
++		content="default-src 'none'; script-src 'sha256-GMHk6lNeQWxwh8HIKzVGfpEl6cvmfTYJeAVaOdbHfSc=' 'self'; frame-src 'self'; style-src 'unsafe-inline';">
  
  	<!-- Disable pinch zooming -->
  	<meta name="viewport"
