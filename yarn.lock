@@ -2974,9 +2974,9 @@ rimraf@^3.0.2:
     glob "^7.1.3"
 
 rotating-file-stream@^3.1.1:
-  version "3.1.1"
-  resolved "https://registry.yarnpkg.com/rotating-file-stream/-/rotating-file-stream-3.1.1.tgz#1c126ab2d34ab19c703909922182468b66d6b893"
-  integrity sha512-PNF1iDkxcZG+T87uUzLlcO4aquTCyY8yl+Q/OTK4dMwhwWDYWU4ZATYeIXHmYVGIzqZ2MrpY4WIkYc9Bsc3Nzw==
+  version "3.2.1"
+  resolved "https://registry.yarnpkg.com/rotating-file-stream/-/rotating-file-stream-3.2.1.tgz#1d0a536d75884eedc3a677f5b0871fdc69f97d22"
+  integrity sha512-n2B18CJb+n2VA5Tdle+1NP2toEcRv68CjAOBjHmwcyswNwMVsrN3gVRZ9ymH3sapaiGY8jc9OhhV5b6I5rAeiA==
 
 router@2.0.0-alpha.1:
   version "2.0.0-alpha.1"
