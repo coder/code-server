@@ -1,9 +1,7 @@
 ---
 name: Feature request
 about: Suggest an idea to improve code-server
-title: "[Feat]: "
 labels: enhancement
-assignees: ""
 ---
 
 ## What is your suggestion?
