@@ -22,7 +22,16 @@ Code v99.99.999
 
 ## Unreleased
 
-## [4.22.0](https://github.com/coder/code-server/releases/tag/v4.22.0) - 2021-03-03
+## [4.22.1](https://github.com/coder/code-server/releases/tag/v4.22.1) - 2024-03-14
+
+Code v1.87.2
+
+## Changed
+
+- Updated to Code 1.87.2.
+- Enable keep-alive for proxy agent.
+
+## [4.22.0](https://github.com/coder/code-server/releases/tag/v4.22.0) - 2024-03-03
 
 Code v1.87.0
 
@@ -30,7 +39,7 @@ Code v1.87.0
 
 - Updated to Code 1.87.0.
 
-## [4.21.2](https://github.com/coder/code-server/releases/tag/v4.21.2) - 2021-02-28
+## [4.21.2](https://github.com/coder/code-server/releases/tag/v4.21.2) - 2024-02-28
 
 Code v1.86.2
 
@@ -38,7 +47,7 @@ Code v1.86.2
 
 - Updated to Code 1.86.2.
 
-## [4.21.1](https://github.com/coder/code-server/releases/tag/v4.21.1) - 2021-02-09
+## [4.21.1](https://github.com/coder/code-server/releases/tag/v4.21.1) - 2024-02-09
 
 Code v1.86.1
 
@@ -51,7 +60,7 @@ Code v1.86.1
 
 - Docker images for Fedora and openSUSE.
 
-## [4.21.0](https://github.com/coder/code-server/releases/tag/v4.21.0) - 2021-02-05
+## [4.21.0](https://github.com/coder/code-server/releases/tag/v4.21.0) - 2024-02-05
 
 Code v1.86.0
 
@@ -59,7 +68,7 @@ Code v1.86.0
 
 - Updated to Code 1.86.0.
 
-## [4.20.1](https://github.com/coder/code-server/releases/tag/v4.20.1) - 2021-01-22
+## [4.20.1](https://github.com/coder/code-server/releases/tag/v4.20.1) - 2024-01-22
 
 Code v1.85.2
 
