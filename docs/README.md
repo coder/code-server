@@ -77,3 +77,15 @@ positions](https://coder.com/careers#openings)!
 
 We develop [coder/coder](https://cdr.co/coder-github) to help teams to
 adopt remote development.
+
+## Contributors
+
+<a href="https://github.com/coder/code-server/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=coder/code-server" width="100%"/>
+</a>
+
+## Star History
+
+<a href="https://star-history.com/#coder/code-server">
+  <img src="https://api.star-history.com/svg?repos=coder/code-server&type=Date" alt="Star History Chart" width="100%" />
+</a>
