@@ -81,6 +81,7 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
         if: success()
+        continue-on-error: true
 
       # NOTE@jsjoeio - we do this so we can strip out the v
       # i.e. v4.9.1 -> 4.9.1

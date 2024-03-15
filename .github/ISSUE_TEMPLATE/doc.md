@@ -1,9 +1,7 @@
 ---
 name: Documentation improvement
 about: Suggest a documentation improvement
-title: "[Docs]: "
 labels: "docs"
-assignees: "@jsjoeio"
 ---
 
 ## What is your suggestion?
