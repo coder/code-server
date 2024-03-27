@@ -1,0 +1,3 @@
+resources:
+  limits:
+    nvidia.com/gpu: 3 # requesting 1 GPU
