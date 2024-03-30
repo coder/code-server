@@ -19,6 +19,7 @@
   - [Proxying to create a React app](#proxying-to-create-a-react-app)
   - [Proxying to a Vue app](#proxying-to-a-vue-app)
   - [Proxying to an Angular app](#proxying-to-an-angular-app)
+  - [Proxying to a Svelte app](#proxying-to-a-svelte-app)
 - [SSH into code-server on VS Code](#ssh-into-code-server-on-vs-code)
   - [Option 1: cloudflared tunnel](#option-1-cloudflared-tunnel)
   - [Option 2: ngrok tunnel](#option-2-ngrok-tunnel)
@@ -138,9 +139,9 @@ sudo apt install caddy
 1. Replace `/etc/caddy/Caddyfile` using `sudo` so that the file looks like this:
 
    ```text
-   mydomain.com
-
-   reverse_proxy 127.0.0.1:8080
+   mydomain.com {
+     reverse_proxy 127.0.0.1:8080
+   }
    ```
 
    If you want to serve code-server from a sub-path, you can do so as follows:
@@ -190,7 +191,7 @@ At this point, you should be able to access code-server via
 
        location / {
          proxy_pass http://localhost:8080/;
-         proxy_set_header Host $host;
+         proxy_set_header Host $http_host;
          proxy_set_header Upgrade $http_upgrade;
          proxy_set_header Connection upgrade;
          proxy_set_header Accept-Encoding gzip;
@@ -413,6 +414,27 @@ In order to use code-server's built-in proxy with Angular, you need to make the 
 2. add `--serve-path /absproxy/4200` to `ng serve` in your `package.json`
 
 For additional context, see [this GitHub Discussion](https://github.com/coder/code-server/discussions/5439#discussioncomment-3371983).
+
+### Proxying to a Svelte app
+
+In order to use code-server's built-in proxy with Svelte, you need to make the following changes in your app:
+
+1. Add `svelte.config.js` if you don't already have one
+2. Update the values to match this (you can use any free port):
+
+```js
+const config = {
+  kit: {
+    paths: {
+      base: "/absproxy/5173",
+    },
+  },
+}
+```
+
+3. Access app at `<code-server-root>/absproxy/5173/` e.g. `http://localhost:8080/absproxy/5173/
+
+For additional context, see [this Github Issue](https://github.com/sveltejs/kit/issues/2958)
 
 ## SSH into code-server on VS Code
 

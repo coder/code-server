@@ -27,25 +27,25 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     needs: npm-version
-    container: "centos:7"
+    container: "centos:8"
     env:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Install Node.js v16
-        uses: actions/setup-node@v3
+      - name: Install Node.js
+        uses: actions/setup-node@v4
         with:
-          node-version: "16"
+          node-version-file: .node-version
 
       - name: Install development tools
         run: |
-          yum install -y epel-release centos-release-scl make
-          yum install -y devtoolset-9-{make,gcc,gcc-c++} jq rsync python3
-          # for keytar
-          yum install -y libsecret-devel
+          cd /etc/yum.repos.d/
+          sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-*
+          sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-*
+          yum install -y gcc-c++ make jq rsync python3 libsecret-devel krb5-devel
 
       - name: Install nfpm and envsubst
         run: |
@@ -60,17 +60,15 @@ jobs:
         run: npm install -g yarn
 
       - name: Download npm package
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: npm-release-package
 
       - name: Decompress npm package
         run: tar -xzf package.tar.gz
 
-      # NOTE: && here is deliberate - GitHub puts each line in its own `.sh`
-      # file when running inside a docker container.
       - name: Build standalone release
-        run: source scl_source enable devtoolset-9 && npm run release:standalone
+        run: npm run release:standalone
 
       - name: Install test dependencies
         run: SKIP_SUBMODULE_DEPS=1 yarn --frozen-lockfile
@@ -79,10 +77,11 @@ jobs:
         run: yarn test:integration
 
       - name: Upload coverage report to Codecov
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
         if: success()
+        continue-on-error: true
 
       # NOTE@jsjoeio - we do this so we can strip out the v
       # i.e. v4.9.1 -> 4.9.1
@@ -102,54 +101,59 @@ jobs:
           discussion_category_name: "📣 Announcements"
           files: ./release-packages/*
 
-  # NOTE@oxy:
-  # We use Ubuntu 16.04 here, so that our build is more compatible
-  # with older libc versions. We used to (Q1'20) use CentOS 7 here,
-  # but it has a full update EOL of Q4'20 and a 'critical security'
-  # update EOL of 2024. We're dropping full support a few years before
-  # the final EOL, but I don't believe CentOS 7 has a large arm64 userbase.
-  # It is not feasible to cross-compile with CentOS.
-
-  # Cross-compile notes: To compile native dependencies for arm64,
-  # we install the aarch64/armv7l cross toolchain and then set it as the default
-  # compiler/linker/etc. with the AR/CC/CXX/LINK environment variables.
-  # qemu-user-static on ubuntu-16.04 currently doesn't run Node correctly,
-  # so we just build with "native"/x86_64 node, then download arm64/armv7l node
-  # and then put it in our release. We can't smoke test the cross build this way,
-  # but this means we don't need to maintain a self-hosted runner!
-
-  # NOTE@jsjoeio:
-  # We used to use 18.04 until GitHub browned it out on December 15, 2022
-  # See here: https://github.com/actions/runner-images/issues/6002
   package-linux-cross:
     name: Linux cross-compile builds
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     timeout-minutes: 15
     needs: npm-version
+    container: "debian:buster"
     strategy:
       matrix:
         include:
           - prefix: aarch64-linux-gnu
-            arch: arm64
+            npm_arch: arm64
+            apt_arch: arm64
           - prefix: arm-linux-gnueabihf
-            arch: armv7l
+            npm_arch: armv7l
+            apt_arch: armhf
 
     env:
       AR: ${{ format('{0}-ar', matrix.prefix) }}
+      AS: ${{ format('{0}-as', matrix.prefix) }}
       CC: ${{ format('{0}-gcc', matrix.prefix) }}
+      CPP: ${{ format('{0}-cpp', matrix.prefix) }}
       CXX: ${{ format('{0}-g++', matrix.prefix) }}
-      LINK: ${{ format('{0}-g++', matrix.prefix) }}
-      NPM_CONFIG_ARCH: ${{ matrix.arch }}
-      NODE_VERSION: v16.13.0
+      FC: ${{ format('{0}-gfortran', matrix.prefix) }}
+      LD: ${{ format('{0}-ld', matrix.prefix) }}
+      STRIP: ${{ format('{0}-strip', matrix.prefix) }}
+      PKG_CONFIG_PATH: ${{ format('/usr/lib/{0}/pkgconfig', matrix.prefix) }}
+      TARGET_ARCH: ${{ matrix.apt_arch }}
+      npm_config_arch: ${{ matrix.npm_arch }}
+      # Not building from source results in an x86_64 argon2, as if
+      # npm_config_arch is being ignored.
+      npm_config_build_from_source: true
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Install Node.js v16
-        uses: actions/setup-node@v3
+      - name: Install Node.js
+        uses: actions/setup-node@v4
         with:
-          node-version: "16"
+          node-version-file: .node-version
+
+      - name: Install cross-compiler and system dependencies
+        run: |
+          dpkg --add-architecture $TARGET_ARCH
+          apt-get update && apt-get install -y --no-install-recommends \
+            crossbuild-essential-$TARGET_ARCH \
+            libx11-dev:$TARGET_ARCH \
+            libx11-xcb-dev:$TARGET_ARCH \
+            libxkbfile-dev:$TARGET_ARCH \
+            libsecret-1-dev:$TARGET_ARCH \
+            libkrb5-dev:$TARGET_ARCH \
+            ca-certificates \
+            curl wget rsync gettext-base
 
       - name: Install nfpm
         run: |
@@ -157,28 +161,22 @@ jobs:
           curl -sSfL https://github.com/goreleaser/nfpm/releases/download/v2.3.1/nfpm_2.3.1_`uname -s`_`uname -m`.tar.gz | tar -C ~/.local/bin -zxv nfpm
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
-      - name: Install cross-compiler
-        run: sudo apt update && sudo apt install $PACKAGE
-        env:
-          PACKAGE: ${{ format('g++-{0}', matrix.prefix) }}
-
       - name: Download npm package
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: npm-release-package
 
       - name: Decompress npm package
         run: tar -xzf package.tar.gz
 
-      # NOTE@jsjoeio - npm fails here
-      # so use yarn
       - name: Build standalone release
-        run: yarn release:standalone
+        run: npm run release:standalone
 
       - name: Replace node with cross-compile equivalent
         run: |
-          wget https://nodejs.org/dist/${NODE_VERSION}/node-${NODE_VERSION}-linux-${NPM_CONFIG_ARCH}.tar.xz
-          tar -xf node-${NODE_VERSION}-linux-${NPM_CONFIG_ARCH}.tar.xz node-${NODE_VERSION}-linux-${NPM_CONFIG_ARCH}/bin/node --strip-components=2
+          node_version=$(node --version)
+          wget https://nodejs.org/dist/${node_version}/node-${node_version}-linux-${npm_config_arch}.tar.xz
+          tar -xf node-${node_version}-linux-${npm_config_arch}.tar.xz node-${node_version}-linux-${npm_config_arch}/bin/node --strip-components=2
           mv ./node ./release-standalone/lib/node
 
       # NOTE@jsjoeio - we do this so we can strip out the v
@@ -191,7 +189,7 @@ jobs:
       - name: Build packages with nfpm
         env:
           VERSION: ${{ env.VERSION }}
-        run: yarn package ${NPM_CONFIG_ARCH}
+        run: npm run package ${npm_config_arch}
 
       - uses: softprops/action-gh-release@v1
         with:
@@ -206,12 +204,12 @@ jobs:
     needs: npm-version
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Install Node.js v16
-        uses: actions/setup-node@v3
+      - name: Install Node.js
+        uses: actions/setup-node@v4
         with:
-          node-version: "16"
+          node-version-file: .node-version
 
       - name: Install nfpm
         run: |
@@ -219,8 +217,15 @@ jobs:
           curl -sSfL https://github.com/goreleaser/nfpm/releases/download/v2.3.1/nfpm_2.3.1_`uname -s`_`uname -m`.tar.gz | tar -C ~/.local/bin -zxv nfpm
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
+      # The version of node-gyp we use depends on distutils but it was removed
+      # in Python 3.12.  It seems to be fixed in the latest node-gyp so when we
+      # next update Node we can probably remove this.  For now, install
+      # setuptools since it contains distutils.
+      - name: Install Python utilities
+        run: python3 -m pip install setuptools
+
       - name: Download npm package
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: npm-release-package
 
@@ -261,7 +266,7 @@ jobs:
     needs: npm-version
     steps:
       - name: Download npm package
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: npm-release-package
 
@@ -277,7 +282,7 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Download artifacts
-        uses: dawidd6/action-download-artifact@v2
+        uses: dawidd6/action-download-artifact@v3
         id: download
         with:
           branch: ${{ github.ref }}
@@ -305,7 +310,7 @@ jobs:
           npm version --prefix release "$VERSION"
 
           echo "Updating version in lib/vscode/product.json"
-          tmp=$(mktemp) 
+          tmp=$(mktemp)
           jq ".codeServerVersion = \"$VERSION\"" release/lib/vscode/product.json > "$tmp" && mv "$tmp" release/lib/vscode/product.json
           # Ensure it has the same permissions as before
           chmod 644 release/lib/vscode/product.json
@@ -314,7 +319,7 @@ jobs:
         run: tar -czf package.tar.gz release
 
       - name: Upload npm package artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: npm-release-package
           path: ./package.tar.gz

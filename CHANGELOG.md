@@ -20,6 +20,241 @@ Code v99.99.999
 
 -->
 
+## Unreleased
+
+## [4.22.1](https://github.com/coder/code-server/releases/tag/v4.22.1) - 2024-03-14
+
+Code v1.87.2
+
+## Changed
+
+- Updated to Code 1.87.2.
+- Enable keep-alive for proxy agent.
+
+## [4.22.0](https://github.com/coder/code-server/releases/tag/v4.22.0) - 2024-03-03
+
+Code v1.87.0
+
+## Changed
+
+- Updated to Code 1.87.0.
+
+## [4.21.2](https://github.com/coder/code-server/releases/tag/v4.21.2) - 2024-02-28
+
+Code v1.86.2
+
+## Changed
+
+- Updated to Code 1.86.2.
+
+## [4.21.1](https://github.com/coder/code-server/releases/tag/v4.21.1) - 2024-02-09
+
+Code v1.86.1
+
+## Changed
+
+- Updated to Code 1.86.1.
+- Updated to Node 18.17.1.
+
+## Added
+
+- Docker images for Fedora and openSUSE.
+
+## [4.21.0](https://github.com/coder/code-server/releases/tag/v4.21.0) - 2024-02-05
+
+Code v1.86.0
+
+## Changed
+
+- Updated to Code 1.86.0.
+
+## [4.20.1](https://github.com/coder/code-server/releases/tag/v4.20.1) - 2024-01-22
+
+Code v1.85.2
+
+## Changed
+
+- Updated to Code 1.85.2.
+
+## Fixed
+
+- Query variables are no longer double-encoded when going over the path proxy.
+
+## [4.20.0](https://github.com/coder/code-server/releases/tag/v4.20.0) - 2023-12-21
+
+Code v1.85.1
+
+### Added
+
+- New flag `--disable-file-uploads` to disable uploading files to the remote by
+  drag and drop and to disable opening local files via the "show local" button
+  in the file open prompt. Note that you can still open local files by drag and
+  dropping the file onto the editor pane.
+- Added `wget` to the release image.
+
+### Changed
+
+- Updated to Code 1.85.1.
+- The `--disable-file-downloads` flag will now disable the "show local" button
+  in the file save prompt as well.
+- Debian release image updated to use Bookworm.
+
+## [4.19.1](https://github.com/coder/code-server/releases/tag/v4.19.1) - 2023-11-29
+
+Code v1.84.2
+
+### Fixed
+
+- Fixed an issue where parts of the editor would not load (like the file
+  explorer, source control, etc) when using a workspace file.
+
+## [4.19.0](https://github.com/coder/code-server/releases/tag/v4.19.0) - 2023-11-18
+
+Code v1.84.2
+
+### Changed
+
+- Updated to Code 1.84.2.
+
+## [4.18.0](https://github.com/coder/code-server/releases/tag/v4.18.0) - 2023-10-20
+
+Code v1.83.1
+
+### Changed
+
+- Updated to Code 1.83.1.
+
+## [4.17.1](https://github.com/coder/code-server/releases/tag/v4.17.1) - 2023-09-29
+
+Code v1.82.2
+
+### Fixed
+
+- Make secret storage persistent. For example, logging in with GitHub should
+  persist between browser refreshes and code-server restarts.
+- Issues with argon2 on arm builds should be fixed now.
+
+## [4.17.0](https://github.com/coder/code-server/releases/tag/v4.17.0) - 2023-09-22
+
+Code v1.82.2
+
+### Added
+
+- Japanese locale.
+- `CODE_SERVER_HOST` environment variable.
+
+### Changed
+
+- Update to Code 1.82.2. This includes an update to Node 18, which also means
+  that the minimum glibc is now 2.28. If you need to maintain a lower glibc then
+  you can take a version of Node 18 that is compiled with a lower glibc and use
+  that to build code-server (or at a minimum rebuild the native modules).
+- Display paths to config files in full rather than abbreviated. If you have
+  trouble with the password not working please update and make sure the
+  displayed config paths are what you expect.
+
+### Fixed
+
+- Fix some dependency issues for the standalone arm64 and armv7l releases. If
+  you had issues with missing or failing modules please try these new builds.
+
+## [4.16.1](https://github.com/coder/code-server/releases/tag/v4.16.1) - 2023-07-31
+
+Code v1.80.2
+
+### Changed
+
+- Updated to Code 1.80.2.
+
+## [4.16.0](https://github.com/coder/code-server/releases/tag/v4.16.0) - 2023-07-28
+
+Code v1.80.1
+
+### Added
+
+- `--disable-proxy` flag. This disables the domain and path proxies but it does
+  not disable the ports panel in Code. That can be disabled by using
+  `remote.autoForwardPorts=false` in your settings.
+
+## [4.15.0](https://github.com/coder/code-server/releases/tag/v4.15.0) - 2023-07-21
+
+Code v1.80.1
+
+### Changed
+
+- Updated to Code 1.80.1.
+
+### Added
+
+- `--trusted-origin` flag for specifying origins that you trust but do not
+  control (for example a reverse proxy).
+
+Code v1.79.2
+
+## [4.14.1](https://github.com/coder/code-server/releases/tag/v4.14.1) - 2023-06-26
+
+Code v1.79.2
+
+### Security
+
+- Remove extra write permissions on the Node binary bundled with the linux-amd64
+  tarball. If you extract the tar without a umask this could mean the Node
+  binary would be unexpectedly writable.
+
+### Fixed
+
+- Inability to launch multiple instances of code-server for different users.
+
+### Added
+
+- `--session-socket` CLI flag to configure the location of the session socket.
+  By default it will be placed in `<user data dir>/code-server-ipc.sock`.
+
+## [4.14.0](https://github.com/coder/code-server/releases/tag/v4.14.0) - 2023-06-16
+
+Code v1.79.2
+
+### Added
+
+- `--domain-proxy` now supports `{{port}}` and `{{host}}` template variables.
+
+### Changed
+
+- Updated to Code 1.79.2
+- Files opened from an external terminal will now open in the most closely
+  related window rather than in the last opened window.
+
+## [4.13.0](https://github.com/coder/code-server/releases/tag/v4.13.0) - 2023-05-19
+
+Code v1.78.2
+
+### Changed
+
+- Updated to Code 1.78.2.
+
+### Fixed
+
+- Proxying files that contain non-ASCII characters.
+- Origin check when X-Forwarded-Host contains comma-separated hosts.
+
+## [4.12.0](https://github.com/coder/code-server/releases/tag/v4.12.0) - 2023-04-21
+
+Code v1.77.3
+
+### Changed
+
+- Updated to Code 1.77.3
+- Ports panel will use domain-based proxy (instead of the default path-based
+  proxy) when set via --proxy-domain.
+- Apply --app-name to the PWA title.
+
+### Added
+
+- Thai translation for login page.
+- Debug logs around the origin security check. If you are getting forbidden
+  errors on web sockets please run code-server with `--log debug` to see why the
+  requests are being blocked.
+
 ## [4.11.0](https://github.com/coder/code-server/releases/tag/v4.11.0) - 2023-03-16
 
 Code v1.76.1
@@ -175,7 +410,7 @@ Code v1.71.0
 
 ### Fixed
 
-- Add flags --unsafe-perm --legacy-peer-deps in `npm-postinstsall.sh` which ensures installing with npm works correctly
+- Add flags --unsafe-perm --legacy-peer-deps in `npm-postinstall.sh` which ensures installing with npm works correctly
 
 ## [4.6.1](https://github.com/coder/code-server/releases/tag/v4.6.1) - 2022-09-31
 

@@ -9,13 +9,14 @@ update-check.diff
 logout.diff
 store-socket.diff
 proxy-uri.diff
-github-auth.diff
 unique-db.diff
 local-storage.diff
 service-worker.diff
 sourcemaps.diff
-disable-downloads.diff
+external-file-actions.diff
 telemetry.diff
 display-language.diff
 cli-window-open.diff
 getting-started.diff
+safari.diff
+keepalive.diff

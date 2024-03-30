@@ -93,7 +93,7 @@ Index: code-server/lib/vscode/src/vs/base/common/product.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/base/common/product.ts
 +++ code-server/lib/vscode/src/vs/base/common/product.ts
-@@ -34,6 +34,7 @@ export type ExtensionVirtualWorkspaceSup
+@@ -57,6 +57,7 @@ export type ExtensionVirtualWorkspaceSup
  export interface IProductConfiguration {
  	readonly codeServerVersion?: string
  	readonly rootEndpoint?: string
@@ -105,20 +105,20 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -312,6 +312,7 @@ export class WebClientServer {
- 			productConfiguration: <Partial<IProductConfiguration>>{
- 				codeServerVersion: this._productService.codeServerVersion,
- 				rootEndpoint: base,
-+				updateEndpoint: !this._environmentService.args['disable-update-check'] ? base + '/update/check' : undefined,
- 				embedderIdentifier: 'server-distro',
- 				extensionsGallery: this._productService.extensionsGallery,
- 			},
+@@ -310,6 +310,7 @@ export class WebClientServer {
+ 		const productConfiguration = <Partial<IProductConfiguration>>{
+ 			codeServerVersion: this._productService.codeServerVersion,
+ 			rootEndpoint: base,
++			updateEndpoint: !this._environmentService.args['disable-update-check'] ? base + '/update/check' : undefined,
+ 			embedderIdentifier: 'server-distro',
+ 			extensionsGallery: this._productService.extensionsGallery,
+ 		};
 Index: code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
 +++ code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
-@@ -11,6 +11,8 @@ import { refineServiceDecorator } from '
- import { IEnvironmentService, INativeEnvironmentService } from 'vs/platform/environment/common/environment';
+@@ -13,6 +13,8 @@ import { memoize } from 'vs/base/common/
+ import { URI } from 'vs/base/common/uri';
  
  export const serverOptions: OptionDescriptions<Required<ServerParsedArgs>> = {
 +	/* ----- code-server ----- */
@@ -126,7 +126,7 @@ Index: code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
  
  	/* ----- server setup ----- */
  
-@@ -88,6 +90,8 @@ export const serverOptions: OptionDescri
+@@ -92,6 +94,8 @@ export const serverOptions: OptionDescri
  };
  
  export interface ServerParsedArgs {

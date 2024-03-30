@@ -10,7 +10,7 @@ Index: code-server/lib/vscode/src/vs/base/common/network.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/base/common/network.ts
 +++ code-server/lib/vscode/src/vs/base/common/network.ts
-@@ -166,7 +166,9 @@ class RemoteAuthoritiesImpl {
+@@ -194,7 +194,9 @@ class RemoteAuthoritiesImpl {
  		return URI.from({
  			scheme: platform.isWeb ? this._preferredWebSchema : Schemas.vscodeRemoteResource,
  			authority: `${host}:${port}`,
@@ -99,26 +99,19 @@ Index: code-server/lib/vscode/src/vs/platform/remote/browser/browserSocketFactor
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/platform/remote/browser/browserSocketFactory.ts
 +++ code-server/lib/vscode/src/vs/platform/remote/browser/browserSocketFactory.ts
-@@ -274,6 +274,7 @@ export class BrowserSocketFactory implem
- 
- 	connect(host: string, port: number, path: string, query: string, debugLabel: string, callback: IConnectCallback): void {
- 		const webSocketSchema = (/^https:/.test(window.location.href) ? 'wss' : 'ws');
-+		path = (window.location.pathname + "/" + path).replace(/\/\/+/g, "/")
- 		const socket = this._webSocketFactory.create(`${webSocketSchema}://${(/:/.test(host) && !/\[/.test(host)) ? `[${host}]` : host}:${port}${path}?${query}&skipWebSocketFrames=false`, debugLabel);
- 		const errorListener = socket.onError((err) => callback(err, undefined));
- 		socket.onOpen(() => {
-@@ -282,6 +283,3 @@ export class BrowserSocketFactory implem
- 		});
- 	}
- }
--
--
--
+@@ -281,6 +281,7 @@ export class BrowserSocketFactory implem
+ 	connect({ host, port }: WebSocketRemoteConnection, path: string, query: string, debugLabel: string): Promise<ISocket> {
+ 		return new Promise<ISocket>((resolve, reject) => {
+ 			const webSocketSchema = (/^https:/.test(mainWindow.location.href) ? 'wss' : 'ws');
++			path = (mainWindow.location.pathname + "/" + path).replace(/\/\/+/g, "/")
+ 			const socket = this._webSocketFactory.create(`${webSocketSchema}://${(/:/.test(host) && !/\[/.test(host)) ? `[${host}]` : host}:${port}${path}?${query}&skipWebSocketFrames=false`, debugLabel);
+ 			const errorListener = socket.onError(reject);
+ 			socket.onOpen(() => {
 Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -267,12 +267,11 @@ export class WebClientServer {
+@@ -269,16 +269,15 @@ export class WebClientServer {
  			return void res.end();
  		}
  
@@ -127,33 +120,33 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 -			return Array.isArray(val) ? val[0] : val;
 -		};
 -
--		const remoteAuthority = getFirstHeader('x-original-host') || getFirstHeader('x-forwarded-host') || req.headers.host;
+ 		const useTestResolver = (!this._environmentService.isBuilt && this._environmentService.args['use-test-resolver']);
 +		// For now we are getting the remote authority from the client to avoid
 +		// needing specific configuration for reverse proxies to work.  Set this to
 +		// something invalid to make sure we catch code that is using this value
 +		// from the backend when it should not.
-+		const remoteAuthority = 'remote';
+ 		const remoteAuthority = (
+ 			useTestResolver
+ 				? 'test+test'
+-				: (getFirstHeader('x-original-host') || getFirstHeader('x-forwarded-host') || req.headers.host)
++				: 'remote'
+ 		);
  		if (!remoteAuthority) {
  			return serveError(req, res, 400, `Bad request.`);
- 		}
-@@ -298,6 +297,8 @@ export class WebClientServer {
+@@ -305,8 +304,12 @@ export class WebClientServer {
  			scopes: [['user:email'], ['repo']]
  		} : undefined;
  
 +		const base = relativeRoot(getOriginalUrl(req))
 +		const vscodeBase = relativePath(getOriginalUrl(req))
- 
- 		const workbenchWebConfiguration = {
- 			remoteAuthority,
-@@ -309,6 +310,7 @@ export class WebClientServer {
- 			workspaceUri: resolveWorkspaceURI(this._environmentService.args['default-workspace']),
- 			productConfiguration: <Partial<IProductConfiguration>>{
- 				codeServerVersion: this._productService.codeServerVersion,
-+				rootEndpoint: base,
- 				embedderIdentifier: 'server-distro',
- 				extensionsGallery: this._webExtensionResourceUrlTemplate ? {
- 					...this._productService.extensionsGallery,
-@@ -326,8 +328,10 @@ export class WebClientServer {
++
+ 		const productConfiguration = <Partial<IProductConfiguration>>{
+ 			codeServerVersion: this._productService.codeServerVersion,
++			rootEndpoint: base,
+ 			embedderIdentifier: 'server-distro',
+ 			extensionsGallery: this._webExtensionResourceUrlTemplate ? {
+ 				...this._productService.extensionsGallery,
+@@ -341,8 +344,10 @@ export class WebClientServer {
  		const values: { [key: string]: string } = {
  			WORKBENCH_WEB_CONFIGURATION: asJSON(workbenchWebConfiguration),
  			WORKBENCH_AUTH_SESSION: authSessionInfo ? asJSON(authSessionInfo) : '',
@@ -165,17 +158,17 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 +			VS_BASE: vscodeBase,
  		};
  
- 
-@@ -344,7 +348,7 @@ export class WebClientServer {
+ 		if (useTestResolver) {
+@@ -369,7 +374,7 @@ export class WebClientServer {
  			'default-src \'self\';',
  			'img-src \'self\' https: data: blob:;',
  			'media-src \'self\';',
--			`script-src 'self' 'unsafe-eval' ${this._getScriptCspHashes(data).join(' ')} 'sha256-fh3TwPMflhsEIpR8g1OYTIMVWhXTLcjQ9kh2tIpmv54=' http://${remoteAuthority};`, // the sha is the same as in src/vs/workbench/services/extensions/worker/webWorkerExtensionHostIframe.html
-+			`script-src 'self' 'unsafe-eval' ${this._getScriptCspHashes(data).join(' ')} 'sha256-fh3TwPMflhsEIpR8g1OYTIMVWhXTLcjQ9kh2tIpmv54=';`, // the sha is the same as in src/vs/workbench/services/extensions/worker/webWorkerExtensionHostIframe.html
+-			`script-src 'self' 'unsafe-eval' ${this._getScriptCspHashes(data).join(' ')} '${webWorkerExtensionHostIframeScriptSHA}' ${useTestResolver ? '' : `http://${remoteAuthority}`};`, // the sha is the same as in src/vs/workbench/services/extensions/worker/webWorkerExtensionHostIframe.html
++			`script-src 'self' 'unsafe-eval' ${this._getScriptCspHashes(data).join(' ')} '${webWorkerExtensionHostIframeScriptSHA}' ${useTestResolver ? '' : ''};`, // the sha is the same as in src/vs/workbench/services/extensions/worker/webWorkerExtensionHostIframe.html
  			'child-src \'self\';',
  			`frame-src 'self' https://*.vscode-cdn.net data:;`,
  			'worker-src \'self\' data: blob:;',
-@@ -417,3 +421,70 @@ export class WebClientServer {
+@@ -442,3 +447,70 @@ export class WebClientServer {
  		return void res.end(data);
  	}
  }
@@ -250,7 +243,7 @@ Index: code-server/lib/vscode/src/vs/base/common/product.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/base/common/product.ts
 +++ code-server/lib/vscode/src/vs/base/common/product.ts
-@@ -33,6 +33,7 @@ export type ExtensionVirtualWorkspaceSup
+@@ -56,6 +56,7 @@ export type ExtensionVirtualWorkspaceSup
  
  export interface IProductConfiguration {
  	readonly codeServerVersion?: string
@@ -262,23 +255,45 @@ Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/code/browser/workbench/workbench.ts
 +++ code-server/lib/vscode/src/vs/code/browser/workbench/workbench.ts
-@@ -489,6 +489,7 @@ function doCreateUri(path: string, query
- 		});
+@@ -304,7 +304,8 @@ class LocalStorageURLCallbackProvider ex
+ 			this.startListening();
+ 		}
+ 
+-		return URI.parse(mainWindow.location.href).with({ path: this._callbackRoute, query: queryParams.join('&') });
++		const path = (mainWindow.location.pathname + "/" + this._callbackRoute).replace(/\/\/+/g, "/");
++		return URI.parse(mainWindow.location.href).with({ path: path, query: queryParams.join('&') });
  	}
  
-+	path = (window.location.pathname + "/" + path).replace(/\/\/+/g, "/")
- 	return URI.parse(window.location.href).with({ path, query });
+ 	private startListening(): void {
+@@ -550,17 +551,6 @@ class WorkspaceProvider implements IWork
+ 	}
  }
  
-@@ -500,7 +501,7 @@ function doCreateUri(path: string, query
+-function readCookie(name: string): string | undefined {
+-	const cookies = document.cookie.split('; ');
+-	for (const cookie of cookies) {
+-		if (cookie.startsWith(name + '=')) {
+-			return cookie.substring(name.length + 1);
+-		}
+-	}
+-
+-	return undefined;
+-}
+-
+ (function () {
+ 
+ 	// Find config by checking for DOM
+@@ -569,8 +559,8 @@ function readCookie(name: string): strin
  	if (!configElement || !configElementAttribute) {
  		throw new Error('Missing web configuration element');
  	}
 -	const config: IWorkbenchConstructionOptions & { folderUri?: UriComponents; workspaceUri?: UriComponents; callbackRoute: string } = JSON.parse(configElementAttribute);
+-	const secretStorageKeyPath = readCookie('vscode-secret-key-path');
 +	const config: IWorkbenchConstructionOptions & { folderUri?: UriComponents; workspaceUri?: UriComponents; callbackRoute: string } = { ...JSON.parse(configElementAttribute), remoteAuthority: location.host }
++	const secretStorageKeyPath = (window.location.pathname + "/mint-key").replace(/\/\/+/g, "/");
+ 	const secretStorageCrypto = secretStorageKeyPath && ServerKeyedAESCrypto.supported()
+ 		? new ServerKeyedAESCrypto(secretStorageKeyPath) : new TransparentCrypto();
  
- 	// Create workbench
- 	create(document.body, {
 Index: code-server/lib/vscode/src/vs/platform/extensionResourceLoader/common/extensionResourceLoader.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/platform/extensionResourceLoader/common/extensionResourceLoader.ts
@@ -289,12 +304,12 @@ Index: code-server/lib/vscode/src/vs/platform/extensionResourceLoader/common/ext
  import { getTelemetryLevel, supportsTelemetry } from 'vs/platform/telemetry/common/telemetryUtils';
 -import { RemoteAuthorities } from 'vs/base/common/network';
  import { getRemoteServerRootPath } from 'vs/platform/remote/common/remoteHosts';
+ import { TargetPlatform } from 'vs/platform/extensions/common/extensions';
  
- const WEB_EXTENSION_RESOURCE_END_POINT = 'web-extension-resource';
-@@ -75,7 +74,7 @@ export abstract class AbstractExtensionR
- 	public getExtensionGalleryResourceURL(galleryExtension: { publisher: string; name: string; version: string }, path?: string): URI | undefined {
- 		if (this._extensionGalleryResourceUrlTemplate) {
- 			const uri = URI.parse(format2(this._extensionGalleryResourceUrlTemplate, { publisher: galleryExtension.publisher, name: galleryExtension.name, version: galleryExtension.version, path: 'extension' }));
+@@ -102,7 +101,7 @@ export abstract class AbstractExtensionR
+ 					: version,
+ 				path: 'extension'
+ 			}));
 -			return this._isWebExtensionResourceEndPoint(uri) ? uri.with({ scheme: RemoteAuthorities.getPreferredWebSchema() }) : uri;
 +			return this._isWebExtensionResourceEndPoint(uri) ? URI.joinPath(URI.parse(window.location.href), uri.path) : uri;
  		}

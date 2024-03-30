@@ -46,7 +46,9 @@ button {
 .card-box {
   background-color: rgb(250, 253, 258);
   border-radius: 5px;
-  box-shadow: rgba(60, 66, 87, 0.117647) 0px 7px 14px 0px, rgba(0, 0, 0, 0.117647) 0px 3px 6px 0px;
+  box-shadow:
+    rgba(60, 66, 87, 0.117647) 0px 7px 14px 0px,
+    rgba(0, 0, 0, 0.117647) 0px 3px 6px 0px;
   max-width: 650px;
   width: 100%;
 }

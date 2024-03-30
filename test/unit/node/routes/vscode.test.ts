@@ -1,6 +1,6 @@
+import { mockLogger } from "../../../utils/helpers"
 import * as httpserver from "../../../utils/httpserver"
 import * as integration from "../../../utils/integration"
-import { mockLogger } from "../../../utils/helpers"
 
 describe("vscode", () => {
   let codeServer: httpserver.HttpServer | undefined

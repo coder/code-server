@@ -1,6 +1,5 @@
 name: Bug report
 description: File a bug report
-title: "[Bug]: "
 labels: ["bug", "triage"]
 body:
   - type: checkboxes
@@ -10,6 +9,7 @@ body:
       options:
         - label: I have searched the existing issues
           required: true
+
   - type: textarea
     attributes:
       label: OS/Web Information
@@ -28,58 +28,82 @@ body:
         - `code-server --version`:
     validations:
       required: true
+
   - type: textarea
     attributes:
       label: Steps to Reproduce
       description: |
-        1. open code-server
-        2. install extension
-        3. run command
+        Please describe exactly how to reproduce the bug. For example:
+        1. Open code-server in Firefox
+        2. Install extension `foo.bar` from the extensions sidebar
+        3. Run command `foo.bar.baz`
       value: |
-        1. 
+        1.
         2.
         3.
     validations:
       required: true
+
   - type: textarea
     attributes:
       label: Expected
       description: What should happen?
     validations:
       required: true
+
   - type: textarea
     attributes:
       label: Actual
       description: What actually happens?
     validations:
       required: true
+
   - type: textarea
     id: logs
     attributes:
       label: Logs
       description: Run code-server with the --verbose flag and then paste any relevant logs from the server, from the browser console and/or the browser network tab. For issues with installation, include installation logs (i.e. output of `yarn global add code-server`).
+      render: shell
+
   - type: textarea
     attributes:
       label: Screenshot/Video
       description: Please include a screenshot, gif or screen recording of your issue.
     validations:
       required: false
+
+  - type: dropdown
+    attributes:
+      label: Does this bug reproduce in native VS Code?
+      description: If the bug reproduces in native VS Code, submit the issue upstream instead (https://github.com/microsoft/vscode).
+      options:
+        - Yes, this is also broken in native VS Code
+        - No, this works as expected in native VS Code
+        - This cannot be tested in native VS Code
+        - I did not test native VS Code
+    validations:
+      required: true
+
+  - type: dropdown
+    attributes:
+      label: Does this bug reproduce in GitHub Codespaces?
+      description: If the bug reproduces in GitHub Codespaces, submit the issue upstream instead (https://github.com/microsoft/vscode).
+      options:
+        - Yes, this is also broken in GitHub Codespaces
+        - No, this works as expected in GitHub Codespaces
+        - This cannot be tested in GitHub Codespaces
+        - I did not test GitHub Codespaces
+    validations:
+      required: true
+
   - type: checkboxes
     attributes:
-      label: Does this issue happen in VS Code or GitHub Codespaces?
-      description: Please try reproducing this issue in VS Code or GitHub Codespaces
+      label: Are you accessing code-server over a secure context?
+      description: code-server relies on service workers (which only work in secure contexts) for many features. Double-check that you are using a secure context like HTTPS or localhost.
       options:
-        - label: I cannot reproduce this in VS Code.
-          required: true
-        - label: I cannot reproduce this in GitHub Codespaces.
-          required: true
-  - type: checkboxes
-    attributes:
-      label: Are you accessing code-server over HTTPS?
-      description: code-server relies on service workers for many features. Double-check that you are using HTTPS.
-      options:
-        - label: I am using HTTPS.
-          required: true
+        - label: I am using a secure context.
+          required: false
+
   - type: textarea
     attributes:
       label: Notes

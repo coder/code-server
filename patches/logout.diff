@@ -8,7 +8,7 @@ Index: code-server/lib/vscode/src/vs/base/common/product.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/base/common/product.ts
 +++ code-server/lib/vscode/src/vs/base/common/product.ts
-@@ -35,6 +35,7 @@ export interface IProductConfiguration {
+@@ -58,6 +58,7 @@ export interface IProductConfiguration {
  	readonly codeServerVersion?: string
  	readonly rootEndpoint?: string
  	readonly updateEndpoint?: string
@@ -20,7 +20,7 @@ Index: code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
 +++ code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
-@@ -13,6 +13,7 @@ import { IEnvironmentService, INativeEnv
+@@ -15,6 +15,7 @@ import { URI } from 'vs/base/common/uri'
  export const serverOptions: OptionDescriptions<Required<ServerParsedArgs>> = {
  	/* ----- code-server ----- */
  	'disable-update-check': { type: 'boolean' },
@@ -28,7 +28,7 @@ Index: code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
  
  	/* ----- server setup ----- */
  
-@@ -92,6 +93,7 @@ export const serverOptions: OptionDescri
+@@ -96,6 +97,7 @@ export const serverOptions: OptionDescri
  export interface ServerParsedArgs {
  	/* ----- code-server ----- */
  	'disable-update-check'?: boolean;
@@ -40,14 +40,14 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -313,6 +313,7 @@ export class WebClientServer {
- 				codeServerVersion: this._productService.codeServerVersion,
- 				rootEndpoint: base,
- 				updateEndpoint: !this._environmentService.args['disable-update-check'] ? base + '/update/check' : undefined,
-+				logoutEndpoint: this._environmentService.args['auth'] && this._environmentService.args['auth'] !== "none" ? base + '/logout' : undefined,
- 				embedderIdentifier: 'server-distro',
- 				extensionsGallery: this._productService.extensionsGallery,
- 			},
+@@ -311,6 +311,7 @@ export class WebClientServer {
+ 			codeServerVersion: this._productService.codeServerVersion,
+ 			rootEndpoint: base,
+ 			updateEndpoint: !this._environmentService.args['disable-update-check'] ? base + '/update/check' : undefined,
++			logoutEndpoint: this._environmentService.args['auth'] && this._environmentService.args['auth'] !== "none" ? base + '/logout' : undefined,
+ 			embedderIdentifier: 'server-distro',
+ 			extensionsGallery: this._productService.extensionsGallery,
+ 		};
 Index: code-server/lib/vscode/src/vs/workbench/browser/client.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/browser/client.ts

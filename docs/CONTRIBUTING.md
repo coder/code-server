@@ -37,7 +37,7 @@ for [VS
 Code](https://github.com/Microsoft/vscode/wiki/How-to-Contribute#prerequisites).
 Here is what is needed:
 
-- `node` v16.x
+- `node` v18.x
 - `git` v2.x or greater
 - [`git-lfs`](https://git-lfs.github.com)
 - [`yarn`](https://classic.yarnpkg.com/en/)
@@ -63,7 +63,7 @@ Here is what is needed:
 If you're developing code-server on Linux, make sure you have installed or install the following dependencies:
 
 ```shell
-sudo apt-get install build-essential g++ libx11-dev libxkbfile-dev libsecret-1-dev python-is-python3
+sudo apt-get install build-essential g++ libx11-dev libxkbfile-dev libsecret-1-dev libkrb5-dev python-is-python3
 ```
 
 These are required by Code. See [their Wiki](https://github.com/microsoft/vscode/wiki/How-to-Contribute#prerequisites) for more information.
@@ -127,13 +127,13 @@ while quilt push; do quilt refresh; done
 
 0. You can go through the patch stack with `quilt push` and `quilt pop`.
 1. Create a new patch (`quilt new {name}.diff`) or use an existing patch.
-2. Add the file(s) you are patching (`quilt add [-P patch] {file}`). A file
+1. Add the file(s) you are patching (`quilt add [-P patch] {file}`). A file
    **must** be added before you make changes to it.
-3. Make your changes. Patches do not need to be independent of each other but
+1. Make your changes. Patches do not need to be independent of each other but
    each patch must result in a working code-server without any broken in-between
    states otherwise they are difficult to test and modify.
-4. Add your changes to the patch (`quilt refresh`)
-5. Add a comment in the patch about the reason for the patch and how to
+1. Add your changes to the patch (`quilt refresh`)
+1. Add a comment in the patch about the reason for the patch and how to
    reproduce the behavior it fixes or adds. Every patch should have an e2e test
    as well.
 

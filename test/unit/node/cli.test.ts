@@ -1,14 +1,11 @@
 import { Level, logger } from "@coder/logger"
 import { promises as fs } from "fs"
-import * as net from "net"
-import * as os from "os"
 import * as path from "path"
 import {
   UserProvidedArgs,
   bindAddrFromArgs,
   defaultConfigFile,
   parse,
-  readSocketPath,
   setDefaults,
   shouldOpenInExistingInstance,
   toCodeArgs,
@@ -20,7 +17,12 @@ import {
 } from "../../../src/node/cli"
 import { shouldSpawnCliProcess } from "../../../src/node/main"
 import { generatePassword, paths } from "../../../src/node/util"
-import { clean, useEnv, tmpdir } from "../../utils/helpers"
+import {
+  EditorSessionManager,
+  EditorSessionManagerClient,
+  makeEditorSessionManagerServer,
+} from "../../../src/node/vscodeSocket"
+import { clean, useEnv, tmpdir, listenOn } from "../../utils/helpers"
 
 // The parser should not set any defaults so the caller can determine what
 // values the user actually set. These are only set after explicitly calling
@@ -34,6 +36,7 @@ const defaults = {
   usingEnvHashedPassword: false,
   "extensions-dir": path.join(paths.data, "extensions"),
   "user-data-dir": paths.data,
+  "session-socket": path.join(paths.data, "code-server-ipc.sock"),
   _: [],
 }
 
@@ -43,6 +46,8 @@ describe("parser", () => {
     delete process.env.PASSWORD
     delete process.env.CS_DISABLE_FILE_DOWNLOADS
     delete process.env.CS_DISABLE_GETTING_STARTED_OVERRIDE
+    delete process.env.VSCODE_PROXY_URI
+    delete process.env.CS_DISABLE_PROXY
     console.log = jest.fn()
   })
 
@@ -99,6 +104,10 @@ describe("parser", () => {
 
           "--disable-getting-started-override",
 
+          "--disable-proxy",
+
+          ["--session-socket", "/tmp/override-code-server-ipc-socket"],
+
           ["--host", "0.0.0.0"],
           "4",
           "--",
@@ -117,6 +126,7 @@ describe("parser", () => {
       },
       "disable-file-downloads": true,
       "disable-getting-started-override": true,
+      "disable-proxy": true,
       enable: ["feature1", "feature2"],
       help: true,
       host: "0.0.0.0",
@@ -132,6 +142,7 @@ describe("parser", () => {
       "welcome-text": "welcome to code",
       version: true,
       "bind-addr": "192.169.0.1:8080",
+      "session-socket": "/tmp/override-code-server-ipc-socket",
     })
   })
 
@@ -385,6 +396,30 @@ describe("parser", () => {
     })
   })
 
+  it("should use env var CS_DISABLE_PROXY", async () => {
+    process.env.CS_DISABLE_PROXY = "1"
+    const args = parse([])
+    expect(args).toEqual({})
+
+    const defaultArgs = await setDefaults(args)
+    expect(defaultArgs).toEqual({
+      ...defaults,
+      "disable-proxy": true,
+    })
+  })
+
+  it("should use env var CS_DISABLE_PROXY set to true", async () => {
+    process.env.CS_DISABLE_PROXY = "true"
+    const args = parse([])
+    expect(args).toEqual({})
+
+    const defaultArgs = await setDefaults(args)
+    expect(defaultArgs).toEqual({
+      ...defaults,
+      "disable-proxy": true,
+    })
+  })
+
   it("should error if password passed in", () => {
     expect(() => parse(["--password", "supersecret123"])).toThrowError(
       "--password can only be set in the config file or passed in via $PASSWORD",
@@ -412,7 +447,7 @@ describe("parser", () => {
     const defaultArgs = await setDefaults(args)
     expect(defaultArgs).toEqual({
       ...defaults,
-      "proxy-domain": ["coder.com", "coder.org"],
+      "proxy-domain": ["{{port}}.coder.com", "{{port}}.coder.org"],
     })
   })
   it("should allow '=,$/' in strings", async () => {
@@ -457,11 +492,36 @@ describe("parser", () => {
       port: 8082,
     })
   })
+
+  it("should not set proxy uri", async () => {
+    await setDefaults(parse([]))
+    expect(process.env.VSCODE_PROXY_URI).toBeUndefined()
+  })
+
+  it("should set proxy uri", async () => {
+    await setDefaults(parse(["--proxy-domain", "coder.org"]))
+    expect(process.env.VSCODE_PROXY_URI).toEqual("//{{port}}.coder.org")
+  })
+
+  it("should set proxy uri to first domain", async () => {
+    await setDefaults(
+      parse(["--proxy-domain", "*.coder.com", "--proxy-domain", "coder.com", "--proxy-domain", "coder.org"]),
+    )
+    expect(process.env.VSCODE_PROXY_URI).toEqual("//{{port}}.coder.com")
+  })
+
+  it("should not override existing proxy uri", async () => {
+    process.env.VSCODE_PROXY_URI = "foo"
+    await setDefaults(
+      parse(["--proxy-domain", "*.coder.com", "--proxy-domain", "coder.com", "--proxy-domain", "coder.org"]),
+    )
+    expect(process.env.VSCODE_PROXY_URI).toEqual("foo")
+  })
 })
 
 describe("cli", () => {
   const testName = "cli"
-  const vscodeIpcPath = path.join(os.tmpdir(), "vscode-ipc")
+  let tmpDirPath: string
 
   beforeAll(async () => {
     await clean(testName)
@@ -469,68 +529,170 @@ describe("cli", () => {
 
   beforeEach(async () => {
     delete process.env.VSCODE_IPC_HOOK_CLI
-    await fs.rm(vscodeIpcPath, { force: true, recursive: true })
+    tmpDirPath = await tmpdir(testName)
   })
 
   it("should use existing if inside code-server", async () => {
     process.env.VSCODE_IPC_HOOK_CLI = "test"
     const args: UserProvidedArgs = {}
-    expect(await shouldOpenInExistingInstance(args)).toStrictEqual("test")
+    expect(await shouldOpenInExistingInstance(args, "")).toStrictEqual("test")
 
     args.port = 8081
     args._ = ["./file"]
-    expect(await shouldOpenInExistingInstance(args)).toStrictEqual("test")
+    expect(await shouldOpenInExistingInstance(args, "")).toStrictEqual("test")
   })
 
   it("should use existing if --reuse-window is set", async () => {
+    const sessionSocket = path.join(tmpDirPath, "session-socket")
+    const server = await makeEditorSessionManagerServer(sessionSocket, new EditorSessionManager())
+
     const args: UserProvidedArgs = {}
     args["reuse-window"] = true
-    await expect(shouldOpenInExistingInstance(args)).resolves.toStrictEqual(undefined)
+    await expect(shouldOpenInExistingInstance(args, sessionSocket)).rejects.toThrow()
 
-    await fs.writeFile(vscodeIpcPath, "test")
-    await expect(shouldOpenInExistingInstance(args)).resolves.toStrictEqual("test")
+    const socketPath = path.join(tmpDirPath, "socket")
+    const client = new EditorSessionManagerClient(sessionSocket)
+    await client.addSession({
+      entry: {
+        workspace: {
+          id: "aaa",
+          folders: [
+            {
+              uri: {
+                path: "/aaa",
+              },
+            },
+          ],
+        },
+        socketPath,
+      },
+    })
+    const vscodeSockets = listenOn(socketPath)
+
+    await expect(shouldOpenInExistingInstance(args, sessionSocket)).resolves.toStrictEqual(socketPath)
 
     args.port = 8081
-    await expect(shouldOpenInExistingInstance(args)).resolves.toStrictEqual("test")
+    await expect(shouldOpenInExistingInstance(args, sessionSocket)).resolves.toStrictEqual(socketPath)
+
+    server.close()
+    vscodeSockets.close()
   })
 
   it("should use existing if --new-window is set", async () => {
+    const sessionSocket = path.join(tmpDirPath, "session-socket")
+    const server = await makeEditorSessionManagerServer(sessionSocket, new EditorSessionManager())
+
     const args: UserProvidedArgs = {}
     args["new-window"] = true
-    expect(await shouldOpenInExistingInstance(args)).toStrictEqual(undefined)
+    await expect(shouldOpenInExistingInstance(args, sessionSocket)).rejects.toThrow()
 
-    await fs.writeFile(vscodeIpcPath, "test")
-    expect(await shouldOpenInExistingInstance(args)).toStrictEqual("test")
+    const socketPath = path.join(tmpDirPath, "socket")
+    const client = new EditorSessionManagerClient(sessionSocket)
+    await client.addSession({
+      entry: {
+        workspace: {
+          id: "aaa",
+          folders: [
+            {
+              uri: {
+                path: "/aaa",
+              },
+            },
+          ],
+        },
+        socketPath,
+      },
+    })
+    const vscodeSockets = listenOn(socketPath)
+
+    expect(await shouldOpenInExistingInstance(args, sessionSocket)).toStrictEqual(socketPath)
 
     args.port = 8081
-    expect(await shouldOpenInExistingInstance(args)).toStrictEqual("test")
+    expect(await shouldOpenInExistingInstance(args, sessionSocket)).toStrictEqual(socketPath)
+
+    server.close()
+    vscodeSockets.close()
   })
 
   it("should use existing if no unrelated flags are set, has positional, and socket is active", async () => {
+    const sessionSocket = path.join(tmpDirPath, "session-socket")
+    const server = await makeEditorSessionManagerServer(sessionSocket, new EditorSessionManager())
+
     const args: UserProvidedArgs = {}
-    expect(await shouldOpenInExistingInstance(args)).toStrictEqual(undefined)
+    expect(await shouldOpenInExistingInstance(args, sessionSocket)).toStrictEqual(undefined)
 
     args._ = ["./file"]
-    expect(await shouldOpenInExistingInstance(args)).toStrictEqual(undefined)
+    expect(await shouldOpenInExistingInstance(args, sessionSocket)).toStrictEqual(undefined)
 
-    const testDir = await tmpdir(testName)
-    const socketPath = path.join(testDir, "socket")
-    await fs.writeFile(vscodeIpcPath, socketPath)
-    expect(await shouldOpenInExistingInstance(args)).toStrictEqual(undefined)
-
-    await new Promise((resolve) => {
-      const server = net.createServer(() => {
-        // Close after getting the first connection.
-        server.close()
-      })
-      server.once("listening", () => resolve(server))
-      server.listen(socketPath)
+    const client = new EditorSessionManagerClient(sessionSocket)
+    const socketPath = path.join(tmpDirPath, "socket")
+    await client.addSession({
+      entry: {
+        workspace: {
+          id: "aaa",
+          folders: [
+            {
+              uri: {
+                path: "/aaa",
+              },
+            },
+          ],
+        },
+        socketPath,
+      },
     })
+    const vscodeSockets = listenOn(socketPath)
 
-    expect(await shouldOpenInExistingInstance(args)).toStrictEqual(socketPath)
+    expect(await shouldOpenInExistingInstance(args, sessionSocket)).toStrictEqual(socketPath)
 
     args.port = 8081
-    expect(await shouldOpenInExistingInstance(args)).toStrictEqual(undefined)
+    expect(await shouldOpenInExistingInstance(args, sessionSocket)).toStrictEqual(undefined)
+
+    server.close()
+    vscodeSockets.close()
+  })
+
+  it("should prefer matching sessions for only the first path", async () => {
+    const sessionSocket = path.join(tmpDirPath, "session-socket")
+    const server = await makeEditorSessionManagerServer(sessionSocket, new EditorSessionManager())
+    const client = new EditorSessionManagerClient(sessionSocket)
+    await client.addSession({
+      entry: {
+        workspace: {
+          id: "aaa",
+          folders: [
+            {
+              uri: {
+                path: "/aaa",
+              },
+            },
+          ],
+        },
+        socketPath: `${tmpDirPath}/vscode-ipc-aaa.sock`,
+      },
+    })
+    await client.addSession({
+      entry: {
+        workspace: {
+          id: "bbb",
+          folders: [
+            {
+              uri: {
+                path: "/bbb",
+              },
+            },
+          ],
+        },
+        socketPath: `${tmpDirPath}/vscode-ipc-bbb.sock`,
+      },
+    })
+    listenOn(`${tmpDirPath}/vscode-ipc-aaa.sock`, `${tmpDirPath}/vscode-ipc-bbb.sock`)
+
+    const args: UserProvidedArgs = {}
+    args._ = ["/aaa/file", "/bbb/file"]
+    expect(await shouldOpenInExistingInstance(args, sessionSocket)).toStrictEqual(`${tmpDirPath}/vscode-ipc-aaa.sock`)
+
+    server.close()
   })
 })
 
@@ -627,6 +789,50 @@ describe("bindAddrFromArgs", () => {
     expect(actual).toStrictEqual(expected)
   })
 
+  it("should use process.env.CODE_SERVER_HOST if set", () => {
+    const [setValue, resetValue] = useEnv("CODE_SERVER_HOST")
+    setValue("coder")
+
+    const args: UserProvidedArgs = {}
+
+    const addr = {
+      host: "localhost",
+      port: 8080,
+    }
+
+    const actual = bindAddrFromArgs(addr, args)
+    const expected = {
+      host: "coder",
+      port: 8080,
+    }
+
+    expect(actual).toStrictEqual(expected)
+    resetValue()
+  })
+
+  it("should use the args.host over process.env.CODE_SERVER_HOST if both set", () => {
+    const [setValue, resetValue] = useEnv("CODE_SERVER_HOST")
+    setValue("coder")
+
+    const args: UserProvidedArgs = {
+      host: "123.123.123.123",
+    }
+
+    const addr = {
+      host: "localhost",
+      port: 8080,
+    }
+
+    const actual = bindAddrFromArgs(addr, args)
+    const expected = {
+      host: "123.123.123.123",
+      port: 8080,
+    }
+
+    expect(actual).toStrictEqual(expected)
+    resetValue()
+  })
+
   it("should use process.env.PORT if set", () => {
     const [setValue, resetValue] = useEnv("PORT")
     setValue("8000")
@@ -700,44 +906,6 @@ describe("defaultConfigFile", () => {
 auth: password
 password: ${password}
 cert: false`)
-  })
-})
-
-describe("readSocketPath", () => {
-  const fileContents = "readSocketPath file contents"
-  let tmpDirPath: string
-  let tmpFilePath: string
-
-  const testName = "readSocketPath"
-  beforeAll(async () => {
-    await clean(testName)
-  })
-
-  beforeEach(async () => {
-    tmpDirPath = await tmpdir(testName)
-    tmpFilePath = path.join(tmpDirPath, "readSocketPath.txt")
-    await fs.writeFile(tmpFilePath, fileContents)
-  })
-
-  it("should throw an error if it can't read the file", async () => {
-    // TODO@jsjoeio - implement
-    // Test it on a directory.... ESDIR
-    // TODO@jsjoeio - implement
-    expect(() => readSocketPath(tmpDirPath)).rejects.toThrow("EISDIR")
-  })
-  it("should return undefined if it can't read the file", async () => {
-    // TODO@jsjoeio - implement
-    const socketPath = await readSocketPath(path.join(tmpDirPath, "not-a-file"))
-    expect(socketPath).toBeUndefined()
-  })
-  it("should return the file contents", async () => {
-    const contents = await readSocketPath(tmpFilePath)
-    expect(contents).toBe(fileContents)
-  })
-  it("should return the same file contents for two different calls", async () => {
-    const contents1 = await readSocketPath(tmpFilePath)
-    const contents2 = await readSocketPath(tmpFilePath)
-    expect(contents2).toBe(contents1)
   })
 })
 

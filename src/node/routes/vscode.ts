@@ -1,5 +1,7 @@
 import { logger } from "@coder/logger"
+import * as crypto from "crypto"
 import * as express from "express"
+import { promises as fs } from "fs"
 import * as http from "http"
 import * as net from "net"
 import * as path from "path"
@@ -32,6 +34,7 @@ export class CodeServerRouteWrapper {
   private _wsRouterWrapper = WsRouter()
   private _socketProxyProvider = new SocketProxyProvider()
   public router = express.Router()
+  private mintKeyPromise: Promise<Buffer> | undefined
 
   public get wsRouter() {
     return this._wsRouterWrapper.router
@@ -52,6 +55,7 @@ export class CodeServerRouteWrapper {
             short_name: appName,
             start_url: ".",
             display: "fullscreen",
+            display_override: ["window-controls-overlay"],
             description: "Run Code on a remote server.",
             icons: [192, 512].map((size) => ({
               src: `{{BASE}}/_static/src/browser/media/pwa-icon-${size}.png`,
@@ -64,6 +68,33 @@ export class CodeServerRouteWrapper {
         ),
       ),
     )
+  }
+
+  private mintKey: express.Handler = async (req, res, next) => {
+    if (!this.mintKeyPromise) {
+      this.mintKeyPromise = new Promise(async (resolve) => {
+        const keyPath = path.join(req.args["user-data-dir"], "serve-web-key-half")
+        logger.debug(`Reading server web key half from ${keyPath}`)
+        try {
+          resolve(await fs.readFile(keyPath))
+          return
+        } catch (error: any) {
+          if (error.code !== "ENOENT") {
+            logError(logger, `read ${keyPath}`, error)
+          }
+        }
+        // VS Code wants 256 bits.
+        const key = crypto.randomBytes(32)
+        try {
+          await fs.writeFile(keyPath, key)
+        } catch (error: any) {
+          logError(logger, `write ${keyPath}`, error)
+        }
+        resolve(key)
+      })
+    }
+    const key = await this.mintKeyPromise
+    res.end(key)
   }
 
   private $root: express.Handler = async (req, res, next) => {
@@ -173,6 +204,7 @@ export class CodeServerRouteWrapper {
   constructor() {
     this.router.get("/", this.ensureCodeServerLoaded, this.$root)
     this.router.get("/manifest.json", this.manifest)
+    this.router.post("/mint-key", this.mintKey)
     this.router.all("*", ensureAuthenticated, this.ensureCodeServerLoaded, this.$proxyRequest)
     this._wsRouterWrapper.ws("*", ensureOrigin, ensureAuthenticated, this.ensureCodeServerLoaded, this.$proxyWebsocket)
   }

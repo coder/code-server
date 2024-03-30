@@ -9,7 +9,10 @@ export class Heart {
   private heartbeatInterval = 60000
   public lastHeartbeat = 0
 
-  public constructor(private readonly heartbeatPath: string, private readonly isActive: () => Promise<boolean>) {
+  public constructor(
+    private readonly heartbeatPath: string,
+    private readonly isActive: () => Promise<boolean>,
+  ) {
     this.beat = this.beat.bind(this)
     this.alive = this.alive.bind(this)
   }
@@ -28,7 +31,7 @@ export class Heart {
       return
     }
 
-    logger.trace("heartbeat")
+    logger.debug("heartbeat")
     this.lastHeartbeat = Date.now()
     if (typeof this.heartbeatTimer !== "undefined") {
       clearTimeout(this.heartbeatTimer)

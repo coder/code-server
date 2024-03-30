@@ -1,4 +1,3 @@
-import * as bodyParser from "body-parser"
 import * as express from "express"
 import * as http from "http"
 import nodeFetch from "node-fetch"
@@ -43,6 +42,17 @@ describe("proxy", () => {
       codeServer = undefined
     }
     jest.clearAllMocks()
+  })
+
+  it("should return 403 Forbidden if proxy is disabled", async () => {
+    e.get("/wsup", (req, res) => {
+      res.json("you cannot see this")
+    })
+    codeServer = await integration.setup(["--auth=none", "--disable-proxy"], "")
+    const resp = await codeServer.fetch(proxyPath)
+    expect(resp.status).toBe(403)
+    const json = await resp.json()
+    expect(json).toEqual({ error: "Forbidden" })
   })
 
   it("should rewrite the base path", async () => {
@@ -99,7 +109,7 @@ describe("proxy", () => {
   })
 
   it("should allow post bodies", async () => {
-    e.use(bodyParser.json({ strict: false }))
+    e.use(express.json({ strict: false }))
     e.post("/wsup", (req, res) => {
       res.json(req.body)
     })
@@ -116,7 +126,7 @@ describe("proxy", () => {
   })
 
   it("should handle bad requests", async () => {
-    e.use(bodyParser.json({ strict: false }))
+    e.use(express.json({ strict: false }))
     e.post("/wsup", (req, res) => {
       res.json(req.body)
     })
@@ -143,7 +153,7 @@ describe("proxy", () => {
   })
 
   it("should handle errors", async () => {
-    e.use(bodyParser.json({ strict: false }))
+    e.use(express.json({ strict: false }))
     e.post("/wsup", (req, res) => {
       throw new Error("BROKEN")
     })
@@ -186,6 +196,65 @@ describe("proxy", () => {
         },
       })
     }).rejects.toThrow()
+  })
+
+  it("should proxy non-ASCII", async () => {
+    e.get("*", (req, res) => {
+      res.json("ほげ")
+    })
+    codeServer = await integration.setup(["--auth=none"], "")
+    const resp = await codeServer.fetch(proxyPath.replace("wsup", "ほげ"))
+    expect(resp.status).toBe(200)
+    const json = await resp.json()
+    expect(json).toBe("ほげ")
+  })
+
+  it("should not double-encode query variables", async () => {
+    const spy = jest.fn()
+    e.get("*", (req, res) => {
+      spy([req.originalUrl, req.query])
+      res.end()
+    })
+    codeServer = await integration.setup(["--auth=none"], "")
+    for (const test of [
+      {
+        endpoint: proxyPath,
+        query: { foo: "bar with spaces" },
+        expected: "/wsup?foo=bar+with+spaces",
+      },
+      {
+        endpoint: absProxyPath,
+        query: { foo: "bar with spaces" },
+        expected: absProxyPath + "?foo=bar+with+spaces",
+      },
+      {
+        endpoint: proxyPath,
+        query: { foo: "with-&-ampersand" },
+        expected: "/wsup?foo=with-%26-ampersand",
+      },
+      {
+        endpoint: absProxyPath,
+        query: { foo: "with-&-ampersand" },
+        expected: absProxyPath + "?foo=with-%26-ampersand",
+      },
+      {
+        endpoint: absProxyPath,
+        query: { foo: "ほげ ほげ" },
+        expected: absProxyPath + "?foo=%E3%81%BB%E3%81%92+%E3%81%BB%E3%81%92",
+      },
+      {
+        endpoint: proxyPath,
+        query: { foo: "ほげ ほげ" },
+        expected: "/wsup?foo=%E3%81%BB%E3%81%92+%E3%81%BB%E3%81%92",
+      },
+    ]) {
+      spy.mockClear()
+      const resp = await codeServer.fetch(test.endpoint, undefined, test.query)
+      expect(resp.status).toBe(200)
+      await resp.text()
+      expect(spy).toHaveBeenCalledTimes(1)
+      expect(spy).toHaveBeenCalledWith([test.expected, test.query])
+    }
   })
 })
 

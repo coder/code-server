@@ -1,0 +1,68 @@
+Revert back to es2020
+
+es2022 outputs static blocks when using static properties that are not
+compatible with Safari, or at least not older versions of Safari.
+
+Index: code-server/lib/vscode/src/tsconfig.base.json
+===================================================================
+--- code-server.orig/lib/vscode/src/tsconfig.base.json
++++ code-server/lib/vscode/src/tsconfig.base.json
+@@ -17,9 +17,30 @@
+ 				"./vs/*"
+ 			]
+ 		},
+-		"target": "es2022",
+-		"useDefineForClassFields": false,
++		"target": "es2020",
+ 		"lib": [
++			"ES2016",
++			"ES2017.Object",
++			"ES2017.String",
++			"ES2017.Intl",
++			"ES2017.TypedArrays",
++			"ES2018.AsyncIterable",
++			"ES2018.AsyncGenerator",
++			"ES2018.Promise",
++			"ES2018.Regexp",
++			"ES2018.Intl",
++			"ES2019.Array",
++			"ES2019.Object",
++			"ES2019.String",
++			"ES2019.Symbol",
++			"ES2020.BigInt",
++			"ES2020.Promise",
++			"ES2020.String",
++			"ES2020.Symbol.WellKnown",
++			"ES2020.Intl",
++			"ES2021.Promise",
++			"ES2021.String",
++			"ES2021.WeakRef",
+ 			"ES2022",
+ 			"DOM",
+ 			"DOM.Iterable",
+Index: code-server/lib/vscode/build/lib/tsb/transpiler.js
+===================================================================
+--- code-server.orig/lib/vscode/build/lib/tsb/transpiler.js
++++ code-server/lib/vscode/build/lib/tsb/transpiler.js
+@@ -293,7 +293,7 @@ class SwcTranspiler {
+                 tsx: false,
+                 decorators: true
+             },
+-            target: 'es2022',
++            target: 'es2020',
+             loose: false,
+             minify: {
+                 compress: false,
+Index: code-server/lib/vscode/build/lib/tsb/transpiler.ts
+===================================================================
+--- code-server.orig/lib/vscode/build/lib/tsb/transpiler.ts
++++ code-server/lib/vscode/build/lib/tsb/transpiler.ts
+@@ -376,7 +376,7 @@ export class SwcTranspiler implements IT
+ 				tsx: false,
+ 				decorators: true
+ 			},
+-			target: 'es2022',
++			target: 'es2020',
+ 			loose: false,
+ 			minify: {
+ 				compress: false,

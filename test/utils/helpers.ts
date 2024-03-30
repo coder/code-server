@@ -109,20 +109,6 @@ export function idleTimer(message: string, reject: (error: Error) => void, delay
 }
 
 /**
- * A helper function which returns a boolean indicating whether
- * the given address is AddressInfo and has .address
- * and a .port property.
- */
-export function isAddressInfo(address: unknown): address is net.AddressInfo {
-  return (
-    address !== null &&
-    typeof address !== "string" &&
-    (address as net.AddressInfo).port !== undefined &&
-    (address as net.AddressInfo).address !== undefined
-  )
-}
-
-/**
  * If using a proxy, return the address of the proxy.
  *
  * Otherwise, return the direct address of code-server.
@@ -149,4 +135,53 @@ export function getMaybeProxiedPathname(url: URL): string {
   }
 
   return url.pathname
+}
+
+interface FakeVscodeSockets {
+  /* If called, closes all servers after the first connection. */
+  once(): FakeVscodeSockets
+
+  /* Manually close all servers. */
+  close(): Promise<void>
+}
+
+/**
+ * Creates servers for each socketPath specified.
+ */
+export function listenOn(...socketPaths: string[]): FakeVscodeSockets {
+  let once = false
+  const servers = socketPaths.map((socketPath) => {
+    const server = net.createServer(() => {
+      if (once) {
+        close()
+      }
+    })
+    server.listen(socketPath)
+    return server
+  })
+
+  async function close() {
+    await Promise.all(
+      servers.map(
+        (server) =>
+          new Promise<void>((resolve, reject) => {
+            server.close((err) => {
+              if (err) {
+                reject(err)
+                return
+              }
+              resolve()
+            })
+          }),
+      ),
+    )
+  }
+  const fakeVscodeSockets = {
+    close,
+    once: () => {
+      once = true
+      return fakeVscodeSockets
+    },
+  }
+  return fakeVscodeSockets
 }

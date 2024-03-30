@@ -15,7 +15,7 @@ copy-bin-script() {
   local dest="lib/vscode-reh-web-linux-x64/bin/$script"
   cp "lib/vscode/resources/server/bin/$script" "$dest"
   sed -i.bak "s/@@VERSION@@/$(vscode_version)/g" "$dest"
-  sed -i.bak "s/@@COMMIT@@/$VSCODE_DISTRO_COMMIT/g" "$dest"
+  sed -i.bak "s/@@COMMIT@@/$BUILD_SOURCEVERSION/g" "$dest"
   sed -i.bak "s/@@APPNAME@@/code-server/g" "$dest"
 
   # Fix Node path on Darwin and Linux.
@@ -40,6 +40,16 @@ main() {
 
   source ./ci/lib.sh
 
+  # Set the commit Code will embed into the product.json.  We need to do this
+  # since Code tries to get the commit from the `.git` directory which will fail
+  # as it is a submodule.
+  #
+  # Also, we use code-server's commit rather than VS Code's otherwise it would
+  # not update when only our patch files change, and that will cause caching
+  # issues where the browser keeps using outdated code.
+  export BUILD_SOURCEVERSION
+  BUILD_SOURCEVERSION=$(git rev-parse HEAD)
+
   pushd lib/vscode
 
   if [[ ! ${VERSION-} ]]; then
@@ -48,14 +58,11 @@ main() {
     exit 1
   fi
 
-  # Set the commit Code will embed into the product.json.  We need to do this
-  # since Code tries to get the commit from the `.git` directory which will fail
-  # as it is a submodule.
-  export VSCODE_DISTRO_COMMIT
-  VSCODE_DISTRO_COMMIT=$(git rev-parse HEAD)
-
-  # Add the date, our name, links, and enable telemetry (this just makes
-  # telemetry available; telemetry can still be disabled by flag or setting).
+  # Add the date, our name, links, enable telemetry (this just makes telemetry
+  # available; telemetry can still be disabled by flag or setting), and
+  # configure trusted extensions (since some, like github.copilot-chat, never
+  # ask to be trusted and this is the only way to get auth working).
+  #
   # This needs to be done before building as Code will read this file and embed
   # it into the client-side code.
   git checkout product.json             # Reset in case the script exited early.
@@ -89,6 +96,11 @@ main() {
     "linkProtectionTrustedDomains": [
       "https://open-vsx.org"
     ],
+    "trustedExtensionAuthAccess": [
+      "vscode.git", "vscode.github",
+      "github.vscode-pull-request-github",
+      "github.copilot", "github.copilot-chat"
+    ],
     "aiConfig": {
       "ariaKey": "code-server"
     }
@@ -107,6 +119,15 @@ EOF
   # product.json which will have `stable-$commit`).
   git checkout product.json
 
+  popd
+
+  pushd lib/vscode-reh-web-linux-x64
+  # Make sure Code took the version we set in the environment variable.  Not
+  # having a version will break display languages.
+  if ! jq -e .commit product.json; then
+    echo "'commit' is missing from product.json"
+    exit 1
+  fi
   popd
 
   # These provide a `code-server` command in the integrated terminal to open

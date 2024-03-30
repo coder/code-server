@@ -28,10 +28,10 @@ jobs:
     timeout-minutes: 5
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Run prettier with actionsx/prettier
-        uses: actionsx/prettier@v2
+        uses: actionsx/prettier@v3
         with:
           args: --check --loglevel=warn .
 
@@ -41,20 +41,20 @@ jobs:
     timeout-minutes: 5
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Get changed files
         id: changed-files
-        uses: tj-actions/changed-files@v35
+        uses: tj-actions/changed-files@v42
         with:
           files: |
             docs/**
 
-      - name: Install Node.js v16
+      - name: Install Node.js
         if: steps.changed-files.outputs.any_changed == 'true'
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: "16"
+          node-version-file: .node-version
           cache: "yarn"
 
       - name: Install doctoc
@@ -70,13 +70,13 @@ jobs:
     timeout-minutes: 5
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 2
 
       - name: Get changed files
         id: changed-files
-        uses: tj-actions/changed-files@v35
+        uses: tj-actions/changed-files@v42
         with:
           files: |
             ci/helm-chart/**
@@ -101,13 +101,13 @@ jobs:
     timeout-minutes: 5
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 2
 
       - name: Get changed files
         id: changed-files
-        uses: tj-actions/changed-files@v35
+        uses: tj-actions/changed-files@v42
         with:
           files: |
             **/*.ts
@@ -115,16 +115,16 @@ jobs:
           files_ignore: |
             lib/vscode/**
 
-      - name: Install Node.js v16
+      - name: Install Node.js
         if: steps.changed-files.outputs.any_changed == 'true'
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: "16"
+          node-version-file: .node-version
 
       - name: Fetch dependencies from cache
         if: steps.changed-files.outputs.any_changed == 'true'
         id: cache-node-modules
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: "**/node_modules"
           key: yarn-build-${{ hashFiles('**/yarn.lock') }}
@@ -144,7 +144,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Check workflow files
         run: |
           bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/7fdc9630cc360ea1a469eed64ac6d78caeda1234/scripts/download-actionlint.bash)
@@ -157,29 +157,29 @@ jobs:
     timeout-minutes: 5
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 2
 
       - name: Get changed files
         id: changed-files
-        uses: tj-actions/changed-files@v35
+        uses: tj-actions/changed-files@v42
         with:
           files: |
             **/*.ts
           files_ignore: |
             lib/vscode/**
 
-      - name: Install Node.js v16
+      - name: Install Node.js
         if: steps.changed-files.outputs.any_changed == 'true'
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: "16"
+          node-version-file: .node-version
 
       - name: Fetch dependencies from cache
         if: steps.changed-files.outputs.any_changed == 'true'
         id: cache-node-modules
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: "**/node_modules"
           key: yarn-build-${{ hashFiles('**/yarn.lock') }}
@@ -195,7 +195,7 @@ jobs:
         run: yarn test:unit
 
       - name: Upload coverage report to Codecov
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
         if: success()
@@ -203,14 +203,17 @@ jobs:
   build:
     name: Build code-server
     runs-on: ubuntu-20.04
-    timeout-minutes: 30
+    timeout-minutes: 60
     env:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           submodules: true
+
+      - name: Install system dependencies
+        run: sudo apt update && sudo apt install -y libkrb5-dev
 
       - name: Install quilt
         uses: awalsh128/cache-apt-pkgs-action@latest
@@ -221,14 +224,14 @@ jobs:
       - name: Patch Code
         run: quilt push -a
 
-      - name: Install Node.js v16
-        uses: actions/setup-node@v3
+      - name: Install Node.js
+        uses: actions/setup-node@v4
         with:
-          node-version: "16"
+          node-version-file: .node-version
 
       - name: Fetch dependencies from cache
         id: cache-node-modules
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: "**/node_modules"
           key: yarn-build-code-server-${{ hashFiles('**/yarn.lock') }}
@@ -256,7 +259,7 @@ jobs:
       # force a rebuild.
       - name: Fetch prebuilt Code package from cache
         id: cache-vscode
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: lib/vscode-reh-web-*
           key: vscode-reh-package-${{ secrets.VSCODE_CACHE_VERSION }}-${{ steps.vscode-rev.outputs.rev }}-${{ hashFiles('patches/*.diff', 'ci/build/build-vscode.sh') }}
@@ -278,7 +281,7 @@ jobs:
         run: tar -czf package.tar.gz release
 
       - name: Upload npm package artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: npm-package
           path: ./package.tar.gz
@@ -290,16 +293,19 @@ jobs:
     timeout-minutes: 25
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Install Node.js v16
-        uses: actions/setup-node@v3
+      - name: Install system dependencies
+        run: sudo apt update && sudo apt install -y libkrb5-dev
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
         with:
-          node-version: "16"
+          node-version-file: .node-version
 
       - name: Fetch dependencies from cache
         id: cache-node-modules
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: "**/node_modules"
           key: yarn-build-${{ hashFiles('**/yarn.lock') }}
@@ -307,7 +313,7 @@ jobs:
             yarn-build-
 
       - name: Download npm package
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: npm-package
 
@@ -331,7 +337,7 @@ jobs:
 
       - name: Upload test artifacts
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: failed-test-videos
           path: ./test/test-results
@@ -346,16 +352,19 @@ jobs:
     timeout-minutes: 25
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Install Node.js v16
-        uses: actions/setup-node@v3
+      - name: Install system dependencies
+        run: sudo apt update && sudo apt install -y libkrb5-dev
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
         with:
-          node-version: "16"
+          node-version-file: .node-version
 
       - name: Fetch dependencies from cache
         id: cache-node-modules
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: "**/node_modules"
           key: yarn-build-${{ hashFiles('**/yarn.lock') }}
@@ -363,7 +372,7 @@ jobs:
             yarn-build-
 
       - name: Download npm package
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: npm-package
 
@@ -383,7 +392,7 @@ jobs:
           ./test/node_modules/.bin/playwright install
 
       - name: Cache Caddy
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         id: caddy-cache
         with:
           path: |
@@ -411,7 +420,7 @@ jobs:
 
       - name: Upload test artifacts
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: failed-test-videos-proxy
           path: ./test/test-results

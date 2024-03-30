@@ -8,7 +8,9 @@
 - [Upgrade](#upgrade)
 - [Known Issues](#known-issues)
   - [Git won't work in `/sdcard`](#git-wont-work-in-sdcard)
+  - [Many extensions including language packs fail to install](#many-extensions-including-language-packs-fail-to-install)
 - [Extra](#extra)
+  - [Keyboard Shortcuts and Tab Key](#keyboard-shortcuts-and-tab-key)
   - [Create a new user](#create-a-new-user)
   - [Install Go](#install-go)
   - [Install Python](#install-python)
@@ -55,7 +57,7 @@ npm config set python python3
 node -v
 ```
 
-you will get node version `v16.15.0`
+you will get Node version `v18`
 
 5. Now install code-server following our guide on [installing with npm](./npm.md)
 
@@ -87,7 +89,49 @@ Potential Workaround :
 1. Create a soft-link from the debian-fs to your folder in `/sdcard`
 2. Use git from termux (preferred)
 
+### Many extensions including language packs fail to install
+
+Issue: Android is not seen as a Linux environment but as a separate, unsupported platform, so code-server only allows [Web Extensions](https://code.visualstudio.com/api/extension-guides/web-extensions), refusing to download extensions that run on the server.\
+Fix: None\
+Potential workarounds :
+
+Either
+
+- Manually download extensions as `.vsix` file and install them via `Extensions: Install from VSIX...` in the Command Palette.
+
+- Use an override to pretend the platform is Linux:
+
+Create a JS script that patches `process.platform`:
+
+```js
+// android-as-linux.js
+Object.defineProperty(process, "platform", {
+  get() {
+    return "linux"
+  },
+})
+```
+
+Then use Node's `--require` option to make sure it is loaded before `code-server` starts:
+
+```sh
+NODE_OPTIONS="--require /path/to/android-as-linux.js" code-server
+```
+
+⚠️ Note that Android and Linux are not 100% compatible, so use these workarounds at your own risk. Extensions that have native dependencies other than Node or that directly interact with the OS might cause issues.
+
 ## Extra
+
+### Keyboard Shortcuts and Tab Key
+
+In order to support the tab key and use keyboard shortcuts, add this to your
+settings.json:
+
+```json
+{
+  "keyboard.dispatch": "keyCode"
+}
+```
 
 ### Create a new user
 

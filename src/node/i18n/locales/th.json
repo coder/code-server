@@ -1,0 +1,13 @@
+{
+  "LOGIN_TITLE": "เข้าสู่ระบบ {{app}}",
+  "LOGIN_BELOW": "กรุณาเข้าสู่ระบบด้านล่าง",
+  "WELCOME": "ยินดีต้อนรับสู่ {{app}}",
+  "LOGIN_PASSWORD": "ตรวจสอบไฟล์กำหนดค่าที่ {{configFile}} เพื่อดูรหัสผ่าน",
+  "LOGIN_USING_ENV_PASSWORD": "รหัสผ่านถูกกำหนดเป็น $PASSWORD",
+  "LOGIN_USING_HASHED_PASSWORD": "รรหัสผ่านถูกกำหนดเป็น $HASHED_PASSWORD",
+  "SUBMIT": "ส่ง",
+  "PASSWORD_PLACEHOLDER": "รหัสผ่าน",
+  "LOGIN_RATE_LIMIT": "ถึงขีดจำกัดอัตราการเข้าสู่ระบบ!",
+  "MISS_PASSWORD": "รหัสผ่านหายไป",
+  "INCORRECT_PASSWORD": "รหัสผ่านไม่ถูกต้อง"
+}

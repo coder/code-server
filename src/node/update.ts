@@ -1,7 +1,7 @@
 import { field, logger } from "@coder/logger"
 import * as http from "http"
 import * as https from "https"
-import ProxyAgent from "proxy-agent"
+import { ProxyAgent } from "proxy-agent"
 import * as semver from "semver"
 import * as url from "url"
 import { httpProxyUri, version } from "./constants"
@@ -104,7 +104,10 @@ export class UpdateProvider {
       const request = (uri: string): void => {
         logger.debug("Making request", field("uri", uri))
         const isHttps = uri.startsWith("https")
-        const agent = httpProxyUri ? new ProxyAgent(httpProxyUri) : undefined
+        const agent = new ProxyAgent({
+          keepAlive: true,
+          getProxyForUrl: () => httpProxyUri || "",
+        })
         const httpx = isHttps ? https : http
         const client = httpx.get(uri, { headers: { "User-Agent": "code-server" }, agent }, (response) => {
           if (!response.statusCode || response.statusCode < 200 || response.statusCode >= 400) {

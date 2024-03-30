@@ -12,30 +12,26 @@ Index: code-server/lib/vscode/src/vs/server/node/serverServices.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/serverServices.ts
 +++ code-server/lib/vscode/src/vs/server/node/serverServices.ts
-@@ -70,6 +70,7 @@ import { IExtensionsScannerService } fro
+@@ -65,6 +65,7 @@ import { IExtensionsScannerService } fro
  import { ExtensionsScannerService } from 'vs/server/node/extensionsScannerService';
  import { IExtensionsProfileScannerService } from 'vs/platform/extensionManagement/common/extensionsProfileScannerService';
  import { IUserDataProfilesService } from 'vs/platform/userDataProfile/common/userDataProfile';
-+import { TelemetryClient } from "vs/server/node/telemetryClient";
++import { TelemetryClient } from 'vs/server/node/telemetryClient';
  import { NullPolicyService } from 'vs/platform/policy/common/policy';
  import { OneDataSystemAppender } from 'vs/platform/telemetry/node/1dsAppender';
  import { LoggerService } from 'vs/platform/log/node/loggerService';
-@@ -151,10 +152,13 @@ export async function setupServerService
+@@ -149,7 +150,10 @@ export async function setupServerService
  	let oneDsAppender: ITelemetryAppender = NullAppender;
  	const isInternal = isInternalTelemetry(productService, configurationService);
  	if (supportsTelemetry(productService, environmentService)) {
--		if (productService.aiConfig && productService.aiConfig.ariaKey) {
+-		if (!isLoggingOnly(productService, environmentService) && productService.aiConfig?.ariaKey) {
 +		const telemetryEndpoint = process.env.CS_TELEMETRY_URL || "https://v1.telemetry.coder.com/track";
 +		if (telemetryEndpoint) {
-+			oneDsAppender = new OneDataSystemAppender(false, eventPrefix, null, () => new TelemetryClient(telemetryEndpoint));
-+		} else if (productService.aiConfig && productService.aiConfig.ariaKey) {
- 			oneDsAppender = new OneDataSystemAppender(isInternal, eventPrefix, null, productService.aiConfig.ariaKey);
--			disposables.add(toDisposable(() => oneDsAppender?.flush())); // Ensure the AI appender is disposed so that it flushes remaining data
++			oneDsAppender = new OneDataSystemAppender(requestService, false, eventPrefix, null, () => new TelemetryClient(telemetryEndpoint));
++		} else if (!isLoggingOnly(productService, environmentService) && productService.aiConfig?.ariaKey) {
+ 			oneDsAppender = new OneDataSystemAppender(requestService, isInternal, eventPrefix, null, productService.aiConfig.ariaKey);
+ 			disposables.add(toDisposable(() => oneDsAppender?.flush())); // Ensure the AI appender is disposed so that it flushes remaining data
  		}
-+		disposables.add(toDisposable(() => oneDsAppender?.flush())); // Ensure the AI appender is disposed so that it flushes remaining data
- 
- 		const config: ITelemetryServiceConfig = {
- 			appenders: [oneDsAppender],
 Index: code-server/lib/vscode/src/vs/server/node/telemetryClient.ts
 ===================================================================
 --- /dev/null
@@ -94,11 +90,11 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -321,6 +321,7 @@ export class WebClientServer {
- 					scope: vscodeBase + '/',
- 					path: base + '/_static/out/browser/serviceWorker.js',
- 				},
-+				enableTelemetry: this._productService.enableTelemetry,
- 				embedderIdentifier: 'server-distro',
- 				extensionsGallery: this._productService.extensionsGallery,
+@@ -317,6 +317,7 @@ export class WebClientServer {
+ 				scope: vscodeBase + '/',
+ 				path: base + '/_static/out/browser/serviceWorker.js',
  			},
++			enableTelemetry: this._productService.enableTelemetry,
+ 			embedderIdentifier: 'server-distro',
+ 			extensionsGallery: this._productService.extensionsGallery,
+ 		};

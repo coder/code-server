@@ -5,7 +5,8 @@
 Run [VS Code](https://github.com/Microsoft/vscode) on any machine anywhere and
 access it in the browser.
 
-![Screenshot](./assets/screenshot.png)
+![Screenshot](./assets/screenshot-1.png)
+![Screenshot](./assets/screenshot-2.png)
 
 ## Highlights
 
@@ -72,7 +73,7 @@ details.
 Interested in [working at Coder](https://coder.com/careers)? Check out [our open
 positions](https://coder.com/careers#openings)!
 
-## For Organizations
+## For Teams
 
-Want remote development for your organization or enterprise? Visit [our
-website](https://coder.com) to learn more about Coder.
+We develop [coder/coder](https://cdr.co/coder-github) to help teams to
+adopt remote development.
