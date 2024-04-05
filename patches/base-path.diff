@@ -10,7 +10,7 @@ Index: code-server/lib/vscode/src/vs/base/common/network.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/base/common/network.ts
 +++ code-server/lib/vscode/src/vs/base/common/network.ts
-@@ -194,7 +194,9 @@ class RemoteAuthoritiesImpl {
+@@ -198,7 +198,9 @@ class RemoteAuthoritiesImpl {
  		return URI.from({
  			scheme: platform.isWeb ? this._preferredWebSchema : Schemas.vscodeRemoteResource,
  			authority: `${host}:${port}`,
@@ -111,7 +111,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -269,16 +269,15 @@ export class WebClientServer {
+@@ -270,16 +270,15 @@ export class WebClientServer {
  			return void res.end();
  		}
  
@@ -133,7 +133,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
  		);
  		if (!remoteAuthority) {
  			return serveError(req, res, 400, `Bad request.`);
-@@ -305,8 +304,12 @@ export class WebClientServer {
+@@ -306,8 +305,12 @@ export class WebClientServer {
  			scopes: [['user:email'], ['repo']]
  		} : undefined;
  
@@ -146,7 +146,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
  			embedderIdentifier: 'server-distro',
  			extensionsGallery: this._webExtensionResourceUrlTemplate ? {
  				...this._productService.extensionsGallery,
-@@ -341,8 +344,10 @@ export class WebClientServer {
+@@ -343,8 +346,10 @@ export class WebClientServer {
  		const values: { [key: string]: string } = {
  			WORKBENCH_WEB_CONFIGURATION: asJSON(workbenchWebConfiguration),
  			WORKBENCH_AUTH_SESSION: authSessionInfo ? asJSON(authSessionInfo) : '',
@@ -159,7 +159,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
  		};
  
  		if (useTestResolver) {
-@@ -369,7 +374,7 @@ export class WebClientServer {
+@@ -371,7 +376,7 @@ export class WebClientServer {
  			'default-src \'self\';',
  			'img-src \'self\' https: data: blob:;',
  			'media-src \'self\';',
@@ -168,7 +168,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
  			'child-src \'self\';',
  			`frame-src 'self' https://*.vscode-cdn.net data:;`,
  			'worker-src \'self\' data: blob:;',
-@@ -442,3 +447,70 @@ export class WebClientServer {
+@@ -444,3 +449,70 @@ export class WebClientServer {
  		return void res.end(data);
  	}
  }
@@ -303,10 +303,10 @@ Index: code-server/lib/vscode/src/vs/platform/extensionResourceLoader/common/ext
  import { TelemetryLevel } from 'vs/platform/telemetry/common/telemetry';
  import { getTelemetryLevel, supportsTelemetry } from 'vs/platform/telemetry/common/telemetryUtils';
 -import { RemoteAuthorities } from 'vs/base/common/network';
- import { getRemoteServerRootPath } from 'vs/platform/remote/common/remoteHosts';
  import { TargetPlatform } from 'vs/platform/extensions/common/extensions';
  
-@@ -102,7 +101,7 @@ export abstract class AbstractExtensionR
+ const WEB_EXTENSION_RESOURCE_END_POINT_SEGMENT = '/web-extension-resource/';
+@@ -99,7 +98,7 @@ export abstract class AbstractExtensionR
  					: version,
  				path: 'extension'
  			}));
