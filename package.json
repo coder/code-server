@@ -79,7 +79,7 @@
     "limiter": "^2.1.0",
     "pem": "^1.14.8",
     "proxy-agent": "^6.3.1",
-    "qs": "6.9.7",
+    "qs": "6.12.0",
     "rotating-file-stream": "^3.1.1",
     "safe-buffer": "^5.2.1",
     "safe-compare": "^1.1.4",
@@ -89,10 +89,10 @@
   },
   "resolutions": {
     "@types/node": "^18.0.0",
-    "qs": "6.9.7"
+    "qs": "6.12.0"
   },
   "overrides": {
-    "qs": "6.9.7"
+    "qs": "6.12.0"
   },
   "bin": {
     "code-server": "out/node/entry.js"
