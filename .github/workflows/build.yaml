@@ -229,6 +229,11 @@ jobs:
         with:
           node-version-file: .node-version
 
+      # node-gyp is missing in (at least) npm 9.8.1.
+      # TODO: Remove once we update to npm>=10?
+      - name: Install node-gyp
+        run: npm install -g node-gyp
+
       - name: Fetch dependencies from cache
         id: cache-node-modules
         uses: actions/cache@v4
