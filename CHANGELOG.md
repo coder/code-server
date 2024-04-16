@@ -22,6 +22,14 @@ Code v99.99.999
 
 ## Unreleased
 
+## [4.23.1](https://github.com/coder/code-server/releases/tag/v4.23.1) - 2024-04-15
+
+Code v1.88.1
+
+## Changed
+
+- Updated to Code 1.88.1.
+
 ## [4.23.0](https://github.com/coder/code-server/releases/tag/v4.23.0) - 2024-04-08
 
 Code v1.88.0
