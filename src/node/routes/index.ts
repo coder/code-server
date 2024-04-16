@@ -25,7 +25,7 @@ import * as login from "./login"
 import * as logout from "./logout"
 import * as pathProxy from "./pathProxy"
 import * as update from "./update"
-import { CodeServerRouteWrapper } from "./vscode"
+import * as vscode from "./vscode"
 
 /**
  * Register all routes and middleware.
@@ -170,12 +170,10 @@ export const register = async (app: App, args: DefaultedArgs): Promise<Disposabl
 
   app.router.use("/update", update.router)
 
-  const vsServerRouteHandler = new CodeServerRouteWrapper()
-
   // Note that the root route is replaced in Coder Enterprise by the plugin API.
   for (const routePrefix of ["/vscode", "/"]) {
-    app.router.use(routePrefix, vsServerRouteHandler.router)
-    app.wsRouter.use(routePrefix, vsServerRouteHandler.wsRouter)
+    app.router.use(routePrefix, vscode.router)
+    app.wsRouter.use(routePrefix, vscode.wsRouter.router)
   }
 
   app.router.use(() => {
@@ -188,6 +186,6 @@ export const register = async (app: App, args: DefaultedArgs): Promise<Disposabl
   return () => {
     heart.dispose()
     pluginApi?.dispose()
-    vsServerRouteHandler.dispose()
+    vscode.dispose()
   }
 }
