@@ -22,7 +22,7 @@ export async function proxy(
 
   if (!(await authenticated(req))) {
     // If visiting the root (/:port only) redirect to the login page.
-    if (!req.params[0] || req.params[0] === "/") {
+    if (!req.params.path || req.params.path === "/") {
       const to = self(req)
       return redirect(req, res, "login", {
         to: to !== "/" ? to : undefined,

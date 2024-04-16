@@ -205,8 +205,8 @@ export class CodeServerRouteWrapper {
     this.router.get("/", this.ensureCodeServerLoaded, this.$root)
     this.router.get("/manifest.json", this.manifest)
     this.router.post("/mint-key", this.mintKey)
-    this.router.all("*", ensureAuthenticated, this.ensureCodeServerLoaded, this.$proxyRequest)
-    this._wsRouterWrapper.ws("*", ensureOrigin, ensureAuthenticated, this.ensureCodeServerLoaded, this.$proxyWebsocket)
+    this.router.all(/.*/, ensureAuthenticated, this.ensureCodeServerLoaded, this.$proxyRequest)
+    this._wsRouterWrapper.ws(/.*/, ensureOrigin, ensureAuthenticated, this.ensureCodeServerLoaded, this.$proxyWebsocket)
   }
 
   dispose() {

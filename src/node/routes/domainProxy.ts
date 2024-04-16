@@ -53,7 +53,7 @@ const maybeProxy = (req: Request): string | undefined => {
   return undefined
 }
 
-router.all("*", async (req, res, next) => {
+router.all(/.*/, async (req, res, next) => {
   const port = maybeProxy(req)
   if (!port) {
     return next()
@@ -97,7 +97,7 @@ router.all("*", async (req, res, next) => {
 
 export const wsRouter = WsRouter()
 
-wsRouter.ws("*", async (req, _, next) => {
+wsRouter.ws(/.*/, async (req, _, next) => {
   const port = maybeProxy(req)
   if (!port) {
     return next()

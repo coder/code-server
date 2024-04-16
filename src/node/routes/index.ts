@@ -109,21 +109,21 @@ export const register = async (app: App, args: DefaultedArgs): Promise<Disposabl
   app.router.use("/", domainProxy.router)
   app.wsRouter.use("/", domainProxy.wsRouter.router)
 
-  app.router.all("/proxy/(:port)(/*)?", async (req, res) => {
+  app.router.all("/proxy/:port/:path(.*)?", async (req, res) => {
     await pathProxy.proxy(req, res)
   })
-  app.wsRouter.get("/proxy/(:port)(/*)?", async (req) => {
+  app.wsRouter.get("/proxy/:port/:path(.*)?", async (req) => {
     await pathProxy.wsProxy(req as pluginapi.WebsocketRequest)
   })
   // These two routes pass through the path directly.
   // So the proxied app must be aware it is running
   // under /absproxy/<someport>/
-  app.router.all("/absproxy/(:port)(/*)?", async (req, res) => {
+  app.router.all("/absproxy/:port/:path(.*)?", async (req, res) => {
     await pathProxy.proxy(req, res, {
       passthroughPath: true,
     })
   })
-  app.wsRouter.get("/absproxy/(:port)(/*)?", async (req) => {
+  app.wsRouter.get("/absproxy/:port/:path(.*)?", async (req) => {
     await pathProxy.wsProxy(req as pluginapi.WebsocketRequest, {
       passthroughPath: true,
     })

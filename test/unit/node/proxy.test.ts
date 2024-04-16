@@ -199,7 +199,7 @@ describe("proxy", () => {
   })
 
   it("should proxy non-ASCII", async () => {
-    e.get("*", (req, res) => {
+    e.get(/.*/, (req, res) => {
       res.json("ほげ")
     })
     codeServer = await integration.setup(["--auth=none"], "")
@@ -211,7 +211,7 @@ describe("proxy", () => {
 
   it("should not double-encode query variables", async () => {
     const spy = jest.fn()
-    e.get("*", (req, res) => {
+    e.get(/.*/, (req, res) => {
       spy([req.originalUrl, req.query])
       res.end()
     })
