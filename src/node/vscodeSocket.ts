@@ -20,11 +20,11 @@ export interface EditorSessionEntry {
 }
 
 interface DeleteSessionRequest {
-  socketPath: string
+  socketPath?: string
 }
 
 interface AddSessionRequest {
-  entry: EditorSessionEntry
+  entry?: EditorSessionEntry
 }
 
 interface GetSessionResponse {
@@ -40,37 +40,42 @@ export async function makeEditorSessionManagerServer(
   // eslint-disable-next-line import/no-named-as-default-member
   router.use(express.json())
 
-  router.get("/session", async (req, res) => {
-    const filePath = req.query.filePath as string
-    if (!filePath) {
-      res.status(HttpCode.BadRequest).send("filePath is required")
+  router.get<{}, GetSessionResponse | string | unknown, undefined, { filePath?: string }>(
+    "/session",
+    async (req, res) => {
+      const filePath = req.query.filePath
+      if (!filePath) {
+        res.status(HttpCode.BadRequest).send("filePath is required")
+        return
+      }
+      try {
+        const socketPath = await editorSessionManager.getConnectedSocketPath(filePath)
+        const response: GetSessionResponse = { socketPath }
+        res.json(response)
+      } catch (error: unknown) {
+        res.status(HttpCode.ServerError).send(error)
+      }
+    },
+  )
+
+  router.post<{}, string, AddSessionRequest | undefined>("/add-session", async (req, res) => {
+    const entry = req.body?.entry
+    if (!entry) {
+      res.status(400).send("entry is required")
       return
     }
-    try {
-      const socketPath = await editorSessionManager.getConnectedSocketPath(filePath)
-      const response: GetSessionResponse = { socketPath }
-      res.json(response)
-    } catch (error: unknown) {
-      res.status(HttpCode.ServerError).send(error)
-    }
+    editorSessionManager.addSession(entry)
+    res.status(200).send("session added")
   })
 
-  router.post("/add-session", async (req, res) => {
-    const request = req.body as AddSessionRequest
-    if (!request.entry) {
-      res.status(400).send("entry is required")
-    }
-    editorSessionManager.addSession(request.entry)
-    res.status(200).send()
-  })
-
-  router.post("/delete-session", async (req, res) => {
-    const request = req.body as DeleteSessionRequest
-    if (!request.socketPath) {
+  router.post<{}, string, DeleteSessionRequest | undefined>("/delete-session", async (req, res) => {
+    const socketPath = req.body?.socketPath
+    if (!socketPath) {
       res.status(400).send("socketPath is required")
+      return
     }
-    editorSessionManager.deleteSession(request.socketPath)
-    res.status(200).send()
+    editorSessionManager.deleteSession(socketPath)
+    res.status(200).send("session deleted")
   })
 
   const server = http.createServer(router)

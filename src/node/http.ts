@@ -319,8 +319,8 @@ export const getCookieOptions = (req: express.Request): express.CookieOptions =>
   // URL of that page) and the relative path to the root as given to it by the
   // backend.  Using these two we can determine the true absolute root.
   const url = new URL(
-    req.query.base || req.body.base || "/",
-    req.query.href || req.body.href || "http://" + (req.headers.host || "localhost"),
+    req.query.base || req.body?.base || "/",
+    req.query.href || req.body?.href || "http://" + (req.headers.host || "localhost"),
   )
   return {
     domain: getCookieDomain(url.host, req.args["proxy-domain"]),

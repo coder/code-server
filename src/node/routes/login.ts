@@ -68,8 +68,8 @@ router.get("/", async (req, res) => {
   res.send(await getRoot(req))
 })
 
-router.post<{}, string, { password: string; base?: string }, { to?: string }>("/", async (req, res) => {
-  const password = sanitizeString(req.body.password)
+router.post<{}, string, { password?: string; base?: string } | undefined, { to?: string }>("/", async (req, res) => {
+  const password = sanitizeString(req.body?.password)
   const hashedPasswordFromArgs = req.args["hashed-password"]
 
   try {
