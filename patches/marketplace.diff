@@ -40,8 +40,8 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -113,7 +113,7 @@ export class WebClientServer {
- 		const serverRootPath = getRemoteServerRootPath(_productService);
+@@ -114,7 +114,7 @@ export class WebClientServer {
+ 
  		this._staticRoute = `${serverRootPath}/static`;
  		this._callbackRoute = `${serverRootPath}/callback`;
 -		this._webExtensionRoute = `${serverRootPath}/web-extension-resource`;
@@ -49,7 +49,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
  	}
  
  	/**
-@@ -311,14 +311,7 @@ export class WebClientServer {
+@@ -312,14 +312,7 @@ export class WebClientServer {
  			codeServerVersion: this._productService.codeServerVersion,
  			rootEndpoint: base,
  			embedderIdentifier: 'server-distro',
@@ -69,20 +69,16 @@ Index: code-server/lib/vscode/src/vs/platform/extensionResourceLoader/common/ext
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/platform/extensionResourceLoader/common/extensionResourceLoader.ts
 +++ code-server/lib/vscode/src/vs/platform/extensionResourceLoader/common/extensionResourceLoader.ts
-@@ -16,7 +16,6 @@ import { getServiceMachineId } from 'vs/
- import { IStorageService } from 'vs/platform/storage/common/storage';
- import { TelemetryLevel } from 'vs/platform/telemetry/common/telemetry';
- import { getTelemetryLevel, supportsTelemetry } from 'vs/platform/telemetry/common/telemetryUtils';
--import { getRemoteServerRootPath } from 'vs/platform/remote/common/remoteHosts';
- import { TargetPlatform } from 'vs/platform/extensions/common/extensions';
+@@ -140,9 +140,9 @@ export abstract class AbstractExtensionR
+ 	}
  
- const WEB_EXTENSION_RESOURCE_END_POINT = 'web-extension-resource';
-@@ -77,7 +76,7 @@ export abstract class AbstractExtensionR
- 		private readonly _environmentService: IEnvironmentService,
- 		private readonly _configurationService: IConfigurationService,
- 	) {
--		this._webExtensionResourceEndPoint = `${getRemoteServerRootPath(_productService)}/${WEB_EXTENSION_RESOURCE_END_POINT}/`;
-+		this._webExtensionResourceEndPoint = `/${WEB_EXTENSION_RESOURCE_END_POINT}/`;
- 		if (_productService.extensionsGallery) {
- 			this._extensionGalleryResourceUrlTemplate = _productService.extensionsGallery.resourceUrlTemplate;
- 			this._extensionGalleryAuthority = this._extensionGalleryResourceUrlTemplate ? this._getExtensionGalleryAuthority(URI.parse(this._extensionGalleryResourceUrlTemplate)) : undefined;
+ 	protected _isWebExtensionResourceEndPoint(uri: URI): boolean {
+-		const uriPath = uri.path, serverRootPath = RemoteAuthorities.getServerRootPath();
+-		// test if the path starts with the server root path followed by the web extension resource end point segment
+-		return uriPath.startsWith(serverRootPath) && uriPath.startsWith(WEB_EXTENSION_RESOURCE_END_POINT_SEGMENT, serverRootPath.length);
++		const uriPath = uri.path;
++		// test if the path starts with the web extension resource end point segment
++		return uriPath.startsWith(WEB_EXTENSION_RESOURCE_END_POINT_SEGMENT);
+ 	}
+ 
+ }

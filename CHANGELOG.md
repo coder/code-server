@@ -22,7 +22,55 @@ Code v99.99.999
 
 ## Unreleased
 
-## [4.21.1](https://github.com/coder/code-server/releases/tag/v4.21.1) - 2021-02-09
+## [4.23.1](https://github.com/coder/code-server/releases/tag/v4.23.1) - 2024-04-15
+
+Code v1.88.1
+
+## Changed
+
+- Updated to Code 1.88.1.
+
+## [4.23.0](https://github.com/coder/code-server/releases/tag/v4.23.0) - 2024-04-08
+
+Code v1.88.0
+
+## Changed
+
+- Updated to Code 1.88.0.
+- Updated Node to 18.18.2.
+
+## Fixed
+
+- Fix masking the exit code when failing to install extensions on the command
+  line outside the integrated terminal. Installing extensions inside the
+  integrated terminal still masks the exit code and is an upstream bug.
+
+## [4.22.1](https://github.com/coder/code-server/releases/tag/v4.22.1) - 2024-03-14
+
+Code v1.87.2
+
+## Changed
+
+- Updated to Code 1.87.2.
+- Enable keep-alive for proxy agent.
+
+## [4.22.0](https://github.com/coder/code-server/releases/tag/v4.22.0) - 2024-03-03
+
+Code v1.87.0
+
+## Changed
+
+- Updated to Code 1.87.0.
+
+## [4.21.2](https://github.com/coder/code-server/releases/tag/v4.21.2) - 2024-02-28
+
+Code v1.86.2
+
+## Changed
+
+- Updated to Code 1.86.2.
+
+## [4.21.1](https://github.com/coder/code-server/releases/tag/v4.21.1) - 2024-02-09
 
 Code v1.86.1
 
@@ -35,7 +83,7 @@ Code v1.86.1
 
 - Docker images for Fedora and openSUSE.
 
-## [4.21.0](https://github.com/coder/code-server/releases/tag/v4.21.0) - 2021-02-05
+## [4.21.0](https://github.com/coder/code-server/releases/tag/v4.21.0) - 2024-02-05
 
 Code v1.86.0
 
@@ -43,7 +91,7 @@ Code v1.86.0
 
 - Updated to Code 1.86.0.
 
-## [4.20.1](https://github.com/coder/code-server/releases/tag/v4.20.1) - 2021-01-22
+## [4.20.1](https://github.com/coder/code-server/releases/tag/v4.20.1) - 2024-01-22
 
 Code v1.85.2
 

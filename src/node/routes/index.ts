@@ -25,7 +25,7 @@ import * as login from "./login"
 import * as logout from "./logout"
 import * as pathProxy from "./pathProxy"
 import * as update from "./update"
-import { CodeServerRouteWrapper } from "./vscode"
+import * as vscode from "./vscode"
 
 /**
  * Register all routes and middleware.
@@ -109,21 +109,21 @@ export const register = async (app: App, args: DefaultedArgs): Promise<Disposabl
   app.router.use("/", domainProxy.router)
   app.wsRouter.use("/", domainProxy.wsRouter.router)
 
-  app.router.all("/proxy/(:port)(/*)?", async (req, res) => {
+  app.router.all("/proxy/:port/:path(.*)?", async (req, res) => {
     await pathProxy.proxy(req, res)
   })
-  app.wsRouter.get("/proxy/(:port)(/*)?", async (req) => {
+  app.wsRouter.get("/proxy/:port/:path(.*)?", async (req) => {
     await pathProxy.wsProxy(req as pluginapi.WebsocketRequest)
   })
   // These two routes pass through the path directly.
   // So the proxied app must be aware it is running
   // under /absproxy/<someport>/
-  app.router.all("/absproxy/(:port)(/*)?", async (req, res) => {
+  app.router.all("/absproxy/:port/:path(.*)?", async (req, res) => {
     await pathProxy.proxy(req, res, {
       passthroughPath: true,
     })
   })
-  app.wsRouter.get("/absproxy/(:port)(/*)?", async (req) => {
+  app.wsRouter.get("/absproxy/:port/:path(.*)?", async (req) => {
     await pathProxy.wsProxy(req as pluginapi.WebsocketRequest, {
       passthroughPath: true,
     })
@@ -170,12 +170,10 @@ export const register = async (app: App, args: DefaultedArgs): Promise<Disposabl
 
   app.router.use("/update", update.router)
 
-  const vsServerRouteHandler = new CodeServerRouteWrapper()
-
   // Note that the root route is replaced in Coder Enterprise by the plugin API.
   for (const routePrefix of ["/vscode", "/"]) {
-    app.router.use(routePrefix, vsServerRouteHandler.router)
-    app.wsRouter.use(routePrefix, vsServerRouteHandler.wsRouter)
+    app.router.use(routePrefix, vscode.router)
+    app.wsRouter.use(routePrefix, vscode.wsRouter.router)
   }
 
   app.router.use(() => {
@@ -188,6 +186,6 @@ export const register = async (app: App, args: DefaultedArgs): Promise<Disposabl
   return () => {
     heart.dispose()
     pluginApi?.dispose()
-    vsServerRouteHandler.dispose()
+    vscode.dispose()
   }
 }

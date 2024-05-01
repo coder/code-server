@@ -61,7 +61,7 @@
     "eslint-plugin-import": "^2.28.1",
     "eslint-plugin-prettier": "^5.0.0",
     "prettier": "^3.0.3",
-    "prettier-plugin-sh": "^0.13.1",
+    "prettier-plugin-sh": "^0.14.0",
     "ts-node": "^10.9.1",
     "typescript": "^5.2.2"
   },
@@ -71,7 +71,7 @@
     "compression": "^1.7.4",
     "cookie-parser": "^1.4.6",
     "env-paths": "^2.2.1",
-    "express": "5.0.0-alpha.8",
+    "express": "5.0.0-beta.3",
     "http-proxy": "^1.18.1",
     "httpolyglot": "^0.1.2",
     "i18next": "^23.5.1",
@@ -79,7 +79,7 @@
     "limiter": "^2.1.0",
     "pem": "^1.14.8",
     "proxy-agent": "^6.3.1",
-    "qs": "6.9.7",
+    "qs": "6.12.1",
     "rotating-file-stream": "^3.1.1",
     "safe-buffer": "^5.2.1",
     "safe-compare": "^1.1.4",
@@ -88,11 +88,7 @@
     "xdg-basedir": "^4.0.0"
   },
   "resolutions": {
-    "@types/node": "^18.0.0",
-    "qs": "6.9.7"
-  },
-  "overrides": {
-    "qs": "6.9.7"
+    "@types/node": "^18.0.0"
   },
   "bin": {
     "code-server": "out/node/entry.js"

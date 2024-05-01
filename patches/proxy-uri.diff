@@ -42,16 +42,16 @@ Index: code-server/lib/vscode/src/vs/platform/remote/browser/remoteAuthorityReso
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/platform/remote/browser/remoteAuthorityResolverService.ts
 +++ code-server/lib/vscode/src/vs/platform/remote/browser/remoteAuthorityResolverService.ts
-@@ -34,7 +34,7 @@ export class RemoteAuthorityResolverServ
- 		isWorkbenchOptionsBasedResolution: boolean,
+@@ -35,7 +35,7 @@ export class RemoteAuthorityResolverServ
  		connectionToken: Promise<string> | string | undefined,
  		resourceUriProvider: ((uri: URI) => URI) | undefined,
+ 		serverBasePath: string | undefined,
 -		@IProductService productService: IProductService,
 +		@IProductService private readonly productService: IProductService,
  		@ILogService private readonly _logService: ILogService,
  	) {
  		super();
-@@ -85,9 +85,14 @@ export class RemoteAuthorityResolverServ
+@@ -86,9 +86,14 @@ export class RemoteAuthorityResolverServ
  		const connectionToken = await Promise.resolve(this._connectionTokens.get(authority) || this._connectionToken);
  		performance.mark(`code/didResolveConnectionToken/${authorityPrefix}`);
  		this._logService.info(`Resolved connection token (${authorityPrefix}) after ${sw.elapsed()} ms`);
@@ -71,7 +71,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -312,6 +312,7 @@ export class WebClientServer {
+@@ -313,6 +313,7 @@ export class WebClientServer {
  			rootEndpoint: base,
  			updateEndpoint: !this._environmentService.args['disable-update-check'] ? base + '/update/check' : undefined,
  			logoutEndpoint: this._environmentService.args['auth'] && this._environmentService.args['auth'] !== "none" ? base + '/logout' : undefined,
@@ -83,7 +83,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/terminal/common/terminalE
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/contrib/terminal/common/terminalEnvironment.ts
 +++ code-server/lib/vscode/src/vs/workbench/contrib/terminal/common/terminalEnvironment.ts
-@@ -271,7 +271,7 @@ export async function createTerminalEnvi
+@@ -291,7 +291,7 @@ export async function createTerminalEnvi
  
  		// Sanitize the environment, removing any undesirable VS Code and Electron environment
  		// variables
@@ -148,9 +148,9 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/remote/browser/remoteExpl
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/contrib/remote/browser/remoteExplorer.ts
 +++ code-server/lib/vscode/src/vs/workbench/contrib/remote/browser/remoteExplorer.ts
-@@ -80,7 +80,7 @@ export class ForwardedPortsView extends
- 			this.contextKeyListener = undefined;
- 		}
+@@ -77,7 +77,7 @@ export class ForwardedPortsView extends
+ 	private async enableForwardedPortsView() {
+ 		this.contextKeyListener.clear();
  
 -		const viewEnabled: boolean = !!forwardedPortsViewEnabled.getValue(this.contextKeyService);
 +		const viewEnabled: boolean = true;

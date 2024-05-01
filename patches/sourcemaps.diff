@@ -32,7 +32,7 @@ Index: code-server/lib/vscode/build/gulpfile.reh.js
  
  		let version = packageJson.version;
  		const quality = product.quality;
-@@ -433,7 +432,7 @@ function tweakProductForServerWeb(produc
+@@ -439,7 +438,7 @@ function tweakProductForServerWeb(produc
  	const minifyTask = task.define(`minify-vscode-${type}`, task.series(
  		optimizeTask,
  		util.rimraf(`out-vscode-${type}-min`),
