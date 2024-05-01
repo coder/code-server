@@ -5,7 +5,11 @@ extraVolumeMounts:
   #   readOnly: true
   #   existingClaim: volume-claim
   #   hostPath: ""
-  - name: model
-    mountPath: /models
+  - name: nfs89
+    mountPath: /mnt/nfs89
     readOnly: false
-    hostPath: "/mnt/nfs_share89/models"
+    hostPath: "/mnt/nfs_share89"
+  - name: nfs88
+    mountPath: /mnt/nfs88
+    readOnly: false
+    hostPath: "/mnt/nfs_share88"
