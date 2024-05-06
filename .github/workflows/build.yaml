@@ -83,7 +83,7 @@ jobs:
 
       - name: Install helm
         if: steps.changed-files.outputs.any_changed == 'true'
-        uses: azure/setup-helm@v3.5
+        uses: azure/setup-helm@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
