@@ -42,7 +42,7 @@ Index: code-server/lib/vscode/src/vs/server/node/serverServices.ts
 -		if (!isLoggingOnly(productService, environmentService) && productService.aiConfig?.ariaKey) {
 -			oneDsAppender = new OneDataSystemAppender(requestService, isInternal, eventPrefix, null, productService.aiConfig.ariaKey);
 +		if (!isLoggingOnly(productService, environmentService) && productService.telemetryEndpoint) {
-+			oneDsAppender = new OneDataSystemAppender(requestService, isInternal, eventPrefix, null, () => new TelemetryClient(productService.telemetryEndpoint!, isContainer));
++			oneDsAppender = new OneDataSystemAppender(requestService, isInternal, eventPrefix, null, () => new TelemetryClient(productService.telemetryEndpoint!, machineId, isContainer));
  			disposables.add(toDisposable(() => oneDsAppender?.flush())); // Ensure the AI appender is disposed so that it flushes remaining data
  		}
  
@@ -50,7 +50,7 @@ Index: code-server/lib/vscode/src/vs/server/node/telemetryClient.ts
 ===================================================================
 --- /dev/null
 +++ code-server/lib/vscode/src/vs/server/node/telemetryClient.ts
-@@ -0,0 +1,53 @@
+@@ -0,0 +1,55 @@
 +import { AppInsightsCore, IExtendedTelemetryItem, ITelemetryItem } from '@microsoft/1ds-core-js';
 +import * as https from 'https';
 +import * as http from 'http';
@@ -59,6 +59,7 @@ Index: code-server/lib/vscode/src/vs/server/node/telemetryClient.ts
 +export class TelemetryClient extends AppInsightsCore {
 +	public constructor(
 +		private readonly endpoint: string,
++		private readonly machineId: string,
 +		private readonly isContainer: Boolean | undefined) {
 +		super();
 +	}
@@ -89,6 +90,7 @@ Index: code-server/lib/vscode/src/vs/server/node/telemetryClient.ts
 +			options.properties['common.arch'] = os.arch();
 +		} catch (error) {}
 +
++		options.properties['common.remoteMachineId'] = this.machineId;
 +		options.properties['common.isContainer'] = this.isContainer;
 +
 +		try {
