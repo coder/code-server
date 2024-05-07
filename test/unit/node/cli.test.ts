@@ -912,8 +912,6 @@ cert: false`)
 describe("toCodeArgs", () => {
   const vscodeDefaults = {
     ...defaults,
-    "accept-server-license-terms": true,
-    compatibility: "1.64",
     help: false,
     port: "8080",
     version: false,
