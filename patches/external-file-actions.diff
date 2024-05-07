@@ -102,7 +102,7 @@ Index: code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
 @@ -99,6 +101,8 @@ export interface ServerParsedArgs {
  	/* ----- code-server ----- */
  	'disable-update-check'?: boolean;
- 	'auth'?: string
+ 	'auth'?: string;
 +	'disable-file-downloads'?: boolean;
 +	'disable-file-uploads'?: boolean;
  
