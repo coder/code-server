@@ -20,7 +20,7 @@ Index: code-server/lib/vscode/src/vs/server/node/serverServices.ts
  import { NullPolicyService } from 'vs/platform/policy/common/policy';
  import { OneDataSystemAppender } from 'vs/platform/telemetry/node/1dsAppender';
  import { LoggerService } from 'vs/platform/log/node/loggerService';
-@@ -146,10 +147,25 @@ export async function setupServerService
+@@ -146,11 +147,23 @@ export async function setupServerService
  	const requestService = new RequestService(configurationService, environmentService, logService, loggerService);
  	services.set(IRequestService, requestService);
  
@@ -40,13 +40,12 @@ Index: code-server/lib/vscode/src/vs/server/node/serverServices.ts
  	const isInternal = isInternalTelemetry(productService, configurationService);
  	if (supportsTelemetry(productService, environmentService)) {
 -		if (!isLoggingOnly(productService, environmentService) && productService.aiConfig?.ariaKey) {
-+		const telemetryEndpoint = productService.telemetryEndpoint;
-+		if (telemetryEndpoint) {
-+			oneDsAppender = new OneDataSystemAppender(requestService, false, eventPrefix, null, () => new TelemetryClient(telemetryEndpoint, isContainer));
-+		} else if (!isLoggingOnly(productService, environmentService) && productService.aiConfig?.ariaKey) {
- 			oneDsAppender = new OneDataSystemAppender(requestService, isInternal, eventPrefix, null, productService.aiConfig.ariaKey);
+-			oneDsAppender = new OneDataSystemAppender(requestService, isInternal, eventPrefix, null, productService.aiConfig.ariaKey);
++		if (!isLoggingOnly(productService, environmentService) && productService.telemetryEndpoint) {
++			oneDsAppender = new OneDataSystemAppender(requestService, isInternal, eventPrefix, null, () => new TelemetryClient(productService.telemetryEndpoint!, isContainer));
  			disposables.add(toDisposable(() => oneDsAppender?.flush())); // Ensure the AI appender is disposed so that it flushes remaining data
  		}
+ 
 Index: code-server/lib/vscode/src/vs/server/node/telemetryClient.ts
 ===================================================================
 --- /dev/null
