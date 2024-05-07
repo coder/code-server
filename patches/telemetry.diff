@@ -40,7 +40,7 @@ Index: code-server/lib/vscode/src/vs/server/node/serverServices.ts
  	const isInternal = isInternalTelemetry(productService, configurationService);
  	if (supportsTelemetry(productService, environmentService)) {
 -		if (!isLoggingOnly(productService, environmentService) && productService.aiConfig?.ariaKey) {
-+		const telemetryEndpoint = process.env.CS_TELEMETRY_URL || "https://v1.telemetry.coder.com/track";
++		const telemetryEndpoint = productService.telemetryEndpoint;
 +		if (telemetryEndpoint) {
 +			oneDsAppender = new OneDataSystemAppender(requestService, false, eventPrefix, null, () => new TelemetryClient(telemetryEndpoint, isContainer));
 +		} else if (!isLoggingOnly(productService, environmentService) && productService.aiConfig?.ariaKey) {
@@ -109,11 +109,38 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -318,6 +318,7 @@ export class WebClientServer {
+@@ -318,6 +318,8 @@ export class WebClientServer {
  				scope: vscodeBase + '/',
  				path: base + '/_static/out/browser/serviceWorker.js',
  			},
 +			enableTelemetry: this._productService.enableTelemetry,
++			telemetryEndpoint: this._productService.telemetryEndpoint,
  			embedderIdentifier: 'server-distro',
  			extensionsGallery: this._productService.extensionsGallery,
  		};
+Index: code-server/lib/vscode/src/vs/base/common/product.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/base/common/product.ts
++++ code-server/lib/vscode/src/vs/base/common/product.ts
+@@ -64,6 +64,7 @@ export interface IProductConfiguration {
+ 		readonly path: string;
+ 		readonly scope: string;
+ 	}
++	readonly telemetryEndpoint?: string
+ 
+ 	readonly version: string;
+ 	readonly date?: string;
+Index: code-server/lib/vscode/src/vs/platform/product/common/product.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/platform/product/common/product.ts
++++ code-server/lib/vscode/src/vs/platform/product/common/product.ts
+@@ -55,7 +55,8 @@ else if (globalThis._VSCODE_PRODUCT_JSON
+ 			resourceUrlTemplate: "https://open-vsx.org/vscode/asset/{publisher}/{name}/{version}/Microsoft.VisualStudio.Code.WebResources/{path}",
+ 			controlUrl: "",
+ 			recommendationsUrl: "",
+-		})
++		}),
++		telemetryEndpoint: env.CS_TELEMETRY_URL || product.telemetryEndpoint || "https://v1.telemetry.coder.com/track",
+ 	});
+ }
+ 
