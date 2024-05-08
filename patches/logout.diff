@@ -32,7 +32,7 @@ Index: code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
  export interface ServerParsedArgs {
  	/* ----- code-server ----- */
  	'disable-update-check'?: boolean;
-+	'auth'?: string
++	'auth'?: string;
  
  	/* ----- server setup ----- */
  

@@ -222,7 +222,7 @@ jobs:
       # next update Node we can probably remove this.  For now, install
       # setuptools since it contains distutils.
       - name: Install Python utilities
-        run: python3 -m pip install setuptools
+        run: brew install python-setuptools
 
       - name: Download npm package
         uses: actions/download-artifact@v4

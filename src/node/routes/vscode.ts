@@ -54,6 +54,10 @@ export const ensureVSCodeLoaded = async (
   try {
     vscodeServer = await createVSServer(null, {
       ...(await toCodeArgs(req.args)),
+      "accept-server-license-terms": true,
+      // This seems to be used to make the connection token flags optional (when
+      // set to 1.63) but we have always included them.
+      compatibility: "1.64",
       "without-connection-token": true,
     })
   } catch (error) {
