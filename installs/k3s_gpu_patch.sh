@@ -1,0 +1,1 @@
+kubectl patch deploy <<deployment>> -n <<ns>> --type json -p='[{"op": "add", "path": "/spec/template/spec/runtimeClassName", "value": "nvidia"}]'

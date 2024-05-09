@@ -24,3 +24,6 @@ helm upgrade --install cs-chong ../ci/helm-chart -f values-base-docker.yaml -f v
 
 ## K3S
 helm upgrade --install cs-gpu-chip ../ci/helm-chart -f values-base-docker.yaml -f values-1gpu.yaml -n cs-gpu-chip --create-namespace
+
+## AIOS
+helm upgrade --install cs-gpu-chip ../ci/helm-chart -f values-base-nodocker.yaml -f values-1gpu.yaml -f values-bright-mounts.yaml -n cs-gpu-chip --create-namespace
