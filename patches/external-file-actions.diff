@@ -27,7 +27,7 @@ Index: code-server/lib/vscode/src/vs/workbench/browser/web.api.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/browser/web.api.ts
 +++ code-server/lib/vscode/src/vs/workbench/browser/web.api.ts
-@@ -289,6 +289,16 @@ export interface IWorkbenchConstructionO
+@@ -303,6 +303,16 @@ export interface IWorkbenchConstructionO
  	 */
  	readonly userDataPath?: string
  
@@ -102,7 +102,7 @@ Index: code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
 @@ -99,6 +101,8 @@ export interface ServerParsedArgs {
  	/* ----- code-server ----- */
  	'disable-update-check'?: boolean;
- 	'auth'?: string
+ 	'auth'?: string;
 +	'disable-file-downloads'?: boolean;
 +	'disable-file-uploads'?: boolean;
  
@@ -173,7 +173,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/files/browser/fileActions
  import { IsWebContext } from 'vs/platform/contextkey/common/contextkeys';
  import { ServicesAccessor } from 'vs/platform/instantiation/common/instantiation';
  import { ThemeIcon } from 'vs/base/common/themables';
-@@ -550,13 +550,16 @@ MenuRegistry.appendMenuItem(MenuId.Explo
+@@ -553,13 +553,16 @@ MenuRegistry.appendMenuItem(MenuId.Explo
  		id: DOWNLOAD_COMMAND_ID,
  		title: DOWNLOAD_LABEL
  	},
@@ -197,7 +197,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/files/browser/fileActions
  	)
  }));
  
-@@ -568,6 +571,7 @@ MenuRegistry.appendMenuItem(MenuId.Explo
+@@ -571,6 +574,7 @@ MenuRegistry.appendMenuItem(MenuId.Explo
  		title: UPLOAD_LABEL,
  	},
  	when: ContextKeyExpr.and(
@@ -287,7 +287,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/files/browser/views/explo
  import { mainWindow } from 'vs/base/browser/window';
  import { IExplorerFileContribution, explorerFileContribRegistry } from 'vs/workbench/contrib/files/browser/explorerFileContrib';
 +import { IBrowserWorkbenchEnvironmentService } from 'vs/workbench/services/environment/browser/environmentService';
- import { IHoverWidget } from 'vs/base/browser/ui/hover/updatableHoverWidget';
+ import type { IHoverWidget } from 'vs/base/browser/ui/hover/hover';
  
  export class ExplorerDelegate implements IListVirtualDelegate<ExplorerItem> {
 @@ -1080,7 +1081,8 @@ export class FileDragAndDrop implements

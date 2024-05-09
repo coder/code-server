@@ -20,30 +20,47 @@ Index: code-server/lib/vscode/src/vs/server/node/serverServices.ts
  import { NullPolicyService } from 'vs/platform/policy/common/policy';
  import { OneDataSystemAppender } from 'vs/platform/telemetry/node/1dsAppender';
  import { LoggerService } from 'vs/platform/log/node/loggerService';
-@@ -149,7 +150,10 @@ export async function setupServerService
+@@ -146,11 +147,23 @@ export async function setupServerService
+ 	const requestService = new RequestService(configurationService, environmentService, logService, loggerService);
+ 	services.set(IRequestService, requestService);
+ 
++	let isContainer = undefined;
++	try {
++		await Promises.stat('/run/.containerenv');
++		isContainer = true;
++	} catch (error) { /* Does not exist, probably. */ }
++	if (!isContainer) {
++		try {
++			const content = await Promises.readFile('/proc/self/cgroup', 'utf8')
++			isContainer = content.includes('docker');
++		} catch (error) { /* Permission denied, probably. */ }
++	}
++
  	let oneDsAppender: ITelemetryAppender = NullAppender;
  	const isInternal = isInternalTelemetry(productService, configurationService);
  	if (supportsTelemetry(productService, environmentService)) {
 -		if (!isLoggingOnly(productService, environmentService) && productService.aiConfig?.ariaKey) {
-+		const telemetryEndpoint = process.env.CS_TELEMETRY_URL || "https://v1.telemetry.coder.com/track";
-+		if (telemetryEndpoint) {
-+			oneDsAppender = new OneDataSystemAppender(requestService, false, eventPrefix, null, () => new TelemetryClient(telemetryEndpoint));
-+		} else if (!isLoggingOnly(productService, environmentService) && productService.aiConfig?.ariaKey) {
- 			oneDsAppender = new OneDataSystemAppender(requestService, isInternal, eventPrefix, null, productService.aiConfig.ariaKey);
+-			oneDsAppender = new OneDataSystemAppender(requestService, isInternal, eventPrefix, null, productService.aiConfig.ariaKey);
++		if (!isLoggingOnly(productService, environmentService) && productService.telemetryEndpoint) {
++			oneDsAppender = new OneDataSystemAppender(requestService, isInternal, eventPrefix, null, () => new TelemetryClient(productService.telemetryEndpoint!, machineId, isContainer));
  			disposables.add(toDisposable(() => oneDsAppender?.flush())); // Ensure the AI appender is disposed so that it flushes remaining data
  		}
+ 
 Index: code-server/lib/vscode/src/vs/server/node/telemetryClient.ts
 ===================================================================
 --- /dev/null
 +++ code-server/lib/vscode/src/vs/server/node/telemetryClient.ts
-@@ -0,0 +1,49 @@
+@@ -0,0 +1,55 @@
 +import { AppInsightsCore, IExtendedTelemetryItem, ITelemetryItem } from '@microsoft/1ds-core-js';
 +import * as https from 'https';
 +import * as http from 'http';
 +import * as os from 'os';
 +
 +export class TelemetryClient extends AppInsightsCore {
-+	public constructor(private readonly endpoint: string) {
++	public constructor(
++		private readonly endpoint: string,
++		private readonly machineId: string,
++		private readonly isContainer: Boolean | undefined) {
 +		super();
 +	}
 +
@@ -73,6 +90,9 @@ Index: code-server/lib/vscode/src/vs/server/node/telemetryClient.ts
 +			options.properties['common.arch'] = os.arch();
 +		} catch (error) {}
 +
++		options.properties['common.remoteMachineId'] = this.machineId;
++		options.properties['common.isContainer'] = this.isContainer;
++
 +		try {
 +			const request = (/^http:/.test(this.endpoint) ? http : https).request(this.endpoint, {
 +				method: 'POST',
@@ -90,11 +110,38 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -318,6 +318,7 @@ export class WebClientServer {
+@@ -318,6 +318,8 @@ export class WebClientServer {
  				scope: vscodeBase + '/',
  				path: base + '/_static/out/browser/serviceWorker.js',
  			},
 +			enableTelemetry: this._productService.enableTelemetry,
++			telemetryEndpoint: this._productService.telemetryEndpoint,
  			embedderIdentifier: 'server-distro',
  			extensionsGallery: this._productService.extensionsGallery,
  		};
+Index: code-server/lib/vscode/src/vs/base/common/product.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/base/common/product.ts
++++ code-server/lib/vscode/src/vs/base/common/product.ts
+@@ -64,6 +64,7 @@ export interface IProductConfiguration {
+ 		readonly path: string;
+ 		readonly scope: string;
+ 	}
++	readonly telemetryEndpoint?: string
+ 
+ 	readonly version: string;
+ 	readonly date?: string;
+Index: code-server/lib/vscode/src/vs/platform/product/common/product.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/platform/product/common/product.ts
++++ code-server/lib/vscode/src/vs/platform/product/common/product.ts
+@@ -55,7 +55,8 @@ else if (globalThis._VSCODE_PRODUCT_JSON
+ 			resourceUrlTemplate: "https://open-vsx.org/vscode/asset/{publisher}/{name}/{version}/Microsoft.VisualStudio.Code.WebResources/{path}",
+ 			controlUrl: "",
+ 			recommendationsUrl: "",
+-		})
++		}),
++		telemetryEndpoint: env.CS_TELEMETRY_URL || product.telemetryEndpoint || "https://v1.telemetry.coder.com/track",
+ 	});
+ }
+ 
