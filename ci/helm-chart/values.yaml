@@ -6,7 +6,7 @@ replicaCount: 1
 
 image:
   repository: codercom/code-server
-  tag: '4.23.1'
+  tag: '4.89.1'
   pullPolicy: Always
 
 # Specifies one or more secrets to be used when pulling images from a
