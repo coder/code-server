@@ -190,6 +190,7 @@ extraVolumeMounts: []
   #   readOnly: true
   #   existingClaim: volume-claim
   #   hostPath: ""
+  #   emptyDir: {}
 
 extraConfigmapMounts: []
   # - name: certs-configmap
