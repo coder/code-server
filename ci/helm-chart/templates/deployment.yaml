@@ -177,9 +177,12 @@ spec:
         {{- if .existingClaim }}
         persistentVolumeClaim:
           claimName: {{ .existingClaim }}
-        {{- else }}
+        {{- else if .hostPath }}
         hostPath:
           path: {{ .hostPath }}
           type: Directory
+        {{- else }}
+        emptyDir:
+          {{- toYaml .emptyDir | nindent 10 }}
         {{- end }}
       {{- end }}
