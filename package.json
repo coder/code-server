@@ -51,7 +51,7 @@
     "@types/semver": "^7.5.2",
     "@types/trusted-types": "^2.0.4",
     "@types/ws": "^8.5.5",
-    "@typescript-eslint/eslint-plugin": "^6.7.2",
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
     "@typescript-eslint/parser": "^6.7.2",
     "audit-ci": "^6.6.1",
     "doctoc": "^2.2.1",
