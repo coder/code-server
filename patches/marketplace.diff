@@ -82,3 +82,18 @@ Index: code-server/lib/vscode/src/vs/platform/extensionResourceLoader/common/ext
  	}
  
  }
+Index: code-server/lib/vscode/src/vs/platform/extensionManagement/node/extensionDownloader.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/platform/extensionManagement/node/extensionDownloader.ts
++++ code-server/lib/vscode/src/vs/platform/extensionManagement/node/extensionDownloader.ts
+@@ -114,7 +114,10 @@ export class ExtensionsDownloader extend
+ 			return false;
+ 		}
+ 
++		return false
++		// @ts-expect-error
+ 		const value = this.configurationService.getValue('extensions.verifySignature');
++		// @ts-expect-error
+ 		return isBoolean(value) ? value : true;
+ 	}
+ 
