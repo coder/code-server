@@ -20,7 +20,7 @@ Index: code-server/lib/vscode/src/vs/server/node/serverServices.ts
  import { NullPolicyService } from 'vs/platform/policy/common/policy';
  import { OneDataSystemAppender } from 'vs/platform/telemetry/node/1dsAppender';
  import { LoggerService } from 'vs/platform/log/node/loggerService';
-@@ -146,11 +147,23 @@ export async function setupServerService
+@@ -147,11 +148,23 @@ export async function setupServerService
  	const requestService = new RequestService(configurationService, environmentService, logService, loggerService);
  	services.set(IRequestService, requestService);
  
@@ -118,7 +118,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 +			telemetryEndpoint: this._productService.telemetryEndpoint,
  			embedderIdentifier: 'server-distro',
  			extensionsGallery: this._productService.extensionsGallery,
- 		};
+ 		} satisfies Partial<IProductConfiguration>;
 Index: code-server/lib/vscode/src/vs/base/common/product.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/base/common/product.ts

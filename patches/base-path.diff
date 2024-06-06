@@ -10,7 +10,7 @@ Index: code-server/lib/vscode/src/vs/base/common/network.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/base/common/network.ts
 +++ code-server/lib/vscode/src/vs/base/common/network.ts
-@@ -205,7 +205,9 @@ class RemoteAuthoritiesImpl {
+@@ -212,7 +212,9 @@ class RemoteAuthoritiesImpl {
  		return URI.from({
  			scheme: platform.isWeb ? this._preferredWebSchema : Schemas.vscodeRemoteResource,
  			authority: `${host}:${port}`,
@@ -140,11 +140,11 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 +		const base = relativeRoot(getOriginalUrl(req))
 +		const vscodeBase = relativePath(getOriginalUrl(req))
 +
- 		const productConfiguration = <Partial<IProductConfiguration>>{
+ 		const productConfiguration = {
  			codeServerVersion: this._productService.codeServerVersion,
 +			rootEndpoint: base,
  			embedderIdentifier: 'server-distro',
- 			extensionsGallery: this._webExtensionResourceUrlTemplate ? {
+ 			extensionsGallery: this._webExtensionResourceUrlTemplate && this._productService.extensionsGallery ? {
  				...this._productService.extensionsGallery,
 @@ -343,8 +346,10 @@ export class WebClientServer {
  		const values: { [key: string]: string } = {

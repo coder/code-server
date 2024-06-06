@@ -23,14 +23,14 @@ Index: code-server/lib/vscode/src/vs/server/node/serverServices.ts
 +++ code-server/lib/vscode/src/vs/server/node/serverServices.ts
 @@ -11,7 +11,7 @@ import * as path from 'vs/base/common/pa
  import { IURITransformer } from 'vs/base/common/uriIpc';
- import { getMachineId, getSqmMachineId } from 'vs/base/node/id';
+ import { getMachineId, getSqmMachineId, getdevDeviceId } from 'vs/base/node/id';
  import { Promises } from 'vs/base/node/pfs';
 -import { ClientConnectionEvent, IMessagePassingProtocol, IPCServer, StaticRouter } from 'vs/base/parts/ipc/common/ipc';
 +import { ClientConnectionEvent, IMessagePassingProtocol, IPCServer, ProxyChannel, StaticRouter } from 'vs/base/parts/ipc/common/ipc';
  import { ProtocolConstants } from 'vs/base/parts/ipc/common/ipc.net';
  import { IConfigurationService } from 'vs/platform/configuration/common/configuration';
  import { ConfigurationService } from 'vs/platform/configuration/common/configurationService';
-@@ -237,6 +237,9 @@ export async function setupServerService
+@@ -238,6 +238,9 @@ export async function setupServerService
  		const channel = new ExtensionManagementChannel(extensionManagementService, (ctx: RemoteAgentConnectionContext) => getUriTransformer(ctx.remoteAuthority));
  		socketServer.registerChannel('extensions', channel);
  
@@ -348,7 +348,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/extensions/browser/extens
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/contrib/extensions/browser/extensionsActions.ts
 +++ code-server/lib/vscode/src/vs/workbench/contrib/extensions/browser/extensionsActions.ts
-@@ -342,9 +342,6 @@ export class InstallAction extends Exten
+@@ -341,9 +341,6 @@ export class InstallAction extends Exten
  		if (this.extension.isBuiltin) {
  			return;
  		}
@@ -358,7 +358,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/extensions/browser/extens
  		if (this.extension.state === ExtensionState.Uninstalled && await this.extensionsWorkbenchService.canInstall(this.extension)) {
  			this.enabled = this.options.installPreReleaseVersion ? this.extension.hasPreReleaseVersion : this.extension.hasReleaseVersion;
  			this.updateLabel();
-@@ -615,7 +612,7 @@ export abstract class InstallInOtherServ
+@@ -614,7 +611,7 @@ export abstract class InstallInOtherServ
  		}
  
  		if (isLanguagePackExtension(this.extension.local.manifest)) {
@@ -367,7 +367,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/extensions/browser/extens
  		}
  
  		// Prefers to run on UI
-@@ -1843,17 +1840,6 @@ export class SetLanguageAction extends E
+@@ -1848,17 +1845,6 @@ export class SetLanguageAction extends E
  	update(): void {
  		this.enabled = false;
  		this.class = SetLanguageAction.DisabledClass;
@@ -385,7 +385,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/extensions/browser/extens
  	}
  
  	override async run(): Promise<any> {
-@@ -1870,7 +1856,6 @@ export class ClearLanguageAction extends
+@@ -1875,7 +1861,6 @@ export class ClearLanguageAction extends
  	private static readonly DisabledClass = `${ClearLanguageAction.EnabledClass} disabled`;
  
  	constructor(
@@ -393,7 +393,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/extensions/browser/extens
  		@ILocaleService private readonly localeService: ILocaleService,
  	) {
  		super(ClearLanguageAction.ID, ClearLanguageAction.TITLE.value, ClearLanguageAction.DisabledClass, false);
-@@ -1880,17 +1865,6 @@ export class ClearLanguageAction extends
+@@ -1885,17 +1870,6 @@ export class ClearLanguageAction extends
  	update(): void {
  		this.enabled = false;
  		this.class = ClearLanguageAction.DisabledClass;

@@ -267,8 +267,8 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 @@ -307,6 +307,7 @@ export class WebClientServer {
  		} : undefined;
  
- 		const productConfiguration = <Partial<IProductConfiguration>>{
+ 		const productConfiguration = {
 +			codeServerVersion: this._productService.codeServerVersion,
  			embedderIdentifier: 'server-distro',
- 			extensionsGallery: this._webExtensionResourceUrlTemplate ? {
+ 			extensionsGallery: this._webExtensionResourceUrlTemplate && this._productService.extensionsGallery ? {
  				...this._productService.extensionsGallery,
