@@ -53,16 +53,16 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
  			codeServerVersion: this._productService.codeServerVersion,
  			rootEndpoint: base,
  			embedderIdentifier: 'server-distro',
--			extensionsGallery: this._webExtensionResourceUrlTemplate ? {
+-			extensionsGallery: this._webExtensionResourceUrlTemplate && this._productService.extensionsGallery ? {
 -				...this._productService.extensionsGallery,
--				'resourceUrlTemplate': this._webExtensionResourceUrlTemplate.with({
+-				resourceUrlTemplate: this._webExtensionResourceUrlTemplate.with({
 -					scheme: 'http',
 -					authority: remoteAuthority,
 -					path: `${this._webExtensionRoute}/${this._webExtensionResourceUrlTemplate.authority}${this._webExtensionResourceUrlTemplate.path}`
 -				}).toString(true)
 -			} : undefined
 +			extensionsGallery: this._productService.extensionsGallery,
- 		};
+ 		} satisfies Partial<IProductConfiguration>;
  
  		if (!this._environmentService.isBuilt) {
 Index: code-server/lib/vscode/src/vs/platform/extensionResourceLoader/common/extensionResourceLoader.ts
@@ -82,3 +82,18 @@ Index: code-server/lib/vscode/src/vs/platform/extensionResourceLoader/common/ext
  	}
  
  }
+Index: code-server/lib/vscode/src/vs/platform/extensionManagement/node/extensionDownloader.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/platform/extensionManagement/node/extensionDownloader.ts
++++ code-server/lib/vscode/src/vs/platform/extensionManagement/node/extensionDownloader.ts
+@@ -114,7 +114,10 @@ export class ExtensionsDownloader extend
+ 			return false;
+ 		}
+ 
++		return false
++		// @ts-expect-error
+ 		const value = this.configurationService.getValue('extensions.verifySignature');
++		// @ts-expect-error
+ 		return isBoolean(value) ? value : true;
+ 	}
+ 
