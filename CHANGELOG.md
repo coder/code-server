@@ -22,6 +22,25 @@ Code v99.99.999
 
 ## Unreleased
 
+Code v1.90.0
+
+## Changed
+
+- Updated to Code 1.90.0.
+- Updated Node to 20.11.1.
+
+## Added
+
+- Send contents to the clipboard in the integrated terminal by piping to
+  `code-server --stdin-to-clipboard` or `code-server -c`.
+
+  You may want to make this an alias:
+
+  ```
+  alias xclip="code-server --stdin-to-clipboard"
+  echo -n "hello world" | xclip
+  ```
+
 ## [4.89.1](https://github.com/coder/code-server/releases/tag/v4.89.1) - 2024-04-14
 
 Code v1.89.1

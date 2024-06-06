@@ -441,7 +441,7 @@ install_npm() {
     return
   fi
   echoerr "Please install npm to install code-server!"
-  echoerr "You will need at least node v18 and a few C dependencies."
+  echoerr "You will need at least node v20 and a few C dependencies."
   echoerr "See the docs https://coder.com/docs/code-server/latest/install#npm"
 
   exit 1
