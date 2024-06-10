@@ -27,7 +27,7 @@ Code v1.90.0
 ## Changed
 
 - Updated to Code 1.90.0.
-- Updated Node to 20.11.1.
+- Updated Node to 20.12.1.
 
 ## Added
 
