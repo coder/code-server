@@ -14,6 +14,7 @@ describe("Uploads (enabled)", ["--disable-workspace-trust"], {}, () => {
     const workspaceDir = await codeServerPage.workspaceDir
     const tmpDirPath = path.join(workspaceDir, "test-directory")
     await fs.mkdir(tmpDirPath)
+    await codeServerPage.executeCommandViaMenus("Refresh Explorer")
 
     // Action
     const fileInExplorer = await codeServerPage.page.waitForSelector('span:has-text("test-directory")')
@@ -42,6 +43,7 @@ describe("Uploads (disabled)", ["--disable-workspace-trust", "--disable-file-upl
     const workspaceDir = await codeServerPage.workspaceDir
     const tmpDirPath = path.join(workspaceDir, "test-directory")
     await fs.mkdir(tmpDirPath)
+    await codeServerPage.executeCommandViaMenus("Refresh Explorer")
 
     // Action
     const fileInExplorer = await codeServerPage.page.waitForSelector('span:has-text("test-directory")')

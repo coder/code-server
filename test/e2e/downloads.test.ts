@@ -14,6 +14,7 @@ describe("Downloads (enabled)", ["--disable-workspace-trust"], {}, async () => {
     const workspaceDir = await codeServerPage.workspaceDir
     const tmpFilePath = path.join(workspaceDir, "unique-file.txt")
     await fs.writeFile(tmpFilePath, "hello world")
+    await codeServerPage.executeCommandViaMenus("Refresh Explorer")
 
     // Action
     const fileInExplorer = await codeServerPage.page.waitForSelector("text=unique-file.txt")
@@ -30,6 +31,7 @@ describe("Downloads (enabled)", ["--disable-workspace-trust"], {}, async () => {
     const fileName = "unique-file-save-as.txt"
     const tmpFilePath = path.join(workspaceDir, fileName)
     await fs.writeFile(tmpFilePath, "Hello World")
+    await codeServerPage.executeCommandViaMenus("Refresh Explorer")
 
     // Action
     await codeServerPage.page.waitForSelector(`text=${fileName}`)
@@ -71,6 +73,7 @@ describe("Downloads (disabled)", ["--disable-workspace-trust", "--disable-file-d
     const workspaceDir = await codeServerPage.workspaceDir
     const tmpFilePath = path.join(workspaceDir, "unique-file.txt")
     await fs.writeFile(tmpFilePath, "Hello World")
+    await codeServerPage.executeCommandViaMenus("Refresh Explorer")
 
     // Action
     const fileInExplorer = await codeServerPage.page.waitForSelector("text=unique-file.txt")
@@ -87,6 +90,7 @@ describe("Downloads (disabled)", ["--disable-workspace-trust", "--disable-file-d
     const fileName = "unique-file-save-as.txt"
     const tmpFilePath = path.join(workspaceDir, fileName)
     await fs.writeFile(tmpFilePath, "Hello World")
+    await codeServerPage.executeCommandViaMenus("Refresh Explorer")
 
     // Action
     await codeServerPage.page.waitForSelector(`text=${fileName}`)
