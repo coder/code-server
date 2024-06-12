@@ -50,48 +50,64 @@ Index: code-server/lib/vscode/src/vs/server/node/telemetryClient.ts
 ===================================================================
 --- /dev/null
 +++ code-server/lib/vscode/src/vs/server/node/telemetryClient.ts
-@@ -0,0 +1,55 @@
+@@ -0,0 +1,71 @@
 +import { AppInsightsCore, IExtendedTelemetryItem, ITelemetryItem } from '@microsoft/1ds-core-js';
 +import * as https from 'https';
 +import * as http from 'http';
 +import * as os from 'os';
 +
++interface SystemInfo {
++	measurements: Record<string, number | undefined>;
++	properties: Record<string, string | boolean | null | undefined>;
++}
++
 +export class TelemetryClient extends AppInsightsCore {
++	private readonly systemInfo: SystemInfo = {
++		measurements: {},
++		properties: {},
++	};
++
 +	public constructor(
 +		private readonly endpoint: string,
-+		private readonly machineId: string,
-+		private readonly isContainer: Boolean | undefined) {
++		machineId: string,
++		isContainer: boolean | undefined) {
 +		super();
++
++		// os.cpus() can take a very long time sometimes (personally I see 1-2
++		// seconds in a Coder workspace).  This adds up significantly, especially
++		// when many telemetry requests are sent during startup, which can cause
++		// connection timeouts.  Try to cache as much as we can.
++		try {
++			const cpus = os.cpus();
++			this.systemInfo.measurements.cores = cpus.length;
++			this.systemInfo.properties['common.cpuModel'] = cpus[0].model;
++		} catch (error) {}
++
++		try {
++			this.systemInfo.properties['common.shell'] = os.userInfo().shell;
++			this.systemInfo.properties['common.release'] = os.release();
++			this.systemInfo.properties['common.arch'] = os.arch();
++		} catch (error) {}
++
++		this.systemInfo.properties['common.remoteMachineId'] = machineId;
++		this.systemInfo.properties['common.isContainer'] = isContainer;
 +	}
 +
 +	public override track(item: IExtendedTelemetryItem | ITelemetryItem): void {
 +		const options = item.baseData || {}
-+		if (!options.properties) {
-+			options.properties = {};
++		options.measurements = {
++			...(options.measurements || {}),
++			...this.systemInfo.measurements,
 +		}
-+		if (!options.measurements) {
-+			options.measurements = {};
++		options.properties = {
++			...(options.properties || {}),
++			...this.systemInfo.properties,
 +		}
-+
-+		try {
-+			const cpus = os.cpus();
-+			options.measurements.cores = cpus.length;
-+			options.properties['common.cpuModel'] = cpus[0].model;
-+		} catch (error) {}
 +
 +		try {
 +			options.measurements.memoryFree = os.freemem();
 +			options.measurements.memoryTotal = os.totalmem();
 +		} catch (error) {}
-+
-+		try {
-+			options.properties['common.shell'] = os.userInfo().shell;
-+			options.properties['common.release'] = os.release();
-+			options.properties['common.arch'] = os.arch();
-+		} catch (error) {}
-+
-+		options.properties['common.remoteMachineId'] = this.machineId;
-+		options.properties['common.isContainer'] = this.isContainer;
 +
 +		try {
 +			const request = (/^http:/.test(this.endpoint) ? http : https).request(this.endpoint, {

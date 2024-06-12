@@ -22,6 +22,13 @@ Code v99.99.999
 
 ## Unreleased
 
+Code v1.90.0
+
+### Fixed
+
+- Cache a call to get CPU information used in telemetry that could result in a
+  lack responsiveness if it was particularly slow.
+
 ## [4.90.0](https://github.com/coder/code-server/releases/tag/v4.90.0) - 2024-06-11
 
 Code v1.90.0
