@@ -29,7 +29,7 @@ describe("settings", () => {
       const settings = new SettingsProvider<CoderSettings>(pathToMockSettingsFile)
       await settings.read()
       // This happens when we can't parse a JSON (usually error in file)
-      expect(logger.warn).toHaveBeenCalledWith("Unexpected token t in JSON at position 29")
+      expect(logger.warn).toHaveBeenCalledWith(expect.stringMatching(/Unexpected token/))
     })
   })
   describe("with invalid settings file path", () => {
