@@ -22,6 +22,21 @@ Code v99.99.999
 
 ## Unreleased
 
+## [4.90.3](https://github.com/coder/code-server/releases/tag/v4.90.3) - 2024-06-21
+
+Code v1.90.2
+
+### Changed
+
+- Updated to Code 1.90.2.
+
+### Fixed
+
+- When the log gets rotated it will no longer incorrectly be moved to a new
+  directory created in the current working directory named with a date.
+  Instead, the file itself is prepended with the date and kept in the same
+  directory, as originally intended.
+
 ## [4.90.2](https://github.com/coder/code-server/releases/tag/v4.90.2) - 2024-06-14
 
 Code v1.90.1
