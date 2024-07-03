@@ -5,8 +5,6 @@
 
 - [Requirements](#requirements)
   - [Linux-specific requirements](#linux-specific-requirements)
-- [Creating pull requests](#creating-pull-requests)
-  - [Commits and commit history](#commits-and-commit-history)
 - [Development workflow](#development-workflow)
   - [Version updates to Code](#version-updates-to-code)
   - [Patching Code](#patching-code)
@@ -28,13 +26,10 @@
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 <!-- prettier-ignore-end -->
 
-- [Detailed CI and build process docs](../ci)
-
 ## Requirements
 
 The prerequisites for contributing to code-server are almost the same as those
-for [VS
-Code](https://github.com/Microsoft/vscode/wiki/How-to-Contribute#prerequisites).
+for [VS Code](https://github.com/Microsoft/vscode/wiki/How-to-Contribute#prerequisites).
 Here is what is needed:
 
 - `node` v20.x
@@ -60,30 +55,15 @@ Here is what is needed:
 
 ### Linux-specific requirements
 
-If you're developing code-server on Linux, make sure you have installed or install the following dependencies:
+If you're developing code-server on Linux, make sure you have installed or
+install the following dependencies:
 
 ```shell
 sudo apt-get install build-essential g++ libx11-dev libxkbfile-dev libsecret-1-dev libkrb5-dev python-is-python3
 ```
 
-These are required by Code. See [their Wiki](https://github.com/microsoft/vscode/wiki/How-to-Contribute#prerequisites) for more information.
-
-## Creating pull requests
-
-Please create a [GitHub Issue](https://github.com/coder/code-server/issues) that
-includes context for issues that you see. You can skip this if the proposed fix
-is minor.
-
-In your pull requests (PR), link to the issue that the PR solves.
-
-Please ensure that the base of your PR is the **main** branch.
-
-### Commits and commit history
-
-We prefer a clean commit history. This means you should squash all fixups and
-fixup-type commits before asking for a review (e.g., clean up, squash, then force
-push). If you need help with this, feel free to leave a comment in your PR, and
-we'll guide you.
+These are required by Code. See [their Wiki](https://github.com/microsoft/vscode/wiki/How-to-Contribute#prerequisites)
+for more information.
 
 ## Development workflow
 
@@ -99,55 +79,62 @@ need to apply them with `quilt`. If you pull down changes that update the
 `vscode` submodule you will need to run `git submodule update --init` and
 re-apply the patches.
 
+When you make a change that affects people deploying the marketplace please
+update the changelog as part of your PR.
+
+Note that building code-server takes a very, very long time, and loading it in
+the browser in development mode also takes a very, very long time.
+
+Display language (Spanish, etc) support only works in a full build; it will not
+work in development mode.
+
+Generally we prefer that PRs be squashed into `main` but you can rebase or merge
+if it is important to keep the individual commits (make sure to clean up the
+commits first if you are doing this).
+
 ### Version updates to Code
 
-1. Update the `lib/vscode` submodule to the desired upstream version branch.
+1. Remove any patches with `quilt pop -a`.
+2. Update the `lib/vscode` submodule to the desired upstream version branch.
    1. `cd lib/vscode && git checkout release/1.66 && cd ../..`
-   2. `git add lib && git commit -m "chore: update Code"`
-2. Apply the patches (`quilt push -a`) or restore your stashed changes. At this
-   stage you may need to resolve conflicts. For example use `quilt push -f`,
-   manually apply the rejected portions, then `quilt refresh`.
-3. From the code-server **project root**, run `yarn install`.
-4. Test code-server locally to make sure everything works.
+   2. `git add lib && git commit -m "chore: update to Code <version>"`
+3. Apply the patches one at a time (`quilt push`). If the application succeeds
+   but the lines changed, update the patch with `quilt refresh`. If there are
+   conflicts, then force apply with `quilt push -f`, manually add back the
+   rejected code, then run `quilt refresh`.
+4. From the code-server **project root**, run `yarn install`.
 5. Check the Node.js version that's used by Electron (which is shipped with VS
-   Code. If necessary, update your version of Node.js to match.
-6. Commit the updated submodule and patches to `code-server`.
-7. Open a PR.
-
-Tip: if you're certain all patches are applied correctly and you simply need to
-refresh, you can use this trick:
-
-```shell
-while quilt push; do quilt refresh; done
-```
-
-[Source](https://raphaelhertzog.com/2012/08/08/how-to-use-quilt-to-manage-patches-in-debian-packages/)
+   Code. If necessary, update our version of Node.js to match.
 
 ### Patching Code
 
-0. You can go through the patch stack with `quilt push` and `quilt pop`.
-1. Create a new patch (`quilt new {name}.diff`) or use an existing patch.
-1. Add the file(s) you are patching (`quilt add [-P patch] {file}`). A file
+1. You can go through the patch stack with `quilt push` and `quilt pop`.
+2. Create a new patch (`quilt new {name}.diff`) or use an existing patch.
+3. Add the file(s) you are patching (`quilt add [-P patch] {file}`). A file
    **must** be added before you make changes to it.
-1. Make your changes. Patches do not need to be independent of each other but
+4. Make your changes. Patches do not need to be independent of each other but
    each patch must result in a working code-server without any broken in-between
    states otherwise they are difficult to test and modify.
-1. Add your changes to the patch (`quilt refresh`)
-1. Add a comment in the patch about the reason for the patch and how to
+5. Add your changes to the patch (`quilt refresh`)
+6. Add a comment in the patch about the reason for the patch and how to
    reproduce the behavior it fixes or adds. Every patch should have an e2e test
    as well.
 
 ### Build
 
-You can build as follows:
+You can build a full production as follows:
 
 ```shell
+git submodule update --init
+quilt push -a
+yarn install
 yarn build
-yarn build:vscode
+VERSION=0.0.0 yarn build:vscode
 yarn release
 ```
 
-_NOTE: this does not keep `node_modules`. If you want them to be kept, use `KEEP_MODULES=1 yarn release` (if you're testing in Coder, you'll want to do this)_
+This does not keep `node_modules`. If you want them to be kept, use
+`KEEP_MODULES=1 yarn release`
 
 Run your build:
 
@@ -158,7 +145,7 @@ npm install --omit=dev # Skip if you used KEEP_MODULES=1
 node .
 ```
 
-Build the release packages (make sure that you run `yarn release` first):
+Then, to build the release package:
 
 ```shell
 yarn release:standalone
@@ -167,7 +154,7 @@ yarn package
 ```
 
 > On Linux, the currently running distro will become the minimum supported
-> version. In our GitHub Actions CI, we use CentOS 7 for maximum compatibility.
+> version. In our GitHub Actions CI, we use CentOS 8 for maximum compatibility.
 > If you need your builds to support older distros, run the build commands
 > inside a Docker container with all the build requirements installed.
 
@@ -181,9 +168,9 @@ writing, we do this for the following platforms/architectures:
 - Linux arm7l (.tar.gz)
 - Linux armhf.deb
 - Linux armhf.rpm
-- macOS amd64 (Intel-based)
+- macOS arm64.tar.gz
 
-Currently, these are compiled in CI using the `yarn release-standalone` command
+Currently, these are compiled in CI using the `yarn release:standalone` command
 in the `release.yaml` workflow. We then upload them to the draft release and
 distribute via GitHub Releases.
 
@@ -191,17 +178,22 @@ distribute via GitHub Releases.
 
 #### I see "Forbidden access" when I load code-server in the browser
 
-This means your patches didn't apply correctly. We have a patch to remove the auth from vanilla Code because we use our own.
+This means your patches didn't apply correctly. We have a patch to remove the
+auth from vanilla Code because we use our own.
 
-Try popping off the patches with `quilt pop -a` and reapplying with `quilt push -a`.
+Try popping off the patches with `quilt pop -a` and reapplying with `quilt push
+-a`.
 
 #### "Can only have one anonymous define call per script"
 
-Code might be trying to use a dev or prod HTML in the wrong context. You can try re-running code-server and setting `VSCODE_DEV=1`.
+Code might be trying to use a dev or prod HTML in the wrong context. You can try
+re-running code-server and setting `VSCODE_DEV=1`.
 
 ### Help
 
-If you get stuck or need help, you can always start a new GitHub Discussion [here](https://github.com/coder/code-server/discussions). One of the maintainers will respond and help you out.
+If you get stuck or need help, you can always start a new GitHub Discussion
+[here](https://github.com/coder/code-server/discussions). One of the maintainers
+will respond and help you out.
 
 ## Test
 
@@ -219,7 +211,9 @@ Our unit tests are written in TypeScript and run using
 
 These live under [test/unit](../test/unit).
 
-We use unit tests for functions and things that can be tested in isolation. The file structure is modeled closely after `/src` so it's easy for people to know where test files should live.
+We use unit tests for functions and things that can be tested in isolation. The
+file structure is modeled closely after `/src` so it's easy for people to know
+where test files should live.
 
 ### Script tests
 
@@ -227,12 +221,14 @@ Our script tests are written in bash and run using [bats](https://github.com/bat
 
 These tests live under `test/scripts`.
 
-We use these to test anything related to our scripts (most of which live under `ci`).
+We use these to test anything related to our scripts (most of which live under
+`ci`).
 
 ### Integration tests
 
-These are a work in progress. We build code-server and run tests with `yarn test:integration`, which ensures that code-server builds work on their respective
-platforms.
+These are a work in progress. We build code-server and run tests with `yarn
+test:integration`, which ensures that code-server builds work on their
+respective platforms.
 
 Our integration tests look at components that rely on one another. For example,
 testing the CLI requires us to build and package code-server.
@@ -253,15 +249,10 @@ Take a look at `codeServer.test.ts` to see how you would use it (see
 We also have a model where you can create helpers to use within tests. See
 [models/CodeServer.ts](../test/e2e/models/CodeServer.ts) for an example.
 
-Generally speaking, e2e means testing code-server while running in the browser
-and interacting with it in a way that's similar to how a user would interact
-with it. When running these tests with `yarn test:e2e`, you must have
-code-server running locally. In CI, this is taken care of for you.
-
 ## Structure
 
-The `code-server` script serves as an HTTP API for login and starting a remote
-Code process.
+code-server essentially serves as an HTTP API for logging in and starting a
+remote Code process.
 
 The CLI code is in [src/node](../src/node) and the HTTP routes are implemented
 in [src/node/routes](../src/node/routes).
