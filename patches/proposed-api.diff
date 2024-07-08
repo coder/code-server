@@ -26,7 +26,7 @@ Index: code-server/lib/vscode/src/vs/workbench/services/extensions/common/extens
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/services/extensions/common/extensionsProposedApi.ts
 +++ code-server/lib/vscode/src/vs/workbench/services/extensions/common/extensionsProposedApi.ts
-@@ -24,7 +24,7 @@ export class ExtensionsProposedApi {
+@@ -31,7 +31,7 @@ export class ExtensionsProposedApi {
  
  		this._envEnabledExtensions = new Set((_environmentService.extensionEnabledProposedApi ?? []).map(id => ExtensionIdentifier.toKey(id)));
  

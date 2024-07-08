@@ -10,7 +10,7 @@ Index: code-server/lib/vscode/build/gulpfile.reh.js
 ===================================================================
 --- code-server.orig/lib/vscode/build/gulpfile.reh.js
 +++ code-server/lib/vscode/build/gulpfile.reh.js
-@@ -236,8 +236,7 @@ function packageTask(type, platform, arc
+@@ -237,8 +237,7 @@ function packageTask(type, platform, arc
  
  		const src = gulp.src(sourceFolderName + '/**', { base: '.' })
  			.pipe(rename(function (path) { path.dirname = path.dirname.replace(new RegExp('^' + sourceFolderName), 'out'); }))
@@ -20,7 +20,7 @@ Index: code-server/lib/vscode/build/gulpfile.reh.js
  
  		const workspaceExtensionPoints = ['debuggers', 'jsonValidation'];
  		const isUIExtension = (manifest) => {
-@@ -276,9 +275,9 @@ function packageTask(type, platform, arc
+@@ -277,9 +276,9 @@ function packageTask(type, platform, arc
  			.map(name => `.build/extensions/${name}/**`);
  
  		const extensions = gulp.src(extensionPaths, { base: '.build', dot: true });
@@ -32,11 +32,11 @@ Index: code-server/lib/vscode/build/gulpfile.reh.js
  
  		let version = packageJson.version;
  		const quality = product.quality;
-@@ -439,7 +438,7 @@ function tweakProductForServerWeb(produc
+@@ -440,7 +439,7 @@ function tweakProductForServerWeb(produc
  	const minifyTask = task.define(`minify-vscode-${type}`, task.series(
  		optimizeTask,
  		util.rimraf(`out-vscode-${type}-min`),
--		optimize.minifyTask(`out-vscode-${type}`, `https://ticino.blob.core.windows.net/sourcemaps/${commit}/core`)
+-		optimize.minifyTask(`out-vscode-${type}`, `https://main.vscode-cdn.net/sourcemaps/${commit}/core`)
 +		optimize.minifyTask(`out-vscode-${type}`, ``)
  	));
  	gulp.task(minifyTask);

@@ -28,7 +28,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/welcomeGettingStarted/bro
  import { IEditorOpenContext, IEditorSerializer } from 'vs/workbench/common/editor';
  import { IWebviewElement, IWebviewService } from 'vs/workbench/contrib/webview/browser/webview';
  import 'vs/workbench/contrib/welcomeGettingStarted/browser/gettingStartedColors';
-@@ -816,6 +816,72 @@ export class GettingStartedPage extends
+@@ -804,6 +804,72 @@ export class GettingStartedPage extends
  			$('p.subtitle.description', {}, localize({ key: 'gettingStarted.editingEvolved', comment: ['Shown as subtitle on the Welcome page.'] }, "Editing evolved"))
  		);
  
@@ -101,7 +101,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/welcomeGettingStarted/bro
  		const leftColumn = $('.categories-column.categories-column-left', {},);
  		const rightColumn = $('.categories-column.categories-column-right', {},);
  
-@@ -887,6 +953,9 @@ export class GettingStartedPage extends
+@@ -839,6 +905,9 @@ export class GettingStartedPage extends
  				recentList.setLimit(5);
  				reset(leftColumn, startList.getDomElement(), recentList.getDomElement());
  			}
