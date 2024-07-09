@@ -164,6 +164,11 @@ export const runCodeServer = async (
     logger.info(`Session server listening on ${sessionServerAddress.toString()}`)
   }
 
+  if (process.env.EXTENSIONS_GALLERY) {
+    logger.info("Using custom extensions gallery")
+    logger.debug(`  - ${process.env.EXTENSIONS_GALLERY}`)
+  }
+
   if (args.enable && args.enable.length > 0) {
     logger.info("Enabling the following experimental features:")
     args.enable.forEach((feature) => {
