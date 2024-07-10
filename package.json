@@ -53,7 +53,7 @@
     "@types/ws": "^8.5.5",
     "@typescript-eslint/eslint-plugin": "^7.0.0",
     "@typescript-eslint/parser": "^6.7.2",
-    "audit-ci": "^6.6.1",
+    "audit-ci": "^7.1.0",
     "doctoc": "^2.2.1",
     "eslint": "^8.49.0",
     "eslint-config-prettier": "^9.0.0",
