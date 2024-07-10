@@ -24,8 +24,6 @@ This directory contains scripts used for the development of code-server.
   - Runs unit tests.
 - [./ci/dev/test-e2e.sh](./dev/test-e2e.sh) (`yarn test:e2e`)
   - Runs end-to-end tests.
-- [./ci/dev/ci.sh](./dev/ci.sh) (`yarn ci`)
-  - Runs `yarn fmt`, `yarn lint` and `yarn test`.
 - [./ci/dev/watch.ts](./dev/watch.ts) (`yarn watch`)
   - Starts a process to build and launch code-server and restart on any code changes.
   - Example usage in [./docs/CONTRIBUTING.md](../docs/CONTRIBUTING.md).
