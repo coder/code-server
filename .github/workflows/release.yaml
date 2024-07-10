@@ -282,7 +282,7 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Download artifacts
-        uses: dawidd6/action-download-artifact@v3
+        uses: dawidd6/action-download-artifact@v6
         id: download
         with:
           branch: ${{ github.ref }}
