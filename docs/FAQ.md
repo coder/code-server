@@ -37,6 +37,7 @@
 - [How do I hide the coder/coder promotion in Help: Getting Started?](#how-do-i-hide-the-codercoder-promotion-in-help-getting-started)
 - [How do I disable the proxy?](#how-do-i-disable-the-proxy)
 - [How do I disable file download?](#how-do-i-disable-file-download)
+- [Why do web views not work?](#why-do-web-views-not-work)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 <!-- prettier-ignore-end -->
@@ -487,3 +488,22 @@ when using the option.
 ## How do I disable file download?
 
 You can pass the flag `--disable-file-downloads` to `code-server`
+
+## Why do web views not work?
+
+Web views rely on service workers, and service workers are only available in a
+secure context, so most likely the answer is that you are using an insecure
+context (for example an IP address).
+
+If this happens, in the browser log you will see something like:
+
+> Error loading webview: Error: Could not register service workers: SecurityError: Failed to register a ServiceWorker for scope with script: An SSL certificate error occurred when fetching the script..
+
+To fix this, you must either:
+
+- Access over localhost/127.0.0.1 which is always considered secure.
+- Use a domain with a real certificate (for example with Let's Encrypt).
+- Use a trusted self-signed certificate with [mkcert](https://mkcert.dev) (or
+  create and trust a certificate manually).
+- Disable security if your browser allows it. For example, in Chromium see
+  `chrome://flags/#unsafely-treat-insecure-origin-as-secure`
