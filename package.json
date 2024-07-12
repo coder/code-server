@@ -100,7 +100,8 @@
     "remote-development"
   ],
   "engines": {
-    "node": "20"
+    "node": "20",
+    "yarn": "1"
   },
   "jest": {
     "transform": {
