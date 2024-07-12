@@ -65,7 +65,7 @@ router.all(/.*/, async (req, res, next) => {
   const isAuthenticated = await authenticated(req)
   if (!isAuthenticated) {
     // Let the assets through since they're used on the login page.
-    if (req.path.startsWith("/static/") && req.method === "GET") {
+    if (req.path.startsWith("/_static/") && req.method === "GET") {
       return next()
     }
 
