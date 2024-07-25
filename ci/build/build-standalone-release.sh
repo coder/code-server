@@ -24,6 +24,10 @@ main() {
 
   pushd "$RELEASE_PATH"
   npm install --unsafe-perm --omit=dev
+  # Code deletes some files from the extension node_modules directory which
+  # leaves broken symlinks in the corresponding .bin directory.  nfpm will fail
+  # on these broken symlinks so clean them up.
+  rm -fr "./lib/vscode/extensions/node_modules/.bin"
   popd
 }
 
