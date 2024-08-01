@@ -26,14 +26,14 @@ function should-fallback-npm() {
   [ "$status" -eq 0 ]
   [ "${lines[1]}" = "No standalone releases for $2." ]
   [ "${lines[2]}" = "Falling back to installation from npm." ]
-  [ "${lines[3]}" = "Installing latest from npm." ]
+  [ "${lines[3]}" = "Installing v$VERSION from npm." ]
   [ "${lines[-6]}" = "npm package has been installed." ]
 }
 
 function should-use-npm() {
   YARN_PATH=true DISTRO=$1 ARCH=$2 OS=linux run "$SCRIPT" --dry-run
   [ "$status" -eq 0 ]
-  [ "${lines[1]}" = "Installing latest from npm." ]
+  [ "${lines[1]}" = "Installing v$VERSION from npm." ]
   [ "${lines[-6]}" = "npm package has been installed." ]
 }
 
@@ -51,7 +51,7 @@ function should-fallback-npm-brew() {
   [ "${lines[2]}" = "Falling back to standalone installation." ]
   [ "${lines[3]}" = "No standalone releases for $1." ]
   [ "${lines[4]}" = "Falling back to installation from npm." ]
-  [ "${lines[5]}" = "Installing latest from npm." ]
+  [ "${lines[5]}" = "Installing v$VERSION from npm." ]
   [ "${lines[-6]}" = "npm package has been installed." ]
 }
 
