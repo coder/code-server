@@ -40,7 +40,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -114,7 +114,7 @@ export class WebClientServer {
+@@ -113,7 +113,7 @@ export class WebClientServer {
  
  		this._staticRoute = `${serverRootPath}/static`;
  		this._callbackRoute = `${serverRootPath}/callback`;
@@ -49,7 +49,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
  	}
  
  	/**
-@@ -312,14 +312,7 @@ export class WebClientServer {
+@@ -311,14 +311,7 @@ export class WebClientServer {
  			codeServerVersion: this._productService.codeServerVersion,
  			rootEndpoint: base,
  			embedderIdentifier: 'server-distro',
@@ -69,7 +69,15 @@ Index: code-server/lib/vscode/src/vs/platform/extensionResourceLoader/common/ext
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/platform/extensionResourceLoader/common/extensionResourceLoader.ts
 +++ code-server/lib/vscode/src/vs/platform/extensionResourceLoader/common/extensionResourceLoader.ts
-@@ -140,9 +140,9 @@ export abstract class AbstractExtensionR
+@@ -15,7 +15,6 @@ import { getServiceMachineId } from 'vs/
+ import { IStorageService } from 'vs/platform/storage/common/storage';
+ import { TelemetryLevel } from 'vs/platform/telemetry/common/telemetry';
+ import { getTelemetryLevel, supportsTelemetry } from 'vs/platform/telemetry/common/telemetryUtils';
+-import { RemoteAuthorities } from 'vs/base/common/network';
+ import { TargetPlatform } from 'vs/platform/extensions/common/extensions';
+ 
+ const WEB_EXTENSION_RESOURCE_END_POINT_SEGMENT = '/web-extension-resource/';
+@@ -140,9 +139,9 @@ export abstract class AbstractExtensionR
  	}
  
  	protected _isWebExtensionResourceEndPoint(uri: URI): boolean {

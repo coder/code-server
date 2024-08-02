@@ -86,10 +86,10 @@ Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench.html
  		<link data-name="vs/workbench/workbench.web.main" rel="stylesheet" href="{{WORKBENCH_WEB_BASE_URL}}/out/vs/workbench/workbench.web.main.css">
  
  	</head>
-@@ -38,7 +38,7 @@
- 	<script src="{{WORKBENCH_WEB_BASE_URL}}/out/vs/loader.js"></script>
- 	<script src="{{WORKBENCH_WEB_BASE_URL}}/out/vs/webPackagePaths.js"></script>
+@@ -40,7 +40,7 @@
  	<script>
+ 
+ 		// Packages
 -		const baseUrl = new URL('{{WORKBENCH_WEB_BASE_URL}}', window.location.origin).toString();
 +		const baseUrl = new URL('{{WORKBENCH_WEB_BASE_URL}}', window.location).toString();
  		Object.keys(self.webPackagePaths).map(function (key, index) {
@@ -111,7 +111,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -270,16 +270,15 @@ export class WebClientServer {
+@@ -269,16 +269,15 @@ export class WebClientServer {
  			return void res.end();
  		}
  
@@ -133,7 +133,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
  		);
  		if (!remoteAuthority) {
  			return serveError(req, res, 400, `Bad request.`);
-@@ -306,8 +305,12 @@ export class WebClientServer {
+@@ -305,8 +304,12 @@ export class WebClientServer {
  			scopes: [['user:email'], ['repo']]
  		} : undefined;
  
@@ -146,29 +146,39 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
  			embedderIdentifier: 'server-distro',
  			extensionsGallery: this._webExtensionResourceUrlTemplate && this._productService.extensionsGallery ? {
  				...this._productService.extensionsGallery,
-@@ -343,8 +346,10 @@ export class WebClientServer {
+@@ -335,7 +338,7 @@ export class WebClientServer {
+ 			folderUri: resolveWorkspaceURI(this._environmentService.args['default-folder']),
+ 			workspaceUri: resolveWorkspaceURI(this._environmentService.args['default-workspace']),
+ 			productConfiguration,
+-			callbackRoute: this._callbackRoute
++			callbackRoute: vscodeBase + this._callbackRoute
+ 		};
+ 
+ 		const cookies = cookie.parse(req.headers.cookie || '');
+@@ -352,9 +355,11 @@ export class WebClientServer {
  		const values: { [key: string]: string } = {
  			WORKBENCH_WEB_CONFIGURATION: asJSON(workbenchWebConfiguration),
  			WORKBENCH_AUTH_SESSION: authSessionInfo ? asJSON(authSessionInfo) : '',
 -			WORKBENCH_WEB_BASE_URL: this._staticRoute,
--			WORKBENCH_NLS_BASE_URL: nlsBaseUrl ? `${nlsBaseUrl}${!nlsBaseUrl.endsWith('/') ? '/' : ''}${this._productService.commit}/${this._productService.version}/` : '',
 +			WORKBENCH_WEB_BASE_URL: vscodeBase + this._staticRoute,
-+			WORKBENCH_NLS_BASE_URL: vscodeBase + (nlsBaseUrl ? `${nlsBaseUrl}${!nlsBaseUrl.endsWith('/') ? '/' : ''}${this._productService.commit}/${this._productService.version}/` : ''),
+ 			WORKBENCH_NLS_URL,
+-			WORKBENCH_NLS_FALLBACK_URL: `${this._staticRoute}/out/nls.messages.js`
++			WORKBENCH_NLS_FALLBACK_URL: `${vscodeBase}${this._staticRoute}/out/nls.messages.js`,
 +			BASE: base,
 +			VS_BASE: vscodeBase,
  		};
  
  		if (useTestResolver) {
-@@ -371,7 +376,7 @@ export class WebClientServer {
+@@ -381,7 +386,7 @@ export class WebClientServer {
  			'default-src \'self\';',
  			'img-src \'self\' https: data: blob:;',
  			'media-src \'self\';',
--			`script-src 'self' 'unsafe-eval' ${this._getScriptCspHashes(data).join(' ')} '${webWorkerExtensionHostIframeScriptSHA}' ${useTestResolver ? '' : `http://${remoteAuthority}`};`, // the sha is the same as in src/vs/workbench/services/extensions/worker/webWorkerExtensionHostIframe.html
-+			`script-src 'self' 'unsafe-eval' ${this._getScriptCspHashes(data).join(' ')} '${webWorkerExtensionHostIframeScriptSHA}' ${useTestResolver ? '' : ''};`, // the sha is the same as in src/vs/workbench/services/extensions/worker/webWorkerExtensionHostIframe.html
+-			`script-src 'self' 'unsafe-eval' ${WORKBENCH_NLS_BASE_URL ?? ''} ${this._getScriptCspHashes(data).join(' ')} '${webWorkerExtensionHostIframeScriptSHA}' ${useTestResolver ? '' : `http://${remoteAuthority}`};`, // the sha is the same as in src/vs/workbench/services/extensions/worker/webWorkerExtensionHostIframe.html
++			`script-src 'self' 'unsafe-eval' ${WORKBENCH_NLS_BASE_URL ?? ''} ${this._getScriptCspHashes(data).join(' ')} '${webWorkerExtensionHostIframeScriptSHA}' ${useTestResolver ? '' : ``};`, // the sha is the same as in src/vs/workbench/services/extensions/worker/webWorkerExtensionHostIframe.html
  			'child-src \'self\';',
  			`frame-src 'self' https://*.vscode-cdn.net data:;`,
  			'worker-src \'self\' data: blob:;',
-@@ -444,3 +449,70 @@ export class WebClientServer {
+@@ -454,3 +459,70 @@ export class WebClientServer {
  		return void res.end(data);
  	}
  }
@@ -298,15 +308,7 @@ Index: code-server/lib/vscode/src/vs/platform/extensionResourceLoader/common/ext
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/platform/extensionResourceLoader/common/extensionResourceLoader.ts
 +++ code-server/lib/vscode/src/vs/platform/extensionResourceLoader/common/extensionResourceLoader.ts
-@@ -16,7 +16,6 @@ import { getServiceMachineId } from 'vs/
- import { IStorageService } from 'vs/platform/storage/common/storage';
- import { TelemetryLevel } from 'vs/platform/telemetry/common/telemetry';
- import { getTelemetryLevel, supportsTelemetry } from 'vs/platform/telemetry/common/telemetryUtils';
--import { RemoteAuthorities } from 'vs/base/common/network';
- import { TargetPlatform } from 'vs/platform/extensions/common/extensions';
- 
- const WEB_EXTENSION_RESOURCE_END_POINT_SEGMENT = '/web-extension-resource/';
-@@ -99,7 +98,7 @@ export abstract class AbstractExtensionR
+@@ -98,7 +98,7 @@ export abstract class AbstractExtensionR
  					: version,
  				path: 'extension'
  			}));
