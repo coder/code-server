@@ -264,7 +264,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -307,6 +307,7 @@ export class WebClientServer {
+@@ -306,6 +306,7 @@ export class WebClientServer {
  		} : undefined;
  
  		const productConfiguration = {
