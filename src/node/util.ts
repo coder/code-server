@@ -9,7 +9,6 @@ import * as path from "path"
 import safeCompare from "safe-compare"
 import * as util from "util"
 import xdgBasedir from "xdg-basedir"
-import { vsRootPath } from "./constants"
 
 export interface Paths {
   data: string
@@ -502,31 +501,6 @@ export function isNodeJSErrnoException(error: unknown): error is NodeJS.ErrnoExc
 
 // TODO: Replace with proper templating system.
 export const escapeJSON = (value: cp.Serializable) => JSON.stringify(value).replace(/"/g, "&quot;")
-
-type AMDModule<T> = { [exportName: string]: T }
-
-/**
- * Loads AMD module, typically from a compiled VSCode bundle.
- *
- * @deprecated This should be gradually phased out as code-server migrates to lib/vscode
- * @param amdPath Path to module relative to lib/vscode
- * @param exportName Given name of export in the file
- */
-export const loadAMDModule = async <T>(amdPath: string, exportName: string): Promise<T> => {
-  // Set default remote native node modules path, if unset
-  process.env["VSCODE_INJECT_NODE_MODULE_LOOKUP_PATH"] =
-    process.env["VSCODE_INJECT_NODE_MODULE_LOOKUP_PATH"] || path.join(vsRootPath, "remote", "node_modules")
-
-  require(path.join(vsRootPath, "out/bootstrap-node")).injectNodeModuleLookupPath(
-    process.env["VSCODE_INJECT_NODE_MODULE_LOOKUP_PATH"],
-  )
-
-  const module = await new Promise<AMDModule<T>>((resolve, reject) => {
-    require(path.join(vsRootPath, "out/bootstrap-amd")).load(amdPath, resolve, reject)
-  })
-
-  return module[exportName] as T
-}
 
 /**
  * Split a string on the first equals.  The result will always be an array with

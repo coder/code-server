@@ -838,11 +838,6 @@ export interface CodeArgs extends UserProvidedCodeArgs {
 }
 
 /**
- * Types for ../../lib/vscode/src/vs/server/node/server.main.ts:65.
- */
-export type SpawnCodeCli = (args: CodeArgs) => Promise<void>
-
-/**
  * Convert our arguments to equivalent VS Code server arguments.
  * Does not add any extra arguments.
  */
