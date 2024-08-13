@@ -24,6 +24,13 @@ Code v99.99.999
 
 Code v1.92.1
 
+### Breaking changes
+
+- Dropped a patch that changed the compile target from es2022 to es2020 because
+  it no longer works with the way VS Code uses static properties. This may break
+  older browsers, so those browsers will either have to be updated or use an
+  older version of code-server.
+
 ### Changed
 
 - Updated to Code 1.92.1.
