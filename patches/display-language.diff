@@ -1,27 +1,15 @@
 Add display language support
 
-We can remove this once upstream supports all language packs.
-
-1. Proxies language packs to the service on the backend.
-2. NLS configuration is embedded into the HTML for the browser to pick up.  This
-   code to generate this configuration is copied from the native portion.
-3. Remove configuredLocale since we have our own thing.
-4. Move the argv.json file to the server instead of in-browser storage.  This is
-   where the current locale is stored and currently the server needs to be able
-   to read it.
-5. Add the locale flag.
-6. Remove the redundant locale verification.  It does the same as the existing
-   one but is worse because it does not handle non-existent or empty files.
-7. Replace some caching and Node requires because code-server does not restart
-   when changing the language unlike native Code.
-8. Make language extensions installable like normal rather than using the
-   special set/clear language actions.
+VS Code web appears to implement language support by setting a cookie and
+downloading language packs from a URL configured in the product.json. This patch
+supports language pack extensions and uses files on the remote to set the
+language instead, so it works like the desktop version.
 
 Index: code-server/lib/vscode/src/vs/server/node/serverServices.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/serverServices.ts
 +++ code-server/lib/vscode/src/vs/server/node/serverServices.ts
-@@ -11,7 +11,7 @@ import * as path from 'vs/base/common/pa
+@@ -12,7 +12,7 @@ import * as path from 'vs/base/common/pa
  import { IURITransformer } from 'vs/base/common/uriIpc';
  import { getMachineId, getSqmMachineId, getdevDeviceId } from 'vs/base/node/id';
  import { Promises } from 'vs/base/node/pfs';
@@ -30,7 +18,7 @@ Index: code-server/lib/vscode/src/vs/server/node/serverServices.ts
  import { ProtocolConstants } from 'vs/base/parts/ipc/common/ipc.net';
  import { IConfigurationService } from 'vs/platform/configuration/common/configuration';
  import { ConfigurationService } from 'vs/platform/configuration/common/configurationService';
-@@ -238,6 +238,9 @@ export async function setupServerService
+@@ -239,6 +239,9 @@ export async function setupServerService
  		const channel = new ExtensionManagementChannel(extensionManagementService, (ctx: RemoteAgentConnectionContext) => getUriTransformer(ctx.remoteAuthority));
  		socketServer.registerChannel('extensions', channel);
  
@@ -40,100 +28,6 @@ Index: code-server/lib/vscode/src/vs/server/node/serverServices.ts
  		// clean up extensions folder
  		remoteExtensionsScanner.whenExtensionsReady().then(() => extensionManagementService.cleanUp());
  
-Index: code-server/lib/vscode/src/vs/base/common/platform.ts
-===================================================================
---- code-server.orig/lib/vscode/src/vs/base/common/platform.ts
-+++ code-server/lib/vscode/src/vs/base/common/platform.ts
-@@ -2,8 +2,6 @@
-  *  Copyright (c) Microsoft Corporation. All rights reserved.
-  *  Licensed under the MIT License. See License.txt in the project root for license information.
-  *--------------------------------------------------------------------------------------------*/
--import * as nls from 'vs/nls';
--
- export const LANGUAGE_DEFAULT = 'en';
- 
- let _isWindows = false;
-@@ -112,17 +110,21 @@ else if (typeof navigator === 'object' &
- 	_isMobile = _userAgent?.indexOf('Mobi') >= 0;
- 	_isWeb = true;
- 
--	const configuredLocale = nls.getConfiguredDefaultLocale(
--		// This call _must_ be done in the file that calls `nls.getConfiguredDefaultLocale`
--		// to ensure that the NLS AMD Loader plugin has been loaded and configured.
--		// This is because the loader plugin decides what the default locale is based on
--		// how it's able to resolve the strings.
--		nls.localize({ key: 'ensureLoaderPluginIsLoaded', comment: ['{Locked}'] }, '_')
--	);
--
--	_locale = configuredLocale || LANGUAGE_DEFAULT;
-+	_locale = LANGUAGE_DEFAULT;
- 	_language = _locale;
- 	_platformLocale = navigator.language;
-+	const el = typeof document !== 'undefined' && document.getElementById('vscode-remote-nls-configuration');
-+	const rawNlsConfig = el && el.getAttribute('data-settings');
-+	if (rawNlsConfig) {
-+		try {
-+			const nlsConfig: NLSConfig = JSON.parse(rawNlsConfig);
-+			const resolved = nlsConfig.availableLanguages['*'];
-+			_locale = nlsConfig.locale;
-+			_platformLocale = nlsConfig.osLocale;
-+			_language = resolved ? resolved : LANGUAGE_DEFAULT;
-+			_translationsConfigFile = nlsConfig._translationsConfigFile;
-+		} catch (error) { /* Oh well. */ }
-+	}
- }
- 
- // Unknown environment
-Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench.html
-===================================================================
---- code-server.orig/lib/vscode/src/vs/code/browser/workbench/workbench.html
-+++ code-server/lib/vscode/src/vs/code/browser/workbench/workbench.html
-@@ -23,6 +23,9 @@
- 		<!-- Workbench Auth Session -->
- 		<meta id="vscode-workbench-auth-session" data-settings="{{WORKBENCH_AUTH_SESSION}}">
- 
-+		<!-- NLS Configuration -->
-+		<meta id="vscode-remote-nls-configuration" data-settings="{{NLS_CONFIGURATION}}">
-+
- 		<!-- Workbench Icon/Manifest/CSS -->
- 		<link rel="icon" href="{{BASE}}/_static/src/browser/media/favicon-dark-support.svg" />
- 		<link rel="alternate icon" href="{{BASE}}/_static/src/browser/media/favicon.ico" type="image/x-icon" />
-@@ -48,15 +51,27 @@
- 		// Normalize locale to lowercase because translationServiceUrl is case-sensitive.
- 		// ref: https://github.com/microsoft/vscode/issues/187795
- 		const locale = localStorage.getItem('vscode.nls.locale') || navigator.language.toLowerCase();
--		if (!locale.startsWith('en')) {
--			nlsConfig['vs/nls'] = {
--				availableLanguages: {
--					'*': locale
--				},
--				translationServiceUrl: '{{WORKBENCH_NLS_BASE_URL}}'
--			};
--		}
- 
-+		try {
-+			nlsConfig['vs/nls'] = JSON.parse(document.getElementById("vscode-remote-nls-configuration").getAttribute("data-settings"))
-+			if (nlsConfig['vs/nls']._resolvedLanguagePackCoreLocation) {
-+				const bundles = Object.create(null)
-+				nlsConfig['vs/nls'].loadBundle = (bundle, _language, cb) => {
-+					const result = bundles[bundle]
-+					if (result) {
-+						return cb(undefined, result)
-+					}
-+					const path = nlsConfig['vs/nls']._resolvedLanguagePackCoreLocation + "/" + bundle.replace(/\//g, "!") + ".nls.json"
-+					fetch(`{{WORKBENCH_WEB_BASE_URL}}/../vscode-remote-resource?path=${encodeURIComponent(path)}`)
-+						.then((response) => response.json())
-+						.then((json) => {
-+							bundles[bundle] = json
-+							cb(undefined, json)
-+						})
-+						.catch(cb)
-+				}
-+			}
-+		} catch (error) { /* Probably fine. */ }
- 		require.config({
- 			baseUrl: `${baseUrl}/out`,
- 			recordStats: true,
 Index: code-server/lib/vscode/src/vs/platform/environment/common/environmentService.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/platform/environment/common/environmentService.ts
@@ -151,31 +45,37 @@ Index: code-server/lib/vscode/src/vs/server/node/remoteLanguagePacks.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/remoteLanguagePacks.ts
 +++ code-server/lib/vscode/src/vs/server/node/remoteLanguagePacks.ts
-@@ -32,6 +32,12 @@ export function getNLSConfiguration(lang
- 				if (InternalNLSConfiguration.is(value)) {
- 					value._languagePackSupport = true;
- 				}
-+				// If the configuration has no results keep trying since code-server
-+				// doesn't restart when a language is installed so this result would
-+				// persist (the plugin might not be installed yet for example).
-+				if (value.locale !== 'en' && value.locale !== 'en-us' && Object.keys(value.availableLanguages).length === 0) {
-+					_cache.delete(key);
-+				}
- 				return value;
- 			});
- 			_cache.set(key, result);
-@@ -46,3 +52,43 @@ export namespace InternalNLSConfiguratio
- 		return candidate && typeof candidate._languagePackId === 'string';
+@@ -3,6 +3,8 @@
+  *  Licensed under the MIT License. See License.txt in the project root for license information.
+  *--------------------------------------------------------------------------------------------*/
+ 
++import { promises as fs } from 'fs';
++import * as path from 'path';
+ import { FileAccess } from 'vs/base/common/network';
+ import { join } from 'vs/base/common/path';
+ import type { INLSConfiguration } from 'vs/nls';
+@@ -33,7 +35,94 @@ export async function getNLSConfiguratio
+ 	if (!result) {
+ 		result = resolveNLSConfiguration({ userLocale: language, osLocale: language, commit: product.commit, userDataPath, nlsMetadataPath });
+ 		nlsConfigurationCache.set(cacheKey, result);
++		// If the language pack does not yet exist, it defaults to English, which is
++		// then cached and you have to restart even if you then install the pack.
++		result.then((r) => {
++			if (!language.startsWith('en') && r.resolvedLanguage.startsWith('en')) {
++				nlsConfigurationCache.delete(cacheKey);
++			}
++		})
  	}
+ 
+ 	return result;
  }
 +
 +/**
-+ * The code below is copied from from src/main.js.
++ * Copied from from src/main.js.
 + */
-+
 +export const getLocaleFromConfig = async (argvResource: string): Promise<string> => {
 +	try {
-+		const content = stripComments(await fs.promises.readFile(argvResource, 'utf8'));
++		const content = stripComments(await fs.readFile(argvResource, 'utf8'));
 +		return JSON.parse(content).locale;
 +	} catch (error) {
 +		if (error.code !== "ENOENT") {
@@ -185,6 +85,9 @@ Index: code-server/lib/vscode/src/vs/server/node/remoteLanguagePacks.ts
 +	}
 +};
 +
++/**
++ * Copied from from src/main.js.
++ */
 +const stripComments = (content: string): string => {
 +	const regexp = /('(?:[^\\']*(?:\\.)?)*')|('(?:[^\\']*(?:\\.)?)*')|(\/\*(?:\r?\n|.)*?\*\/)|(\/{2,}.*?(?:(?:\r?\n)|$))/g;
 +
@@ -208,51 +111,113 @@ Index: code-server/lib/vscode/src/vs/server/node/remoteLanguagePacks.ts
 +		}
 +	});
 +};
++
++/**
++ * Generate translations then return a path to a JavaScript file that sets the
++ * translations into global variables.  This file is loaded by the browser to
++ * set global variables that the loader uses when looking for translations.
++ *
++ * Normally, VS Code pulls these files from a CDN but we want them to be local.
++ */
++export async function getBrowserNLSConfiguration(locale: string, userDataPath: string): Promise<string> {
++	if (locale.startsWith('en')) {
++		return ''; // Use fallback translations.
++	}
++
++	const nlsConfig = await getNLSConfiguration(locale, userDataPath);
++	const messagesFile = nlsConfig?.languagePack?.messagesFile;
++	const resolvedLanguage = nlsConfig?.resolvedLanguage;
++	if (!messagesFile || !resolvedLanguage) {
++		return ''; // Use fallback translations.
++	}
++
++	const nlsFile = path.join(path.dirname(messagesFile), "nls.messages.js");
++	try {
++		await fs.stat(nlsFile);
++		return nlsFile; // We already generated the file.
++	} catch (error) {
++		// ENOENT is fine, that just means we need to generate the file.
++		if (error.code !== 'ENOENT') {
++			throw error;
++		}
++	}
++
++	const messages = (await fs.readFile(messagesFile)).toString();
++	const content = `globalThis._VSCODE_NLS_MESSAGES=${messages};
++globalThis._VSCODE_NLS_LANGUAGE=${JSON.stringify(resolvedLanguage)};`
++	await fs.writeFile(nlsFile, content, "utf-8");
++
++	return nlsFile;
++}
 Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -27,6 +27,7 @@ import { URI } from 'vs/base/common/uri'
+@@ -26,6 +26,7 @@ import { URI } from 'vs/base/common/uri'
  import { streamToBuffer } from 'vs/base/common/buffer';
  import { IProductConfiguration } from 'vs/base/common/product';
  import { isString } from 'vs/base/common/types';
-+import { getLocaleFromConfig, getNLSConfiguration } from 'vs/server/node/remoteLanguagePacks';
++import { getLocaleFromConfig, getBrowserNLSConfiguration } from 'vs/server/node/remoteLanguagePacks';
  import { CharCode } from 'vs/base/common/charCode';
  import { IExtensionManifest } from 'vs/platform/extensions/common/extensions';
  
-@@ -348,6 +349,8 @@ export class WebClientServer {
- 			callbackRoute: this._callbackRoute
+@@ -97,6 +98,7 @@ export class WebClientServer {
+ 	private readonly _webExtensionResourceUrlTemplate: URI | undefined;
+ 
+ 	private readonly _staticRoute: string;
++	private readonly _serverRoot: string;
+ 	private readonly _callbackRoute: string;
+ 	private readonly _webExtensionRoute: string;
+ 
+@@ -111,6 +113,7 @@ export class WebClientServer {
+ 	) {
+ 		this._webExtensionResourceUrlTemplate = this._productService.extensionsGallery?.resourceUrlTemplate ? URI.parse(this._productService.extensionsGallery.resourceUrlTemplate) : undefined;
+ 
++		this._serverRoot = serverRootPath;
+ 		this._staticRoute = `${serverRootPath}/static`;
+ 		this._callbackRoute = `${serverRootPath}/callback`;
+ 		this._webExtensionRoute = `/web-extension-resource`;
+@@ -349,14 +352,22 @@ export class WebClientServer {
  		};
  
-+		const locale = this._environmentService.args.locale || await getLocaleFromConfig(this._environmentService.argvResource.fsPath);
-+		const nlsConfiguration = await getNLSConfiguration(locale, this._environmentService.userDataPath)
- 		const nlsBaseUrl = this._productService.extensionsGallery?.nlsBaseUrl;
+ 		const cookies = cookie.parse(req.headers.cookie || '');
+-		const locale = cookies['vscode.nls.locale'] || req.headers['accept-language']?.split(',')[0]?.toLowerCase() || 'en';
++		const locale = this._environmentService.args.locale || await getLocaleFromConfig(this._environmentService.argvResource.fsPath) || cookies['vscode.nls.locale'] || req.headers['accept-language']?.split(',')[0]?.toLowerCase() || 'en';
+ 		let WORKBENCH_NLS_BASE_URL: string | undefined;
+ 		let WORKBENCH_NLS_URL: string;
+ 		if (!locale.startsWith('en') && this._productService.nlsCoreBaseUrl) {
+ 			WORKBENCH_NLS_BASE_URL = this._productService.nlsCoreBaseUrl;
+ 			WORKBENCH_NLS_URL = `${WORKBENCH_NLS_BASE_URL}${this._productService.commit}/${this._productService.version}/${locale}/nls.messages.js`;
+ 		} else {
+-			WORKBENCH_NLS_URL = ''; // fallback will apply
++			try {
++				const nlsFile = await getBrowserNLSConfiguration(locale, this._environmentService.userDataPath);
++				WORKBENCH_NLS_URL = nlsFile
++					? `${vscodeBase}${this._serverRoot}/vscode-remote-resource?path=${encodeURIComponent(nlsFile)}`
++					: '';
++			} catch (error) {
++				console.error("Failed to generate translations", error);
++				WORKBENCH_NLS_URL = '';
++			}
+ 		}
+ 
  		const values: { [key: string]: string } = {
- 			WORKBENCH_WEB_CONFIGURATION: asJSON(workbenchWebConfiguration),
-@@ -356,6 +359,7 @@ export class WebClientServer {
- 			WORKBENCH_NLS_BASE_URL: vscodeBase + (nlsBaseUrl ? `${nlsBaseUrl}${!nlsBaseUrl.endsWith('/') ? '/' : ''}${this._productService.commit}/${this._productService.version}/` : ''),
- 			BASE: base,
- 			VS_BASE: vscodeBase,
-+			NLS_CONFIGURATION: asJSON(nlsConfiguration),
- 		};
- 
- 		if (useTestResolver) {
 Index: code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
 +++ code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
-@@ -18,6 +18,7 @@ export const serverOptions: OptionDescri
- 	'auth': { type: 'string' },
+@@ -19,6 +19,7 @@ export const serverOptions: OptionDescri
  	'disable-file-downloads': { type: 'boolean' },
  	'disable-file-uploads': { type: 'boolean' },
+ 	'disable-getting-started-override': { type: 'boolean' },
 +	'locale': { type: 'string' },
  
  	/* ----- server setup ----- */
  
-@@ -103,6 +104,7 @@ export interface ServerParsedArgs {
- 	'auth'?: string;
+@@ -105,6 +106,7 @@ export interface ServerParsedArgs {
  	'disable-file-downloads'?: boolean;
  	'disable-file-uploads'?: boolean;
+ 	'disable-getting-started-override'?: boolean,
 +	'locale'?: string
  
  	/* ----- server setup ----- */
@@ -367,7 +332,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/extensions/browser/extens
  		}
  
  		// Prefers to run on UI
-@@ -1928,17 +1925,6 @@ export class SetLanguageAction extends E
+@@ -1951,17 +1948,6 @@ export class SetLanguageAction extends E
  	update(): void {
  		this.enabled = false;
  		this.class = SetLanguageAction.DisabledClass;
@@ -385,15 +350,15 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/extensions/browser/extens
  	}
  
  	override async run(): Promise<any> {
-@@ -1955,7 +1941,6 @@ export class ClearLanguageAction extends
- 	private static readonly DisabledClass = `${ClearLanguageAction.EnabledClass} disabled`;
+@@ -1978,7 +1964,6 @@ export class ClearLanguageAction extends
+ 	private static readonly DisabledClass = `${this.EnabledClass} disabled`;
  
  	constructor(
 -		@IExtensionsWorkbenchService private readonly extensionsWorkbenchService: IExtensionsWorkbenchService,
  		@ILocaleService private readonly localeService: ILocaleService,
  	) {
  		super(ClearLanguageAction.ID, ClearLanguageAction.TITLE.value, ClearLanguageAction.DisabledClass, false);
-@@ -1965,17 +1950,6 @@ export class ClearLanguageAction extends
+@@ -1988,17 +1973,6 @@ export class ClearLanguageAction extends
  	update(): void {
  		this.enabled = false;
  		this.class = ClearLanguageAction.DisabledClass;
@@ -411,3 +376,15 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/extensions/browser/extens
  	}
  
  	override async run(): Promise<any> {
+Index: code-server/lib/vscode/build/gulpfile.reh.js
+===================================================================
+--- code-server.orig/lib/vscode/build/gulpfile.reh.js
++++ code-server/lib/vscode/build/gulpfile.reh.js
+@@ -56,6 +56,7 @@ const serverResources = [
+ 
+ 	// NLS
+ 	'out-build/nls.messages.json',
++	'out-build/nls.keys.json', // Required to generate translations.
+ 
+ 	// Process monitor
+ 	'out-build/vs/base/node/cpuUsage.sh',
