@@ -302,7 +302,7 @@ export class CodeServerPage {
     const to = new URL(noramlizedUrl)
 
     this.codeServer.logger.info(`navigating to ${to}`)
-    await this.page.goto(to.toString(), { waitUntil: "networkidle" })
+    await this.page.goto(to.toString())
 
     // Only reload editor if auth is not enabled. Otherwise we'll get stuck
     // reloading the login page.
