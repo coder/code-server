@@ -264,7 +264,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -307,6 +307,7 @@ export class WebClientServer {
+@@ -306,6 +306,7 @@ export class WebClientServer {
  		} : undefined;
  
  		const productConfiguration = {
@@ -272,3 +272,18 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
  			embedderIdentifier: 'server-distro',
  			extensionsGallery: this._webExtensionResourceUrlTemplate && this._productService.extensionsGallery ? {
  				...this._productService.extensionsGallery,
+Index: code-server/lib/vscode/src/server-main.js
+===================================================================
+--- code-server.orig/lib/vscode/src/server-main.js
++++ code-server/lib/vscode/src/server-main.js
+@@ -336,4 +336,9 @@ function prompt(question) {
+ 	});
+ }
+ 
+-start();
++async function loadCodeWithNls() {
++	const nlsConfiguration = await resolveNLSConfiguration({ userLocale: 'en', osLocale: 'en', commit: product.commit, userDataPath: '', nlsMetadataPath: __dirname });
++	return loadCode(nlsConfiguration);
++}
++
++module.exports.loadCodeWithNls = loadCodeWithNls;

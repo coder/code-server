@@ -15,9 +15,8 @@ service-worker.diff
 sourcemaps.diff
 external-file-actions.diff
 telemetry.diff
-display-language.diff
 cli-window-open.diff
 getting-started.diff
-safari.diff
 keepalive.diff
 clipboard.diff
+display-language.diff

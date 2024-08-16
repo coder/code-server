@@ -30,9 +30,9 @@ Index: code-server/lib/vscode/src/vs/workbench/api/node/extHostExtensionService.
  import { ExtHostConsoleForwarder } from 'vs/workbench/api/node/extHostConsoleForwarder';
 +import { IExtHostWorkspace } from '../common/extHostWorkspace';
  import { ExtHostDiskFileSystemProvider } from 'vs/workbench/api/node/extHostDiskFileSystemProvider';
- 
- class NodeModuleRequireInterceptor extends RequireInterceptor {
-@@ -83,6 +84,52 @@ export class ExtHostExtensionService ext
+ // ESM-uncomment-begin
+ // import { createRequire } from 'node:module';
+@@ -87,6 +88,52 @@ export class ExtHostExtensionService ext
  		await interceptor.install();
  		performance.mark('code/extHost/didInitAPI');
  

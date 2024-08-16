@@ -12,4 +12,4 @@ Index: code-server/lib/vscode/src/vs/platform/request/node/proxy.ts
 +		keepAlive: true,
  	};
  
- 	return requestURL.protocol === 'http:'
+ 	if (requestURL.protocol === 'http:') {

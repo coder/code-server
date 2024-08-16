@@ -54,7 +54,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -325,6 +325,7 @@ export class WebClientServer {
+@@ -324,6 +324,7 @@ export class WebClientServer {
  		const workbenchWebConfiguration = {
  			remoteAuthority,
  			serverBasePath: this._basePath,
@@ -62,20 +62,30 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
  			_wrapWebWorkerExtHostInIframe,
  			developmentOptions: { enableSmokeTestDriver: this._environmentService.args['enable-smoke-test-driver'] ? true : undefined, logLevel: this._logService.getLevel() },
  			settingsSyncOptions: !this._environmentService.isBuilt && this._environmentService.args['enable-sync'] ? { enabled: true } : undefined,
+@@ -373,7 +374,8 @@ export class WebClientServer {
+ 			return void res.end('Not found');
+ 		}
+ 
+-		const webWorkerExtensionHostIframeScriptSHA = 'sha256-V28GQnL3aYxbwgpV3yW1oJ+VKKe/PBSzWntNyH8zVXA=';
++		const webWorkerExtensionHostIframeScriptSHA = 'sha256-TMJESLUenkUgTCHw3qQlCngteoHhhRnn81kYP41UnCE=';
++
+ 
+ 		const cspDirectives = [
+ 			'default-src \'self\';',
 Index: code-server/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/index.html
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/index.html
 +++ code-server/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/index.html
-@@ -6,7 +6,7 @@
+@@ -5,7 +5,7 @@
+ 	<meta charset="UTF-8">
  
  	<meta http-equiv="Content-Security-Policy"
- 
--	content="default-src 'none'; script-src 'sha256-dvxt5dlghGbz8hrqqochfoKEaHIMZ+yJVRvjJnGopzs=' 'self'; frame-src 'self'; style-src 'unsafe-inline';">
-+	content="default-src 'none'; script-src 'sha256-gzcLnrLeKQp7L5f+d7tdtNmK8h1NxVu1TdCfnv9uU+o=' 'self'; frame-src 'self'; style-src 'unsafe-inline';">
- 
+-		content="default-src 'none'; script-src 'sha256-dvxt5dlghGbz8hrqqochfoKEaHIMZ+yJVRvjJnGopzs=' 'self'; frame-src 'self'; style-src 'unsafe-inline';">
++		content="default-src 'none'; script-src 'sha256-gzcLnrLeKQp7L5f+d7tdtNmK8h1NxVu1TdCfnv9uU+o=' 'self'; frame-src 'self'; style-src 'unsafe-inline';">
  
  	<!-- Disable pinch zooming -->
-@@ -350,6 +350,12 @@
+ 	<meta name="viewport"
+@@ -348,6 +348,12 @@
  
  				const hostname = location.hostname;
  
@@ -113,8 +123,8 @@ Index: code-server/lib/vscode/src/vs/workbench/services/extensions/worker/webWor
  		<meta http-equiv="Content-Security-Policy" content="
  			default-src 'none';
  			child-src 'self' data: blob:;
--			script-src 'self' 'unsafe-eval' 'sha256-75NYUUvf+5++1WbfCZOV3PSWxBhONpaxwx+mkOFRv/Y=' https:;
-+			script-src 'self' 'unsafe-eval' 'sha256-c7vPrYRaSLDtFSrI4CuHYgBQ3a4c4x2LSm/LefSZADQ=' https:;
+-			script-src 'self' 'unsafe-eval' 'sha256-V28GQnL3aYxbwgpV3yW1oJ+VKKe/PBSzWntNyH8zVXA=' https: http://localhost:* blob:;
++			script-src 'self' 'unsafe-eval' 'sha256-TMJESLUenkUgTCHw3qQlCngteoHhhRnn81kYP41UnCE=' https: http://localhost:* blob:;
  			connect-src 'self' https: wss: http://localhost:* http://127.0.0.1:* ws://localhost:* ws://127.0.0.1:*;"/>
  	</head>
  	<body>
