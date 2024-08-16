@@ -22,7 +22,7 @@ Code v99.99.999
 
 ## Unreleased
 
-Code v1.92.1
+Code v1.92.2
 
 ### Breaking changes
 
@@ -33,7 +33,7 @@ Code v1.92.1
 
 ### Changed
 
-- Updated to Code 1.92.1.
+- Updated to Code 1.92.2.
 
 ## [4.91.0](https://github.com/coder/code-server/releases/tag/v4.91.0) - 2024-07-10
 
