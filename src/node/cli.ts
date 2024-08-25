@@ -53,6 +53,7 @@ export interface UserProvidedCodeArgs {
   "disable-getting-started-override"?: boolean
   "disable-proxy"?: boolean
   "session-socket"?: string
+  "abs-proxy-base-path"?: string
 }
 
 /**
@@ -117,18 +118,18 @@ interface Option<T> {
 type OptionType<T> = T extends boolean
   ? "boolean"
   : T extends OptionalString
-  ? typeof OptionalString
-  : T extends LogLevel
-  ? typeof LogLevel
-  : T extends AuthType
-  ? typeof AuthType
-  : T extends number
-  ? "number"
-  : T extends string
-  ? "string"
-  : T extends string[]
-  ? "string[]"
-  : "unknown"
+    ? typeof OptionalString
+    : T extends LogLevel
+      ? typeof LogLevel
+      : T extends AuthType
+        ? typeof AuthType
+        : T extends number
+          ? "number"
+          : T extends string
+            ? "string"
+            : T extends string[]
+              ? "string[]"
+              : "unknown"
 
 export type Options<T> = {
   [P in keyof T]: Option<OptionType<T[P]>>
@@ -278,6 +279,10 @@ export const options: Options<Required<UserProvidedArgs>> = {
     type: "string",
     short: "w",
     description: "Text to show on login page",
+  },
+  "abs-proxy-base-path": {
+    type: "string",
+    description: "The base path to prefix all absproxy requests",
   },
 }
 

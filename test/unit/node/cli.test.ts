@@ -106,6 +106,8 @@ describe("parser", () => {
 
           "--disable-proxy",
 
+          ["--abs-proxy-base-path", "/codeserver/app1"],
+
           ["--session-socket", "/tmp/override-code-server-ipc-socket"],
 
           ["--host", "0.0.0.0"],
@@ -143,6 +145,7 @@ describe("parser", () => {
       version: true,
       "bind-addr": "192.169.0.1:8080",
       "session-socket": "/tmp/override-code-server-ipc-socket",
+      "abs-proxy-base-path": "/codeserver/app1",
     })
   })
 

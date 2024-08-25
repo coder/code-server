@@ -5,10 +5,15 @@ import { HttpCode, HttpError } from "../../common/http"
 import { ensureProxyEnabled, authenticated, ensureAuthenticated, ensureOrigin, redirect, self } from "../http"
 import { proxy as _proxy } from "../proxy"
 
-const getProxyTarget = (req: Request): string => {
+const getProxyTarget = (
+  req: Request,
+  opts?: {
+    proxyBasePath?: string
+  },
+): string => {
   // If there is a base path, strip it out.
   const base = (req as any).base || ""
-  return `http://0.0.0.0:${req.params.port}/${req.originalUrl.slice(base.length)}`
+  return `http://0.0.0.0:${req.params.port}${opts?.proxyBasePath || ""}/${req.originalUrl.slice(base.length)}`
 }
 
 export async function proxy(
@@ -16,6 +21,7 @@ export async function proxy(
   res: Response,
   opts?: {
     passthroughPath?: boolean
+    proxyBasePath?: string
   },
 ): Promise<void> {
   ensureProxyEnabled(req)
@@ -38,7 +44,7 @@ export async function proxy(
 
   _proxy.web(req, res, {
     ignorePath: true,
-    target: getProxyTarget(req),
+    target: getProxyTarget(req, opts),
   })
 }
 
@@ -46,6 +52,7 @@ export async function wsProxy(
   req: pluginapi.WebsocketRequest,
   opts?: {
     passthroughPath?: boolean
+    proxyBasePath?: string
   },
 ): Promise<void> {
   ensureProxyEnabled(req)
@@ -59,6 +66,6 @@ export async function wsProxy(
 
   _proxy.ws(req, req.ws, req.head, {
     ignorePath: true,
-    target: getProxyTarget(req),
+    target: getProxyTarget(req, opts),
   })
 }

@@ -432,3 +432,12 @@ const config = {
 3. Access app at `<code-server-root>/absproxy/5173/` e.g. `http://localhost:8080/absproxy/5173/
 
 For additional context, see [this Github Issue](https://github.com/sveltejs/kit/issues/2958)
+
+### Prefixing `/absproxy/<port>` with a path
+
+This is a case where you need to serve an application via `absproxy` as explained above while serving `codeserver` itself from a path other than the root in your domain.
+
+For example: `http://my-code-server.com/user/123/workspace/my-app`. To achieve this result:
+
+1. start code server with the switch `--abs-proxy-base-path=/user/123/workspace`
+2. Follow one of the instructions above for your framework.

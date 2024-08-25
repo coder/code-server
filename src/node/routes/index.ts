@@ -121,11 +121,13 @@ export const register = async (app: App, args: DefaultedArgs): Promise<Disposabl
   app.router.all("/absproxy/:port/:path(.*)?", async (req, res) => {
     await pathProxy.proxy(req, res, {
       passthroughPath: true,
+      proxyBasePath: args["abs-proxy-base-path"],
     })
   })
   app.wsRouter.get("/absproxy/:port/:path(.*)?", async (req) => {
     await pathProxy.wsProxy(req as pluginapi.WebsocketRequest, {
       passthroughPath: true,
+      proxyBasePath: args["abs-proxy-base-path"],
     })
   })
 

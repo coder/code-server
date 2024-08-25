@@ -256,6 +256,18 @@ describe("proxy", () => {
       expect(spy).toHaveBeenCalledWith([test.expected, test.query])
     }
   })
+
+  it("should allow specifying an absproxy path", async () => {
+    const prefixedPath = `/codeserver/app1${absProxyPath}`
+    e.get(prefixedPath, (req, res) => {
+      res.send("app being served behind a prefixed path")
+    })
+    codeServer = await integration.setup(["--auth=none", "--abs-proxy-base-path=/codeserver/app1"], "")
+    const resp = await codeServer.fetch(absProxyPath)
+    expect(resp.status).toBe(200)
+    const text = await resp.text()
+    expect(text).toBe("app being served behind a prefixed path")
+  })
 })
 
 // NOTE@jsjoeio
