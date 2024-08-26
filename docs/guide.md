@@ -20,6 +20,7 @@
   - [Proxying to a Vue app](#proxying-to-a-vue-app)
   - [Proxying to an Angular app](#proxying-to-an-angular-app)
   - [Proxying to a Svelte app](#proxying-to-a-svelte-app)
+  - [Prefixing `/absproxy/<port>` with a path](#prefixing-absproxyport-with-a-path)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 <!-- prettier-ignore-end -->
