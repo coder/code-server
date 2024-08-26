@@ -440,5 +440,5 @@ This is a case where you need to serve an application via `absproxy` as explaine
 
 For example: `http://my-code-server.com/user/123/workspace/my-app`. To achieve this result:
 
-1. start code server with the switch `--abs-proxy-base-path=/user/123/workspace`
+1. Start code server with the switch `--abs-proxy-base-path=/user/123/workspace`
 2. Follow one of the instructions above for your framework.
