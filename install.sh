@@ -461,9 +461,9 @@ npm_fallback() {
 # Determine if we have standalone releases on GitHub for the system's arch.
 has_standalone() {
   case $ARCH in
-    amd64) return 0 ;;
-    # We only have amd64 for macOS.
-    arm64)
+    arm64) return 0 ;;
+    # We only have arm64 for macOS.
+    amd64)
       [ "$(distro)" != macos ]
       return
       ;;
