@@ -28,7 +28,7 @@ Index: code-server/lib/vscode/src/vs/server/node/serverServices.ts
  import { NullPolicyService } from 'vs/platform/policy/common/policy';
  import { OneDataSystemAppender } from 'vs/platform/telemetry/node/1dsAppender';
  import { LoggerService } from 'vs/platform/log/node/loggerService';
-@@ -147,11 +149,23 @@ export async function setupServerService
+@@ -151,11 +153,23 @@ export async function setupServerService
  	const requestService = new RequestService(configurationService, environmentService, logService, loggerService);
  	services.set(IRequestService, requestService);
  
@@ -134,7 +134,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -317,6 +317,8 @@ export class WebClientServer {
+@@ -320,6 +320,8 @@ export class WebClientServer {
  				scope: vscodeBase + '/',
  				path: base + '/_static/out/browser/serviceWorker.js',
  			},

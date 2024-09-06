@@ -10,7 +10,7 @@ Index: code-server/lib/vscode/build/gulpfile.reh.js
 ===================================================================
 --- code-server.orig/lib/vscode/build/gulpfile.reh.js
 +++ code-server/lib/vscode/build/gulpfile.reh.js
-@@ -243,8 +243,7 @@ function packageTask(type, platform, arc
+@@ -288,8 +288,7 @@ function packageTask(type, platform, arc
  
  		const src = gulp.src(sourceFolderName + '/**', { base: '.' })
  			.pipe(rename(function (path) { path.dirname = path.dirname.replace(new RegExp('^' + sourceFolderName), 'out'); }))
@@ -20,7 +20,7 @@ Index: code-server/lib/vscode/build/gulpfile.reh.js
  
  		const workspaceExtensionPoints = ['debuggers', 'jsonValidation'];
  		const isUIExtension = (manifest) => {
-@@ -283,9 +282,9 @@ function packageTask(type, platform, arc
+@@ -328,9 +327,9 @@ function packageTask(type, platform, arc
  			.map(name => `.build/extensions/${name}/**`);
  
  		const extensions = gulp.src(extensionPaths, { base: '.build', dot: true });
@@ -32,7 +32,7 @@ Index: code-server/lib/vscode/build/gulpfile.reh.js
  
  		let version = packageJson.version;
  		const quality = product.quality;
-@@ -459,7 +458,7 @@ function tweakProductForServerWeb(produc
+@@ -504,7 +503,7 @@ function tweakProductForServerWeb(produc
  	const minifyTask = task.define(`minify-vscode-${type}`, task.series(
  		optimizeTask,
  		util.rimraf(`out-vscode-${type}-min`),

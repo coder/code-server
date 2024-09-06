@@ -201,7 +201,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -337,6 +337,7 @@ export class WebClientServer {
+@@ -340,6 +340,7 @@ export class WebClientServer {
  			userDataPath: this._environmentService.userDataPath,
  			isEnabledFileDownloads: !this._environmentService.args['disable-file-downloads'],
  			isEnabledFileUploads: !this._environmentService.args['disable-file-uploads'],

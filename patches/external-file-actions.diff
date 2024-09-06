@@ -112,7 +112,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -333,6 +333,8 @@ export class WebClientServer {
+@@ -336,6 +336,8 @@ export class WebClientServer {
  			serverBasePath: this._basePath,
  			webviewEndpoint: vscodeBase + this._staticRoute + '/out/vs/workbench/contrib/webview/browser/pre',
  			userDataPath: this._environmentService.userDataPath,
@@ -172,7 +172,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/files/browser/fileActions
  import { IsWebContext } from 'vs/platform/contextkey/common/contextkeys';
  import { ServicesAccessor } from 'vs/platform/instantiation/common/instantiation';
  import { ThemeIcon } from 'vs/base/common/themables';
-@@ -561,13 +561,16 @@ MenuRegistry.appendMenuItem(MenuId.Explo
+@@ -566,13 +566,16 @@ MenuRegistry.appendMenuItem(MenuId.Explo
  		id: DOWNLOAD_COMMAND_ID,
  		title: DOWNLOAD_LABEL
  	},
@@ -196,7 +196,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/files/browser/fileActions
  	)
  }));
  
-@@ -579,6 +582,7 @@ MenuRegistry.appendMenuItem(MenuId.Explo
+@@ -584,6 +587,7 @@ MenuRegistry.appendMenuItem(MenuId.Explo
  		title: UPLOAD_LABEL,
  	},
  	when: ContextKeyExpr.and(
@@ -289,7 +289,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/files/browser/views/explo
  
  export class ExplorerDelegate implements IListVirtualDelegate<ExplorerItem> {
  
-@@ -1001,7 +1002,8 @@ export class FileDragAndDrop implements
+@@ -1005,7 +1006,8 @@ export class FileDragAndDrop implements
  		@IConfigurationService private configurationService: IConfigurationService,
  		@IInstantiationService private instantiationService: IInstantiationService,
  		@IWorkspaceEditingService private workspaceEditingService: IWorkspaceEditingService,
@@ -299,7 +299,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/files/browser/views/explo
  	) {
  		const updateDropEnablement = (e: IConfigurationChangeEvent | undefined) => {
  			if (!e || e.affectsConfiguration('explorer.enableDragAndDrop')) {
-@@ -1226,15 +1228,17 @@ export class FileDragAndDrop implements
+@@ -1230,15 +1232,17 @@ export class FileDragAndDrop implements
  
  			// External file DND (Import/Upload file)
  			if (data instanceof NativeDragAndDropData) {

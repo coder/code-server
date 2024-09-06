@@ -71,7 +71,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -312,6 +312,7 @@ export class WebClientServer {
+@@ -315,6 +315,7 @@ export class WebClientServer {
  			rootEndpoint: base,
  			updateEndpoint: !this._environmentService.args['disable-update-check'] ? base + '/update/check' : undefined,
  			logoutEndpoint: this._environmentService.args['auth'] && this._environmentService.args['auth'] !== "none" ? base + '/logout' : undefined,
