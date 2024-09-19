@@ -28,10 +28,11 @@ const config: PlaywrightTestConfig = {
       name: "Chromium",
       use: { browserName: "chromium" },
     },
-    {
-      name: "Firefox",
-      use: { browserName: "firefox" },
-    },
+    // Firefox seems to have bugs with opening context menus in the file tree.
+    // {
+    //   name: "Firefox",
+    //   use: { browserName: "firefox" },
+    // },
     {
       name: "WebKit",
       use: { browserName: "webkit" },
