@@ -16,10 +16,8 @@ describe("Uploads (enabled)", ["--disable-workspace-trust"], {}, () => {
     await fs.mkdir(tmpDirPath)
 
     // Action
-    const fileInExplorer = await codeServerPage.page.waitForSelector('span:has-text("test-directory")')
-    await fileInExplorer.click({
-      button: "right",
-    })
+    await codeServerPage.openContextMenu('span:has-text("test-directory")')
+
     expect(await codeServerPage.page.isVisible("text=Upload...")).toBe(true)
   })
 
@@ -44,10 +42,7 @@ describe("Uploads (disabled)", ["--disable-workspace-trust", "--disable-file-upl
     await fs.mkdir(tmpDirPath)
 
     // Action
-    const fileInExplorer = await codeServerPage.page.waitForSelector('span:has-text("test-directory")')
-    await fileInExplorer.click({
-      button: "right",
-    })
+    await codeServerPage.openContextMenu('span:has-text("test-directory")')
 
     expect(await codeServerPage.page.isVisible("text=Upload...")).toBe(false)
   })

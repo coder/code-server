@@ -566,6 +566,7 @@ export class CodeServerPage {
     const el = await this.page.waitForSelector(selector)
     await el.click({ button: "left" })
     await this.page.keyboard.press("Shift+F10")
+    await this.page.waitForSelector(".context-view-block")
   }
 
   /**

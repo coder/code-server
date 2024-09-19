@@ -18,7 +18,6 @@ describe("Downloads (enabled)", ["--disable-workspace-trust"], {}, async () => {
     // Action
     await codeServerPage.openContextMenu("text=unique-file.txt")
 
-    await codeServerPage.page.waitForSelector(".context-view-block")
     expect(await codeServerPage.page.isVisible("text=Download...")).toBe(true)
   })
 
@@ -73,7 +72,6 @@ describe("Downloads (disabled)", ["--disable-workspace-trust", "--disable-file-d
     // Action
     await codeServerPage.openContextMenu("text=unique-file.txt")
 
-    await codeServerPage.page.waitForSelector(".context-view-block")
     expect(await codeServerPage.page.isVisible("text=Download...")).toBe(false)
   })
 
