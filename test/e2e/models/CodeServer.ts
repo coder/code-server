@@ -556,6 +556,15 @@ export class CodeServerPage {
   }
 
   /**
+   * Open context menu on the specified selector.
+   */
+  async openContextMenu(selector: string): Promise<void> {
+    const el = await this.page.waitForSelector(selector)
+    await el.click({ button: "right" })
+    await this.page.waitForSelector(".context-view-block")
+  }
+
+  /**
    * Execute a command in the root of the instance's workspace directory.
    */
   async exec(command: string): Promise<void> {

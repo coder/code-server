@@ -264,7 +264,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -306,6 +306,7 @@ export class WebClientServer {
+@@ -309,6 +309,7 @@ export class WebClientServer {
  		} : undefined;
  
  		const productConfiguration = {
@@ -276,7 +276,7 @@ Index: code-server/lib/vscode/src/server-main.js
 ===================================================================
 --- code-server.orig/lib/vscode/src/server-main.js
 +++ code-server/lib/vscode/src/server-main.js
-@@ -336,4 +336,9 @@ function prompt(question) {
+@@ -339,4 +339,9 @@ function prompt(question) {
  	});
  }
  
