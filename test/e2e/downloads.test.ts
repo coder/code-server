@@ -16,10 +16,7 @@ describe("Downloads (enabled)", ["--disable-workspace-trust"], {}, async () => {
     await fs.writeFile(tmpFilePath, "hello world")
 
     // Action
-    const fileInExplorer = await codeServerPage.page.waitForSelector("text=unique-file.txt")
-    await fileInExplorer.click({
-      button: "right",
-    })
+    await codeServerPage.openContextMenu("text=unique-file.txt")
 
     expect(await codeServerPage.page.isVisible("text=Download...")).toBe(true)
   })
@@ -73,10 +70,7 @@ describe("Downloads (disabled)", ["--disable-workspace-trust", "--disable-file-d
     await fs.writeFile(tmpFilePath, "Hello World")
 
     // Action
-    const fileInExplorer = await codeServerPage.page.waitForSelector("text=unique-file.txt")
-    await fileInExplorer.click({
-      button: "right",
-    })
+    await codeServerPage.openContextMenu("text=unique-file.txt")
 
     expect(await codeServerPage.page.isVisible("text=Download...")).toBe(false)
   })

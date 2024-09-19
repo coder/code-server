@@ -556,6 +556,19 @@ export class CodeServerPage {
   }
 
   /**
+   * Open context menu on the specified selector.
+   */
+  async openContextMenu(selector: string): Promise<void> {
+    // Firefox appears to have an issue with right clicking to show the context
+    // menu.  It seems to be related to VS Code trying to handle the clipboard
+    // although I am not sure why it presents in the file menu.  To work around
+    // it, left click and open the context menu using Shift+F10 instead.
+    const el = await this.page.waitForSelector(selector)
+    await el.click({ button: "left" })
+    await this.page.keyboard.press("Shift+F10")
+  }
+
+  /**
    * Execute a command in the root of the instance's workspace directory.
    */
   async exec(command: string): Promise<void> {
