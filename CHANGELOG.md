@@ -22,6 +22,18 @@ Code v99.99.999
 
 ## Unreleased
 
+## [4.93.1](https://github.com/coder/code-server/releases/tag/v4.93.1) - 2024-09-23
+
+Code v1.93.1
+
+### Changed
+
+- Updated to Code 1.93.1.
+
+### Added
+
+- Added `--abs-proxy-base-path` flag for when code-server is not at the root.
+
 ## [4.92.2](https://github.com/coder/code-server/releases/tag/v4.92.2) - 2024-08-19
 
 Code v1.92.2
