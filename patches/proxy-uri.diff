@@ -97,12 +97,12 @@ Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench.ts
 --- code-server.orig/lib/vscode/src/vs/code/browser/workbench/workbench.ts
 +++ code-server/lib/vscode/src/vs/code/browser/workbench/workbench.ts
 @@ -19,6 +19,7 @@ import { ISecretStorageProvider } from '
- import { isFolderToOpen, isWorkspaceToOpen } from 'vs/platform/window/common/window';
- import type { IWorkbenchConstructionOptions, IWorkspace, IWorkspaceProvider } from 'vs/workbench/browser/web.api';
- import { AuthenticationSessionInfo } from 'vs/workbench/services/authentication/browser/authenticationService';
-+import { extractLocalHostUriMetaDataForPortMapping, TunnelOptions, TunnelCreationOptions } from 'vs/platform/tunnel/common/tunnel';
- import type { IURLCallbackProvider } from 'vs/workbench/services/url/browser/urlService';
- import { create } from 'vs/workbench/workbench.web.main';
+ import { isFolderToOpen, isWorkspaceToOpen } from '../../../platform/window/common/window.js';
+ import type { IWorkbenchConstructionOptions, IWorkspace, IWorkspaceProvider } from '../../../workbench/browser/web.api.js';
+ import { AuthenticationSessionInfo } from '../../../workbench/services/authentication/browser/authenticationService.js';
++import { extractLocalHostUriMetaDataForPortMapping, TunnelOptions, TunnelCreationOptions } from '../../../platform/tunnel/common/tunnel.js';
+ import type { IURLCallbackProvider } from '../../../workbench/services/url/browser/urlService.js';
+ import { create } from '../../../workbench/workbench.web.main.internal.js';
  
 @@ -571,6 +572,39 @@ class WorkspaceProvider implements IWork
  		settingsSyncOptions: config.settingsSyncOptions ? { enabled: config.settingsSyncOptions.enabled, } : undefined,
@@ -148,12 +148,14 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/remote/browser/remoteExpl
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/contrib/remote/browser/remoteExplorer.ts
 +++ code-server/lib/vscode/src/vs/workbench/contrib/remote/browser/remoteExplorer.ts
-@@ -77,7 +77,7 @@ export class ForwardedPortsView extends
- 	private async enableForwardedPortsView() {
+@@ -77,8 +77,8 @@ export class ForwardedPortsView extends
+ 	private async enableForwardedPortsFeatures() {
  		this.contextKeyListener.clear();
  
+-		const featuresEnabled: boolean = !!forwardedPortsFeaturesEnabled.getValue(this.contextKeyService);
 -		const viewEnabled: boolean = !!forwardedPortsViewEnabled.getValue(this.contextKeyService);
++		const featuresEnabled: boolean = true;
 +		const viewEnabled: boolean = true;
  
- 		if (viewEnabled) {
- 			const viewContainer = await this.getViewContainer();
+ 		if (featuresEnabled || viewEnabled) {
+ 			// Also enable the view if it isn't already.

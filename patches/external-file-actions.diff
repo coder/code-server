@@ -125,20 +125,20 @@ Index: code-server/lib/vscode/src/vs/workbench/browser/contextkeys.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/browser/contextkeys.ts
 +++ code-server/lib/vscode/src/vs/workbench/browser/contextkeys.ts
-@@ -7,11 +7,11 @@ import { Event } from 'vs/base/common/ev
- import { Disposable } from 'vs/base/common/lifecycle';
- import { IContextKeyService, IContextKey, setConstant as setConstantContextKey } from 'vs/platform/contextkey/common/contextkey';
- import { InputFocusedContext, IsMacContext, IsLinuxContext, IsWindowsContext, IsWebContext, IsMacNativeContext, IsDevelopmentContext, IsIOSContext, ProductQualityContext, IsMobileContext } from 'vs/platform/contextkey/common/contextkeys';
--import { SplitEditorsVertically, InEditorZenModeContext, AuxiliaryBarVisibleContext, SideBarVisibleContext, PanelAlignmentContext, PanelMaximizedContext, PanelVisibleContext, EmbedderIdentifierContext, EditorTabsVisibleContext, IsMainEditorCenteredLayoutContext, MainEditorAreaVisibleContext, DirtyWorkingCopiesContext, EmptyWorkspaceSupportContext, EnterMultiRootWorkspaceSupportContext, HasWebFileSystemAccess, IsMainWindowFullscreenContext, OpenFolderWorkspaceSupportContext, RemoteNameContext, VirtualWorkspaceContext, WorkbenchStateContext, WorkspaceFolderCountContext, PanelPositionContext, TemporaryWorkspaceContext, TitleBarVisibleContext, TitleBarStyleContext, IsAuxiliaryWindowFocusedContext, ActiveEditorGroupEmptyContext, ActiveEditorGroupIndexContext, ActiveEditorGroupLastContext, ActiveEditorGroupLockedContext, MultipleEditorGroupsContext, EditorsVisibleContext } from 'vs/workbench/common/contextkeys';
-+import { SplitEditorsVertically, InEditorZenModeContext, AuxiliaryBarVisibleContext, SideBarVisibleContext, PanelAlignmentContext, PanelMaximizedContext, PanelVisibleContext, EmbedderIdentifierContext, EditorTabsVisibleContext, IsMainEditorCenteredLayoutContext, MainEditorAreaVisibleContext, DirtyWorkingCopiesContext, EmptyWorkspaceSupportContext, EnterMultiRootWorkspaceSupportContext, HasWebFileSystemAccess, IsMainWindowFullscreenContext, OpenFolderWorkspaceSupportContext, RemoteNameContext, VirtualWorkspaceContext, WorkbenchStateContext, WorkspaceFolderCountContext, PanelPositionContext, TemporaryWorkspaceContext, TitleBarVisibleContext, TitleBarStyleContext, IsAuxiliaryWindowFocusedContext, ActiveEditorGroupEmptyContext, ActiveEditorGroupIndexContext, ActiveEditorGroupLastContext, ActiveEditorGroupLockedContext, MultipleEditorGroupsContext, EditorsVisibleContext, IsEnabledFileDownloads, IsEnabledFileUploads } from 'vs/workbench/common/contextkeys';
- import { trackFocus, addDisposableListener, EventType, onDidRegisterWindow, getActiveWindow } from 'vs/base/browser/dom';
- import { preferredSideBySideGroupDirection, GroupDirection, IEditorGroupsService } from 'vs/workbench/services/editor/common/editorGroupsService';
- import { IConfigurationService } from 'vs/platform/configuration/common/configuration';
--import { IWorkbenchEnvironmentService } from 'vs/workbench/services/environment/common/environmentService';
-+import { IBrowserWorkbenchEnvironmentService } from 'vs/workbench/services/environment/browser/environmentService';
- import { WorkbenchState, IWorkspaceContextService, isTemporaryWorkspace } from 'vs/platform/workspace/common/workspace';
- import { IWorkbenchLayoutService, Parts, positionToString } from 'vs/workbench/services/layout/browser/layoutService';
- import { getRemoteName } from 'vs/platform/remote/common/remoteHosts';
+@@ -7,11 +7,11 @@ import { Event } from '../../base/common
+ import { Disposable } from '../../base/common/lifecycle.js';
+ import { IContextKeyService, IContextKey, setConstant as setConstantContextKey } from '../../platform/contextkey/common/contextkey.js';
+ import { InputFocusedContext, IsMacContext, IsLinuxContext, IsWindowsContext, IsWebContext, IsMacNativeContext, IsDevelopmentContext, IsIOSContext, ProductQualityContext, IsMobileContext } from '../../platform/contextkey/common/contextkeys.js';
+-import { SplitEditorsVertically, InEditorZenModeContext, AuxiliaryBarVisibleContext, SideBarVisibleContext, PanelAlignmentContext, PanelMaximizedContext, PanelVisibleContext, EmbedderIdentifierContext, EditorTabsVisibleContext, IsMainEditorCenteredLayoutContext, MainEditorAreaVisibleContext, DirtyWorkingCopiesContext, EmptyWorkspaceSupportContext, EnterMultiRootWorkspaceSupportContext, HasWebFileSystemAccess, IsMainWindowFullscreenContext, OpenFolderWorkspaceSupportContext, RemoteNameContext, VirtualWorkspaceContext, WorkbenchStateContext, WorkspaceFolderCountContext, PanelPositionContext, TemporaryWorkspaceContext, TitleBarVisibleContext, TitleBarStyleContext, IsAuxiliaryWindowFocusedContext, ActiveEditorGroupEmptyContext, ActiveEditorGroupIndexContext, ActiveEditorGroupLastContext, ActiveEditorGroupLockedContext, MultipleEditorGroupsContext, EditorsVisibleContext } from '../common/contextkeys.js';
++import { SplitEditorsVertically, InEditorZenModeContext, AuxiliaryBarVisibleContext, SideBarVisibleContext, PanelAlignmentContext, PanelMaximizedContext, PanelVisibleContext, EmbedderIdentifierContext, EditorTabsVisibleContext, IsMainEditorCenteredLayoutContext, MainEditorAreaVisibleContext, DirtyWorkingCopiesContext, EmptyWorkspaceSupportContext, EnterMultiRootWorkspaceSupportContext, HasWebFileSystemAccess, IsMainWindowFullscreenContext, OpenFolderWorkspaceSupportContext, RemoteNameContext, VirtualWorkspaceContext, WorkbenchStateContext, WorkspaceFolderCountContext, PanelPositionContext, TemporaryWorkspaceContext, TitleBarVisibleContext, TitleBarStyleContext, IsAuxiliaryWindowFocusedContext, ActiveEditorGroupEmptyContext, ActiveEditorGroupIndexContext, ActiveEditorGroupLastContext, ActiveEditorGroupLockedContext, MultipleEditorGroupsContext, EditorsVisibleContext, IsEnabledFileDownloads, IsEnabledFileUploads } from '../common/contextkeys.js';
+ import { trackFocus, addDisposableListener, EventType, onDidRegisterWindow, getActiveWindow, isEditableElement } from '../../base/browser/dom.js';
+ import { preferredSideBySideGroupDirection, GroupDirection, IEditorGroupsService } from '../services/editor/common/editorGroupsService.js';
+ import { IConfigurationService } from '../../platform/configuration/common/configuration.js';
+-import { IWorkbenchEnvironmentService } from '../services/environment/common/environmentService.js';
++import { IBrowserWorkbenchEnvironmentService } from '../services/environment/browser/environmentService.js';
+ import { WorkbenchState, IWorkspaceContextService, isTemporaryWorkspace } from '../../platform/workspace/common/workspace.js';
+ import { IWorkbenchLayoutService, Parts, positionToString } from '../services/layout/browser/layoutService.js';
+ import { getRemoteName } from '../../platform/remote/common/remoteHosts.js';
 @@ -70,7 +70,7 @@ export class WorkbenchContextKeysHandler
  		@IContextKeyService private readonly contextKeyService: IContextKeyService,
  		@IWorkspaceContextService private readonly contextService: IWorkspaceContextService,
@@ -164,15 +164,15 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/files/browser/fileActions
 --- code-server.orig/lib/vscode/src/vs/workbench/contrib/files/browser/fileActions.contribution.ts
 +++ code-server/lib/vscode/src/vs/workbench/contrib/files/browser/fileActions.contribution.ts
 @@ -20,7 +20,7 @@ import { CLOSE_SAVED_EDITORS_COMMAND_ID,
- import { AutoSaveAfterShortDelayContext } from 'vs/workbench/services/filesConfiguration/common/filesConfigurationService';
- import { WorkbenchListDoubleSelection } from 'vs/platform/list/browser/listService';
- import { Schemas } from 'vs/base/common/network';
--import { DirtyWorkingCopiesContext, EnterMultiRootWorkspaceSupportContext, HasWebFileSystemAccess, WorkbenchStateContext, WorkspaceFolderCountContext, SidebarFocusContext, ActiveEditorCanRevertContext, ActiveEditorContext, ResourceContextKey, ActiveEditorAvailableEditorIdsContext, MultipleEditorsSelectedInGroupContext, TwoEditorsSelectedInGroupContext, SelectedEditorsInGroupFileOrUntitledResourceContextKey } from 'vs/workbench/common/contextkeys';
-+import { IsEnabledFileDownloads, IsEnabledFileUploads, DirtyWorkingCopiesContext, EnterMultiRootWorkspaceSupportContext, HasWebFileSystemAccess, WorkbenchStateContext, WorkspaceFolderCountContext, SidebarFocusContext, ActiveEditorCanRevertContext, ActiveEditorContext, ResourceContextKey, ActiveEditorAvailableEditorIdsContext, MultipleEditorsSelectedInGroupContext, TwoEditorsSelectedInGroupContext, SelectedEditorsInGroupFileOrUntitledResourceContextKey } from 'vs/workbench/common/contextkeys';
- import { IsWebContext } from 'vs/platform/contextkey/common/contextkeys';
- import { ServicesAccessor } from 'vs/platform/instantiation/common/instantiation';
- import { ThemeIcon } from 'vs/base/common/themables';
-@@ -566,13 +566,16 @@ MenuRegistry.appendMenuItem(MenuId.Explo
+ import { AutoSaveAfterShortDelayContext } from '../../../services/filesConfiguration/common/filesConfigurationService.js';
+ import { WorkbenchListDoubleSelection, WorkbenchTreeFindOpen } from '../../../../platform/list/browser/listService.js';
+ import { Schemas } from '../../../../base/common/network.js';
+-import { DirtyWorkingCopiesContext, EnterMultiRootWorkspaceSupportContext, HasWebFileSystemAccess, WorkbenchStateContext, WorkspaceFolderCountContext, SidebarFocusContext, ActiveEditorCanRevertContext, ActiveEditorContext, ResourceContextKey, ActiveEditorAvailableEditorIdsContext, MultipleEditorsSelectedInGroupContext, TwoEditorsSelectedInGroupContext, SelectedEditorsInGroupFileOrUntitledResourceContextKey } from '../../../common/contextkeys.js';
++import { IsEnabledFileDownloads, IsEnabledFileUploads, DirtyWorkingCopiesContext, EnterMultiRootWorkspaceSupportContext, HasWebFileSystemAccess, WorkbenchStateContext, WorkspaceFolderCountContext, SidebarFocusContext, ActiveEditorCanRevertContext, ActiveEditorContext, ResourceContextKey, ActiveEditorAvailableEditorIdsContext, MultipleEditorsSelectedInGroupContext, TwoEditorsSelectedInGroupContext, SelectedEditorsInGroupFileOrUntitledResourceContextKey } from '../../../common/contextkeys.js';
+ import { IsWebContext } from '../../../../platform/contextkey/common/contextkeys.js';
+ import { ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
+ import { ThemeIcon } from '../../../../base/common/themables.js';
+@@ -572,13 +572,16 @@ MenuRegistry.appendMenuItem(MenuId.Explo
  		id: DOWNLOAD_COMMAND_ID,
  		title: DOWNLOAD_LABEL
  	},
@@ -196,7 +196,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/files/browser/fileActions
  	)
  }));
  
-@@ -584,6 +587,7 @@ MenuRegistry.appendMenuItem(MenuId.Explo
+@@ -590,6 +593,7 @@ MenuRegistry.appendMenuItem(MenuId.Explo
  		title: UPLOAD_LABEL,
  	},
  	when: ContextKeyExpr.and(
@@ -222,16 +222,16 @@ Index: code-server/lib/vscode/src/vs/workbench/services/dialogs/browser/simpleFi
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/services/dialogs/browser/simpleFileDialog.ts
 +++ code-server/lib/vscode/src/vs/workbench/services/dialogs/browser/simpleFileDialog.ts
-@@ -18,7 +18,7 @@ import { IModelService } from 'vs/editor
- import { ILanguageService } from 'vs/editor/common/languages/language';
- import { getIconClasses } from 'vs/editor/common/services/getIconClasses';
- import { Schemas } from 'vs/base/common/network';
--import { IWorkbenchEnvironmentService } from 'vs/workbench/services/environment/common/environmentService';
-+import { IBrowserWorkbenchEnvironmentService } from 'vs/workbench/services/environment/browser/environmentService';
- import { IRemoteAgentService } from 'vs/workbench/services/remote/common/remoteAgentService';
- import { IContextKeyService, IContextKey, RawContextKey } from 'vs/platform/contextkey/common/contextkey';
- import { equalsIgnoreCase, format, startsWithIgnoreCase } from 'vs/base/common/strings';
-@@ -143,7 +143,7 @@ export class SimpleFileDialog implements
+@@ -18,7 +18,7 @@ import { IModelService } from '../../../
+ import { ILanguageService } from '../../../../editor/common/languages/language.js';
+ import { getIconClasses } from '../../../../editor/common/services/getIconClasses.js';
+ import { Schemas } from '../../../../base/common/network.js';
+-import { IWorkbenchEnvironmentService } from '../../environment/common/environmentService.js';
++import { IBrowserWorkbenchEnvironmentService } from '../../environment/browser/environmentService.js';
+ import { IRemoteAgentService } from '../../remote/common/remoteAgentService.js';
+ import { IContextKeyService, IContextKey, RawContextKey } from '../../../../platform/contextkey/common/contextkey.js';
+ import { equalsIgnoreCase, format, startsWithIgnoreCase } from '../../../../base/common/strings.js';
+@@ -139,7 +139,7 @@ export class SimpleFileDialog extends Di
  		@IFileDialogService private readonly fileDialogService: IFileDialogService,
  		@IModelService private readonly modelService: IModelService,
  		@ILanguageService private readonly languageService: ILanguageService,
@@ -240,7 +240,7 @@ Index: code-server/lib/vscode/src/vs/workbench/services/dialogs/browser/simpleFi
  		@IRemoteAgentService private readonly remoteAgentService: IRemoteAgentService,
  		@IPathService protected readonly pathService: IPathService,
  		@IKeybindingService private readonly keybindingService: IKeybindingService,
-@@ -286,20 +286,22 @@ export class SimpleFileDialog implements
+@@ -283,20 +283,22 @@ export class SimpleFileDialog extends Di
  			this.filePickBox.sortByLabel = false;
  			this.filePickBox.ignoreFocusOut = true;
  			this.filePickBox.ok = true;
@@ -281,15 +281,15 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/files/browser/views/explo
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/contrib/files/browser/views/explorerViewer.ts
 +++ code-server/lib/vscode/src/vs/workbench/contrib/files/browser/views/explorerViewer.ts
-@@ -65,6 +65,7 @@ import { timeout } from 'vs/base/common/
- import { IFilesConfigurationService } from 'vs/workbench/services/filesConfiguration/common/filesConfigurationService';
- import { mainWindow } from 'vs/base/browser/window';
- import { IExplorerFileContribution, explorerFileContribRegistry } from 'vs/workbench/contrib/files/browser/explorerFileContrib';
-+import { IBrowserWorkbenchEnvironmentService } from 'vs/workbench/services/environment/browser/environmentService';
+@@ -65,6 +65,7 @@ import { timeout } from '../../../../../
+ import { IFilesConfigurationService } from '../../../../services/filesConfiguration/common/filesConfigurationService.js';
+ import { mainWindow } from '../../../../../base/browser/window.js';
+ import { IExplorerFileContribution, explorerFileContribRegistry } from '../explorerFileContrib.js';
++import { IBrowserWorkbenchEnvironmentService } from '../../../../services/environment/browser/environmentService.js';
  
  export class ExplorerDelegate implements IListVirtualDelegate<ExplorerItem> {
  
-@@ -1005,7 +1006,8 @@ export class FileDragAndDrop implements
+@@ -1030,7 +1031,8 @@ export class FileDragAndDrop implements
  		@IConfigurationService private configurationService: IConfigurationService,
  		@IInstantiationService private instantiationService: IInstantiationService,
  		@IWorkspaceEditingService private workspaceEditingService: IWorkspaceEditingService,
@@ -299,7 +299,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/files/browser/views/explo
  	) {
  		const updateDropEnablement = (e: IConfigurationChangeEvent | undefined) => {
  			if (!e || e.affectsConfiguration('explorer.enableDragAndDrop')) {
-@@ -1230,15 +1232,17 @@ export class FileDragAndDrop implements
+@@ -1255,15 +1257,17 @@ export class FileDragAndDrop implements
  
  			// External file DND (Import/Upload file)
  			if (data instanceof NativeDragAndDropData) {
