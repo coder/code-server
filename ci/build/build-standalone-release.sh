@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Once we have an NPM package, use this script to copy it to a separate
+# directory (./release-standalone) and install the dependencies.  This new
+# directory can then be packaged as a platform-specific release.
+
 main() {
   cd "$(dirname "${0}")/../.."
 
@@ -9,9 +13,8 @@ main() {
   rsync "$RELEASE_PATH/" "$RELEASE_PATH-standalone"
   RELEASE_PATH+=-standalone
 
-  # We cannot get the path to Node from $PATH (for example via `which node`)
-  # because Yarn shims a script called `node` and we would end up just copying
-  # that script.  Instead we run Node and have it print its actual path.
+  # Package managers may shim their own "node" wrapper into the PATH, so run
+  # node and ask it for its true path.
   local node_path
   node_path="$(node <<< 'console.info(process.execPath)')"
 

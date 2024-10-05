@@ -5,7 +5,7 @@
     {
       "file": "package.json",
       "line": 31,
-      "description": "## Commands\n\nTo start developing, make sure you have Node 16+ and the [required dependencies](https://github.com/Microsoft/vscode/wiki/How-to-Contribute#prerequisites) installed. Then, run the following commands:\n\n1. Install dependencies:\n>> yarn\n\n3. Start development mode (and watch for changes):\n>> yarn watch"
+      "description": "## Commands\n\nTo start developing, make sure you have Node 16+ and the [required dependencies](https://github.com/Microsoft/vscode/wiki/How-to-Contribute#prerequisites) installed. Then, run the following commands:\n\n1. Install dependencies:\n>> npm\n\n3. Start development mode (and watch for changes):\n>> npm run watch"
     },
     {
       "file": "src/node/app.ts",
@@ -20,7 +20,7 @@
     {
       "file": "src/node/app.ts",
       "line": 62,
-      "description": "## That's it!\n\n\nThat's all there is to it! When this tour ends, your terminal session may stop, but just use `yarn watch` to start developing from here on out!\n\n\nIf you haven't already, be sure to check out these resources:\n- [Tour: Contributing](command:codetour.startTourByTitle?[\"Contributing\"])\n- [Docs: FAQ.md](https://github.com/coder/code-server/blob/main/docs/FAQ.md)\n- [Docs: CONTRIBUTING.md](https://github.com/coder/code-server/blob/main/docs/CONTRIBUTING.md)\n- [Community: GitHub Discussions](https://github.com/coder/code-server/discussions)\n- [Community: Slack](https://community.coder.com)"
+      "description": "## That's it!\n\n\nThat's all there is to it! When this tour ends, your terminal session may stop, but just use `npm run watch` to start developing from here on out!\n\n\nIf you haven't already, be sure to check out these resources:\n- [Tour: Contributing](command:codetour.startTourByTitle?[\"Contributing\"])\n- [Docs: FAQ.md](https://github.com/coder/code-server/blob/main/docs/FAQ.md)\n- [Docs: CONTRIBUTING.md](https://github.com/coder/code-server/blob/main/docs/CONTRIBUTING.md)\n- [Community: GitHub Discussions](https://github.com/coder/code-server/discussions)\n- [Community: Slack](https://community.coder.com)"
     }
   ]
 }

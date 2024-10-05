@@ -17,8 +17,8 @@ We use the following tools to help us stay on top of vulnerability mitigation.
     - Comprehensive vulnerability scanner that runs on PRs into the default
       branch and scans both our container image and repository code (see
       `trivy-scan-repo` and `trivy-scan-image` jobs in `build.yaml`)
-- `yarn audit` and `npm audit`
-  - Audits Yarn/NPM dependencies.
+- `npm audit`
+  - Audits NPM dependencies.
 
 ## Supported Versions
 

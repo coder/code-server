@@ -19,7 +19,7 @@ concurrency:
 # this ensures that it only executes if all previous jobs succeeded.
 
 # if: steps.cache-node-modules.outputs.cache-hit != 'true'
-# will skip running `yarn install` if it successfully fetched from cache
+# will skip running `npm install` if it successfully fetched from cache
 
 jobs:
   prettier:
@@ -55,14 +55,16 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version-file: .node-version
-          cache: "yarn"
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            test/package-lock.json
 
-      - name: Install doctoc
-        run: yarn global add doctoc@2.2.1
+      - if: steps.changed-files.outputs.any_changed == 'true'
+        run: SKIP_SUBMODULE_DEPS=1 npm ci
 
-      - name: Run doctoc
-        if: steps.changed-files.outputs.any_changed == 'true'
-        run: yarn doctoc
+      - if: steps.changed-files.outputs.any_changed == 'true'
+        run: npm run doctoc
 
   lint-helm:
     name: Lint Helm chart
@@ -87,12 +89,10 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Install helm kubeval plugin
-        if: steps.changed-files.outputs.any_changed == 'true'
+      - if: steps.changed-files.outputs.any_changed == 'true'
         run: helm plugin install https://github.com/instrumenta/helm-kubeval
 
-      - name: Lint Helm chart
-        if: steps.changed-files.outputs.any_changed == 'true'
+      - if: steps.changed-files.outputs.any_changed == 'true'
         run: helm kubeval ci/helm-chart
 
   lint-ts:
@@ -120,24 +120,17 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version-file: .node-version
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            test/package-lock.json
 
-      - name: Fetch dependencies from cache
-        if: steps.changed-files.outputs.any_changed == 'true'
-        id: cache-node-modules
-        uses: actions/cache@v4
-        with:
-          path: "**/node_modules"
-          key: yarn-build-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            yarn-build-
-
-      - name: Install dependencies
-        if: steps.changed-files.outputs.any_changed == 'true' && steps.cache-node-modules.outputs.cache-hit != 'true'
-        run: SKIP_SUBMODULE_DEPS=1 yarn --frozen-lockfile
+      - if: steps.changed-files.outputs.any_changed == 'true'
+        run: SKIP_SUBMODULE_DEPS=1 npm ci
 
       - name: Lint TypeScript files
         if: steps.changed-files.outputs.any_changed == 'true'
-        run: yarn lint:ts
+        run: npm run lint:ts
 
   lint-actions:
     name: Lint GitHub Actions
@@ -175,24 +168,16 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version-file: .node-version
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            test/package-lock.json
 
-      - name: Fetch dependencies from cache
-        if: steps.changed-files.outputs.any_changed == 'true'
-        id: cache-node-modules
-        uses: actions/cache@v4
-        with:
-          path: "**/node_modules"
-          key: yarn-build-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            yarn-build-
+      - if: steps.changed-files.outputs.any_changed == 'true'
+        run: SKIP_SUBMODULE_DEPS=1 npm ci
 
-      - name: Install dependencies
-        if: steps.changed-files.outputs.any_changed == 'true' && steps.cache-node-modules.outputs.cache-hit != 'true'
-        run: SKIP_SUBMODULE_DEPS=1 yarn --frozen-lockfile
-
-      - name: Run unit tests
-        if: steps.changed-files.outputs.any_changed == 'true'
-        run: yarn test:unit
+      - if: steps.changed-files.outputs.any_changed == 'true'
+        run: npm run test:unit
 
       - name: Upload coverage report to Codecov
         uses: codecov/codecov-action@v4
@@ -229,24 +214,16 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version-file: .node-version
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            test/package-lock.json
 
-      - name: Fetch dependencies from cache
-        id: cache-node-modules
-        uses: actions/cache@v4
-        with:
-          path: "**/node_modules"
-          key: yarn-build-code-server-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            yarn-build-code-server-
+      - run: SKIP_SUBMODULE_DEPS=1 npm ci
 
-      - name: Install dependencies
-        if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        run: yarn --frozen-lockfile
-
-      - name: Build code-server
-        env:
+      - env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: yarn build
+        run: npm run build
 
       # Get Code's git hash.  When this changes it means the content is
       # different and we need to rebuild.
@@ -269,17 +246,19 @@ jobs:
         env:
           VERSION: "0.0.0"
         if: steps.cache-vscode.outputs.cache-hit != 'true'
-        run: yarn build:vscode
+        run: |
+          pushd lib/vscode
+          npm ci
+          popd
+          npm run build:vscode
 
       # The release package does not contain any native modules
       # and is neutral to architecture/os/libc version.
-      - name: Create release package
-        run: yarn release
+      - run: npm run release
         if: success()
 
       # https://github.com/actions/upload-artifact/issues/38
-      - name: Compress release package
-        run: tar -czf package.tar.gz release
+      - run: tar -czf package.tar.gz release
 
       - name: Upload npm package artifact
         uses: actions/upload-artifact@v4
@@ -303,38 +282,28 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version-file: .node-version
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            test/package-lock.json
 
-      - name: Fetch dependencies from cache
-        id: cache-node-modules
-        uses: actions/cache@v4
-        with:
-          path: "**/node_modules"
-          key: yarn-build-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            yarn-build-
+      - run: SKIP_SUBMODULE_DEPS=1 npm ci
 
       - name: Download npm package
         uses: actions/download-artifact@v4
         with:
           name: npm-package
 
-      - name: Decompress npm package
-        run: tar -xzf package.tar.gz
+      - run: tar -xzf package.tar.gz
 
-      - name: Install release package dependencies
-        run: cd release && npm install --unsafe-perm --omit=dev
-
-      - name: Install dependencies
-        if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        run: SKIP_SUBMODULE_DEPS=1 yarn --frozen-lockfile
+      - run: cd release && npm install --unsafe-perm --omit=dev
 
       - name: Install Playwright OS dependencies
         run: |
           ./test/node_modules/.bin/playwright install-deps
           ./test/node_modules/.bin/playwright install
 
-      - name: Run end-to-end tests
-        run: CODE_SERVER_TEST_ENTRY=./release yarn test:e2e
+      - run: CODE_SERVER_TEST_ENTRY=./release npm run test:e2e
 
       - name: Upload test artifacts
         if: always()
@@ -362,30 +331,21 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version-file: .node-version
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            test/package-lock.json
 
-      - name: Fetch dependencies from cache
-        id: cache-node-modules
-        uses: actions/cache@v4
-        with:
-          path: "**/node_modules"
-          key: yarn-build-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            yarn-build-
+      - run: SKIP_SUBMODULE_DEPS=1 npm ci
 
       - name: Download npm package
         uses: actions/download-artifact@v4
         with:
           name: npm-package
 
-      - name: Decompress npm package
-        run: tar -xzf package.tar.gz
+      - run: tar -xzf package.tar.gz
 
-      - name: Install release package dependencies
-        run: cd release && npm install --unsafe-perm --omit=dev
-
-      - name: Install dependencies
-        if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        run: SKIP_SUBMODULE_DEPS=1 yarn --frozen-lockfile
+      - run: cd release && npm install --unsafe-perm --omit=dev
 
       - name: Install Playwright OS dependencies
         run: |
@@ -409,22 +369,15 @@ jobs:
           mkdir -p ~/.cache/caddy
           tar -xzf caddy_2.5.2_linux_amd64.tar.gz --directory ~/.cache/caddy
 
-      - name: Start Caddy
-        run: sudo ~/.cache/caddy/caddy start --config ./ci/Caddyfile
+      - run: sudo ~/.cache/caddy/caddy start --config ./ci/Caddyfile
 
-      - name: Run end-to-end tests
-        run: CODE_SERVER_TEST_ENTRY=./release yarn test:e2e:proxy --global-timeout 840000
+      - run: CODE_SERVER_TEST_ENTRY=./release npm run test:e2e:proxy --global-timeout 840000
 
-      - name: Stop Caddy
-        if: always()
+      - if: always()
         run: sudo ~/.cache/caddy/caddy stop --config ./ci/Caddyfile
 
-      - name: Upload test artifacts
-        if: always()
+      - if: always()
         uses: actions/upload-artifact@v4
         with:
           name: failed-test-videos-proxy
           path: ./test/test-results
-
-      - name: Remove release packages and test artifacts
-        run: rm -rf ./release ./test/test-results

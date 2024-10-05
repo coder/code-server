@@ -3,14 +3,13 @@ set -euo pipefail
 
 # Install dependencies in $1.
 install-deps() {
-  local args=(install)
+  local args=()
   if [[ ${CI-} ]]; then
-    args+=(--frozen-lockfile)
+    args+=(ci)
+  else
+    args+=(install)
   fi
-  if [[ "$1" == "lib/vscode" ]]; then
-    args+=(--no-default-rc)
-  fi
-  # If there is no package.json then yarn will look upward and end up installing
+  # If there is no package.json then npm will look upward and end up installing
   # from the root resulting in an infinite loop (this can happen if you have not
   # checked out the submodule yet for example).
   if [[ ! -f "$1/package.json" ]]; then
@@ -19,7 +18,7 @@ install-deps() {
   fi
   pushd "$1"
   echo "Installing dependencies for $PWD"
-  yarn "${args[@]}"
+  npm "${args[@]}"
   popd
 }
 
