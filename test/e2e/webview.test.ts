@@ -23,6 +23,6 @@ describe("Webviews", ["--disable-workspace-trust"], {}, () => {
       .frameLocator("#active-frame")
       .locator("text=Hello world")
 
-    expect(renderedText).toBeVisible
+    expect(renderedText).toBeVisible()
   })
 })

@@ -33,7 +33,7 @@ jobs:
       - name: Run prettier with actionsx/prettier
         uses: actionsx/prettier@v3
         with:
-          args: --check --loglevel=warn .
+          args: --check --log-level=warn .
 
   doctoc:
     name: Doctoc markdown files
