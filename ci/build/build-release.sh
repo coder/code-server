@@ -49,7 +49,7 @@ bundle_code_server() {
   rsync typings/pluginapi.d.ts "$RELEASE_PATH/typings"
 
   # Adds the commit to package.json
-  jq --slurp '(.[0] | del(.scripts)) * .[1]' package.json <(
+  jq --slurp '(.[0] | del(.scripts,.jest,.devDependencies)) * .[1]' package.json <(
     cat << EOF
   {
     "commit": "$(git rev-parse HEAD)",
