@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Packages code-server for the current OS and architecture into ./release-packages.
-# This script assumes that a standalone release is built already into ./release-standalone
+# Given a platform-specific release found in ./release-standalone, generate an
+# compressed archives and bundles (as appropriate for the platform) named after
+# the platform's architecture and OS and place them in ./release-packages and
+# ./release-gcp.
 
 main() {
   cd "$(dirname "${0}")/../.."

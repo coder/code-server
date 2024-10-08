@@ -37,7 +37,6 @@ export async function makeEditorSessionManagerServer(
 ): Promise<http.Server> {
   const router = express()
 
-  // eslint-disable-next-line import/no-named-as-default-member
   router.use(express.json())
 
   router.get<{}, GetSessionResponse | string | unknown, undefined, { filePath?: string }>(

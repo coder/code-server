@@ -15,24 +15,23 @@ Index: code-server/lib/vscode/src/vs/workbench/api/node/extHostExtensionService.
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/api/node/extHostExtensionService.ts
 +++ code-server/lib/vscode/src/vs/workbench/api/node/extHostExtensionService.ts
-@@ -2,7 +2,7 @@
-  *  Copyright (c) Microsoft Corporation. All rights reserved.
+@@ -3,6 +3,7 @@
   *  Licensed under the MIT License. See License.txt in the project root for license information.
   *--------------------------------------------------------------------------------------------*/
--
+ 
 +import * as _http from 'http';
- import * as performance from 'vs/base/common/performance';
- import { createApiFactoryAndRegisterActors } from 'vs/workbench/api/common/extHost.api.impl';
- import { RequireInterceptor } from 'vs/workbench/api/common/extHostRequireInterceptor';
-@@ -17,6 +17,7 @@ import { ExtensionRuntime } from 'vs/wor
- import { CLIServer } from 'vs/workbench/api/node/extHostCLIServer';
- import { realpathSync } from 'vs/base/node/extpath';
- import { ExtHostConsoleForwarder } from 'vs/workbench/api/node/extHostConsoleForwarder';
-+import { IExtHostWorkspace } from '../common/extHostWorkspace';
- import { ExtHostDiskFileSystemProvider } from 'vs/workbench/api/node/extHostDiskFileSystemProvider';
+ import * as performance from '../../../base/common/performance.js';
+ import { createApiFactoryAndRegisterActors } from '../common/extHost.api.impl.js';
+ import { RequireInterceptor } from '../common/extHostRequireInterceptor.js';
+@@ -17,6 +18,7 @@ import { ExtensionRuntime } from '../com
+ import { CLIServer } from './extHostCLIServer.js';
+ import { realpathSync } from '../../../base/node/extpath.js';
+ import { ExtHostConsoleForwarder } from './extHostConsoleForwarder.js';
++import { IExtHostWorkspace } from '../common/extHostWorkspace.js';
+ import { ExtHostDiskFileSystemProvider } from './extHostDiskFileSystemProvider.js';
  // ESM-uncomment-begin
- // import { createRequire } from 'node:module';
-@@ -87,6 +88,52 @@ export class ExtHostExtensionService ext
+ import { createRequire } from 'node:module';
+@@ -101,6 +103,52 @@ export class ExtHostExtensionService ext
  		await interceptor.install();
  		performance.mark('code/extHost/didInitAPI');
  
@@ -84,7 +83,7 @@ Index: code-server/lib/vscode/src/vs/workbench/api/node/extHostExtensionService.
 +
  		// Do this when extension service exists, but extensions are not being activated yet.
  		const configProvider = await this._extHostConfiguration.getConfigProvider();
- 		await connectProxyResolver(this._extHostWorkspace, configProvider, this, this._logService, this._mainThreadTelemetryProxy, this._initData);
+ 		await connectProxyResolver(this._extHostWorkspace, configProvider, this, this._logService, this._mainThreadTelemetryProxy, this._initData, this._store);
 Index: code-server/lib/vscode/src/vs/workbench/api/node/extensionHostProcess.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/api/node/extensionHostProcess.ts
@@ -97,7 +96,7 @@ Index: code-server/lib/vscode/src/vs/workbench/api/node/extensionHostProcess.ts
  import minimist from 'minimist';
  import * as nativeWatchdog from 'native-watchdog';
  import * as net from 'net';
-@@ -421,7 +422,28 @@ async function startExtensionHostProcess
+@@ -424,7 +425,28 @@ async function startExtensionHostProcess
  	);
  
  	// rewrite onTerminate-function to be a proper shutdown

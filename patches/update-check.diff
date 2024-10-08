@@ -117,8 +117,8 @@ Index: code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
 +++ code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
-@@ -13,6 +13,8 @@ import { memoize } from 'vs/base/common/
- import { URI } from 'vs/base/common/uri';
+@@ -13,6 +13,8 @@ import { memoize } from '../../base/comm
+ import { URI } from '../../base/common/uri.js';
  
  export const serverOptions: OptionDescriptions<Required<ServerParsedArgs>> = {
 +	/* ----- code-server ----- */

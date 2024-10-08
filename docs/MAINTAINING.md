@@ -90,7 +90,7 @@ Our testing structure is laid out under our [Contributing docs](https://coder.co
 
 If you're ever looking to add more tests, here are a few ways to get started:
 
-- run `yarn test:unit` and look at the coverage chart. You'll see all the
+- run `npm run test:unit` and look at the coverage chart. You'll see all the
   uncovered lines. This is a good place to start.
 - look at `test/scripts` to see which scripts are tested. We can always use more
   tests there.

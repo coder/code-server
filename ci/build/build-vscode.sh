@@ -54,7 +54,7 @@ main() {
 
   if [[ ! ${VERSION-} ]]; then
     echo "VERSION not set. Please set before running this script:"
-    echo "VERSION='0.0.0' yarn build:vscode"
+    echo "VERSION='0.0.0' npm run build:vscode"
     exit 1
   fi
 
@@ -112,7 +112,7 @@ EOF
   # this because we have an NPM package that could be installed on any platform.
   # The correct platform dependencies and scripts will be installed as part of
   # the post-install during `npm install` or when building a standalone release.
-  yarn gulp "vscode-reh-web-linux-x64${MINIFY:+-min}"
+  npm run gulp "vscode-reh-web-linux-x64${MINIFY:+-min}"
 
   # Reset so if you develop after building you will not be stuck with the wrong
   # commit (the dev client will use `oss-dev` but the dev server will still use

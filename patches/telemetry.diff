@@ -17,19 +17,19 @@ Index: code-server/lib/vscode/src/vs/server/node/serverServices.ts
  
  import { hostname, release } from 'os';
 +import { promises as fs } from 'fs';
- import { Emitter, Event } from 'vs/base/common/event';
- import { DisposableStore, toDisposable } from 'vs/base/common/lifecycle';
- import { Schemas } from 'vs/base/common/network';
+ import { Emitter, Event } from '../../base/common/event.js';
+ import { DisposableStore, toDisposable } from '../../base/common/lifecycle.js';
+ import { Schemas } from '../../base/common/network.js';
 @@ -65,6 +66,7 @@ import { IExtensionsScannerService } fro
- import { ExtensionsScannerService } from 'vs/server/node/extensionsScannerService';
- import { IExtensionsProfileScannerService } from 'vs/platform/extensionManagement/common/extensionsProfileScannerService';
- import { IUserDataProfilesService } from 'vs/platform/userDataProfile/common/userDataProfile';
-+import { TelemetryClient } from 'vs/server/node/telemetryClient';
- import { NullPolicyService } from 'vs/platform/policy/common/policy';
- import { OneDataSystemAppender } from 'vs/platform/telemetry/node/1dsAppender';
- import { LoggerService } from 'vs/platform/log/node/loggerService';
+ import { ExtensionsScannerService } from './extensionsScannerService.js';
+ import { IExtensionsProfileScannerService } from '../../platform/extensionManagement/common/extensionsProfileScannerService.js';
+ import { IUserDataProfilesService } from '../../platform/userDataProfile/common/userDataProfile.js';
++import { TelemetryClient } from './telemetryClient.js';
+ import { NullPolicyService } from '../../platform/policy/common/policy.js';
+ import { OneDataSystemAppender } from '../../platform/telemetry/node/1dsAppender.js';
+ import { LoggerService } from '../../platform/log/node/loggerService.js';
 @@ -151,11 +153,23 @@ export async function setupServerService
- 	const requestService = new RequestService(configurationService, environmentService, logService, loggerService);
+ 	const requestService = new RequestService(configurationService, environmentService, logService);
  	services.set(IRequestService, requestService);
  
 +	let isContainer = undefined;

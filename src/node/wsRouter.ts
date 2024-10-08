@@ -54,5 +54,4 @@ export function Router(): WebsocketRouter {
   return new WebsocketRouter()
 }
 
-// eslint-disable-next-line import/no-named-as-default-member -- the typings are not updated correctly
 export const wss = new Websocket.Server({ noServer: true })

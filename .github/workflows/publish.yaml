@@ -21,8 +21,6 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
-  # NOTE: this job requires curl, jq and yarn
-  # All of them are included in ubuntu-latest.
   npm:
     runs-on: ubuntu-latest
     steps:
@@ -33,7 +31,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version-file: .node-version
-          cache: "yarn"
 
       - name: Download npm package from release artifacts
         uses: robinraju/release-downloader@v1.11
@@ -43,15 +40,13 @@ jobs:
           fileName: "package.tar.gz"
           out-file-path: "release-npm-package"
 
-      # NOTE@jsjoeio - we do this so we can strip out the v
-      # i.e. v4.9.1 -> 4.9.1
+      # Strip out the v (v4.9.1 -> 4.9.1).
       - name: Get and set VERSION
         run: |
           TAG="${{ github.event.inputs.version || github.ref_name }}"
           echo "VERSION=${TAG#v}" >> $GITHUB_ENV
 
-      - name: Publish npm package and tag with "latest"
-        run: yarn publish:npm
+      - run: npm run publish:npm
         env:
           VERSION: ${{ env.VERSION }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -77,8 +72,7 @@ jobs:
           git config --global user.name cdrci
           git config --global user.email opensource@coder.com
 
-      # NOTE@jsjoeio - we do this so we can strip out the v
-      # i.e. v4.9.1 -> 4.9.1
+      # Strip out the v (v4.9.1 -> 4.9.1).
       - name: Get and set VERSION
         run: |
           TAG="${{ github.event.inputs.version || github.ref_name }}"
@@ -124,8 +118,7 @@ jobs:
           git config --global user.name cdrci
           git config --global user.email opensource@coder.com
 
-      # NOTE@jsjoeio - we do this so we can strip out the v
-      # i.e. v4.9.1 -> 4.9.1
+      # Strip out the v (v4.9.1 -> 4.9.1).
       - name: Get and set VERSION
         run: |
           TAG="${{ github.event.inputs.version || github.ref_name }}"
@@ -151,6 +144,7 @@ jobs:
           git commit -m "chore: updating version to ${{ env.VERSION }}"
           git push -u origin $(git branch --show)
           gh pr create --repo coder/code-server-aur --title "chore: bump version to ${{ env.VERSION }}" --body "PR opened by @$GITHUB_ACTOR" --assignee $GITHUB_ACTOR
+
   docker:
     runs-on: ubuntu-20.04
     steps:
@@ -176,8 +170,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # NOTE@jsjoeio - we do this so we can strip out the v
-      # i.e. v4.9.1 -> 4.9.1
+      # Strip out the v (v4.9.1 -> 4.9.1).
       - name: Get and set VERSION
         run: |
           TAG="${{ github.event.inputs.version || github.ref_name }}"

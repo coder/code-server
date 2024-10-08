@@ -2,14 +2,14 @@ Index: code-server/lib/vscode/src/vs/workbench/api/browser/mainThreadCLICommands
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/api/browser/mainThreadCLICommands.ts
 +++ code-server/lib/vscode/src/vs/workbench/api/browser/mainThreadCLICommands.ts
-@@ -8,6 +8,7 @@ import { isWeb } from 'vs/base/common/pl
- import { isString } from 'vs/base/common/types';
- import { URI, UriComponents } from 'vs/base/common/uri';
- import { localize } from 'vs/nls';
-+import { IClipboardService } from 'vs/platform/clipboard/common/clipboardService';
- import { CommandsRegistry, ICommandService } from 'vs/platform/commands/common/commands';
- import { IExtensionGalleryService, IExtensionManagementService } from 'vs/platform/extensionManagement/common/extensionManagement';
- import { ExtensionManagementCLI } from 'vs/platform/extensionManagement/common/extensionManagementCLI';
+@@ -8,6 +8,7 @@ import { isWeb } from '../../../base/com
+ import { isString } from '../../../base/common/types.js';
+ import { URI, UriComponents } from '../../../base/common/uri.js';
+ import { localize } from '../../../nls.js';
++import { IClipboardService } from '../../../platform/clipboard/common/clipboardService.js';
+ import { CommandsRegistry, ICommandService } from '../../../platform/commands/common/commands.js';
+ import { IExtensionGalleryService, IExtensionManagementService } from '../../../platform/extensionManagement/common/extensionManagement.js';
+ import { ExtensionManagementCLI } from '../../../platform/extensionManagement/common/extensionManagementCLI.js';
 @@ -89,6 +90,11 @@ CommandsRegistry.registerCommand('_remot
  	return lines.join('\n');
  });

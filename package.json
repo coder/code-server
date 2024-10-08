@@ -23,22 +23,27 @@
     "test:native": "./ci/dev/test-native.sh",
     "test:scripts": "./ci/dev/test-scripts.sh",
     "package": "./ci/build/build-packages.sh",
-    "prettier": "prettier --write --loglevel=warn --cache .",
+    "prettier": "prettier --write --log-level=warn --cache .",
+    "preinstall": "node ./ci/dev/preinstall.js",
     "postinstall": "./ci/dev/postinstall.sh",
     "publish:npm": "./ci/steps/publish-npm.sh",
     "publish:docker": "./ci/steps/docker-buildx-push.sh",
-    "fmt": "yarn prettier && ./ci/dev/doctoc.sh",
+    "fmt": "npm run prettier && ./ci/dev/doctoc.sh",
     "lint:scripts": "./ci/dev/lint-scripts.sh",
-    "lint:ts": "eslint --max-warnings=0 --fix $(git ls-files '*.ts' '*.js' | grep -v 'lib/vscode')",
-    "test": "echo 'Run yarn test:unit or yarn test:e2e' && exit 1",
+    "lint:ts": "eslint --max-warnings=0 --fix $(git ls-files '*.ts' '*.js' | grep -v 'lib/vscode' | grep -v test-plugin)",
+    "test": "echo 'Run npm run test:unit or npm run test:e2e' && exit 1",
     "watch": "VSCODE_DEV=1 VSCODE_IPC_HOOK_CLI= NODE_OPTIONS='--max_old_space_size=32384 --trace-warnings' ts-node ./ci/dev/watch.ts",
     "icons": "./ci/dev/gen_icons.sh"
   },
   "main": "out/node/entry.js",
   "devDependencies": {
+    "@eslint/compat": "^1.2.0",
+    "@eslint/eslintrc": "^3.1.0",
+    "@eslint/js": "^9.12.0",
     "@schemastore/package": "^0.0.10",
     "@types/compression": "^1.7.3",
     "@types/cookie-parser": "^1.4.4",
+    "@types/eslint__js": "^8.42.3",
     "@types/express": "^4.17.17",
     "@types/http-proxy": "1.17.7",
     "@types/js-yaml": "^4.0.6",
@@ -49,18 +54,18 @@
     "@types/semver": "^7.5.2",
     "@types/trusted-types": "^2.0.4",
     "@types/ws": "^8.5.5",
-    "@typescript-eslint/eslint-plugin": "^7.0.0",
-    "@typescript-eslint/parser": "^6.7.2",
     "doctoc": "^2.2.1",
-    "eslint": "^8.49.0",
+    "eslint": "^9.12.0",
     "eslint-config-prettier": "^9.0.0",
     "eslint-import-resolver-typescript": "^3.6.0",
     "eslint-plugin-import": "^2.28.1",
     "eslint-plugin-prettier": "^5.0.0",
+    "globals": "^15.10.0",
     "prettier": "^3.0.3",
     "prettier-plugin-sh": "^0.14.0",
     "ts-node": "^10.9.1",
-    "typescript": "^5.2.2"
+    "typescript": "^5.6.2",
+    "typescript-eslint": "^8.8.0"
   },
   "dependencies": {
     "@coder/logger": "^3.0.1",
@@ -100,8 +105,7 @@
     "remote-development"
   ],
   "engines": {
-    "node": "20",
-    "yarn": "1"
+    "node": "20"
   },
   "jest": {
     "transform": {

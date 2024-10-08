@@ -34,12 +34,8 @@ jobs:
         with:
           node-version-file: .node-version
 
-      - name: Audit yarn for vulnerabilities
-        run: yarn audit
-        if: success()
-
       - name: Audit npm for vulnerabilities
-        run: npm shrinkwrap && npm audit
+        run: npm audit
         if: success()
 
   trivy-scan-repo:

@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 self.addEventListener("install", () => {
   console.debug("[Service Worker] installed")
 })

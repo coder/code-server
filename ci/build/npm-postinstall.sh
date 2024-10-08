@@ -117,14 +117,11 @@ main() {
 
 install_with_yarn_or_npm() {
   echo "User agent: ${npm_config_user_agent-none}"
-  # NOTE@edvincent: We want to keep using the package manager that the end-user was using to install the package.
-  # This also ensures that when *we* run `yarn` in the development process, the yarn.lock file is used.
+  # For development we enforce npm, but for installing the package as an
+  # end-user we want to keep using whatever package manager is in use.
   case "${npm_config_user_agent-}" in
     npm*)
-      # HACK: NPM's use of semver doesn't like resolving some peerDependencies that vscode (upstream) brings in the form of pre-releases.
-      # The legacy behavior doesn't complain about pre-releases being used, falling back to that for now.
-      # See https://github.com//pull/5071
-      if ! npm install --unsafe-perm --legacy-peer-deps --omit=dev; then
+      if ! npm install --unsafe-perm --omit=dev; then
         return 1
       fi
       ;;
