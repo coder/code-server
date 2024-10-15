@@ -44,7 +44,7 @@ main() {
   fi
 
   cd test
-  npm run playwright test "$@"
+  ./node_modules/.bin/playwright test "$@"
 }
 
 main "$@"
