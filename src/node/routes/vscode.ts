@@ -59,7 +59,7 @@ async function loadVSCode(req: express.Request): Promise<IVSCodeServerAPI> {
   // breaks importing `rotating-file-stream` for some reason.  To work around
   // this, use `eval` for now, but we should consider switching to ESM.
   const modPath = path.join(vsRootPath, "out/server-main.js")
-  const mod = await eval(`import("${modPath}")`) as VSCodeModule
+  const mod = (await eval(`import("${modPath}")`)) as VSCodeModule
   const serverModule = await mod.loadCodeWithNls()
   return serverModule.createServer(null, {
     ...(await toCodeArgs(req.args)),
