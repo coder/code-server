@@ -91,17 +91,17 @@ bundle_vscode() {
 
   rsync "${rsync_opts[@]}" ./lib/vscode-reh-web-*/ "$VSCODE_OUT_PATH"
 
-  # Use the package.json for the web/remote server.  It does not have the right
-  # version though so pull that from the main package.json.
-  jq --slurp '.[0] * {version: .[1].version}' \
+  # Merge the package.json for the web/remote server so we can include
+  # dependencies, since we want to ship this via NPM.
+  jq --slurp '.[0] * .[1]' \
     "$VSCODE_SRC_PATH/remote/package.json" \
-    "$VSCODE_SRC_PATH/package.json" > "$VSCODE_OUT_PATH/package.json"
-
-  mv "$VSCODE_SRC_PATH/remote/npm-shrinkwrap.json" "$VSCODE_OUT_PATH/npm-shrinkwrap.json"
+    "$VSCODE_OUT_PATH/package.json" > "$VSCODE_OUT_PATH/package.json.merged"
+  mv "$VSCODE_OUT_PATH/package.json.merged" "$VSCODE_OUT_PATH/package.json"
+  cp "$VSCODE_SRC_PATH/remote/npm-shrinkwrap.json" "$VSCODE_OUT_PATH/npm-shrinkwrap.json"
 
   # Include global extension dependencies as well.
   rsync "$VSCODE_SRC_PATH/extensions/package.json" "$VSCODE_OUT_PATH/extensions/package.json"
-  mv "$VSCODE_SRC_PATH/extensions/npm-shrinkwrap.json" "$VSCODE_OUT_PATH/extensions/npm-shrinkwrap.json"
+  cp "$VSCODE_SRC_PATH/extensions/npm-shrinkwrap.json" "$VSCODE_OUT_PATH/extensions/npm-shrinkwrap.json"
   rsync "$VSCODE_SRC_PATH/extensions/postinstall.mjs" "$VSCODE_OUT_PATH/extensions/postinstall.mjs"
 }
 
