@@ -363,3 +363,16 @@ Index: code-server/lib/vscode/build/gulpfile.reh.js
  
  	// Process monitor
  	'out-build/vs/base/node/cpuUsage.sh',
+Index: code-server/lib/vscode/src/vs/workbench/workbench.web.main.internal.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/workbench/workbench.web.main.internal.ts
++++ code-server/lib/vscode/src/vs/workbench/workbench.web.main.internal.ts
+@@ -52,7 +52,7 @@ import './services/dialogs/browser/fileD
+ import './services/host/browser/browserHostService.js';
+ import './services/lifecycle/browser/lifecycleService.js';
+ import './services/clipboard/browser/clipboardService.js';
+-import './services/localization/browser/localeService.js';
++import './services/localization/electron-sandbox/localeService.js';
+ import './services/path/browser/pathService.js';
+ import './services/themes/browser/browserHostColorSchemeService.js';
+ import './services/encryption/browser/encryptionService.js';
