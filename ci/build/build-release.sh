@@ -119,15 +119,21 @@ create_shrinkwraps() {
 
   # We first generate the shrinkwrap file for code-server itself - which is the
   # current directory.
+  cp package-lock.json package-lock.json.temp
   npm shrinkwrap
+  mv package-lock.json.temp package-lock.json
 
   # Then the shrinkwrap files for the bundled VS Code.
   pushd "$VSCODE_SRC_PATH/remote/"
+  cp package-lock.json package-lock.json.temp
   npm shrinkwrap
+  mv package-lock.json.temp package-lock.json
   popd
 
   pushd "$VSCODE_SRC_PATH/extensions/"
+  cp package-lock.json package-lock.json.temp
   npm shrinkwrap
+  mv package-lock.json.temp package-lock.json
   popd
 }
 
