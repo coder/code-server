@@ -126,7 +126,7 @@ Index: code-server/lib/vscode/src/vs/workbench/browser/client.ts
 --- /dev/null
 +++ code-server/lib/vscode/src/vs/workbench/browser/client.ts
 @@ -0,0 +1,46 @@
-+import { Disposable } from 'vs/base/common/lifecycle';
++import { Disposable } from "../../base/common/lifecycle.js";
 +
 +export class CodeServerClient extends Disposable {
 +	constructor (
@@ -276,12 +276,20 @@ Index: code-server/lib/vscode/src/server-main.js
 ===================================================================
 --- code-server.orig/lib/vscode/src/server-main.js
 +++ code-server/lib/vscode/src/server-main.js
-@@ -339,4 +339,7 @@ function prompt(question) {
+@@ -339,4 +339,15 @@ function prompt(question) {
  	});
  }
  
 -start();
-+export default async function loadCodeWithNls() {
++async function loadCodeWithNls() {
 +	const nlsConfiguration = await resolveNLSConfiguration({ userLocale: 'en', osLocale: 'en', commit: product.commit, userDataPath: '', nlsMetadataPath: __dirname });
 +	return loadCode(nlsConfiguration);
++}
++
++// This alias prevents the name getting mangled during obfuscation which would
++// make it difficult to import.
++export { loadCodeWithNls as loadCodeWithNls };
++
++if (!process.env.CODE_SERVER_PARENT_PID) {
++	start();
 +}
