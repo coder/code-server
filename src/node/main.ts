@@ -49,7 +49,9 @@ export interface OpenCommandPipeArgs {
 export const runCodeCli = async (args: DefaultedArgs): Promise<void> => {
   logger.debug("Running Code CLI")
   try {
-    const mod = require(path.join(vsRootPath, "out/server-main")) as VSCodeModule
+    // See vscode.loadVSCode for more on this jank.
+    const modPath = path.join(vsRootPath, "out/server-main.js")
+    const mod = (await eval(`import("${modPath}")`)) as VSCodeModule
     const serverModule = await mod.loadCodeWithNls()
     await serverModule.spawnCli(await toCodeArgs(args))
     // Rather than have the caller handle errors and exit, spawnCli will exit
