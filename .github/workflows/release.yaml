@@ -151,7 +151,8 @@ jobs:
             libsecret-1-dev:$TARGET_ARCH \
             libkrb5-dev:$TARGET_ARCH \
             ca-certificates \
-            curl wget rsync gettext-base
+            curl wget rsync gettext-base \
+            python3
 
       - name: Install nfpm
         run: |
