@@ -371,7 +371,7 @@ jobs:
 
       - run: sudo ~/.cache/caddy/caddy start --config ./ci/Caddyfile
 
-      - run: LOG_LEVEL=debug CODE_SERVER_TEST_ENTRY=./release npm run test:e2e:proxy
+      - run: CODE_SERVER_TEST_ENTRY=./release npm run test:e2e:proxy
 
       - if: always()
         run: sudo ~/.cache/caddy/caddy stop --config ./ci/Caddyfile
