@@ -69,12 +69,12 @@ Index: code-server/lib/vscode/src/vs/platform/extensionResourceLoader/common/ext
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/platform/extensionResourceLoader/common/extensionResourceLoader.ts
 +++ code-server/lib/vscode/src/vs/platform/extensionResourceLoader/common/extensionResourceLoader.ts
-@@ -15,7 +15,6 @@ import { getServiceMachineId } from 'vs/
- import { IStorageService } from 'vs/platform/storage/common/storage';
- import { TelemetryLevel } from 'vs/platform/telemetry/common/telemetry';
- import { getTelemetryLevel, supportsTelemetry } from 'vs/platform/telemetry/common/telemetryUtils';
--import { RemoteAuthorities } from 'vs/base/common/network';
- import { TargetPlatform } from 'vs/platform/extensions/common/extensions';
+@@ -15,7 +15,6 @@ import { getServiceMachineId } from '../
+ import { IStorageService } from '../../storage/common/storage.js';
+ import { TelemetryLevel } from '../../telemetry/common/telemetry.js';
+ import { getTelemetryLevel, supportsTelemetry } from '../../telemetry/common/telemetryUtils.js';
+-import { RemoteAuthorities } from '../../../base/common/network.js';
+ import { TargetPlatform } from '../../extensions/common/extensions.js';
  
  const WEB_EXTENSION_RESOURCE_END_POINT_SEGMENT = '/web-extension-resource/';
 @@ -140,9 +139,9 @@ export abstract class AbstractExtensionR
@@ -90,18 +90,3 @@ Index: code-server/lib/vscode/src/vs/platform/extensionResourceLoader/common/ext
  	}
  
  }
-Index: code-server/lib/vscode/src/vs/platform/extensionManagement/node/extensionDownloader.ts
-===================================================================
---- code-server.orig/lib/vscode/src/vs/platform/extensionManagement/node/extensionDownloader.ts
-+++ code-server/lib/vscode/src/vs/platform/extensionManagement/node/extensionDownloader.ts
-@@ -114,7 +114,10 @@ export class ExtensionsDownloader extend
- 			return false;
- 		}
- 
-+		return false
-+		// @ts-expect-error
- 		const value = this.configurationService.getValue('extensions.verifySignature');
-+		// @ts-expect-error
- 		return isBoolean(value) ? value : true;
- 	}
- 

@@ -14,13 +14,13 @@ Index: code-server/lib/vscode/src/vs/server/node/server.main.ts
 --- code-server.orig/lib/vscode/src/vs/server/node/server.main.ts
 +++ code-server/lib/vscode/src/vs/server/node/server.main.ts
 @@ -12,7 +12,7 @@ import { createServer as doCreateServer,
- import { parseArgs, ErrorReporter } from 'vs/platform/environment/node/argv';
- import { join, dirname } from 'vs/base/common/path';
+ import { parseArgs, ErrorReporter } from '../../platform/environment/node/argv.js';
+ import { join, dirname } from '../../base/common/path.js';
  import { performance } from 'perf_hooks';
--import { serverOptions } from 'vs/server/node/serverEnvironmentService';
-+import { serverOptions, ServerParsedArgs } from 'vs/server/node/serverEnvironmentService';
- import product from 'vs/platform/product/common/product';
- import * as perf from 'vs/base/common/performance';
+-import { serverOptions } from './serverEnvironmentService.js';
++import { serverOptions, ServerParsedArgs } from './serverEnvironmentService.js';
+ import product from '../../platform/product/common/product.js';
+ import * as perf from '../../base/common/performance.js';
  
 @@ -34,38 +34,43 @@ const errorReporter: ErrorReporter = {
  	}
@@ -126,7 +126,7 @@ Index: code-server/lib/vscode/src/vs/workbench/browser/client.ts
 --- /dev/null
 +++ code-server/lib/vscode/src/vs/workbench/browser/client.ts
 @@ -0,0 +1,46 @@
-+import { Disposable } from 'vs/base/common/lifecycle';
++import { Disposable } from "../../base/common/lifecycle.js";
 +
 +export class CodeServerClient extends Disposable {
 +	constructor (
@@ -176,14 +176,14 @@ Index: code-server/lib/vscode/src/vs/workbench/browser/web.main.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/browser/web.main.ts
 +++ code-server/lib/vscode/src/vs/workbench/browser/web.main.ts
-@@ -64,6 +64,7 @@ import { IOpenerService } from 'vs/platf
- import { mixin, safeStringify } from 'vs/base/common/objects';
- import { IndexedDB } from 'vs/base/browser/indexedDB';
- import { WebFileSystemAccess } from 'vs/platform/files/browser/webFileSystemAccess';
-+import { CodeServerClient } from 'vs/workbench/browser/client';
- import { ITelemetryService } from 'vs/platform/telemetry/common/telemetry';
- import { IProgressService } from 'vs/platform/progress/common/progress';
- import { DelayedLogChannel } from 'vs/workbench/services/output/common/delayedLogChannel';
+@@ -64,6 +64,7 @@ import { IOpenerService } from '../../pl
+ import { mixin, safeStringify } from '../../base/common/objects.js';
+ import { IndexedDB } from '../../base/browser/indexedDB.js';
+ import { WebFileSystemAccess } from '../../platform/files/browser/webFileSystemAccess.js';
++import { CodeServerClient } from '../../workbench/browser/client.js';
+ import { ITelemetryService } from '../../platform/telemetry/common/telemetry.js';
+ import { IProgressService } from '../../platform/progress/common/progress.js';
+ import { DelayedLogChannel } from '../services/output/common/delayedLogChannel.js';
 @@ -131,6 +132,9 @@ export class BrowserMain extends Disposa
  		// Startup
  		const instantiationService = workbench.startup();
@@ -276,7 +276,7 @@ Index: code-server/lib/vscode/src/server-main.js
 ===================================================================
 --- code-server.orig/lib/vscode/src/server-main.js
 +++ code-server/lib/vscode/src/server-main.js
-@@ -339,4 +339,9 @@ function prompt(question) {
+@@ -339,4 +339,15 @@ function prompt(question) {
  	});
  }
  
@@ -286,4 +286,10 @@ Index: code-server/lib/vscode/src/server-main.js
 +	return loadCode(nlsConfiguration);
 +}
 +
-+module.exports.loadCodeWithNls = loadCodeWithNls;
++// This alias prevents the name getting mangled during obfuscation which would
++// make it difficult to import.
++export { loadCodeWithNls as loadCodeWithNls };
++
++if (!process.env.CODE_SERVER_PARENT_PID) {
++	start();
++}

@@ -9,15 +9,15 @@ Index: code-server/lib/vscode/src/vs/server/node/serverServices.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/serverServices.ts
 +++ code-server/lib/vscode/src/vs/server/node/serverServices.ts
-@@ -12,7 +12,7 @@ import * as path from 'vs/base/common/pa
- import { IURITransformer } from 'vs/base/common/uriIpc';
- import { getMachineId, getSqmMachineId, getdevDeviceId } from 'vs/base/node/id';
- import { Promises } from 'vs/base/node/pfs';
--import { ClientConnectionEvent, IMessagePassingProtocol, IPCServer, StaticRouter } from 'vs/base/parts/ipc/common/ipc';
-+import { ClientConnectionEvent, IMessagePassingProtocol, IPCServer, ProxyChannel, StaticRouter } from 'vs/base/parts/ipc/common/ipc';
- import { ProtocolConstants } from 'vs/base/parts/ipc/common/ipc.net';
- import { IConfigurationService } from 'vs/platform/configuration/common/configuration';
- import { ConfigurationService } from 'vs/platform/configuration/common/configurationService';
+@@ -12,7 +12,7 @@ import * as path from '../../base/common
+ import { IURITransformer } from '../../base/common/uriIpc.js';
+ import { getMachineId, getSqmMachineId, getdevDeviceId } from '../../base/node/id.js';
+ import { Promises } from '../../base/node/pfs.js';
+-import { ClientConnectionEvent, IMessagePassingProtocol, IPCServer, StaticRouter } from '../../base/parts/ipc/common/ipc.js';
++import { ClientConnectionEvent, IMessagePassingProtocol, IPCServer, ProxyChannel, StaticRouter } from '../../base/parts/ipc/common/ipc.js';
+ import { ProtocolConstants } from '../../base/parts/ipc/common/ipc.net.js';
+ import { IConfigurationService } from '../../platform/configuration/common/configuration.js';
+ import { ConfigurationService } from '../../platform/configuration/common/configurationService.js';
 @@ -243,6 +243,9 @@ export async function setupServerService
  		const channel = new ExtensionManagementChannel(extensionManagementService, (ctx: RemoteAgentConnectionContext) => getUriTransformer(ctx.remoteAuthority));
  		socketServer.registerChannel('extensions', channel);
@@ -51,9 +51,9 @@ Index: code-server/lib/vscode/src/vs/server/node/remoteLanguagePacks.ts
  
 +import { promises as fs } from 'fs';
 +import * as path from 'path';
- import { FileAccess } from 'vs/base/common/network';
- import { join } from 'vs/base/common/path';
- import type { INLSConfiguration } from 'vs/nls';
+ import { FileAccess } from '../../base/common/network.js';
+ import { join } from '../../base/common/path.js';
+ import type { INLSConfiguration } from '../../nls.js';
 @@ -33,7 +35,94 @@ export async function getNLSConfiguratio
  	if (!result) {
  		result = resolveNLSConfiguration({ userLocale: language, osLocale: language, commit: product.commit, userDataPath, nlsMetadataPath });
@@ -153,14 +153,14 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -26,6 +26,7 @@ import { URI } from 'vs/base/common/uri'
- import { streamToBuffer } from 'vs/base/common/buffer';
- import { IProductConfiguration } from 'vs/base/common/product';
- import { isString } from 'vs/base/common/types';
-+import { getLocaleFromConfig, getBrowserNLSConfiguration } from 'vs/server/node/remoteLanguagePacks';
- import { CharCode } from 'vs/base/common/charCode';
- import { IExtensionManifest } from 'vs/platform/extensions/common/extensions';
- import { isESM } from 'vs/base/common/amd';
+@@ -26,6 +26,7 @@ import { URI } from '../../base/common/u
+ import { streamToBuffer } from '../../base/common/buffer.js';
+ import { IProductConfiguration } from '../../base/common/product.js';
+ import { isString } from '../../base/common/types.js';
++import { getLocaleFromConfig, getBrowserNLSConfiguration } from './remoteLanguagePacks.js';
+ import { CharCode } from '../../base/common/charCode.js';
+ import { IExtensionManifest } from '../../platform/extensions/common/extensions.js';
+ import { isESM } from '../../base/common/amd.js';
 @@ -99,6 +100,7 @@ export class WebClientServer {
  	private readonly _webExtensionResourceUrlTemplate: URI | undefined;
  
@@ -222,46 +222,21 @@ Index: code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
  
  	/* ----- server setup ----- */
  
-Index: code-server/lib/vscode/src/vs/workbench/workbench.web.main.ts
-===================================================================
---- code-server.orig/lib/vscode/src/vs/workbench/workbench.web.main.ts
-+++ code-server/lib/vscode/src/vs/workbench/workbench.web.main.ts
-@@ -52,7 +52,7 @@ import 'vs/workbench/services/dialogs/br
- import 'vs/workbench/services/host/browser/browserHostService';
- import 'vs/workbench/services/lifecycle/browser/lifecycleService';
- import 'vs/workbench/services/clipboard/browser/clipboardService';
--import 'vs/workbench/services/localization/browser/localeService';
-+import 'vs/workbench/services/localization/electron-sandbox/localeService';
- import 'vs/workbench/services/path/browser/pathService';
- import 'vs/workbench/services/themes/browser/browserHostColorSchemeService';
- import 'vs/workbench/services/encryption/browser/encryptionService';
-@@ -118,8 +118,9 @@ registerSingleton(ILanguagePackService,
- // Logs
- import 'vs/workbench/contrib/logs/browser/logs.contribution';
- 
--// Localization
--import 'vs/workbench/contrib/localization/browser/localization.contribution';
-+// Localization.  This does not actually import anything specific to Electron so
-+// it should be safe.
-+import 'vs/workbench/contrib/localization/electron-sandbox/localization.contribution';
- 
- // Performance
- import 'vs/workbench/contrib/performance/browser/performance.web.contribution';
 Index: code-server/lib/vscode/src/vs/platform/languagePacks/browser/languagePacks.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/platform/languagePacks/browser/languagePacks.ts
 +++ code-server/lib/vscode/src/vs/platform/languagePacks/browser/languagePacks.ts
 @@ -5,18 +5,24 @@
  
- import { CancellationTokenSource } from 'vs/base/common/cancellation';
- import { URI } from 'vs/base/common/uri';
-+import { ProxyChannel } from 'vs/base/parts/ipc/common/ipc';
- import { IExtensionGalleryService } from 'vs/platform/extensionManagement/common/extensionManagement';
- import { IExtensionResourceLoaderService } from 'vs/platform/extensionResourceLoader/common/extensionResourceLoader';
--import { ILanguagePackItem, LanguagePackBaseService } from 'vs/platform/languagePacks/common/languagePacks';
-+import { ILanguagePackItem, ILanguagePackService, LanguagePackBaseService } from 'vs/platform/languagePacks/common/languagePacks';
- import { ILogService } from 'vs/platform/log/common/log';
-+import { IRemoteAgentService } from 'vs/workbench/services/remote/common/remoteAgentService';
+ import { CancellationTokenSource } from '../../../base/common/cancellation.js';
+ import { URI } from '../../../base/common/uri.js';
++import { ProxyChannel } from '../../../base/parts/ipc/common/ipc.js';
+ import { IExtensionGalleryService } from '../../extensionManagement/common/extensionManagement.js';
+ import { IExtensionResourceLoaderService } from '../../extensionResourceLoader/common/extensionResourceLoader.js';
+-import { ILanguagePackItem, LanguagePackBaseService } from '../common/languagePacks.js';
++import { ILanguagePackItem, ILanguagePackService, LanguagePackBaseService } from '../common/languagePacks.js';
+ import { ILogService } from '../../log/common/log.js';
++import { IRemoteAgentService } from '../../../workbench/services/remote/common/remoteAgentService.js';
  
  export class WebLanguagePacksService extends LanguagePackBaseService {
 +	private readonly languagePackService: ILanguagePackService;
@@ -313,7 +288,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/extensions/browser/extens
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/contrib/extensions/browser/extensionsActions.ts
 +++ code-server/lib/vscode/src/vs/workbench/contrib/extensions/browser/extensionsActions.ts
-@@ -411,9 +411,6 @@ export class InstallAction extends Exten
+@@ -433,9 +433,6 @@ export class InstallAction extends Exten
  		if (this.extension.isBuiltin) {
  			return;
  		}
@@ -323,7 +298,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/extensions/browser/extens
  		if (this.extension.state !== ExtensionState.Uninstalled) {
  			return;
  		}
-@@ -695,7 +692,7 @@ export abstract class InstallInOtherServ
+@@ -740,7 +737,7 @@ export abstract class InstallInOtherServ
  		}
  
  		if (isLanguagePackExtension(this.extension.local.manifest)) {
@@ -332,7 +307,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/extensions/browser/extens
  		}
  
  		// Prefers to run on UI
-@@ -1951,17 +1948,6 @@ export class SetLanguageAction extends E
+@@ -2001,17 +1998,6 @@ export class SetLanguageAction extends E
  	update(): void {
  		this.enabled = false;
  		this.class = SetLanguageAction.DisabledClass;
@@ -350,7 +325,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/extensions/browser/extens
  	}
  
  	override async run(): Promise<any> {
-@@ -1978,7 +1964,6 @@ export class ClearLanguageAction extends
+@@ -2028,7 +2014,6 @@ export class ClearLanguageAction extends
  	private static readonly DisabledClass = `${this.EnabledClass} disabled`;
  
  	constructor(
@@ -358,7 +333,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/extensions/browser/extens
  		@ILocaleService private readonly localeService: ILocaleService,
  	) {
  		super(ClearLanguageAction.ID, ClearLanguageAction.TITLE.value, ClearLanguageAction.DisabledClass, false);
-@@ -1988,17 +1973,6 @@ export class ClearLanguageAction extends
+@@ -2038,17 +2023,6 @@ export class ClearLanguageAction extends
  	update(): void {
  		this.enabled = false;
  		this.class = ClearLanguageAction.DisabledClass;
@@ -388,3 +363,16 @@ Index: code-server/lib/vscode/build/gulpfile.reh.js
  
  	// Process monitor
  	'out-build/vs/base/node/cpuUsage.sh',
+Index: code-server/lib/vscode/src/vs/workbench/workbench.web.main.internal.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/workbench/workbench.web.main.internal.ts
++++ code-server/lib/vscode/src/vs/workbench/workbench.web.main.internal.ts
+@@ -52,7 +52,7 @@ import './services/dialogs/browser/fileD
+ import './services/host/browser/browserHostService.js';
+ import './services/lifecycle/browser/lifecycleService.js';
+ import './services/clipboard/browser/clipboardService.js';
+-import './services/localization/browser/localeService.js';
++import './services/localization/electron-sandbox/localeService.js';
+ import './services/path/browser/pathService.js';
+ import './services/themes/browser/browserHostColorSchemeService.js';
+ import './services/encryption/browser/encryptionService.js';

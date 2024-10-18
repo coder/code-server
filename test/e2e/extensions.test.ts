@@ -11,11 +11,9 @@ function runTestExtensionTests() {
     await codeServerPage.waitForTestExtensionLoaded()
     await codeServerPage.executeCommandViaMenus("code-server: Get proxy URI")
 
-    await codeServerPage.page.waitForSelector("text=proxyUri", { timeout: 3000 })
-    const text = await codeServerPage.page.locator("text=proxyUri").first().textContent()
-    // Remove end slash in address
+    // Remove end slash in address.
     const normalizedAddress = address.replace(/\/+$/, "")
-    expect(text).toBe(`Info: proxyUri: ${normalizedAddress}/proxy/{{port}}/`)
+    await codeServerPage.page.getByText(`Info: proxyUri: ${normalizedAddress}/proxy/{{port}}/`)
   })
 }
 

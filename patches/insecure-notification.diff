@@ -17,9 +17,9 @@ Index: code-server/lib/vscode/src/vs/workbench/browser/client.ts
 --- code-server.orig/lib/vscode/src/vs/workbench/browser/client.ts
 +++ code-server/lib/vscode/src/vs/workbench/browser/client.ts
 @@ -1,7 +1,10 @@
- import { Disposable } from 'vs/base/common/lifecycle';
-+import { localize } from 'vs/nls';
-+import { INotificationService, Severity } from 'vs/platform/notification/common/notification';
+ import { Disposable } from "../../base/common/lifecycle.js";
++import { localize } from '../../nls.js';
++import { INotificationService, Severity } from '../../platform/notification/common/notification.js';
  
  export class CodeServerClient extends Disposable {
  	constructor (

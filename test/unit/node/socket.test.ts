@@ -61,7 +61,7 @@ describe("SocketProxyProvider", () => {
         resolved[type] = true
         if (resolved.client && resolved.server) {
           // We don't need any more connections.
-          main.close() // eslint-disable-line @typescript-eslint/no-use-before-define
+          main.close()
           _resolve()
         }
       }

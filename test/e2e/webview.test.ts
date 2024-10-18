@@ -18,11 +18,8 @@ describe("Webviews", ["--disable-workspace-trust"], {}, () => {
 
     // It's an iframe within an iframe
     // so we have to do .frameLocator twice
-    const renderedText = await codeServerPage.page
-      .frameLocator("iframe.webview.ready")
-      .frameLocator("#active-frame")
-      .locator("text=Hello world")
-
-    expect(renderedText).toBeVisible
+    await expect(
+      codeServerPage.page.frameLocator("iframe.webview.ready").frameLocator("#active-frame").getByText("Hello world"),
+    ).toBeVisible()
   })
 })

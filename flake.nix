@@ -8,11 +8,19 @@
       (system:
         let pkgs = nixpkgs.legacyPackages.${system};
             nodejs = pkgs.nodejs_20;
-            yarn' = pkgs.yarn.override { inherit nodejs; };
         in {
           devShells.default = pkgs.mkShell {
             nativeBuildInputs = with pkgs; [
-              nodejs yarn' python3 pkg-config git rsync jq moreutils quilt bats openssl
+              nodejs
+              python3
+              pkg-config
+              git
+              rsync
+              jq
+              moreutils
+              quilt
+              bats
+              openssl
             ];
             buildInputs = with pkgs; (lib.optionals (!stdenv.isDarwin) [ libsecret libkrb5 ]
                           ++ (with xorg; [ libX11 libxkbfile ])

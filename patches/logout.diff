@@ -20,7 +20,7 @@ Index: code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
 +++ code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
-@@ -15,6 +15,7 @@ import { URI } from 'vs/base/common/uri'
+@@ -15,6 +15,7 @@ import { URI } from '../../base/common/u
  export const serverOptions: OptionDescriptions<Required<ServerParsedArgs>> = {
  	/* ----- code-server ----- */
  	'disable-update-check': { type: 'boolean' },
@@ -53,14 +53,14 @@ Index: code-server/lib/vscode/src/vs/workbench/browser/client.ts
 --- code-server.orig/lib/vscode/src/vs/workbench/browser/client.ts
 +++ code-server/lib/vscode/src/vs/workbench/browser/client.ts
 @@ -1,11 +1,15 @@
- import { Disposable } from 'vs/base/common/lifecycle';
- import { localize } from 'vs/nls';
-+import { MenuId, MenuRegistry } from 'vs/platform/actions/common/actions';
-+import { CommandsRegistry } from 'vs/platform/commands/common/commands';
- import { ILogService } from 'vs/platform/log/common/log';
- import { INotificationService, Severity } from 'vs/platform/notification/common/notification';
- import { IProductService } from 'vs/platform/product/common/productService';
- import { IStorageService, StorageScope, StorageTarget } from 'vs/platform/storage/common/storage';
+ import { Disposable } from "../../base/common/lifecycle.js";
+ import { localize } from '../../nls.js';
++import { MenuId, MenuRegistry } from '../../platform/actions/common/actions.js';
++import { CommandsRegistry } from '../../platform/commands/common/commands.js';
+ import { ILogService } from '../../platform/log/common/log.js';
+ import { INotificationService, Severity } from '../../platform/notification/common/notification.js';
+ import { IProductService } from '../../platform/product/common/productService.js';
+ import { IStorageService, StorageScope, StorageTarget } from '../../platform/storage/common/storage.js';
  
  export class CodeServerClient extends Disposable {
 +	static LOGOUT_COMMAND_ID = 'code-server.logout';

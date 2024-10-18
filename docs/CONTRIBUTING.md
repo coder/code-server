@@ -35,7 +35,7 @@ Here is what is needed:
 - `node` v20.x
 - `git` v2.x or greater
 - [`git-lfs`](https://git-lfs.github.com)
-- [`yarn`](https://classic.yarnpkg.com/en/)
+- [`npm`](https://www.npmjs.com/)
   - Used to install JS packages and run scripts
 - [`nfpm`](https://nfpm.goreleaser.com/)
   - Used to build `.deb` and `.rpm` packages
@@ -70,8 +70,8 @@ for more information.
 1. `git clone https://github.com/coder/code-server.git` - Clone `code-server`
 2. `git submodule update --init` - Clone `vscode` submodule
 3. `quilt push -a` - Apply patches to the `vscode` submodule.
-4. `yarn` - Install dependencies
-5. `yarn watch` - Launch code-server localhost:8080. code-server will be live
+4. `npm install` - Install dependencies
+5. `npm run watch` - Launch code-server localhost:8080. code-server will be live
    reloaded when changes are made; the browser needs to be refreshed manually.
 
 When pulling down changes that include modifications to the patches you will
@@ -102,7 +102,7 @@ commits first if you are doing this).
    but the lines changed, update the patch with `quilt refresh`. If there are
    conflicts, then force apply with `quilt push -f`, manually add back the
    rejected code, then run `quilt refresh`.
-4. From the code-server **project root**, run `yarn install`.
+4. From the code-server **project root**, run `npm install`.
 5. Check the Node.js version that's used by Electron (which is shipped with VS
    Code. If necessary, update our version of Node.js to match.
 
@@ -127,14 +127,14 @@ You can build a full production as follows:
 ```shell
 git submodule update --init
 quilt push -a
-yarn install
-yarn build
-VERSION=0.0.0 yarn build:vscode
-yarn release
+npm install
+npm run build
+VERSION=0.0.0 npm run build:vscode
+npm run release
 ```
 
 This does not keep `node_modules`. If you want them to be kept, use
-`KEEP_MODULES=1 yarn release`
+`KEEP_MODULES=1 npm run release`
 
 Run your build:
 
@@ -148,9 +148,9 @@ node .
 Then, to build the release package:
 
 ```shell
-yarn release:standalone
-yarn test:integration
-yarn package
+npm run release:standalone
+npm run test:integration
+npm run package
 ```
 
 > On Linux, the currently running distro will become the minimum supported
@@ -170,9 +170,9 @@ writing, we do this for the following platforms/architectures:
 - Linux armhf.rpm
 - macOS arm64.tar.gz
 
-Currently, these are compiled in CI using the `yarn release:standalone` command
-in the `release.yaml` workflow. We then upload them to the draft release and
-distribute via GitHub Releases.
+Currently, these are compiled in CI using the `npm run release:standalone`
+command in the `release.yaml` workflow. We then upload them to the draft release
+and distribute via GitHub Releases.
 
 ### Troubleshooting
 
@@ -226,7 +226,7 @@ We use these to test anything related to our scripts (most of which live under
 
 ### Integration tests
 
-These are a work in progress. We build code-server and run tests with `yarn
+These are a work in progress. We build code-server and run tests with `npm run
 test:integration`, which ensures that code-server builds work on their
 respective platforms.
 

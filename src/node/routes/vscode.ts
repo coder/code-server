@@ -41,19 +41,25 @@ export interface IVSCodeServerAPI {
  */
 export type VSCodeModule = {
   // See ../../../lib/vscode/src/server-main.js:339.
-  loadCodeWithNls(): {
+  loadCodeWithNls(): Promise<{
     // See ../../../lib/vscode/src/vs/server/node/server.main.ts:72.
     createServer(address: string | net.AddressInfo | null, args: CodeArgs): Promise<IVSCodeServerAPI>
     // See ../../../lib/vscode/src/vs/server/node/server.main.ts:65.
     spawnCli(args: CodeArgs): Promise<void>
-  }
+  }>
 }
 
 /**
  * Load then create the VS Code server.
  */
 async function loadVSCode(req: express.Request): Promise<IVSCodeServerAPI> {
-  const mod = require(path.join(vsRootPath, "out/server-main")) as VSCodeModule
+  // Since server-main.js is an ES module, we have to use `import`.  However,
+  // tsc will transpile this to `require` unless we change our module type,
+  // which will also require that we switch to ESM, since a hybrid approach
+  // breaks importing `rotating-file-stream` for some reason.  To work around
+  // this, use `eval` for now, but we should consider switching to ESM.
+  const modPath = path.join(vsRootPath, "out/server-main.js")
+  const mod = (await eval(`import("${modPath}")`)) as VSCodeModule
   const serverModule = await mod.loadCodeWithNls()
   return serverModule.createServer(null, {
     ...(await toCodeArgs(req.args)),
