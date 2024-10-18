@@ -138,8 +138,6 @@ jobs:
             package-lock.json
             test/package-lock.json
 
-      - run: SKIP_SUBMODULE_DEPS=1 npm ci
-
       - name: Install cross-compiler and system dependencies
         run: |
           dpkg --add-architecture $TARGET_ARCH
@@ -153,6 +151,8 @@ jobs:
             ca-certificates \
             curl wget rsync gettext-base \
             python3
+
+      - run: SKIP_SUBMODULE_DEPS=1 npm ci
 
       - name: Install nfpm
         run: |
