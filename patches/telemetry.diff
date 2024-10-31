@@ -134,7 +134,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -320,6 +320,8 @@ export class WebClientServer {
+@@ -319,6 +319,8 @@ export class WebClientServer {
  				scope: vscodeBase + '/',
  				path: base + '/_static/out/browser/serviceWorker.js',
  			},

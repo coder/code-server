@@ -71,7 +71,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -315,6 +315,7 @@ export class WebClientServer {
+@@ -314,6 +314,7 @@ export class WebClientServer {
  			rootEndpoint: base,
  			updateEndpoint: !this._environmentService.args['disable-update-check'] ? base + '/update/check' : undefined,
  			logoutEndpoint: this._environmentService.args['auth'] && this._environmentService.args['auth'] !== "none" ? base + '/logout' : undefined,
@@ -104,7 +104,7 @@ Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench.ts
  import type { IURLCallbackProvider } from '../../../workbench/services/url/browser/urlService.js';
  import { create } from '../../../workbench/workbench.web.main.internal.js';
  
-@@ -571,6 +572,39 @@ class WorkspaceProvider implements IWork
+@@ -584,6 +585,39 @@ class WorkspaceProvider implements IWork
  		settingsSyncOptions: config.settingsSyncOptions ? { enabled: config.settingsSyncOptions.enabled, } : undefined,
  		workspaceProvider: WorkspaceProvider.create(config),
  		urlCallbackProvider: new LocalStorageURLCallbackProvider(config.callbackRoute),
