@@ -24,7 +24,7 @@ concurrency:
 jobs:
   prettier:
     name: Format with Prettier
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     timeout-minutes: 5
     steps:
       - name: Checkout repo
@@ -37,7 +37,7 @@ jobs:
 
   doctoc:
     name: Doctoc markdown files
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     timeout-minutes: 5
     steps:
       - name: Checkout repo
@@ -68,7 +68,7 @@ jobs:
 
   lint-helm:
     name: Lint Helm chart
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     timeout-minutes: 5
     steps:
       - name: Checkout repo
@@ -97,7 +97,7 @@ jobs:
 
   lint-ts:
     name: Lint TypeScript files
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     timeout-minutes: 5
     steps:
       - name: Checkout repo
@@ -146,7 +146,7 @@ jobs:
 
   test-unit:
     name: Run unit tests
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     timeout-minutes: 5
     steps:
       - name: Checkout repo
@@ -187,7 +187,7 @@ jobs:
 
   build:
     name: Build code-server
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     timeout-minutes: 60
     env:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
@@ -269,7 +269,7 @@ jobs:
   test-e2e:
     name: Run e2e tests
     needs: build
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     timeout-minutes: 25
     steps:
       - name: Checkout repo
@@ -318,7 +318,7 @@ jobs:
   test-e2e-proxy:
     name: Run e2e tests behind proxy
     needs: build
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     timeout-minutes: 25
     steps:
       - name: Checkout repo
