@@ -110,7 +110,7 @@ Index: code-server/lib/vscode/src/vs/server/node/server.cli.ts
  			return true;
  		default:
  			return false;
-@@ -293,6 +294,23 @@ export async function main(desc: Product
+@@ -293,6 +294,22 @@ export async function main(desc: Product
  			}
  		}
  	} else {
@@ -119,7 +119,6 @@ Index: code-server/lib/vscode/src/vs/server/node/server.cli.ts
 +				console.error("stdin has a tty.");
 +				return;
 +			}
-+			const fs = require("fs");
 +			const stdinBuffer = fs.readFileSync(0); // STDIN_FILENO = 0
 +			const clipboardContent = stdinBuffer.toString();
 +			sendToPipe({
