@@ -105,7 +105,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -313,6 +313,7 @@ export class WebClientServer {
+@@ -312,6 +312,7 @@ export class WebClientServer {
  		const productConfiguration = {
  			codeServerVersion: this._productService.codeServerVersion,
  			rootEndpoint: base,

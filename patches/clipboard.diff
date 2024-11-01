@@ -10,8 +10,8 @@ Index: code-server/lib/vscode/src/vs/workbench/api/browser/mainThreadCLICommands
  import { CommandsRegistry, ICommandService } from '../../../platform/commands/common/commands.js';
  import { IExtensionGalleryService, IExtensionManagementService } from '../../../platform/extensionManagement/common/extensionManagement.js';
  import { ExtensionManagementCLI } from '../../../platform/extensionManagement/common/extensionManagementCLI.js';
-@@ -89,6 +90,11 @@ CommandsRegistry.registerCommand('_remot
- 	return lines.join('\n');
+@@ -95,6 +96,11 @@ CommandsRegistry.registerCommand('_remot
+ 
  });
  
 +CommandsRegistry.registerCommand('_remoteCLI.setClipboard', function (accessor: ServicesAccessor, content: string) {
@@ -102,7 +102,7 @@ Index: code-server/lib/vscode/src/vs/server/node/server.cli.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/server.cli.ts
 +++ code-server/lib/vscode/src/vs/server/node/server.cli.ts
-@@ -75,6 +75,7 @@ const isSupportedForPipe = (optionId: ke
+@@ -76,6 +76,7 @@ const isSupportedForPipe = (optionId: ke
  		case 'verbose':
  		case 'remote':
  		case 'locate-shell-integration-path':
@@ -110,7 +110,7 @@ Index: code-server/lib/vscode/src/vs/server/node/server.cli.ts
  			return true;
  		default:
  			return false;
-@@ -292,6 +293,23 @@ export async function main(desc: Product
+@@ -293,6 +294,22 @@ export async function main(desc: Product
  			}
  		}
  	} else {
@@ -119,7 +119,6 @@ Index: code-server/lib/vscode/src/vs/server/node/server.cli.ts
 +				console.error("stdin has a tty.");
 +				return;
 +			}
-+			const fs = require("fs");
 +			const stdinBuffer = fs.readFileSync(0); // STDIN_FILENO = 0
 +			const clipboardContent = stdinBuffer.toString();
 +			sendToPipe({

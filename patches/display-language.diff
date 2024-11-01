@@ -160,8 +160,8 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 +import { getLocaleFromConfig, getBrowserNLSConfiguration } from './remoteLanguagePacks.js';
  import { CharCode } from '../../base/common/charCode.js';
  import { IExtensionManifest } from '../../platform/extensions/common/extensions.js';
- import { isESM } from '../../base/common/amd.js';
-@@ -99,6 +100,7 @@ export class WebClientServer {
+ import { ICSSDevelopmentService } from '../../platform/cssDev/node/cssDevService.js';
+@@ -98,6 +99,7 @@ export class WebClientServer {
  	private readonly _webExtensionResourceUrlTemplate: URI | undefined;
  
  	private readonly _staticRoute: string;
@@ -169,7 +169,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
  	private readonly _callbackRoute: string;
  	private readonly _webExtensionRoute: string;
  
-@@ -114,6 +116,7 @@ export class WebClientServer {
+@@ -113,6 +115,7 @@ export class WebClientServer {
  	) {
  		this._webExtensionResourceUrlTemplate = this._productService.extensionsGallery?.resourceUrlTemplate ? URI.parse(this._productService.extensionsGallery.resourceUrlTemplate) : undefined;
  
@@ -177,7 +177,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
  		this._staticRoute = `${serverRootPath}/static`;
  		this._callbackRoute = `${serverRootPath}/callback`;
  		this._webExtensionRoute = `/web-extension-resource`;
-@@ -352,14 +355,22 @@ export class WebClientServer {
+@@ -351,14 +354,22 @@ export class WebClientServer {
  		};
  
  		const cookies = cookie.parse(req.headers.cookie || '');
@@ -355,7 +355,7 @@ Index: code-server/lib/vscode/build/gulpfile.reh.js
 ===================================================================
 --- code-server.orig/lib/vscode/build/gulpfile.reh.js
 +++ code-server/lib/vscode/build/gulpfile.reh.js
-@@ -59,6 +59,7 @@ const serverResourceIncludes = [
+@@ -58,6 +58,7 @@ const serverResourceIncludes = [
  
  	// NLS
  	'out-build/nls.messages.json',

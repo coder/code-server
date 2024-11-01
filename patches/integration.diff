@@ -3,11 +3,13 @@ Prepare Code for integration with code-server
 1. We already have the arguments so allow passing them in.  There is also a
    slight change in a few directories to preserve the directory structure we
    have been using and to not override passed-in arguments.
-2. Modify the terminal environment to filter out code-server environment variables.
-3. Add the code-server version to the help dialog.
-4. Add ready events for use in an iframe.
-5. Add our icons.
-6. Use our own manifest.
+2. Modify the entry point to allow importing the code, instead of just running
+   the server immediately.
+3. Modify the terminal environment to filter out code-server environment variables.
+4. Add the code-server version to the help dialog.
+5. Add ready events for use in an iframe.
+6. Add our icons and remove the existing ones.
+7. Use our own manifest.
 
 Index: code-server/lib/vscode/src/vs/server/node/server.main.ts
 ===================================================================
@@ -22,7 +24,7 @@ Index: code-server/lib/vscode/src/vs/server/node/server.main.ts
  import product from '../../platform/product/common/product.js';
  import * as perf from '../../base/common/performance.js';
  
-@@ -34,38 +34,43 @@ const errorReporter: ErrorReporter = {
+@@ -34,38 +34,47 @@ const errorReporter: ErrorReporter = {
  	}
  };
  
@@ -78,7 +80,7 @@ Index: code-server/lib/vscode/src/vs/server/node/server.main.ts
   */
 -export function spawnCli() {
 -	runCli(args, REMOTE_DATA_FOLDER, serverOptions);
-+export function spawnCli(args = parse()): Promise<void> {
++function spawnCli(args = parse()): Promise<void> {
 +	return runCli(args, createDirs(args), serverOptions);
  }
  
@@ -87,9 +89,13 @@ Index: code-server/lib/vscode/src/vs/server/node/server.main.ts
   */
 -export function createServer(address: string | net.AddressInfo | null): Promise<IServerAPI> {
 -	return doCreateServer(address, args, REMOTE_DATA_FOLDER);
-+export function createServer(address: string | net.AddressInfo | null, args = parse()): Promise<IServerAPI> {
++function createServer(address: string | net.AddressInfo | null, args = parse()): Promise<IServerAPI> {
 +	return doCreateServer(address, args, createDirs(args));
  }
++
++// The aliases prevent the names getting mangled during minification which would
++// make it difficult to import.
++export { spawnCli as spawnCli, createServer as createServer };
 Index: code-server/lib/vscode/src/vs/base/common/processes.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/base/common/processes.ts
@@ -221,19 +227,18 @@ Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench-dev.html
  
  		<!-- Disable pinch zooming -->
  		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
-@@ -26,9 +27,9 @@
+@@ -26,8 +27,9 @@
  		<meta id="vscode-workbench-builtin-extensions" data-settings="{{WORKBENCH_BUILTIN_EXTENSIONS}}">
  
  		<!-- Workbench Icon/Manifest/CSS -->
 -		<link rel="icon" href="{{WORKBENCH_WEB_BASE_URL}}/resources/server/favicon.ico" type="image/x-icon" />
 -		<link rel="manifest" href="{{WORKBENCH_WEB_BASE_URL}}/resources/server/manifest.json" crossorigin="use-credentials" />
--
 +		<link rel="icon" href="/_static/src/browser/media/favicon-dark-support.svg" />
 +		<link rel="alternate icon" href="/_static/src/browser/media/favicon.ico" type="image/x-icon" />
 +		<link rel="manifest" href="/manifest.json" crossorigin="use-credentials" />
- 	</head>
+ 		<style id="vscode-css-modules" type="text/css" media="screen"></style>
  
- 	<body aria-label="">
+ 	</head>
 Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench.html
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/code/browser/workbench/workbench.html
@@ -257,14 +262,14 @@ Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench.html
 +		<link rel="icon" href="/_static/src/browser/media/favicon-dark-support.svg" />
 +		<link rel="alternate icon" href="/_static/src/browser/media/favicon.ico" type="image/x-icon" />
 +		<link rel="manifest" href="/manifest.json" crossorigin="use-credentials" />
- 		<link data-name="vs/workbench/workbench.web.main" rel="stylesheet" href="{{WORKBENCH_WEB_BASE_URL}}/out/vs/workbench/workbench.web.main.css">
+ 		<link rel="stylesheet" href="{{WORKBENCH_WEB_BASE_URL}}/out/vs/code/browser/workbench/workbench.css">
  
  	</head>
 Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -309,6 +309,7 @@ export class WebClientServer {
+@@ -308,6 +308,7 @@ export class WebClientServer {
  		} : undefined;
  
  		const productConfiguration = {
@@ -272,21 +277,53 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
  			embedderIdentifier: 'server-distro',
  			extensionsGallery: this._webExtensionResourceUrlTemplate && this._productService.extensionsGallery ? {
  				...this._productService.extensionsGallery,
-Index: code-server/lib/vscode/src/server-main.js
+Index: code-server/lib/vscode/src/server-main.ts
 ===================================================================
---- code-server.orig/lib/vscode/src/server-main.js
-+++ code-server/lib/vscode/src/server-main.js
-@@ -339,4 +339,15 @@ function prompt(question) {
+--- code-server.orig/lib/vscode/src/server-main.ts
++++ code-server/lib/vscode/src/server-main.ts
+@@ -25,6 +25,9 @@ const __dirname = path.dirname(fileURLTo
+ perf.mark('code/server/start');
+ (globalThis as any).vscodeServerStartTime = performance.now();
+ 
++// This is not indented to make the diff less noisy.  We need to move this out
++// of the top-level so it will not run immediately and we can control the start.
++async function start() {
+ // Do a quick parse to determine if a server or the cli needs to be started
+ const parsedArgs = minimist(process.argv.slice(2), {
+ 	boolean: ['start-server', 'list-extensions', 'print-ip-address', 'help', 'version', 'accept-server-license-terms', 'update-extensions'],
+@@ -153,6 +156,7 @@ if (shouldSpawnCli) {
+ 		}
  	});
  }
++}
  
--start();
+ function sanitizeStringArg(val: any): string | undefined {
+ 	if (Array.isArray(val)) { // if an argument is passed multiple times, minimist creates an array
+@@ -228,7 +232,6 @@ async function findFreePort(host: string
+ }
+ 
+ async function loadCode(nlsConfiguration: INLSConfiguration) {
+-
+ 	// required for `bootstrap-esm` to pick up NLS messages
+ 	process.env['VSCODE_NLS_CONFIG'] = JSON.stringify(nlsConfiguration);
+ 
+@@ -283,3 +286,22 @@ function prompt(question: string): Promi
+ 		});
+ 	});
+ }
++
 +async function loadCodeWithNls() {
-+	const nlsConfiguration = await resolveNLSConfiguration({ userLocale: 'en', osLocale: 'en', commit: product.commit, userDataPath: '', nlsMetadataPath: __dirname });
++	const nlsConfiguration = await resolveNLSConfiguration({
++		userLocale: 'en',
++		osLocale: 'en',
++		commit: product.commit,
++		userDataPath: '',
++		nlsMetadataPath: __dirname,
++	});
 +	return loadCode(nlsConfiguration);
 +}
 +
-+// This alias prevents the name getting mangled during obfuscation which would
++// This alias prevents the name getting mangled during minification which would
 +// make it difficult to import.
 +export { loadCodeWithNls as loadCodeWithNls };
 +
