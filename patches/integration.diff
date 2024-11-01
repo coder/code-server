@@ -24,7 +24,7 @@ Index: code-server/lib/vscode/src/vs/server/node/server.main.ts
  import product from '../../platform/product/common/product.js';
  import * as perf from '../../base/common/performance.js';
  
-@@ -34,38 +34,43 @@ const errorReporter: ErrorReporter = {
+@@ -34,38 +34,47 @@ const errorReporter: ErrorReporter = {
  	}
  };
  
@@ -80,7 +80,7 @@ Index: code-server/lib/vscode/src/vs/server/node/server.main.ts
   */
 -export function spawnCli() {
 -	runCli(args, REMOTE_DATA_FOLDER, serverOptions);
-+export function spawnCli(args = parse()): Promise<void> {
++function spawnCli(args = parse()): Promise<void> {
 +	return runCli(args, createDirs(args), serverOptions);
  }
  
@@ -89,9 +89,13 @@ Index: code-server/lib/vscode/src/vs/server/node/server.main.ts
   */
 -export function createServer(address: string | net.AddressInfo | null): Promise<IServerAPI> {
 -	return doCreateServer(address, args, REMOTE_DATA_FOLDER);
-+export function createServer(address: string | net.AddressInfo | null, args = parse()): Promise<IServerAPI> {
++function createServer(address: string | net.AddressInfo | null, args = parse()): Promise<IServerAPI> {
 +	return doCreateServer(address, args, createDirs(args));
  }
++
++// The aliases prevent the names getting mangled during minification which would
++// make it difficult to import.
++export { spawnCli as spawnCli, createServer as createServer };
 Index: code-server/lib/vscode/src/vs/base/common/processes.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/base/common/processes.ts
@@ -319,7 +323,7 @@ Index: code-server/lib/vscode/src/server-main.ts
 +	return loadCode(nlsConfiguration);
 +}
 +
-+// This alias prevents the name getting mangled during obfuscation which would
++// This alias prevents the name getting mangled during minification which would
 +// make it difficult to import.
 +export { loadCodeWithNls as loadCodeWithNls };
 +
