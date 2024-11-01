@@ -299,15 +299,7 @@ Index: code-server/lib/vscode/src/server-main.ts
  
  function sanitizeStringArg(val: any): string | undefined {
  	if (Array.isArray(val)) { // if an argument is passed multiple times, minimist creates an array
-@@ -228,7 +232,6 @@ async function findFreePort(host: string
- }
- 
- async function loadCode(nlsConfiguration: INLSConfiguration) {
--
- 	// required for `bootstrap-esm` to pick up NLS messages
- 	process.env['VSCODE_NLS_CONFIG'] = JSON.stringify(nlsConfiguration);
- 
-@@ -283,3 +286,22 @@ function prompt(question: string): Promi
+@@ -283,3 +287,22 @@ function prompt(question: string): Promi
  		});
  	});
  }
