@@ -50,6 +50,7 @@ export const runCodeCli = async (args: DefaultedArgs): Promise<void> => {
   logger.debug("Running Code CLI")
   try {
     // See vscode.loadVSCode for more on this jank.
+    process.env.CODE_SERVER_PARENT_PID = process.pid.toString()
     const modPath = path.join(vsRootPath, "out/server-main.js")
     const mod = (await eval(`import("${modPath}")`)) as VSCodeModule
     const serverModule = await mod.loadCodeWithNls()
