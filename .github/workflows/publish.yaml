@@ -86,7 +86,6 @@ jobs:
         run: ./ci/steps/brew-bump.sh
 
   aur:
-    needs: npm
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
