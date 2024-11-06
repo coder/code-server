@@ -142,7 +142,8 @@ main() {
 
   # Since the dev builds are scoped to @coder
   # We pass --access public to ensure npm knows it's not private.
-  npm publish --non-interactive release --tag "$NPM_TAG" --access public
+  cd release
+  npm publish --tag "$NPM_TAG" --access public
 }
 
 main "$@"
