@@ -35,8 +35,9 @@ spec:
       securityContext:
         fsGroup: {{ .Values.securityContext.fsGroup }}
       {{- end }}
-      {{- if and .Values.volumePermissions.enabled .Values.persistence.enabled }}
+      {{- if or (and .Values.volumePermissions.enabled .Values.persistence.enabled) .Values.extraInitContainers }}
       initContainers:
+      {{- if and .Values.volumePermissions.enabled .Values.persistence.enabled }}
       - name: init-chmod-data
         image: busybox:latest
         imagePullPolicy: IfNotPresent
@@ -50,6 +51,7 @@ spec:
         volumeMounts:
         - name: data
           mountPath: /home/coder
+      {{- end }}
 {{- if .Values.extraInitContainers }}
 {{ tpl .Values.extraInitContainers . | indent 6}}
 {{- end }}
