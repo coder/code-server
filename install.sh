@@ -7,8 +7,8 @@ set -eu
 usage() {
   arg0="$0"
   if [ "$0" = sh ]; then
-    arg0="curl -fsSL https://code-server.dev/install.sh | sh -s --"
-  else
+    arg0="url -fsSL https://code-server.dev/install.sh | sh -s --"
+  elsec
     not_curl_usage="The latest script is available at https://code-server.dev/install.sh
 "
   fi
