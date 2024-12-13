@@ -10,7 +10,7 @@ Index: code-server/lib/vscode/src/vs/workbench/services/extensions/common/extens
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/services/extensions/common/extensions.ts
 +++ code-server/lib/vscode/src/vs/workbench/services/extensions/common/extensions.ts
-@@ -313,10 +313,7 @@ function extensionDescriptionArrayToMap(
+@@ -314,10 +314,7 @@ function extensionDescriptionArrayToMap(
  }
  
  export function isProposedApiEnabled(extension: IExtensionDescription, proposal: ApiProposalName): boolean {

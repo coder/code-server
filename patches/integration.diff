@@ -113,7 +113,7 @@ Index: code-server/lib/vscode/src/vs/workbench/browser/parts/dialogs/dialogHandl
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/browser/parts/dialogs/dialogHandler.ts
 +++ code-server/lib/vscode/src/vs/workbench/browser/parts/dialogs/dialogHandler.ts
-@@ -77,8 +77,11 @@ export class BrowserDialogHandler extend
+@@ -78,8 +78,11 @@ export class BrowserDialogHandler extend
  
  	async about(): Promise<void> {
  		const detailString = (useAgo: boolean): string => {

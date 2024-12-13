@@ -28,7 +28,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/welcomeGettingStarted/bro
  import { IEditorOpenContext, IEditorSerializer } from '../../../common/editor.js';
  import { IWebviewElement, IWebviewService } from '../../webview/browser/webview.js';
  import './gettingStartedColors.js';
-@@ -826,6 +826,72 @@ export class GettingStartedPage extends
+@@ -834,6 +834,72 @@ export class GettingStartedPage extends
  			$('p.subtitle.description', {}, localize({ key: 'gettingStarted.editingEvolved', comment: ['Shown as subtitle on the Welcome page.'] }, "Editing evolved"))
  		);
  
@@ -101,7 +101,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/welcomeGettingStarted/bro
  		const leftColumn = $('.categories-column.categories-column-left', {},);
  		const rightColumn = $('.categories-column.categories-column-right', {},);
  
-@@ -861,6 +927,9 @@ export class GettingStartedPage extends
+@@ -869,6 +935,9 @@ export class GettingStartedPage extends
  				recentList.setLimit(5);
  				reset(leftColumn, startList.getDomElement(), recentList.getDomElement());
  			}
@@ -234,7 +234,7 @@ Index: code-server/lib/vscode/src/vs/workbench/common/contextkeys.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/common/contextkeys.ts
 +++ code-server/lib/vscode/src/vs/workbench/common/contextkeys.ts
-@@ -42,6 +42,7 @@ export const EmbedderIdentifierContext =
+@@ -43,6 +43,7 @@ export const EmbedderIdentifierContext =
  
  export const IsEnabledFileDownloads = new RawContextKey<boolean>('isEnabledFileDownloads', true, true);
  export const IsEnabledFileUploads = new RawContextKey<boolean>('isEnabledFileUploads', true, true);
