@@ -165,14 +165,14 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/files/browser/fileActions
 +++ code-server/lib/vscode/src/vs/workbench/contrib/files/browser/fileActions.contribution.ts
 @@ -20,7 +20,7 @@ import { CLOSE_SAVED_EDITORS_COMMAND_ID,
  import { AutoSaveAfterShortDelayContext } from '../../../services/filesConfiguration/common/filesConfigurationService.js';
- import { WorkbenchListDoubleSelection, WorkbenchTreeFindOpen } from '../../../../platform/list/browser/listService.js';
+ import { WorkbenchListDoubleSelection } from '../../../../platform/list/browser/listService.js';
  import { Schemas } from '../../../../base/common/network.js';
 -import { DirtyWorkingCopiesContext, EnterMultiRootWorkspaceSupportContext, HasWebFileSystemAccess, WorkbenchStateContext, WorkspaceFolderCountContext, SidebarFocusContext, ActiveEditorCanRevertContext, ActiveEditorContext, ResourceContextKey, ActiveEditorAvailableEditorIdsContext, MultipleEditorsSelectedInGroupContext, TwoEditorsSelectedInGroupContext, SelectedEditorsInGroupFileOrUntitledResourceContextKey } from '../../../common/contextkeys.js';
 +import { IsEnabledFileDownloads, IsEnabledFileUploads, DirtyWorkingCopiesContext, EnterMultiRootWorkspaceSupportContext, HasWebFileSystemAccess, WorkbenchStateContext, WorkspaceFolderCountContext, SidebarFocusContext, ActiveEditorCanRevertContext, ActiveEditorContext, ResourceContextKey, ActiveEditorAvailableEditorIdsContext, MultipleEditorsSelectedInGroupContext, TwoEditorsSelectedInGroupContext, SelectedEditorsInGroupFileOrUntitledResourceContextKey } from '../../../common/contextkeys.js';
  import { IsWebContext } from '../../../../platform/contextkey/common/contextkeys.js';
  import { ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
  import { ThemeIcon } from '../../../../base/common/themables.js';
-@@ -572,13 +572,16 @@ MenuRegistry.appendMenuItem(MenuId.Explo
+@@ -571,13 +571,16 @@ MenuRegistry.appendMenuItem(MenuId.Explo
  		id: DOWNLOAD_COMMAND_ID,
  		title: DOWNLOAD_LABEL
  	},
@@ -196,7 +196,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/files/browser/fileActions
  	)
  }));
  
-@@ -590,6 +593,7 @@ MenuRegistry.appendMenuItem(MenuId.Explo
+@@ -589,6 +592,7 @@ MenuRegistry.appendMenuItem(MenuId.Explo
  		title: UPLOAD_LABEL,
  	},
  	when: ContextKeyExpr.and(
@@ -208,7 +208,7 @@ Index: code-server/lib/vscode/src/vs/workbench/common/contextkeys.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/common/contextkeys.ts
 +++ code-server/lib/vscode/src/vs/workbench/common/contextkeys.ts
-@@ -40,6 +40,9 @@ export const HasWebFileSystemAccess = ne
+@@ -41,6 +41,9 @@ export const HasWebFileSystemAccess = ne
  
  export const EmbedderIdentifierContext = new RawContextKey<string | undefined>('embedderIdentifier', undefined, localize('embedderIdentifier', 'The identifier of the embedder according to the product service, if one is defined'));
  
@@ -286,10 +286,10 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/files/browser/views/explo
  import { mainWindow } from '../../../../../base/browser/window.js';
  import { IExplorerFileContribution, explorerFileContribRegistry } from '../explorerFileContrib.js';
 +import { IBrowserWorkbenchEnvironmentService } from '../../../../services/environment/browser/environmentService.js';
- 
- export class ExplorerDelegate implements IListVirtualDelegate<ExplorerItem> {
- 
-@@ -1030,7 +1031,8 @@ export class FileDragAndDrop implements
+ import { WorkbenchCompressibleAsyncDataTree } from '../../../../../platform/list/browser/listService.js';
+ import { ISearchService, QueryType, getExcludes, ISearchConfiguration, ISearchComplete, IFileQuery } from '../../../../services/search/common/search.js';
+ import { CancellationToken } from '../../../../../base/common/cancellation.js';
+@@ -1601,7 +1602,8 @@ export class FileDragAndDrop implements
  		@IConfigurationService private configurationService: IConfigurationService,
  		@IInstantiationService private instantiationService: IInstantiationService,
  		@IWorkspaceEditingService private workspaceEditingService: IWorkspaceEditingService,
@@ -299,7 +299,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/files/browser/views/explo
  	) {
  		const updateDropEnablement = (e: IConfigurationChangeEvent | undefined) => {
  			if (!e || e.affectsConfiguration('explorer.enableDragAndDrop')) {
-@@ -1255,15 +1257,17 @@ export class FileDragAndDrop implements
+@@ -1826,15 +1828,17 @@ export class FileDragAndDrop implements
  
  			// External file DND (Import/Upload file)
  			if (data instanceof NativeDragAndDropData) {
