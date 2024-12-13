@@ -23,17 +23,25 @@ concurrency:
 
 jobs:
   prettier:
-    name: Format with Prettier
+    name: Run prettier check
     runs-on: ubuntu-22.04
     timeout-minutes: 5
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Run prettier with actionsx/prettier
-        uses: actionsx/prettier@v3
+      - name: Install Node.js
+        uses: actions/setup-node@v4
         with:
-          args: --check --log-level=warn .
+          node-version-file: .node-version
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            test/package-lock.json
+
+      - run: SKIP_SUBMODULE_DEPS=1 npm ci
+
+      - run: npx prettier --check .
 
   doctoc:
     name: Doctoc markdown files

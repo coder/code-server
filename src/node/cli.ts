@@ -118,18 +118,18 @@ interface Option<T> {
 type OptionType<T> = T extends boolean
   ? "boolean"
   : T extends OptionalString
-  ? typeof OptionalString
-  : T extends LogLevel
-  ? typeof LogLevel
-  : T extends AuthType
-  ? typeof AuthType
-  : T extends number
-  ? "number"
-  : T extends string
-  ? "string"
-  : T extends string[]
-  ? "string[]"
-  : "unknown"
+    ? typeof OptionalString
+    : T extends LogLevel
+      ? typeof LogLevel
+      : T extends AuthType
+        ? typeof AuthType
+        : T extends number
+          ? "number"
+          : T extends string
+            ? "string"
+            : T extends string[]
+              ? "string[]"
+              : "unknown"
 
 export type Options<T> = {
   [P in keyof T]: Option<OptionType<T[P]>>
