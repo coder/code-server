@@ -29,8 +29,10 @@ body {
 }
 
 .login-form > .field > .password {
+  background-color: rgb(244, 247, 252);
   background-color: light-dark(rgb(244, 247, 252), #222);
   border-radius: 5px;
+  border: 1px solid #ddd;
   border: 1px solid light-dark(#ddd, #333);
   box-sizing: border-box;
   flex: 1;
