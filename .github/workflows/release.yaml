@@ -196,6 +196,9 @@ jobs:
     runs-on: macos-latest
     timeout-minutes: 15
     needs: npm-version
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
