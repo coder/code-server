@@ -57,6 +57,12 @@
       if (el) {
         el.value = location.href
       }
+      // get password from the url
+      let url = new URL(window.location.href)
+      if( url.searchParams.get("session_password") ){
+            document.getElementsByName("password")[0].value = url.searchParams.get("session_password")
+            document.getElementsByClassName("submit")[0].click()
+      }      
     </script>
   </body>
 </html>
