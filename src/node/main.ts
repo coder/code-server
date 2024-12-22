@@ -142,6 +142,10 @@ export const runCodeServer = async (
     } else {
       logger.info(`    - Using password from ${args.config}`)
     }
+  } else if (args.auth === AuthType.HttpBasic) {
+    logger.info("  - HTTP basic authentication is enabled")
+    logger.info("    - Using user from $AUTH_USER")
+    logger.info("    - Using password from $PASSWORD")
   } else {
     logger.info("  - Authentication is disabled")
   }

@@ -112,6 +112,25 @@ export const ensureAuthenticated = async (
 }
 
 /**
+ * Validate basic auth credentials.
+ */
+const validateBasicAuth = (authHeader: string | undefined, authUser: string | undefined, authPassword: string | undefined): boolean => {
+  if (!authHeader?.startsWith('Basic ')) {
+    return false;
+  }
+
+  try {
+    const base64Credentials = authHeader.split(' ')[1];
+    const credentials = Buffer.from(base64Credentials, 'base64').toString('utf-8');
+    const [username, password] = credentials.split(':');
+    return username === authUser && password === authPassword;
+  } catch (error) {
+    logger.error('Error validating basic auth:' + error);
+    return false;
+  }
+};
+
+/**
  * Return true if authenticated via cookies.
  */
 export const authenticated = async (req: express.Request): Promise<boolean> => {
@@ -131,6 +150,9 @@ export const authenticated = async (req: express.Request): Promise<boolean> => {
       }
 
       return await isCookieValid(isCookieValidArgs)
+    }
+    case AuthType.HttpBasic: {
+      return validateBasicAuth(req.headers.authorization, req.args["auth-user"], req.args.password);
     }
     default: {
       throw new Error(`Unsupported auth type ${req.args.auth}`)

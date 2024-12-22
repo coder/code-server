@@ -12,6 +12,7 @@ export enum Feature {
 
 export enum AuthType {
   Password = "password",
+  HttpBasic = "http-basic",
   None = "none",
 }
 
@@ -65,6 +66,7 @@ export interface UserProvidedCodeArgs {
 export interface UserProvidedArgs extends UserProvidedCodeArgs {
   config?: string
   auth?: AuthType
+  "auth-user"?: string
   password?: string
   "hashed-password"?: string
   cert?: OptionalString
@@ -137,6 +139,10 @@ export type Options<T> = {
 
 export const options: Options<Required<UserProvidedArgs>> = {
   auth: { type: AuthType, description: "The type of authentication to use." },
+  "auth-user": {
+     type: "string", 
+     description: "The username for http-basic authentication."
+  },
   password: {
     type: "string",
     description: "The password for password authentication (can only be passed in via $PASSWORD or the config file).",
@@ -568,6 +574,10 @@ export async function setDefaults(cliArgs: UserProvidedArgs, configArgs?: Config
   let usingEnvPassword = !!process.env.PASSWORD
   if (process.env.PASSWORD) {
     args.password = process.env.PASSWORD
+  }
+  if (process.env.AUTH_USER) {
+    args["auth"] = AuthType.HttpBasic
+    args["auth-user"] = process.env.AUTH_USER
   }
 
   if (process.env.CS_DISABLE_FILE_DOWNLOADS?.match(/^(1|true)$/)) {
