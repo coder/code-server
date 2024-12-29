@@ -86,6 +86,7 @@
     "safe-buffer": "^5.2.1",
     "safe-compare": "^1.1.4",
     "semver": "^7.5.4",
+    "tslib": "^2.8.1",
     "ws": "^8.14.2",
     "xdg-basedir": "^4.0.0"
   },

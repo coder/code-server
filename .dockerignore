@@ -1,3 +1,6 @@
 **
 !release-packages
 !ci
+!release-standalone
+!startup.sh
+!install_locales.sh
