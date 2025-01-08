@@ -62,8 +62,7 @@ Proceed to [installing](#installing)
 ## Alpine
 
 ```bash
-apk add alpine-sdk bash libstdc++ libc6-compat
-npm config set python python3
+apk add alpine-sdk bash libstdc++ libc6-compat python3 krb5-dev
 ```
 
 Proceed to [installing](#installing)
