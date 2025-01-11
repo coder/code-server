@@ -9,6 +9,7 @@ import { commit, version, vsRootPath } from "./constants"
 import { register } from "./routes"
 import { VSCodeModule } from "./routes/vscode"
 import { isDirectory, open } from "./util"
+import * as os from "os"
 
 /**
  * Return true if the user passed an extension-related VS Code flag.
@@ -51,7 +52,11 @@ export const runCodeCli = async (args: DefaultedArgs): Promise<void> => {
   try {
     // See vscode.loadVSCode for more on this jank.
     process.env.CODE_SERVER_PARENT_PID = process.pid.toString()
-    const modPath = path.join(vsRootPath, "out/server-main.js")
+    let modPath = path.join(vsRootPath, "out/server-main.js")
+    if (os.platform() === "win32") {
+      // On Windows, absolute paths of ESM modules must be a valid file URI.
+      modPath = "file:///" + modPath.replace(/\\/g, "/")
+    }
     const mod = (await eval(`import("${modPath}")`)) as VSCodeModule
     const serverModule = await mod.loadCodeWithNls()
     await serverModule.spawnCli(await toCodeArgs(args))
