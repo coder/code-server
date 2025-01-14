@@ -271,9 +271,9 @@ should see OSSStatus: 9836 in the browser console.
 If you want to use external authentication mechanism (e.g., Sign in with
 Google), you can do this with a reverse proxy such as:
 
-- [Pomerium](https://www.pomerium.io/guides/code-server.html)
-- [oauth2_proxy](https://github.com/pusher/oauth2_proxy)
-- [Cloudflare Access](https://teams.cloudflare.com/access)
+- [Pomerium](https://www.pomerium.com/docs/guides/code-server.html)
+- [oauth2-proxy](https://oauth2-proxy.github.io/oauth2-proxy/)
+- [Cloudflare Access](https://www.cloudflare.com/en-gb/zero-trust/products/access/)
 
 ## HTTPS and self-signed certificates
 
