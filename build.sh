@@ -13,7 +13,7 @@
 
 # VERSION=4.96.2 npm run package
 # cd release
-# npm install --omit=dev 
+# npm install --omit=dev
 # cd ..
 # npm run release:standalone
 
@@ -40,6 +40,10 @@ docker build --no-cache \
 if [ -f "./node" ]; then
     mv ./node release-standalone/lib/node
 fi
+
+# Add "code" as symlink
+cd release-standalone/lib/vscode/bin/remote-cli/
+ln -s code-linux.sh code
 
 # Run like
 # docker run -it  -p 8081:8080 -e PASSWORD=your_secure_password123 -e PORT=8080  registry.goldenhelix.com/gh/code-server:20241223_895aa2908981 /home/ghuser/Workspace/
