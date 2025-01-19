@@ -6,6 +6,7 @@ import * as http from "http"
 import * as net from "net"
 import * as path from "path"
 import { WebsocketRequest } from "../../../typings/pluginapi"
+import { HttpCode, HttpError } from "../../common/http"
 import { logError } from "../../common/util"
 import { AuthType, CodeArgs, toCodeArgs } from "../cli"
 import { isDevMode, vsRootPath } from "../constants"
@@ -13,7 +14,6 @@ import { authenticated, ensureAuthenticated, ensureOrigin, redirect, replaceTemp
 import { SocketProxyProvider } from "../socket"
 import { isFile } from "../util"
 import { Router as WsRouter } from "../wsRouter"
-import { HttpCode, HttpError } from "../../common/http"
 
 export const router = express.Router()
 
@@ -121,9 +121,9 @@ router.get("/", ensureVSCodeLoaded, async (req, res, next) => {
   if (!isAuthenticated) {
     // If auth is HttpBasic, return a 401.
     if (req.args.auth === AuthType.HttpBasic) {
-      res.setHeader('WWW-Authenticate', 'Basic realm="Access to the site"')
+      res.setHeader("WWW-Authenticate", `Basic realm="${req.args["app-name"] || "code-server"}"`)
       throw new HttpError("Unauthorized", HttpCode.Unauthorized)
-    };
+    }
     const to = self(req)
     return redirect(req, res, "login", {
       to: to !== "/" ? to : undefined,

@@ -1,9 +1,9 @@
 import { Request, Router } from "express"
 import { HttpCode, HttpError } from "../../common/http"
+import { AuthType } from "../cli"
 import { getHost, ensureProxyEnabled, authenticated, ensureAuthenticated, ensureOrigin, redirect, self } from "../http"
 import { proxy } from "../proxy"
 import { Router as WsRouter } from "../wsRouter"
-import { AuthType } from "../cli"
 
 export const router = Router()
 
