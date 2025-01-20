@@ -1,5 +1,6 @@
 import { logger } from "@coder/logger"
 import { promises as fs } from "fs"
+import { wrapper } from "./wrapper"
 
 /**
  * Provides a heartbeat using a local file to indicate activity.
@@ -56,7 +57,7 @@ export class Heart {
       const timeSinceLastBeat = Date.now() - this.lastHeartbeat
       if (timeSinceLastBeat > this.idleTimeout! * 60 * 1000) {
         logger.warn(`Idle timeout of ${this.idleTimeout} minutes exceeded`)
-        process.kill(process.pid, "SIGTERM")
+        wrapper.exit(5)
       }
     }, 60000)
   }
