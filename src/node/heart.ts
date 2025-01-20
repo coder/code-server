@@ -11,6 +11,7 @@ export class Heart {
 
   public constructor(
     private readonly heartbeatPath: string,
+    private readonly idleTimeout: number | undefined,
     private readonly isActive: () => Promise<boolean>,
   ) {
     this.beat = this.beat.bind(this)
@@ -36,7 +37,10 @@ export class Heart {
     if (typeof this.heartbeatTimer !== "undefined") {
       clearTimeout(this.heartbeatTimer)
     }
-    this.heartbeatTimer = setTimeout(() => heartbeatTimer(this.isActive, this.beat), this.heartbeatInterval)
+    this.heartbeatTimer = setTimeout(
+      () => heartbeatTimer(this.isActive, this.beat, this.lastHeartbeat, this.idleTimeout),
+      this.heartbeatInterval
+    )
     try {
       return await fs.writeFile(this.heartbeatPath, "")
     } catch (error: any) {
@@ -61,8 +65,21 @@ export class Heart {
  *
  * Extracted to make it easier to test.
  */
-export async function heartbeatTimer(isActive: Heart["isActive"], beat: Heart["beat"]) {
+export async function heartbeatTimer(
+  isActive: Heart["isActive"],
+  beat: Heart["beat"],
+  lastHeartbeat: number,
+  idleTimeout?: number,
+) {
   try {
+    // Check for idle timeout first
+    if (idleTimeout) {
+      const timeSinceLastBeat = Date.now() - lastHeartbeat
+      if (timeSinceLastBeat > idleTimeout * 60 * 1000) {
+        logger.warn(`Idle timeout of ${idleTimeout} minutes exceeded`)
+        process.exit(0)
+      }
+    }
     if (await isActive()) {
       beat()
     }
