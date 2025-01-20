@@ -152,6 +152,10 @@ export const runCodeServer = async (
     logger.info("  - Not serving HTTPS")
   }
 
+  if (args["idle-timeout"]) {
+    logger.info(`  - Idle timeout set to ${args["idle-timeout"]} minutes`)
+  }
+
   if (args["disable-proxy"]) {
     logger.info("  - Proxy disabled")
   } else if (args["proxy-domain"].length > 0) {
