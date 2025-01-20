@@ -95,7 +95,7 @@ describe("heartbeatTimer", () => {
     const isActive = true
     const mockIsActive = jest.fn().mockResolvedValue(isActive)
     const mockBeatFn = jest.fn()
-    await heartbeatTimer(mockIsActive, mockBeatFn, 0)
+    await heartbeatTimer(mockIsActive, mockBeatFn)
     expect(mockIsActive).toHaveBeenCalled()
     expect(mockBeatFn).toHaveBeenCalled()
   })
@@ -104,7 +104,7 @@ describe("heartbeatTimer", () => {
     const error = new Error(errorMsg)
     const mockIsActive = jest.fn().mockRejectedValue(error)
     const mockBeatFn = jest.fn()
-    await heartbeatTimer(mockIsActive, mockBeatFn, 0)
+    await heartbeatTimer(mockIsActive, mockBeatFn)
     expect(mockIsActive).toHaveBeenCalled()
     expect(mockBeatFn).not.toHaveBeenCalled()
     expect(logger.warn).toHaveBeenCalledWith(errorMsg)

@@ -6,6 +6,7 @@ import { promises as fs } from "fs"
  */
 export class Heart {
   private heartbeatTimer?: NodeJS.Timeout
+  private idleCheckTimer?: NodeJS.Timeout
   private heartbeatInterval = 60000
   public lastHeartbeat = 0
 
@@ -16,6 +17,10 @@ export class Heart {
   ) {
     this.beat = this.beat.bind(this)
     this.alive = this.alive.bind(this)
+    // Start idle check timer if timeout is configured
+    if (this.idleTimeout) {
+      this.startIdleCheck()
+    }
   }
 
   public alive(): boolean {
@@ -37,15 +42,23 @@ export class Heart {
     if (typeof this.heartbeatTimer !== "undefined") {
       clearTimeout(this.heartbeatTimer)
     }
-    this.heartbeatTimer = setTimeout(
-      () => heartbeatTimer(this.isActive, this.beat, this.lastHeartbeat, this.idleTimeout),
-      this.heartbeatInterval
-    )
+    this.heartbeatTimer = setTimeout(() => heartbeatTimer(this.isActive, this.beat), this.heartbeatInterval)
     try {
       return await fs.writeFile(this.heartbeatPath, "")
     } catch (error: any) {
       logger.warn(error.message)
     }
+  }
+
+  private startIdleCheck(): void {
+    // Check every minute if the idle timeout has been exceeded
+    this.idleCheckTimer = setInterval(() => {
+      const timeSinceLastBeat = Date.now() - this.lastHeartbeat
+      if (timeSinceLastBeat > this.idleTimeout! * 60 * 1000) {
+        logger.warn(`Idle timeout of ${this.idleTimeout} minutes exceeded`)
+        process.kill(process.pid, "SIGTERM")
+      }
+    }, 60000)
   }
 
   /**
@@ -54,6 +67,9 @@ export class Heart {
   public dispose(): void {
     if (typeof this.heartbeatTimer !== "undefined") {
       clearTimeout(this.heartbeatTimer)
+    }
+    if (typeof this.idleCheckTimer !== "undefined") {
+      clearInterval(this.idleCheckTimer)
     }
   }
 }
@@ -65,21 +81,8 @@ export class Heart {
  *
  * Extracted to make it easier to test.
  */
-export async function heartbeatTimer(
-  isActive: Heart["isActive"],
-  beat: Heart["beat"],
-  lastHeartbeat: number,
-  idleTimeout?: number,
-) {
+export async function heartbeatTimer(isActive: Heart["isActive"], beat: Heart["beat"]) {
   try {
-    // Check for idle timeout first
-    if (idleTimeout) {
-      const timeSinceLastBeat = Date.now() - lastHeartbeat
-      if (timeSinceLastBeat > idleTimeout * 60 * 1000) {
-        logger.warn(`Idle timeout of ${idleTimeout} minutes exceeded`)
-        process.exit(0)
-      }
-    }
     if (await isActive()) {
       beat()
     }
