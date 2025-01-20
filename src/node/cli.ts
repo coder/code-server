@@ -35,6 +35,7 @@ export class OptionalString extends Optional<string> {}
  */
 export interface UserProvidedCodeArgs {
   "disable-telemetry"?: boolean
+  "allow-shutdown"?: boolean
   force?: boolean
   "user-data-dir"?: string
   "enable-proposed-api"?: string[]
@@ -164,6 +165,10 @@ export const options: Options<Required<UserProvidedArgs>> = {
   },
   "cert-key": { type: "string", path: true, description: "Path to certificate key when using non-generated cert." },
   "disable-telemetry": { type: "boolean", description: "Disable telemetry." },
+  "allow-shutdown": {
+    type: "boolean",
+    description: "Allow the server to be shut down remotely.",
+  },
   "disable-update-check": {
     type: "boolean",
     description:

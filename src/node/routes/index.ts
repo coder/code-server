@@ -170,6 +170,15 @@ export const register = async (app: App, args: DefaultedArgs): Promise<Disposabl
     app.router.all("/logout", (req, res) => redirect(req, res, "/", {}))
   }
 
+  if (args["allow-shutdown"] ) {
+    app.router.use("/shutdown", async (req, res) => {
+      res.send("Shutting down...")
+      process.exit(0)
+    })
+  } else {
+    app.router.use("/shutdown", (req, res) => redirect(req, res, "/", {}))
+  }
+
   app.router.use("/update", update.router)
 
   // Note that the root route is replaced in Coder Enterprise by the plugin API.
