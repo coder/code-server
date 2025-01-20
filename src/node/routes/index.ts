@@ -172,8 +172,8 @@ export const register = async (app: App, args: DefaultedArgs): Promise<Disposabl
 
   if (args["allow-shutdown"] ) {
     app.router.use("/shutdown", async (req, res) => {
-      res.send("Shutting down...")
-      process.exit(0)
+      res.send(`Shutting down...`)
+      process.kill(process.pid, "SIGTERM")
     })
   } else {
     app.router.use("/shutdown", (req, res) => redirect(req, res, "/", {}))
