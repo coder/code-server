@@ -30,13 +30,21 @@ body {
 
 .login-form > .field > .password {
   background-color: rgb(244, 247, 252);
-  background-color: light-dark(rgb(244, 247, 252), #222);
+  background-color: light-dark(rgb(244, 247, 252), #374151);
   border-radius: 5px;
   border: 1px solid #ddd;
-  border: 1px solid light-dark(#ddd, #333);
+  border: 1px solid light-dark(#ddd, #4b5563);
   box-sizing: border-box;
   flex: 1;
   padding: 16px;
+}
+
+.login-form > .field > .password::placeholder {
+  color:  rgb(148 163 184);
+}
+
+.login-form > .field > .password:focus {
+  outline: 2px solid rgb(63, 131, 248);  
 }
 
 .login-form > .user {

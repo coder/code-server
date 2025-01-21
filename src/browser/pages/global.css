@@ -11,7 +11,7 @@ body,
 
 body {
   background: rgb(244, 247, 252);
-  background: light-dark(rgb(244, 247, 252), #111);
+  background: light-dark(rgb(244, 247, 252), #111827);
   color: #111;
   color: light-dark(#111, #ddd);
   margin: 0;
@@ -29,14 +29,15 @@ button {
 
 .-button {
   background-color: rgb(87, 114, 245);
-  background-color: light-dark(rgb(87, 114, 245), rgb(50, 85, 250));
+  background-color: light-dark(rgb(87, 114, 245), rgb(26, 86, 219));
   border-radius: 5px;
   border: none;
   box-sizing: border-box;
   color: white;
-  color: light-dark(white, #ddd);
+  color: light-dark(white, white);
   cursor: pointer;
   padding: 18px 20px;
+  font-weight: 500;
   text-decoration: none;
 }
 
@@ -53,7 +54,7 @@ button {
 
 .card-box {
   background-color: rgb(250, 253, 258);
-  background-color: light-dark(rgb(250, 253, 258), #000);
+  background-color: light-dark(rgb(250, 253, 258), #1f2937);
   border-radius: 5px;
   box-shadow:
     rgba(60, 66, 87, 0.117647) 0px 7px 14px 0px,
@@ -64,9 +65,9 @@ button {
 
 .card-box > .header {
   border-bottom: 1px solid #ddd;
-  border-bottom: 1px solid light-dark(#ddd, #222);
+  border-bottom: 1px solid light-dark(#ddd, #1f2937);
   color: #444;
-  color: light-dark(#444, #ccc);
+  color: light-dark(#444, #fff);
   padding: 30px;
 }
 
@@ -77,7 +78,7 @@ button {
 
 .card-box > .header > .sub {
   color: #555;
-  color: light-dark(#555, #aaa);
+  color: light-dark(#555, #9ca3af);
   margin-top: 10px;
 }
 
