@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple ChatGPT</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f4f4f9;
+        }
+        h1 {
+            margin-bottom: 20px;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 10px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button.start {
+            background-color: #007bff;
+            color: white;
+        }
+        button.reset {
+            background-color: #ff4b5c;
+            color: white;
+        }
+        #chat {
+            width: 80%;
+            max-width: 600px;
+            height: 400px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            padding: 10px;
+            overflow-y: auto;
+            display: none;
+            background: white;
+        }
+        #input-container {
+            display: none;
+            margin-top: 10px;
+        }
+        #user-input {
+            width: calc(100% - 120px);
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        #send {
+            padding: 10px 20px;
+            font-size: 16px;
+            margin-left: 10px;
+            border: none;
+            background-color: #28a745;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Welcome to Simple ChatGPT</h1>
+    <button class="start" onclick="startChat()">Start Chat</button>
+    <button class="reset" onclick="resetChat()">Reset</button>
+
+    <div id="chat"></div>
+    <div id="input-container">
+        <input type="text" id="user-input" placeholder="Type your message...">
+        <button id="send" onclick="sendMessage()">Send</button>
+    </div>
+
+    <script>
+        const chatBox = document.getElementById('chat');
+        const inputContainer = document.getElementById('input-container');
+        const userInput = document.getElementById('user-input');
+
+        function startChat() {
+            chatBox.style.display = 'block';
+            inputContainer.style.display = 'flex';
+            chatBox.innerHTML = '<p><strong>ChatGPT:</strong> Hello! How can I assist you today?</p>';
+        }
+
+        function resetChat() {
+            chatBox.style.display = 'none';
+            inputContainer.style.display = 'none';
+            chatBox.innerHTML = '';
+            userInput.value = '';
+        }
+
+        function sendMessage() {
+            const userMessage = userInput.value.trim();
+            if (userMessage === '') return;
+
+            // Display user's message
+            chatBox.innerHTML += `<p><strong>You:</strong> ${userMessage}</p>`;
+            userInput.value = '';
+
+            // Simulate ChatGPT response (replace this with actual API call)
+            setTimeout(() => {
+                chatBox.innerHTML += `<p><strong>ChatGPT:</strong> ${generateResponse(userMessage)}</p>`;
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }, 1000);
+        }
+
+        function generateResponse(message) {
+            // Simple simulated response logic
+            return `You said: "${message}". How can I help further?`;
+        }
+    </script>
+</body>
+</html>
