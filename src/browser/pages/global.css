@@ -65,7 +65,7 @@ button {
 
 .card-box > .header {
   border-bottom: 1px solid #ddd;
-  border-bottom: 1px solid light-dark(#ddd, #111);
+  border-bottom: 1px solid light-dark(#ddd, #111827);
   color: #444;
   color: light-dark(#444, #fff);
   padding: 30px;
