@@ -40,11 +40,11 @@ body {
 }
 
 .login-form > .field > .password::placeholder {
-  color:  rgb(148 163 184);
+  color: rgb(148 163 184);
 }
 
 .login-form > .field > .password:focus {
-  outline: 2px solid rgb(63, 131, 248);  
+  outline: 2px solid rgb(63, 131, 248);
 }
 
 .login-form > .user {
