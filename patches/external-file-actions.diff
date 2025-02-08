@@ -99,7 +99,7 @@ Index: code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
  
  	/* ----- server setup ----- */
  
-@@ -99,6 +101,8 @@ export interface ServerParsedArgs {
+@@ -100,6 +102,8 @@ export interface ServerParsedArgs {
  	/* ----- code-server ----- */
  	'disable-update-check'?: boolean;
  	'auth'?: string;
@@ -112,9 +112,9 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -335,6 +335,8 @@ export class WebClientServer {
- 			serverBasePath: this._basePath,
- 			webviewEndpoint: vscodeBase + this._staticRoute + '/out/vs/workbench/contrib/webview/browser/pre',
+@@ -366,6 +366,8 @@ export class WebClientServer {
+ 			serverBasePath: basePath,
+ 			webviewEndpoint: vscodeBase + staticRoute + '/out/vs/workbench/contrib/webview/browser/pre',
  			userDataPath: this._environmentService.userDataPath,
 +			isEnabledFileDownloads: !this._environmentService.args['disable-file-downloads'],
 +			isEnabledFileUploads: !this._environmentService.args['disable-file-uploads'],
@@ -240,10 +240,10 @@ Index: code-server/lib/vscode/src/vs/workbench/services/dialogs/browser/simpleFi
  		@IRemoteAgentService private readonly remoteAgentService: IRemoteAgentService,
  		@IPathService protected readonly pathService: IPathService,
  		@IKeybindingService private readonly keybindingService: IKeybindingService,
-@@ -283,20 +283,22 @@ export class SimpleFileDialog extends Di
- 			this.filePickBox.sortByLabel = false;
+@@ -284,20 +284,22 @@ export class SimpleFileDialog extends Di
  			this.filePickBox.ignoreFocusOut = true;
  			this.filePickBox.ok = true;
+ 			this.filePickBox.okLabel = this.options.openLabel;
 -			if ((this.scheme !== Schemas.file) && this.options && this.options.availableFileSystems && (this.options.availableFileSystems.length > 1) && (this.options.availableFileSystems.indexOf(Schemas.file) > -1)) {
 -				this.filePickBox.customButton = true;
 -				this.filePickBox.customLabel = nls.localize('remoteFileDialog.local', 'Show Local');

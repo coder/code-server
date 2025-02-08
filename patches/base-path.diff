@@ -111,21 +111,15 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -271,16 +271,15 @@ export class WebClientServer {
- 			return void res.end();
- 		}
+@@ -285,10 +285,14 @@ export class WebClientServer {
+ 		};
  
--		const getFirstHeader = (headerName: string) => {
--			const val = req.headers[headerName];
--			return Array.isArray(val) ? val[0] : val;
--		};
--
  		const useTestResolver = (!this._environmentService.isBuilt && this._environmentService.args['use-test-resolver']);
 +		// For now we are getting the remote authority from the client to avoid
 +		// needing specific configuration for reverse proxies to work.  Set this to
 +		// something invalid to make sure we catch code that is using this value
 +		// from the backend when it should not.
- 		const remoteAuthority = (
+ 		let remoteAuthority = (
  			useTestResolver
  				? 'test+test'
 -				: (getFirstHeader('x-original-host') || getFirstHeader('x-forwarded-host') || req.headers.host)
@@ -133,7 +127,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
  		);
  		if (!remoteAuthority) {
  			return serveError(req, res, 400, `Bad request.`);
-@@ -307,8 +306,12 @@ export class WebClientServer {
+@@ -333,8 +337,12 @@ export class WebClientServer {
  			scopes: [['user:email'], ['repo']]
  		} : undefined;
  
@@ -146,30 +140,30 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
  			embedderIdentifier: 'server-distro',
  			extensionsGallery: this._webExtensionResourceUrlTemplate && this._productService.extensionsGallery ? {
  				...this._productService.extensionsGallery,
-@@ -337,7 +340,7 @@ export class WebClientServer {
+@@ -363,7 +371,7 @@ export class WebClientServer {
  			folderUri: resolveWorkspaceURI(this._environmentService.args['default-folder']),
  			workspaceUri: resolveWorkspaceURI(this._environmentService.args['default-workspace']),
  			productConfiguration,
--			callbackRoute: this._callbackRoute
-+			callbackRoute: vscodeBase + this._callbackRoute
+-			callbackRoute: callbackRoute
++			callbackRoute: vscodeBase + callbackRoute
  		};
  
  		const cookies = cookie.parse(req.headers.cookie || '');
-@@ -354,9 +357,11 @@ export class WebClientServer {
+@@ -380,9 +388,11 @@ export class WebClientServer {
  		const values: { [key: string]: string } = {
  			WORKBENCH_WEB_CONFIGURATION: asJSON(workbenchWebConfiguration),
  			WORKBENCH_AUTH_SESSION: authSessionInfo ? asJSON(authSessionInfo) : '',
--			WORKBENCH_WEB_BASE_URL: this._staticRoute,
-+			WORKBENCH_WEB_BASE_URL: vscodeBase + this._staticRoute,
+-			WORKBENCH_WEB_BASE_URL: staticRoute,
++			WORKBENCH_WEB_BASE_URL: vscodeBase + staticRoute,
  			WORKBENCH_NLS_URL,
--			WORKBENCH_NLS_FALLBACK_URL: `${this._staticRoute}/out/nls.messages.js`
-+			WORKBENCH_NLS_FALLBACK_URL: `${vscodeBase}${this._staticRoute}/out/nls.messages.js`,
+-			WORKBENCH_NLS_FALLBACK_URL: `${staticRoute}/out/nls.messages.js`
++			WORKBENCH_NLS_FALLBACK_URL: `${vscodeBase}${staticRoute}/out/nls.messages.js`,
 +			BASE: base,
 +			VS_BASE: vscodeBase,
  		};
  
  		// DEV ---------------------------------------------------------------------------------------
-@@ -393,7 +398,7 @@ export class WebClientServer {
+@@ -419,7 +429,7 @@ export class WebClientServer {
  			'default-src \'self\';',
  			'img-src \'self\' https: data: blob:;',
  			'media-src \'self\';',
@@ -178,7 +172,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
  			'child-src \'self\';',
  			`frame-src 'self' https://*.vscode-cdn.net data:;`,
  			'worker-src \'self\' data: blob:;',
-@@ -466,3 +471,70 @@ export class WebClientServer {
+@@ -492,3 +502,70 @@ export class WebClientServer {
  		return void res.end(data);
  	}
  }

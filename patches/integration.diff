@@ -113,7 +113,7 @@ Index: code-server/lib/vscode/src/vs/workbench/browser/parts/dialogs/dialogHandl
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/browser/parts/dialogs/dialogHandler.ts
 +++ code-server/lib/vscode/src/vs/workbench/browser/parts/dialogs/dialogHandler.ts
-@@ -78,8 +78,11 @@ export class BrowserDialogHandler extend
+@@ -77,8 +77,11 @@ export class BrowserDialogHandler extend
  
  	async about(): Promise<void> {
  		const detailString = (useAgo: boolean): string => {
@@ -187,10 +187,10 @@ Index: code-server/lib/vscode/src/vs/workbench/browser/web.main.ts
  import { IndexedDB } from '../../base/browser/indexedDB.js';
  import { WebFileSystemAccess } from '../../platform/files/browser/webFileSystemAccess.js';
 +import { CodeServerClient } from '../../workbench/browser/client.js';
- import { ITelemetryService } from '../../platform/telemetry/common/telemetry.js';
  import { IProgressService } from '../../platform/progress/common/progress.js';
  import { DelayedLogChannel } from '../services/output/common/delayedLogChannel.js';
-@@ -131,6 +132,9 @@ export class BrowserMain extends Disposa
+ import { dirname, joinPath } from '../../base/common/resources.js';
+@@ -130,6 +131,9 @@ export class BrowserMain extends Disposa
  		// Startup
  		const instantiationService = workbench.startup();
  
@@ -269,7 +269,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -308,6 +308,7 @@ export class WebClientServer {
+@@ -334,6 +334,7 @@ export class WebClientServer {
  		} : undefined;
  
  		const productConfiguration = {

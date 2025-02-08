@@ -18,10 +18,10 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -330,6 +330,7 @@ export class WebClientServer {
+@@ -361,6 +361,7 @@ export class WebClientServer {
  			remoteAuthority,
- 			serverBasePath: this._basePath,
- 			webviewEndpoint: vscodeBase + this._staticRoute + '/out/vs/workbench/contrib/webview/browser/pre',
+ 			serverBasePath: basePath,
+ 			webviewEndpoint: vscodeBase + staticRoute + '/out/vs/workbench/contrib/webview/browser/pre',
 +			userDataPath: this._environmentService.userDataPath,
  			_wrapWebWorkerExtHostInIframe,
  			developmentOptions: { enableSmokeTestDriver: this._environmentService.args['enable-smoke-test-driver'] ? true : undefined, logLevel: this._logService.getLevel() },
@@ -66,7 +66,7 @@ Index: code-server/lib/vscode/src/vs/workbench/services/configuration/browser/co
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/services/configuration/browser/configurationService.ts
 +++ code-server/lib/vscode/src/vs/workbench/services/configuration/browser/configurationService.ts
-@@ -145,8 +145,10 @@ export class WorkspaceService extends Di
+@@ -147,8 +147,10 @@ export class WorkspaceService extends Di
  		this.workspaceConfiguration = this._register(new WorkspaceConfiguration(configurationCache, fileService, uriIdentityService, logService));
  		this._register(this.workspaceConfiguration.onDidUpdateConfiguration(fromCache => {
  			this.onWorkspaceConfigurationChanged(fromCache).then(() => {
@@ -79,7 +79,7 @@ Index: code-server/lib/vscode/src/vs/workbench/services/configuration/browser/co
  			});
  		}));
  
-@@ -552,6 +554,12 @@ export class WorkspaceService extends Di
+@@ -555,6 +557,12 @@ export class WorkspaceService extends Di
  			previousFolders = this.workspace.folders;
  			this.workspace.update(workspace);
  		} else {
