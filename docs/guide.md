@@ -273,7 +273,7 @@ Google), you can do this with a reverse proxy such as:
 
 - [Pomerium](https://www.pomerium.com/docs/guides/code-server.html)
 - [oauth2-proxy](https://oauth2-proxy.github.io/oauth2-proxy/)
-- [Cloudflare Access](https://www.cloudflare.com/en-gb/zero-trust/products/access/)
+- [Cloudflare Access](https://www.cloudflare.com/zero-trust/products/access/)
 
 ## HTTPS and self-signed certificates
 
