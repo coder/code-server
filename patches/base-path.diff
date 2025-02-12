@@ -111,7 +111,18 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -285,10 +285,14 @@ export class WebClientServer {
+@@ -246,7 +246,9 @@ export class WebClientServer {
+ 		};
+ 
+ 		// Prefix routes with basePath for clients
+-		const basePath = getFirstHeader('x-forwarded-prefix') || this._basePath;
++		const rootBase = relativeRoot(getOriginalUrl(req))
++		const vscodeBase = relativePath(getOriginalUrl(req))
++		const basePath = vscodeBase || getFirstHeader('x-forwarded-prefix') || this._basePath;
+ 
+ 		const queryConnectionToken = parsedUrl.query[connectionTokenQueryName];
+ 		if (typeof queryConnectionToken === 'string') {
+@@ -285,10 +287,14 @@ export class WebClientServer {
  		};
  
  		const useTestResolver = (!this._environmentService.isBuilt && this._environmentService.args['use-test-resolver']);
@@ -127,43 +138,26 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
  		);
  		if (!remoteAuthority) {
  			return serveError(req, res, 400, `Bad request.`);
-@@ -333,8 +337,12 @@ export class WebClientServer {
- 			scopes: [['user:email'], ['repo']]
- 		} : undefined;
+@@ -335,6 +341,7 @@ export class WebClientServer {
  
-+		const base = relativeRoot(getOriginalUrl(req))
-+		const vscodeBase = relativePath(getOriginalUrl(req))
-+
  		const productConfiguration = {
  			codeServerVersion: this._productService.codeServerVersion,
-+			rootEndpoint: base,
++			rootEndpoint: rootBase,
  			embedderIdentifier: 'server-distro',
  			extensionsGallery: this._webExtensionResourceUrlTemplate && this._productService.extensionsGallery ? {
  				...this._productService.extensionsGallery,
-@@ -363,7 +371,7 @@ export class WebClientServer {
- 			folderUri: resolveWorkspaceURI(this._environmentService.args['default-folder']),
- 			workspaceUri: resolveWorkspaceURI(this._environmentService.args['default-workspace']),
- 			productConfiguration,
--			callbackRoute: callbackRoute
-+			callbackRoute: vscodeBase + callbackRoute
- 		};
- 
- 		const cookies = cookie.parse(req.headers.cookie || '');
-@@ -380,9 +388,11 @@ export class WebClientServer {
- 		const values: { [key: string]: string } = {
- 			WORKBENCH_WEB_CONFIGURATION: asJSON(workbenchWebConfiguration),
+@@ -382,7 +389,9 @@ export class WebClientServer {
  			WORKBENCH_AUTH_SESSION: authSessionInfo ? asJSON(authSessionInfo) : '',
--			WORKBENCH_WEB_BASE_URL: staticRoute,
-+			WORKBENCH_WEB_BASE_URL: vscodeBase + staticRoute,
+ 			WORKBENCH_WEB_BASE_URL: staticRoute,
  			WORKBENCH_NLS_URL,
 -			WORKBENCH_NLS_FALLBACK_URL: `${staticRoute}/out/nls.messages.js`
-+			WORKBENCH_NLS_FALLBACK_URL: `${vscodeBase}${staticRoute}/out/nls.messages.js`,
-+			BASE: base,
-+			VS_BASE: vscodeBase,
++			WORKBENCH_NLS_FALLBACK_URL: `${staticRoute}/out/nls.messages.js`,
++			BASE: rootBase,
++			VS_BASE: basePath,
  		};
  
  		// DEV ---------------------------------------------------------------------------------------
-@@ -419,7 +429,7 @@ export class WebClientServer {
+@@ -419,7 +428,7 @@ export class WebClientServer {
  			'default-src \'self\';',
  			'img-src \'self\' https: data: blob:;',
  			'media-src \'self\';',
@@ -172,7 +166,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
  			'child-src \'self\';',
  			`frame-src 'self' https://*.vscode-cdn.net data:;`,
  			'worker-src \'self\' data: blob:;',
-@@ -492,3 +502,70 @@ export class WebClientServer {
+@@ -492,3 +501,70 @@ export class WebClientServer {
  		return void res.end(data);
  	}
  }

@@ -161,15 +161,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
  import { CharCode } from '../../base/common/charCode.js';
  import { IExtensionManifest } from '../../platform/extensions/common/extensions.js';
  import { ICSSDevelopmentService } from '../../platform/cssDev/node/cssDevService.js';
-@@ -325,7 +326,6 @@ export class WebClientServer {
- 
- 		const staticRoute = posix.join(basePath, this._productPath, STATIC_PATH);
- 		const callbackRoute = posix.join(basePath, this._productPath, CALLBACK_PATH);
--		const webExtensionRoute = posix.join(basePath, this._productPath, WEB_EXTENSION_PATH);
- 
- 		const resolveWorkspaceURI = (defaultLocation?: string) => defaultLocation && URI.file(path.resolve(defaultLocation)).with({ scheme: Schemas.vscodeRemote, authority: remoteAuthority });
- 
-@@ -382,14 +382,22 @@ export class WebClientServer {
+@@ -380,14 +381,22 @@ export class WebClientServer {
  		};
  
  		const cookies = cookie.parse(req.headers.cookie || '');
