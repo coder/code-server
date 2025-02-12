@@ -114,7 +114,7 @@ Index: code-server/lib/vscode/src/vs/workbench/services/extensions/worker/webWor
  			default-src 'none';
  			child-src 'self' data: blob:;
 -			script-src 'self' 'unsafe-eval' 'sha256-cl8ijlOzEe+0GRCQNJQu2k6nUQ0fAYNYIuuKEm72JDs=' https: http://localhost:* blob:;
-+			script-src 'self' 'unsafe-eval' 'sha256-6eZXxikxkENULU0EOkVQSd4hglGixLg3Aow9psZ6u2Y=' https: http://localhost:* blob:;
++			script-src 'self' 'unsafe-eval' 'sha256-yhZXuB8LS6t73dvNg6rtLX8y4PHLnqRm5+6DdOGkOcw=' https: http://localhost:* blob:;
  			connect-src 'self' https: wss: http://localhost:* http://127.0.0.1:* ws://localhost:* ws://127.0.0.1:*;"/>
  	</head>
  	<body>
