@@ -161,23 +161,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
  import { CharCode } from '../../base/common/charCode.js';
  import { IExtensionManifest } from '../../platform/extensions/common/extensions.js';
  import { ICSSDevelopmentService } from '../../platform/cssDev/node/cssDevService.js';
-@@ -98,6 +99,7 @@ export class WebClientServer {
- 	private readonly _webExtensionResourceUrlTemplate: URI | undefined;
- 
- 	private readonly _staticRoute: string;
-+	private readonly _serverRoot: string;
- 	private readonly _callbackRoute: string;
- 	private readonly _webExtensionRoute: string;
- 
-@@ -113,6 +115,7 @@ export class WebClientServer {
- 	) {
- 		this._webExtensionResourceUrlTemplate = this._productService.extensionsGallery?.resourceUrlTemplate ? URI.parse(this._productService.extensionsGallery.resourceUrlTemplate) : undefined;
- 
-+		this._serverRoot = serverRootPath;
- 		this._staticRoute = `${serverRootPath}/static`;
- 		this._callbackRoute = `${serverRootPath}/callback`;
- 		this._webExtensionRoute = `/web-extension-resource`;
-@@ -351,14 +354,22 @@ export class WebClientServer {
+@@ -380,14 +381,22 @@ export class WebClientServer {
  		};
  
  		const cookies = cookie.parse(req.headers.cookie || '');
@@ -193,7 +177,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 +			try {
 +				const nlsFile = await getBrowserNLSConfiguration(locale, this._environmentService.userDataPath);
 +				WORKBENCH_NLS_URL = nlsFile
-+					? `${vscodeBase}${this._serverRoot}/vscode-remote-resource?path=${encodeURIComponent(nlsFile)}`
++					? `${vscodeBase}/vscode-remote-resource?path=${encodeURIComponent(nlsFile)}`
 +					: '';
 +			} catch (error) {
 +				console.error("Failed to generate translations", error);
@@ -214,7 +198,7 @@ Index: code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
  
  	/* ----- server setup ----- */
  
-@@ -105,6 +106,7 @@ export interface ServerParsedArgs {
+@@ -106,6 +107,7 @@ export interface ServerParsedArgs {
  	'disable-file-downloads'?: boolean;
  	'disable-file-uploads'?: boolean;
  	'disable-getting-started-override'?: boolean,

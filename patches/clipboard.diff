@@ -26,7 +26,7 @@ Index: code-server/lib/vscode/src/vs/workbench/api/node/extHostCLIServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/api/node/extHostCLIServer.ts
 +++ code-server/lib/vscode/src/vs/workbench/api/node/extHostCLIServer.ts
-@@ -43,7 +43,12 @@ export interface ExtensionManagementPipe
+@@ -44,7 +44,12 @@ export interface ExtensionManagementPipe
  	force?: boolean;
  }
  
@@ -40,7 +40,7 @@ Index: code-server/lib/vscode/src/vs/workbench/api/node/extHostCLIServer.ts
  
  export interface ICommandsExecuter {
  	executeCommand<T>(id: string, ...args: any[]): Promise<T>;
-@@ -105,6 +110,9 @@ export class CLIServerBase {
+@@ -106,6 +111,9 @@ export class CLIServerBase {
  					case 'extensionManagement':
  						returnObj = await this.manageExtensions(data);
  						break;
@@ -50,7 +50,7 @@ Index: code-server/lib/vscode/src/vs/workbench/api/node/extHostCLIServer.ts
  					default:
  						sendResponse(404, `Unknown message type: ${data.type}`);
  						break;
-@@ -172,6 +180,10 @@ export class CLIServerBase {
+@@ -173,6 +181,10 @@ export class CLIServerBase {
  		return await this._commands.executeCommand<string | undefined>('_remoteCLI.getSystemStatus');
  	}
  
@@ -78,7 +78,7 @@ Index: code-server/lib/vscode/src/vs/platform/environment/common/argv.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/platform/environment/common/argv.ts
 +++ code-server/lib/vscode/src/vs/platform/environment/common/argv.ts
-@@ -119,6 +119,7 @@ export interface NativeParsedArgs {
+@@ -121,6 +121,7 @@ export interface NativeParsedArgs {
  	sandbox?: boolean;
  
  	'enable-coi'?: boolean;
@@ -90,7 +90,7 @@ Index: code-server/lib/vscode/src/vs/platform/environment/node/argv.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/platform/environment/node/argv.ts
 +++ code-server/lib/vscode/src/vs/platform/environment/node/argv.ts
-@@ -90,6 +90,7 @@ export const OPTIONS: OptionDescriptions
+@@ -91,6 +91,7 @@ export const OPTIONS: OptionDescriptions
  	'user-data-dir': { type: 'string', cat: 'o', args: 'dir', description: localize('userDataDir', "Specifies the directory that user data is kept in. Can be used to open multiple distinct instances of Code.") },
  	'profile': { type: 'string', 'cat': 'o', args: 'profileName', description: localize('profileName', "Opens the provided folder or workspace with the given profile and associates the profile with the workspace. If the profile does not exist, a new empty one is created.") },
  	'help': { type: 'boolean', cat: 'o', alias: 'h', description: localize('help', "Print usage.") },
@@ -102,7 +102,7 @@ Index: code-server/lib/vscode/src/vs/server/node/server.cli.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/server.cli.ts
 +++ code-server/lib/vscode/src/vs/server/node/server.cli.ts
-@@ -76,6 +76,7 @@ const isSupportedForPipe = (optionId: ke
+@@ -77,6 +77,7 @@ const isSupportedForPipe = (optionId: ke
  		case 'verbose':
  		case 'remote':
  		case 'locate-shell-integration-path':
@@ -110,7 +110,7 @@ Index: code-server/lib/vscode/src/vs/server/node/server.cli.ts
  			return true;
  		default:
  			return false;
-@@ -293,6 +294,22 @@ export async function main(desc: Product
+@@ -295,6 +296,22 @@ export async function main(desc: Product
  			}
  		}
  	} else {
@@ -131,5 +131,5 @@ Index: code-server/lib/vscode/src/vs/server/node/server.cli.ts
 +		}
 +
  		if (parsedArgs.status) {
- 			sendToPipe({
+ 			await sendToPipe({
  				type: 'status'
