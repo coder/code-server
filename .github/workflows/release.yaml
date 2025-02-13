@@ -193,6 +193,67 @@ jobs:
 
   package-macos-amd64:
     name: x86-64 macOS build
+    runs-on: macos-13
+    timeout-minutes: 15
+    needs: npm-version
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            test/package-lock.json
+
+      - run: SKIP_SUBMODULE_DEPS=1 npm ci
+
+      - name: Install nfpm
+        run: |
+          mkdir -p ~/.local/bin
+          curl -sSfL https://github.com/goreleaser/nfpm/releases/download/v2.3.1/nfpm_2.3.1_`uname -s`_`uname -m`.tar.gz | tar -C ~/.local/bin -zxv nfpm
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      # The version of node-gyp we use depends on distutils but it was removed
+      # in Python 3.12.  It seems to be fixed in the latest node-gyp so when we
+      # next update Node we can probably remove this.  For now, install
+      # setuptools since it contains distutils.
+      - run: brew install python-setuptools
+
+      - name: Download npm package
+        uses: actions/download-artifact@v4
+        with:
+          name: npm-release-package
+
+      - run: tar -xzf package.tar.gz
+      - run: npm run release:standalone
+      - run: npm run test:native
+
+      # Strip out the v (v4.9.1 -> 4.9.1).
+      - name: Get and set VERSION
+        run: |
+          TAG="${{ inputs.version || github.ref_name }}"
+          echo "VERSION=${TAG#v}" >> $GITHUB_ENV
+
+      - name: Build packages with nfpm
+        env:
+          VERSION: ${{ env.VERSION }}
+        run: npm run package
+
+      - uses: softprops/action-gh-release@v1
+        with:
+          draft: true
+          discussion_category_name: "📣 Announcements"
+          files: ./release-packages/*
+
+  package-macos-arm64:
+    name: arm64 macOS build
     runs-on: macos-latest
     timeout-minutes: 15
     needs: npm-version
