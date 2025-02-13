@@ -19,6 +19,9 @@ nameOverride: ""
 fullnameOverride: ""
 hostnameOverride: ""
 
+# The existing secret to use for code-server authentication in the frontend. the password is stored in the secret under the key `password`
+# existingSecret: ""
+
 serviceAccount:
   # Specifies whether a service account should be created
   create: true
