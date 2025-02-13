@@ -299,7 +299,7 @@ Index: code-server/lib/vscode/src/server-main.ts
  
  function sanitizeStringArg(val: any): string | undefined {
  	if (Array.isArray(val)) { // if an argument is passed multiple times, minimist creates an array
-@@ -283,3 +287,22 @@ function prompt(question: string): Promi
+@@ -286,3 +290,22 @@ function prompt(question: string): Promi
  		});
  	});
  }
