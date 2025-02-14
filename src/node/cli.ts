@@ -12,6 +12,7 @@ export enum Feature {
 
 export enum AuthType {
   Password = "password",
+  HttpBasic = "http-basic",
   None = "none",
 }
 
@@ -65,6 +66,7 @@ export interface UserProvidedCodeArgs {
 export interface UserProvidedArgs extends UserProvidedCodeArgs {
   config?: string
   auth?: AuthType
+  "auth-user"?: string
   password?: string
   "hashed-password"?: string
   cert?: OptionalString
@@ -137,6 +139,10 @@ export type Options<T> = {
 
 export const options: Options<Required<UserProvidedArgs>> = {
   auth: { type: AuthType, description: "The type of authentication to use." },
+  "auth-user": {
+    type: "string",
+    description: "The username for http-basic authentication.",
+  },
   password: {
     type: "string",
     description: "The password for password authentication (can only be passed in via $PASSWORD or the config file).",
@@ -480,6 +486,7 @@ export interface DefaultedArgs extends ConfigArgs {
   "proxy-domain": string[]
   verbose: boolean
   usingEnvPassword: boolean
+  usingEnvAuthUser: boolean
   usingEnvHashedPassword: boolean
   "extensions-dir": string
   "user-data-dir": string
@@ -570,6 +577,14 @@ export async function setDefaults(cliArgs: UserProvidedArgs, configArgs?: Config
     args.password = process.env.PASSWORD
   }
 
+  const usingEnvAuthUser = !!process.env.AUTH_USER
+  if (process.env.AUTH_USER) {
+    args["auth"] = AuthType.HttpBasic
+    args["auth-user"] = process.env.AUTH_USER
+  } else if (args["auth-user"]) {
+    args["auth"] = AuthType.HttpBasic
+  }
+
   if (process.env.CS_DISABLE_FILE_DOWNLOADS?.match(/^(1|true)$/)) {
     args["disable-file-downloads"] = true
   }
@@ -621,6 +636,7 @@ export async function setDefaults(cliArgs: UserProvidedArgs, configArgs?: Config
   return {
     ...args,
     usingEnvPassword,
+    usingEnvAuthUser,
     usingEnvHashedPassword,
   } as DefaultedArgs // TODO: Technically no guarantee this is fulfilled.
 }

@@ -1,5 +1,6 @@
 import { Request, Router } from "express"
 import { HttpCode, HttpError } from "../../common/http"
+import { AuthType } from "../cli"
 import { getHost, ensureProxyEnabled, authenticated, ensureAuthenticated, ensureOrigin, redirect, self } from "../http"
 import { proxy } from "../proxy"
 import { Router as WsRouter } from "../wsRouter"
@@ -77,6 +78,10 @@ router.all(/.*/, async (req, res, next) => {
       // Let the login through.
       if (/\/login\/?/.test(req.path)) {
         return next()
+      }
+      // If auth is HttpBasic, return a 401.
+      if (req.args.auth === AuthType.HttpBasic) {
+        throw new HttpError("Unauthorized", HttpCode.Unauthorized)
       }
       // Redirect all other pages to the login.
       const to = self(req)
