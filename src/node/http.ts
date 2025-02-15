@@ -4,6 +4,7 @@ import * as expressCore from "express-serve-static-core"
 import * as http from "http"
 import * as net from "net"
 import * as qs from "qs"
+import safeCompare from "safe-compare"
 import { Disposable } from "../common/emitter"
 import { CookieKeys, HttpCode, HttpError } from "../common/http"
 import { normalize } from "../common/util"
@@ -20,6 +21,7 @@ import {
   escapeHtml,
   escapeJSON,
   splitOnFirstEquals,
+  isHashMatch,
 } from "./util"
 
 /**
@@ -112,6 +114,35 @@ export const ensureAuthenticated = async (
 }
 
 /**
+ * Validate basic auth credentials.
+ */
+const validateBasicAuth = async (
+  authHeader: string | undefined,
+  authUser: string | undefined,
+  authPassword: string | undefined,
+  hashedPassword: string | undefined,
+): Promise<boolean> => {
+  if (!authHeader?.startsWith("Basic ")) {
+    return false
+  }
+
+  try {
+    const base64Credentials = authHeader.split(" ")[1]
+    const credentials = Buffer.from(base64Credentials, "base64").toString("utf-8")
+    const [username, password] = credentials.split(":")
+    if (username !== authUser) return false
+    if (hashedPassword) {
+      return await isHashMatch(password, hashedPassword)
+    } else {
+      return safeCompare(password, authPassword || "")
+    }
+  } catch (error) {
+    logger.error("Error validating basic auth:" + error)
+    return false
+  }
+}
+
+/**
  * Return true if authenticated via cookies.
  */
 export const authenticated = async (req: express.Request): Promise<boolean> => {
@@ -131,6 +162,14 @@ export const authenticated = async (req: express.Request): Promise<boolean> => {
       }
 
       return await isCookieValid(isCookieValidArgs)
+    }
+    case AuthType.HttpBasic: {
+      return await validateBasicAuth(
+        req.headers.authorization,
+        req.args["auth-user"],
+        req.args.password,
+        req.args["hashed-password"],
+      )
     }
     default: {
       throw new Error(`Unsupported auth type ${req.args.auth}`)

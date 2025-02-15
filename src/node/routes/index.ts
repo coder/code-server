@@ -17,6 +17,7 @@ import { PluginAPI } from "../plugin"
 import { CoderSettings, SettingsProvider } from "../settings"
 import { UpdateProvider } from "../update"
 import { getMediaMime, paths } from "../util"
+import { wrapper } from "../wrapper"
 import * as apps from "./apps"
 import * as domainProxy from "./domainProxy"
 import { errorHandler, wsErrorHandler } from "./errors"
@@ -168,6 +169,16 @@ export const register = async (app: App, args: DefaultedArgs): Promise<Disposabl
   } else {
     app.router.all("/login", (req, res) => redirect(req, res, "/", {}))
     app.router.all("/logout", (req, res) => redirect(req, res, "/", {}))
+  }
+
+  if (args["allow-shutdown"] ) {
+    app.router.use("/shutdown", async (req, res) => {
+      redirect(req, res, "/", {})
+      logger.warn("Shutting down due to /shutdown")
+      setTimeout(() => wrapper.exit(0), 10)
+    })
+  } else {
+    app.router.use("/shutdown", (req, res) => redirect(req, res, "/", {}))
   }
 
   app.router.use("/update", update.router)
