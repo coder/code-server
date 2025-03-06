@@ -31,7 +31,10 @@ RUN sed -i "s/# en_US.UTF-8/en_US.UTF-8/" /etc/locale.gen \
   && locale-gen
 ENV LANG=en_US.UTF-8
 
-RUN adduser --gecos '' --disabled-password coder \
+RUN if grep -q 1000 /etc/passwd; then \
+    userdel -r "$(id -un 1000)"; \
+  fi \
+  && adduser --gecos '' --disabled-password coder \
   && echo "coder ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/nopasswd
 
 RUN ARCH="$(dpkg --print-architecture)" \
