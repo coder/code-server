@@ -138,7 +138,7 @@ export const runCodeServer = async (
 
   logger.info(`Using config file ${args.config}`)
   logger.info(`${protocol.toUpperCase()} server listening on ${serverAddress.toString()}`)
-  if (args.auth === AuthType.Password) {
+  if (args.auth === AuthType.Password || args.auth === AuthType.HttpBasic) {
     logger.info("  - Authentication is enabled")
     if (args.usingEnvPassword) {
       logger.info("    - Using password from $PASSWORD")
@@ -146,6 +146,13 @@ export const runCodeServer = async (
       logger.info("    - Using password from $HASHED_PASSWORD")
     } else {
       logger.info(`    - Using password from ${args.config}`)
+    }
+    if (args.auth === AuthType.HttpBasic) {
+      if (args.usingEnvAuthUser) {
+        logger.info("    - Using user from $AUTH_USER")
+      } else {
+        logger.info(`    - With user ${args["auth-user"]}`)
+      }
     }
   } else {
     logger.info("  - Authentication is disabled")
