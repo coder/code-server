@@ -208,7 +208,7 @@ Index: code-server/lib/vscode/src/vs/workbench/common/contextkeys.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/common/contextkeys.ts
 +++ code-server/lib/vscode/src/vs/workbench/common/contextkeys.ts
-@@ -41,6 +41,9 @@ export const HasWebFileSystemAccess = ne
+@@ -39,6 +39,9 @@ export const HasWebFileSystemAccess = ne
  
  export const EmbedderIdentifierContext = new RawContextKey<string | undefined>('embedderIdentifier', undefined, localize('embedderIdentifier', 'The identifier of the embedder according to the product service, if one is defined'));
  
@@ -231,7 +231,7 @@ Index: code-server/lib/vscode/src/vs/workbench/services/dialogs/browser/simpleFi
  import { IRemoteAgentService } from '../../remote/common/remoteAgentService.js';
  import { IContextKeyService, IContextKey, RawContextKey } from '../../../../platform/contextkey/common/contextkey.js';
  import { equalsIgnoreCase, format, startsWithIgnoreCase } from '../../../../base/common/strings.js';
-@@ -139,7 +139,7 @@ export class SimpleFileDialog extends Di
+@@ -144,7 +144,7 @@ export class SimpleFileDialog extends Di
  		@IFileDialogService private readonly fileDialogService: IFileDialogService,
  		@IModelService private readonly modelService: IModelService,
  		@ILanguageService private readonly languageService: ILanguageService,
@@ -240,7 +240,7 @@ Index: code-server/lib/vscode/src/vs/workbench/services/dialogs/browser/simpleFi
  		@IRemoteAgentService private readonly remoteAgentService: IRemoteAgentService,
  		@IPathService protected readonly pathService: IPathService,
  		@IKeybindingService private readonly keybindingService: IKeybindingService,
-@@ -284,20 +284,22 @@ export class SimpleFileDialog extends Di
+@@ -310,20 +310,22 @@ export class SimpleFileDialog extends Di
  			this.filePickBox.ignoreFocusOut = true;
  			this.filePickBox.ok = true;
  			this.filePickBox.okLabel = typeof this.options.openLabel === 'string' ? this.options.openLabel : this.options.openLabel?.withoutMnemonic;

@@ -18,7 +18,7 @@ Index: code-server/lib/vscode/src/vs/server/node/serverServices.ts
  import { ProtocolConstants } from '../../base/parts/ipc/common/ipc.net.js';
  import { IConfigurationService } from '../../platform/configuration/common/configuration.js';
  import { ConfigurationService } from '../../platform/configuration/common/configurationService.js';
-@@ -245,6 +245,9 @@ export async function setupServerService
+@@ -246,6 +246,9 @@ export async function setupServerService
  		const channel = new ExtensionManagementChannel(extensionManagementService, (ctx: RemoteAgentConnectionContext) => getUriTransformer(ctx.remoteAuthority));
  		socketServer.registerChannel('extensions', channel);
  
