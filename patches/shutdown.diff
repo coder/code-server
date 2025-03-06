@@ -1,0 +1,114 @@
+Add a File > Exit menu item and a command to shutdown the server.
+
+Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
++++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
+@@ -316,7 +316,8 @@ export class WebClientServer {
+ 			codeServerVersion: this._productService.codeServerVersion,
+ 			rootEndpoint: base,
+ 			updateEndpoint: !this._environmentService.args['disable-update-check'] ? base + '/update/check' : undefined,
+-			logoutEndpoint: this._environmentService.args['auth'] && this._environmentService.args['auth'] !== "none" ? base + '/logout' : undefined,
++			logoutEndpoint: this._environmentService.args['auth'] && this._environmentService.args['auth'] !== "none" && this._environmentService.args['auth'] !== "http-basic"  ? base + '/logout' : undefined,
++			shutdownEndpoint: this._environmentService.args['allow-shutdown'] ? base + '/shutdown' : undefined,
+ 			proxyEndpointTemplate: process.env.VSCODE_PROXY_URI ?? base + '/proxy/{{port}}/',
+ 			serviceWorker: {
+ 				scope: vscodeBase + '/',
+Index: code-server/lib/vscode/src/vs/base/common/product.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/base/common/product.ts
++++ code-server/lib/vscode/src/vs/base/common/product.ts
+@@ -59,6 +59,7 @@ export interface IProductConfiguration {
+ 	readonly rootEndpoint?: string
+ 	readonly updateEndpoint?: string
+ 	readonly logoutEndpoint?: string
++	readonly shutdownEndpoint?: string
+ 	readonly proxyEndpointTemplate?: string
+ 	readonly serviceWorker?: {
+ 		readonly path: string;
+Index: code-server/lib/vscode/src/vs/workbench/browser/client.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/workbench/browser/client.ts
++++ code-server/lib/vscode/src/vs/workbench/browser/client.ts
+@@ -9,6 +9,7 @@ import { IStorageService, StorageScope,
+
+ export class CodeServerClient extends Disposable {
+ 	static LOGOUT_COMMAND_ID = 'code-server.logout';
++	static SHUTDOWN_COMMAND_ID = 'code-server.shutdown';
+
+ 	constructor (
+ 		@ILogService private logService: ILogService,
+@@ -90,6 +91,10 @@ export class CodeServerClient extends Di
+ 			this.addLogoutCommand(this.productService.logoutEndpoint);
+ 		}
+
++		if (this.productService.shutdownEndpoint) {
++			this.addShutdownCommand(this.productService.shutdownEndpoint);
++		}
++
+ 		if (this.productService.serviceWorker) {
+ 			await this.registerServiceWorker(this.productService.serviceWorker);
+ 		}
+@@ -164,6 +169,22 @@ export class CodeServerClient extends Di
+ 				},
+ 			});
+ 		}
++	}
++
++	private addShutdownCommand(shutdownEndpoint: string) {
++		CommandsRegistry.registerCommand(CodeServerClient.SHUTDOWN_COMMAND_ID, () => {
++			const shutdownUrl = new URL(shutdownEndpoint, window.location.href);
++			window.location.assign(shutdownUrl);
++		});
++
++		for (const menuId of [MenuId.CommandPalette, MenuId.MenubarHomeMenu]) {
++			MenuRegistry.appendMenuItem(menuId, {
++				command: {
++					id: CodeServerClient.SHUTDOWN_COMMAND_ID,
++					title: localize('exit', "Exit"),
++				},
++			});
++		}
+ 	}
+
+ 	private async registerServiceWorker(serviceWorker: { path: string; scope: string }) {
+Index: code-server/src/node/routes/index.ts
+===================================================================
+--- code-server.orig/src/node/routes/index.ts
++++ code-server/src/node/routes/index.ts
+@@ -170,6 +170,15 @@ export const register = async (app: App,
+     app.router.all("/logout", (req, res) => redirect(req, res, "/", {}))
+   }
+
++  if (args["allow-shutdown"] ) {
++    app.router.use("/shutdown", async (req, res) => {
++      res.send("Shutting down...")
++      process.exit(0)
++    })
++  } else {
++    app.router.use("/shutdown", (req, res) => redirect(req, res, "/", {}))
++  }
++
+   app.router.use("/update", update.router)
+
+   // Note that the root route is replaced in Coder Enterprise by the plugin API.
+Index: code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
++++ code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
+@@ -16,6 +16,8 @@ export const serverOptions: OptionDescri
+ 	/* ----- code-server ----- */
+ 	'disable-update-check': { type: 'boolean' },
+ 	'auth': { type: 'string' },
++	'allow-shutdown': { type: 'boolean' },
+ 	'disable-file-downloads': { type: 'boolean' },
+ 	'disable-file-uploads': { type: 'boolean' },
+ 	'disable-getting-started-override': { type: 'boolean' },
+@@ -103,6 +105,8 @@ export interface ServerParsedArgs {
+ 	/* ----- code-server ----- */
+ 	'disable-update-check'?: boolean;
+ 	'auth'?: string;
++	'allow-shutdown'?: boolean;
+ 	'disable-file-downloads'?: boolean;
+ 	'disable-file-uploads'?: boolean;
+ 	'disable-getting-started-override'?: boolean,

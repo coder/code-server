@@ -7,8 +7,9 @@ import * as net from "net"
 import * as path from "path"
 import * as os from "os"
 import { WebsocketRequest } from "../../../typings/pluginapi"
+import { HttpCode, HttpError } from "../../common/http"
 import { logError } from "../../common/util"
-import { CodeArgs, toCodeArgs } from "../cli"
+import { AuthType, CodeArgs, toCodeArgs } from "../cli"
 import { isDevMode, vsRootPath } from "../constants"
 import { authenticated, ensureAuthenticated, ensureOrigin, redirect, replaceTemplates, self } from "../http"
 import { SocketProxyProvider } from "../socket"
@@ -123,6 +124,11 @@ router.get("/", ensureVSCodeLoaded, async (req, res, next) => {
   const FOLDER_OR_WORKSPACE_WAS_CLOSED = req.query.ew
 
   if (!isAuthenticated) {
+    // If auth is HttpBasic, return a 401.
+    if (req.args.auth === AuthType.HttpBasic) {
+      res.setHeader("WWW-Authenticate", `Basic realm="${req.args["app-name"] || "code-server"}"`)
+      throw new HttpError("Unauthorized", HttpCode.Unauthorized)
+    }
     const to = self(req)
     return redirect(req, res, "login", {
       to: to !== "/" ? to : undefined,

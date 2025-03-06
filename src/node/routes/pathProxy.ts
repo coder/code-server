@@ -4,6 +4,7 @@ import * as pluginapi from "../../../typings/pluginapi"
 import { HttpCode, HttpError } from "../../common/http"
 import { ensureProxyEnabled, authenticated, ensureAuthenticated, ensureOrigin, redirect, self } from "../http"
 import { proxy as _proxy } from "../proxy"
+import { AuthType } from "../cli"
 
 const getProxyTarget = (
   req: Request,
@@ -28,7 +29,7 @@ export async function proxy(
 
   if (!(await authenticated(req))) {
     // If visiting the root (/:port only) redirect to the login page.
-    if (!req.params.path || req.params.path === "/") {
+    if ((!req.params.path || req.params.path === "/") && req.args.auth !== AuthType.HttpBasic) {
       const to = self(req)
       return redirect(req, res, "login", {
         to: to !== "/" ? to : undefined,
