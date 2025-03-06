@@ -33,7 +33,7 @@ main() {
     exit 1
   fi
 
-  CODE_SERVER_PATH="$path" CS_DISABLE_PLUGINS=true ./test/node_modules/.bin/jest "$@" --coverage=false --testRegex "./test/integration" --testPathIgnorePatterns "./test/integration/fixtures"
+  CODE_SERVER_PATH="$path" ./test/node_modules/.bin/jest "$@" --coverage=false --testRegex "./test/integration" --testPathIgnorePatterns "./test/integration/fixtures"
 }
 
 main "$@"

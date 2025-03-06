@@ -30,7 +30,7 @@
     "publish:docker": "./ci/steps/docker-buildx-push.sh",
     "fmt": "npm run prettier && ./ci/dev/doctoc.sh",
     "lint:scripts": "./ci/dev/lint-scripts.sh",
-    "lint:ts": "eslint --max-warnings=0 --fix $(git ls-files '*.ts' '*.js' | grep -v 'lib/vscode' | grep -v test-plugin)",
+    "lint:ts": "eslint --max-warnings=0 --fix $(git ls-files '*.ts' '*.js' | grep -v 'lib/vscode')",
     "test": "echo 'Run npm run test:unit or npm run test:e2e' && exit 1",
     "watch": "VSCODE_DEV=1 VSCODE_IPC_HOOK_CLI= NODE_OPTIONS='--max_old_space_size=32384 --trace-warnings' ts-node ./ci/dev/watch.ts",
     "icons": "./ci/dev/gen_icons.sh"
