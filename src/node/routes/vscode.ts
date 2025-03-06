@@ -6,14 +6,13 @@ import * as http from "http"
 import * as net from "net"
 import * as path from "path"
 import * as os from "os"
-import { WebsocketRequest } from "../../../typings/pluginapi"
 import { logError } from "../../common/util"
 import { CodeArgs, toCodeArgs } from "../cli"
 import { isDevMode, vsRootPath } from "../constants"
 import { authenticated, ensureAuthenticated, ensureOrigin, redirect, replaceTemplates, self } from "../http"
 import { SocketProxyProvider } from "../socket"
 import { isFile } from "../util"
-import { Router as WsRouter } from "../wsRouter"
+import { type WebsocketRequest, Router as WsRouter } from "../wsRouter"
 
 export const router = express.Router()
 

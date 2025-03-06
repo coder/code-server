@@ -1,9 +1,9 @@
 import { Request, Response } from "express"
 import * as path from "path"
-import * as pluginapi from "../../../typings/pluginapi"
 import { HttpCode, HttpError } from "../../common/http"
 import { ensureProxyEnabled, authenticated, ensureAuthenticated, ensureOrigin, redirect, self } from "../http"
 import { proxy as _proxy } from "../proxy"
+import type { WebsocketRequest } from "../wsRouter"
 
 const getProxyTarget = (
   req: Request,
@@ -49,7 +49,7 @@ export async function proxy(
 }
 
 export async function wsProxy(
-  req: pluginapi.WebsocketRequest,
+  req: WebsocketRequest,
   opts?: {
     passthroughPath?: boolean
     proxyBasePath?: string
