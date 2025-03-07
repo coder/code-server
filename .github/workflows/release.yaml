@@ -19,95 +19,27 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
-  package-linux-amd64:
-    name: x86-64 Linux build
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    needs: npm-version
-    container: "centos:8"
-    env:
-      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-
-      - name: Install Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version-file: .node-version
-          cache: npm
-          cache-dependency-path: |
-            package-lock.json
-            test/package-lock.json
-
-      - run: SKIP_SUBMODULE_DEPS=1 npm ci
-
-      - name: Install development tools
-        run: |
-          cd /etc/yum.repos.d/
-          sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-*
-          sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-*
-          yum install -y gcc-c++ make jq rsync python3 libsecret-devel krb5-devel
-
-      - name: Install nfpm and envsubst
-        run: |
-          mkdir -p ~/.local/bin
-          curl -sSfL https://github.com/goreleaser/nfpm/releases/download/v2.22.2/nfpm_2.22.2_`uname -s`_`uname -m`.tar.gz | tar -C ~/.local/bin -zxv nfpm
-          curl -sSfL https://github.com/a8m/envsubst/releases/download/v1.1.0/envsubst-`uname -s`-`uname -m` -o envsubst
-          chmod +x envsubst
-          mv envsubst ~/.local/bin
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
-
-      - name: Download npm package
-        uses: actions/download-artifact@v4
-        with:
-          name: npm-release-package
-
-      - run: tar -xzf package.tar.gz
-
-      - run: npm run release:standalone
-
-      - run: npm run test:integration
-
-      - name: Upload coverage report to Codecov
-        uses: codecov/codecov-action@v5
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-        if: success()
-        continue-on-error: true
-
-      # Strip out the v (v4.9.1 -> 4.9.1).
-      - name: Get and set VERSION
-        run: |
-          TAG="${{ inputs.version || github.ref_name }}"
-          echo "VERSION=${TAG#v}" >> $GITHUB_ENV
-
-      - env:
-          VERSION: ${{ env.VERSION }}
-        run: npm run package
-
-      - uses: softprops/action-gh-release@v1
-        with:
-          draft: true
-          discussion_category_name: "📣 Announcements"
-          files: ./release-packages/*
-
   package-linux-cross:
-    name: Linux cross-compile builds
+    name: ${{ matrix.prefix }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     needs: npm-version
-    container: "debian:buster"
+    container: "python:3.8-slim-buster"
     strategy:
       matrix:
         include:
+          - prefix: x86_64-linux-gnu
+            npm_arch: x64
+            apt_arch: amd64
+            package_arch: amd64
           - prefix: aarch64-linux-gnu
             npm_arch: arm64
             apt_arch: arm64
+            package_arch: arm64
           - prefix: arm-linux-gnueabihf
             npm_arch: armv7l
             apt_arch: armhf
+            package_arch: armv7l
 
     env:
       AR: ${{ format('{0}-ar', matrix.prefix) }}
@@ -121,6 +53,7 @@ jobs:
       PKG_CONFIG_PATH: ${{ format('/usr/lib/{0}/pkgconfig', matrix.prefix) }}
       TARGET_ARCH: ${{ matrix.apt_arch }}
       npm_config_arch: ${{ matrix.npm_arch }}
+      PKG_ARCH: ${{ matrix.package_arch }}
       # Not building from source results in an x86_64 argon2, as if
       # npm_config_arch is being ignored.
       npm_config_build_from_source: true
@@ -141,7 +74,7 @@ jobs:
       - name: Install cross-compiler and system dependencies
         run: |
           dpkg --add-architecture $TARGET_ARCH
-          apt-get update && apt-get install -y --no-install-recommends \
+          apt update && apt install -y --no-install-recommends \
             crossbuild-essential-$TARGET_ARCH \
             libx11-dev:$TARGET_ARCH \
             libx11-xcb-dev:$TARGET_ARCH \
@@ -149,8 +82,7 @@ jobs:
             libsecret-1-dev:$TARGET_ARCH \
             libkrb5-dev:$TARGET_ARCH \
             ca-certificates \
-            curl wget rsync gettext-base \
-            python3
+            curl wget rsync gettext-base
 
       - run: SKIP_SUBMODULE_DEPS=1 npm ci
 
@@ -183,7 +115,7 @@ jobs:
 
       - env:
           VERSION: ${{ env.VERSION }}
-        run: npm run package ${npm_config_arch}
+        run: npm run package $PKG_ARCH
 
       - uses: softprops/action-gh-release@v1
         with:
