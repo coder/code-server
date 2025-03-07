@@ -175,7 +175,7 @@ router.get("/manifest.json", async (req, res) => {
   const appName = req.args["app-name"] || "code-server"
   res.writeHead(200, { "Content-Type": "application/manifest+json" })
 
-  return res.end(
+  res.end(
     replaceTemplates(
       req,
       JSON.stringify(
