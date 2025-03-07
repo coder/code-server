@@ -22,127 +22,114 @@ concurrency:
 # will skip running `npm install` if it successfully fetched from cache
 
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      ci: ${{ steps.filter.outputs.ci }}
+      code: ${{ steps.filter.outputs.code }}
+      deps: ${{ steps.filter.outputs.deps }}
+      docs: ${{ steps.filter.outputs.docs }}
+      helm: ${{ steps.filter.outputs.helm }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+      - name: Check changed files
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            ci:
+              - ".github/**"
+              - "ci/**"
+            docs:
+              - "docs/**"
+              - "README.md"
+              - "CHANGELOG.md"
+            helm:
+              - "ci/helm-chart/**"
+            code:
+              - "src/**"
+              - "test/**"
+            deps:
+              - "lib/**"
+              - "patches/**"
+              - "package-lock.json"
+              - "test/package-lock.json"
+      - id: debug
+        run: |
+          echo "${{ toJSON(steps.filter )}}"
+
   prettier:
     name: Run prettier check
     runs-on: ubuntu-22.04
     timeout-minutes: 5
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-
-      - name: Install Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version-file: .node-version
           cache: npm
           cache-dependency-path: |
             package-lock.json
             test/package-lock.json
-
       - run: SKIP_SUBMODULE_DEPS=1 npm ci
-
       - run: npx prettier --check .
 
   doctoc:
     name: Doctoc markdown files
     runs-on: ubuntu-22.04
     timeout-minutes: 5
+    needs: changes
+    if: needs.changes.outputs.docs == 'true'
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-
-      - name: Get changed files
-        id: changed-files
-        uses: tj-actions/changed-files@v45
-        with:
-          files: |
-            docs/**
-
-      - name: Install Node.js
-        if: steps.changed-files.outputs.any_changed == 'true'
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version-file: .node-version
           cache: npm
           cache-dependency-path: |
             package-lock.json
             test/package-lock.json
-
-      - if: steps.changed-files.outputs.any_changed == 'true'
-        run: SKIP_SUBMODULE_DEPS=1 npm ci
-
-      - if: steps.changed-files.outputs.any_changed == 'true'
-        run: npm run doctoc
+      - run: SKIP_SUBMODULE_DEPS=1 npm ci
+      - run: npm run doctoc
 
   lint-helm:
     name: Lint Helm chart
     runs-on: ubuntu-22.04
     timeout-minutes: 5
+    needs: changes
+    if: needs.changes.outputs.helm == 'true'
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 2
-
-      - name: Get changed files
-        id: changed-files
-        uses: tj-actions/changed-files@v45
-        with:
-          files: |
-            ci/helm-chart/**
-
-      - name: Install helm
-        if: steps.changed-files.outputs.any_changed == 'true'
-        uses: azure/setup-helm@v4
+      - uses: actions/checkout@v4
+      - uses: azure/setup-helm@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-
-      - if: steps.changed-files.outputs.any_changed == 'true'
-        run: helm plugin install https://github.com/instrumenta/helm-kubeval
-
-      - if: steps.changed-files.outputs.any_changed == 'true'
-        run: helm kubeval ci/helm-chart
+      - run: helm plugin install https://github.com/instrumenta/helm-kubeval
+      - run: helm kubeval ci/helm-chart
 
   lint-ts:
     name: Lint TypeScript files
     runs-on: ubuntu-22.04
     timeout-minutes: 5
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 2
-
-      - name: Get changed files
-        id: changed-files
-        uses: tj-actions/changed-files@v45
-        with:
-          files: |
-            **/*.ts
-            **/*.js
-          files_ignore: |
-            lib/vscode/**
-
-      - name: Install Node.js
-        if: steps.changed-files.outputs.any_changed == 'true'
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version-file: .node-version
           cache: npm
           cache-dependency-path: |
             package-lock.json
             test/package-lock.json
-
-      - if: steps.changed-files.outputs.any_changed == 'true'
-        run: SKIP_SUBMODULE_DEPS=1 npm ci
-
-      - name: Lint TypeScript files
-        if: steps.changed-files.outputs.any_changed == 'true'
-        run: npm run lint:ts
+      - run: SKIP_SUBMODULE_DEPS=1 npm ci
+      - run: npm run lint:ts
 
   lint-actions:
     name: Lint GitHub Actions
     runs-on: ubuntu-latest
+    needs: changes
+    if: needs.changes.outputs.ci == 'true'
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -156,42 +143,23 @@ jobs:
     name: Run unit tests
     runs-on: ubuntu-22.04
     timeout-minutes: 5
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 2
-
-      - name: Get changed files
-        id: changed-files
-        uses: tj-actions/changed-files@v45
-        with:
-          files: |
-            **/*.ts
-          files_ignore: |
-            lib/vscode/**
-
-      - name: Install Node.js
-        if: steps.changed-files.outputs.any_changed == 'true'
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version-file: .node-version
           cache: npm
           cache-dependency-path: |
             package-lock.json
             test/package-lock.json
-
-      - if: steps.changed-files.outputs.any_changed == 'true'
-        run: SKIP_SUBMODULE_DEPS=1 npm ci
-
-      - if: steps.changed-files.outputs.any_changed == 'true'
-        run: npm run test:unit
-
-      - name: Upload coverage report to Codecov
-        uses: codecov/codecov-action@v5
+      - run: SKIP_SUBMODULE_DEPS=1 npm ci
+      - run: npm run test:unit
+      - uses: codecov/codecov-action@v5
+        if: success()
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-        if: success()
 
   build:
     name: Build code-server
@@ -201,44 +169,31 @@ jobs:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       DISABLE_V8_COMPILE_CACHE: 1
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           submodules: true
-
-      - name: Install system dependencies
-        run: sudo apt update && sudo apt install -y libkrb5-dev
-
-      - name: Install quilt
-        uses: awalsh128/cache-apt-pkgs-action@latest
+      - run: sudo apt update && sudo apt install -y libkrb5-dev
+      - uses: awalsh128/cache-apt-pkgs-action@latest
         with:
           packages: quilt
           version: 1.0
-
-      - name: Patch Code
-        run: quilt push -a
-
-      - name: Install Node.js
-        uses: actions/setup-node@v4
+      - run: quilt push -a
+      - uses: actions/setup-node@v4
         with:
           node-version-file: .node-version
           cache: npm
           cache-dependency-path: |
             package-lock.json
             test/package-lock.json
-
       - run: SKIP_SUBMODULE_DEPS=1 npm ci
-
-      - env:
+      - run: npm run build
+        env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npm run build
-
       # Get Code's git hash.  When this changes it means the content is
       # different and we need to rebuild.
       - name: Get latest lib/vscode rev
         id: vscode-rev
         run: echo "rev=$(git rev-parse HEAD:./lib/vscode)" >> $GITHUB_OUTPUT
-
       # We need to rebuild when we have a new version of Code, when any of
       # the patches changed, or when the code-server version changes (since
       # it gets embedded into the code).  Use VSCODE_CACHE_VERSION to
@@ -249,7 +204,6 @@ jobs:
         with:
           path: lib/vscode-reh-web-*
           key: vscode-reh-package-${{ secrets.VSCODE_CACHE_VERSION }}-${{ steps.vscode-rev.outputs.rev }}-${{ hashFiles('patches/*.diff', 'ci/build/build-vscode.sh') }}
-
       - name: Build vscode
         env:
           VERSION: "0.0.0"
@@ -259,107 +213,77 @@ jobs:
           npm ci
           popd
           npm run build:vscode
-
       # The release package does not contain any native modules
       # and is neutral to architecture/os/libc version.
       - run: npm run release
         if: success()
-
       # https://github.com/actions/upload-artifact/issues/38
       - run: tar -czf package.tar.gz release
-
-      - name: Upload npm package artifact
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
           name: npm-package
           path: ./package.tar.gz
 
   test-e2e:
     name: Run e2e tests
-    needs: build
     runs-on: ubuntu-22.04
     timeout-minutes: 25
+    needs: [changes, build]
+    if: needs.changes.outputs.code == 'true' || needs.changes.outputs.deps == 'true'
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-
-      - name: Install system dependencies
-        run: sudo apt update && sudo apt install -y libkrb5-dev
-
-      - name: Install Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - run: sudo apt update && sudo apt install -y libkrb5-dev
+      - uses: actions/setup-node@v4
         with:
           node-version-file: .node-version
           cache: npm
           cache-dependency-path: |
             package-lock.json
             test/package-lock.json
-
       - run: SKIP_SUBMODULE_DEPS=1 npm ci
-
-      - name: Download npm package
-        uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v4
         with:
           name: npm-package
-
       - run: tar -xzf package.tar.gz
-
       - run: cd release && npm install --unsafe-perm --omit=dev
-
       - name: Install Playwright OS dependencies
         run: |
           ./test/node_modules/.bin/playwright install-deps
           ./test/node_modules/.bin/playwright install
-
       - run: CODE_SERVER_TEST_ENTRY=./release npm run test:e2e
-
-      - name: Upload test artifacts
+      - uses: actions/upload-artifact@v4
         if: always()
-        uses: actions/upload-artifact@v4
         with:
           name: failed-test-videos
           path: ./test/test-results
-
-      - name: Remove release packages and test artifacts
-        run: rm -rf ./release ./test/test-results
+      - run: rm -rf ./release ./test/test-results
 
   test-e2e-proxy:
     name: Run e2e tests behind proxy
-    needs: build
     runs-on: ubuntu-22.04
     timeout-minutes: 25
+    needs: [changes, build]
+    if: needs.changes.outputs.code == 'true' || needs.changes.outputs.deps == 'true'
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-
-      - name: Install system dependencies
-        run: sudo apt update && sudo apt install -y libkrb5-dev
-
-      - name: Install Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - run: sudo apt update && sudo apt install -y libkrb5-dev
+      - uses: actions/setup-node@v4
         with:
           node-version-file: .node-version
           cache: npm
           cache-dependency-path: |
             package-lock.json
             test/package-lock.json
-
       - run: SKIP_SUBMODULE_DEPS=1 npm ci
-
-      - name: Download npm package
-        uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v4
         with:
           name: npm-package
-
       - run: tar -xzf package.tar.gz
-
       - run: cd release && npm install --unsafe-perm --omit=dev
-
       - name: Install Playwright OS dependencies
         run: |
           ./test/node_modules/.bin/playwright install-deps
           ./test/node_modules/.bin/playwright install
-
       - name: Cache Caddy
         uses: actions/cache@v4
         id: caddy-cache
@@ -367,7 +291,6 @@ jobs:
           path: |
             ~/.cache/caddy
           key: cache-caddy-2.5.2
-
       - name: Install Caddy
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -376,16 +299,13 @@ jobs:
           gh release download v2.5.2 --repo caddyserver/caddy --pattern "caddy_2.5.2_linux_amd64.tar.gz"
           mkdir -p ~/.cache/caddy
           tar -xzf caddy_2.5.2_linux_amd64.tar.gz --directory ~/.cache/caddy
-
       - run: ~/.cache/caddy/caddy start --config ./ci/Caddyfile
-
       - run: CODE_SERVER_TEST_ENTRY=./release npm run test:e2e:proxy
+      - run: ~/.cache/caddy/caddy stop --config ./ci/Caddyfile
+        if: always()
 
-      - if: always()
-        run: ~/.cache/caddy/caddy stop --config ./ci/Caddyfile
-
-      - if: always()
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: failed-test-videos-proxy
           path: ./test/test-results
