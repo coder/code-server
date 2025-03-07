@@ -79,51 +79,48 @@ export const register = async (app: App, args: DefaultedArgs): Promise<Disposabl
   app.router.use(common)
   app.wsRouter.use(common)
 
-  app.router.use(async (req, res, next) => {
+  app.router.use(/.*/, async (req, res, next) => {
     // If we're handling TLS ensure all requests are redirected to HTTPS.
     // TODO: This does *NOT* work if you have a base path since to specify the
     // protocol we need to specify the whole path.
     if (args.cert && !(req.connection as tls.TLSSocket).encrypted) {
       return res.redirect(`https://${req.headers.host}${req.originalUrl}`)
     }
-
-    // Return security.txt.
-    if (req.originalUrl === "/security.txt" || req.originalUrl === "/.well-known/security.txt") {
-      const resourcePath = path.resolve(rootPath, "src/browser/security.txt")
-      res.set("Content-Type", getMediaMime(resourcePath))
-      return res.send(await fs.readFile(resourcePath))
-    }
-
-    // Return robots.txt.
-    if (req.originalUrl === "/robots.txt") {
-      const resourcePath = path.resolve(rootPath, "src/browser/robots.txt")
-      res.set("Content-Type", getMediaMime(resourcePath))
-      return res.send(await fs.readFile(resourcePath))
-    }
-
     next()
+  })
+
+  app.router.get(["/security.txt", "/.well-known/security.txt"], async (_, res) => {
+    const resourcePath = path.resolve(rootPath, "src/browser/security.txt")
+    res.set("Content-Type", getMediaMime(resourcePath))
+    res.send(await fs.readFile(resourcePath))
+  })
+
+  app.router.get("/robots.txt", async (_, res) => {
+    const resourcePath = path.resolve(rootPath, "src/browser/robots.txt")
+    res.set("Content-Type", getMediaMime(resourcePath))
+    res.send(await fs.readFile(resourcePath))
   })
 
   app.router.use("/", domainProxy.router)
   app.wsRouter.use("/", domainProxy.wsRouter.router)
 
-  app.router.all("/proxy/:port/:path(.*)?", async (req, res) => {
+  app.router.all("/proxy/:port{/*path}", async (req, res) => {
     await pathProxy.proxy(req, res)
   })
-  app.wsRouter.get("/proxy/:port/:path(.*)?", async (req) => {
-    await pathProxy.wsProxy(req as WebsocketRequest)
+  app.wsRouter.get("/proxy/:port{/*path}", async (req) => {
+    await pathProxy.wsProxy(req as unknown as WebsocketRequest)
   })
   // These two routes pass through the path directly.
   // So the proxied app must be aware it is running
   // under /absproxy/<someport>/
-  app.router.all("/absproxy/:port/:path(.*)?", async (req, res) => {
+  app.router.all("/absproxy/:port{/*path}", async (req, res) => {
     await pathProxy.proxy(req, res, {
       passthroughPath: true,
       proxyBasePath: args["abs-proxy-base-path"],
     })
   })
-  app.wsRouter.get("/absproxy/:port/:path(.*)?", async (req) => {
-    await pathProxy.wsProxy(req as WebsocketRequest, {
+  app.wsRouter.get("/absproxy/:port{/*path}", async (req) => {
+    await pathProxy.wsProxy(req as unknown as WebsocketRequest, {
       passthroughPath: true,
       proxyBasePath: args["abs-proxy-base-path"],
     })
