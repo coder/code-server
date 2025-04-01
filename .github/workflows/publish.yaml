@@ -33,7 +33,7 @@ jobs:
           node-version-file: .node-version
 
       - name: Download npm package from release artifacts
-        uses: robinraju/release-downloader@v1.11
+        uses: robinraju/release-downloader@v1.12
         with:
           repository: "coder/code-server"
           tag: ${{ github.event.inputs.version || github.ref_name }}
@@ -176,7 +176,7 @@ jobs:
           echo "VERSION=${TAG#v}" >> $GITHUB_ENV
 
       - name: Download deb artifacts
-        uses: robinraju/release-downloader@v1.11
+        uses: robinraju/release-downloader@v1.12
         with:
           repository: "coder/code-server"
           tag: v${{ env.VERSION }}
@@ -184,7 +184,7 @@ jobs:
           out-file-path: "release-packages"
 
       - name: Download rpm artifacts
-        uses: robinraju/release-downloader@v1.11
+        uses: robinraju/release-downloader@v1.12
         with:
           repository: "coder/code-server"
           tag: v${{ env.VERSION }}
