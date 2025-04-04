@@ -69,6 +69,11 @@ router.all(/.*/, async (req, res, next) => {
       return next()
     }
 
+    // OPTIONS requests should be allowed without credentials
+    if (req.method === "OPTIONS") {
+      return next()
+    }
+
     // Assume anything that explicitly accepts text/html is a user browsing a
     // page (as opposed to an xhr request). Don't use `req.accepts()` since
     // *every* request that I've seen (in Firefox and Chromium at least)
