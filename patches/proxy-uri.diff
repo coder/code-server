@@ -30,7 +30,7 @@ Index: code-server/lib/vscode/src/vs/base/common/product.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/base/common/product.ts
 +++ code-server/lib/vscode/src/vs/base/common/product.ts
-@@ -59,6 +59,7 @@ export interface IProductConfiguration {
+@@ -60,6 +60,7 @@ export interface IProductConfiguration {
  	readonly rootEndpoint?: string
  	readonly updateEndpoint?: string
  	readonly logoutEndpoint?: string
@@ -104,7 +104,7 @@ Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench.ts
  import type { IURLCallbackProvider } from '../../../workbench/services/url/browser/urlService.js';
  import { create } from '../../../workbench/workbench.web.main.internal.js';
  
-@@ -584,6 +585,39 @@ class WorkspaceProvider implements IWork
+@@ -600,6 +601,39 @@ class WorkspaceProvider implements IWork
  		settingsSyncOptions: config.settingsSyncOptions ? { enabled: config.settingsSyncOptions.enabled, } : undefined,
  		workspaceProvider: WorkspaceProvider.create(config),
  		urlCallbackProvider: new LocalStorageURLCallbackProvider(config.callbackRoute),
