@@ -343,6 +343,18 @@ built-in subpath-based proxy.
 Note: relative paths are also supported i.e.
 `VSCODE_PROXY_URI=./proxy/{{port}}`
 
+It may also be neccesary to reroute server side requests through your
+reverse proxy as well. This is the preferred method described [here](https://coder.com/docs/code-server/FAQ#how-do-i-direct-server-side-requests-through-a-proxy)
+as it will preserve the functionality desrcibed above. This can be  done by
+configuring the enviornment variable(s) `HTTP_PROXY` and/or `HTTPS_PROXY` to
+the address or hostname of your reverse proxy.
+
+This will also resolve hostnames, including within docker networks. For
+example, if your reverse proxy is a Caddy container named `caddy`, on the
+same docker network as `code-server`, you could set
+`HTTPS_PROXY=https://caddy/` in the `enviornment:` block of the
+`compose.yml`. 
+
 ### Stripping `/proxy/<port>` from the request path
 
 You may notice that the code-server proxy strips `/proxy/<port>` from the
