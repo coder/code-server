@@ -84,6 +84,7 @@ export interface UserProvidedArgs extends UserProvidedCodeArgs {
   "trusted-origins"?: string[]
   version?: boolean
   "proxy-domain"?: string[]
+  "skip-auth-preflight"?: boolean
   "reuse-window"?: boolean
   "new-window"?: boolean
   "ignore-last-opened"?: boolean
@@ -252,6 +253,7 @@ export const options: Options<Required<UserProvidedArgs>> = {
     description: "GitHub authentication token (can only be passed in via $GITHUB_TOKEN or the config file).",
   },
   "proxy-domain": { type: "string[]", description: "Domain used for proxying ports." },
+  "skip-auth-preflight": { type: 'boolean', description: "Allows preflight requests through proxy without authentication." },
   "ignore-last-opened": {
     type: "boolean",
     short: "e",

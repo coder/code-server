@@ -61,16 +61,16 @@ router.all(/.*/, async (req, res, next) => {
 
   ensureProxyEnabled(req)
 
+  if (req.method === "OPTIONS" && req.args['skip-auth-preflight']) {
+    // Allow preflight requests with `skip-auth-preflight` flag
+    return next()
+  }
+
   // Must be authenticated to use the proxy.
   const isAuthenticated = await authenticated(req)
   if (!isAuthenticated) {
     // Let the assets through since they're used on the login page.
     if (req.path.startsWith("/_static/") && req.method === "GET") {
-      return next()
-    }
-
-    // OPTIONS requests should be allowed without credentials
-    if (req.method === "OPTIONS") {
       return next()
     }
 

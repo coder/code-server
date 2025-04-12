@@ -268,6 +268,21 @@ describe("proxy", () => {
     const text = await resp.text()
     expect(text).toBe("app being served behind a prefixed path")
   })
+
+  it("should not allow OPTIONS without authentication by default", async () => {
+    process.env.PASSWORD = "test"
+    codeServer = await integration.setup(["--auth=password"])
+    const resp = await codeServer.fetch(proxyPath, { method: "OPTIONS"})
+    expect(resp.status).toBe(401)
+  })
+
+  it("should allow OPTIONS with `skip-auth-preflight` flag", async () => {
+    process.env.PASSWORD = "test"
+    codeServer = await integration.setup(["--auth=password", "--skip-auth-preflight"])
+    e.post("/wsup", (req, res) => {})
+    const resp = await codeServer.fetch(proxyPath, { method: "OPTIONS"})
+    expect(resp.status).toBe(200)
+  })
 })
 
 // NOTE@jsjoeio
