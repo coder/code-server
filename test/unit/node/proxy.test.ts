@@ -272,7 +272,7 @@ describe("proxy", () => {
   it("should not allow OPTIONS without authentication by default", async () => {
     process.env.PASSWORD = "test"
     codeServer = await integration.setup(["--auth=password"])
-    const resp = await codeServer.fetch(proxyPath, { method: "OPTIONS"})
+    const resp = await codeServer.fetch(proxyPath, { method: "OPTIONS" })
     expect(resp.status).toBe(401)
   })
 
@@ -280,7 +280,7 @@ describe("proxy", () => {
     process.env.PASSWORD = "test"
     codeServer = await integration.setup(["--auth=password", "--skip-auth-preflight"])
     e.post("/wsup", (req, res) => {})
-    const resp = await codeServer.fetch(proxyPath, { method: "OPTIONS"})
+    const resp = await codeServer.fetch(proxyPath, { method: "OPTIONS" })
     expect(resp.status).toBe(200)
   })
 })
