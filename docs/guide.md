@@ -121,7 +121,7 @@ access code-server on an iPad or do not want to use SSH port forwarding.
 
 1. You'll need a domain name (if you don't have one, you can purchase one from
    [Google Domains](https://domains.google.com) or the domain service of your
-   choice)). Once you have a domain name, add an A record to your domain that contains your
+   choice). Once you have a domain name, add an A record to your domain that contains your
    instance's IP address.
 
 1. Install [Caddy](https://caddyserver.com/docs/download#debian-ubuntu-raspbian):
@@ -168,7 +168,7 @@ At this point, you should be able to access code-server via
 
 1. You'll need a domain name (if you don't have one, you can purchase one from
    [Google Domains](https://domains.google.com) or the domain service of your
-   choice)). Once you have a domain name, add an A record to your domain that contains your
+   choice). Once you have a domain name, add an A record to your domain that contains your
    instance's IP address.
 
 1. Install NGINX:
