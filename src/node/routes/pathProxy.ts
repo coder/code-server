@@ -26,7 +26,9 @@ export async function proxy(
 ): Promise<void> {
   ensureProxyEnabled(req)
 
-  if (!(await authenticated(req))) {
+  if (req.method === "OPTIONS" && req.args["skip-auth-preflight"]) {
+    // Allow preflight requests with `skip-auth-preflight` flag
+  } else if (!(await authenticated(req))) {
     // If visiting the root (/:port only) redirect to the login page.
     if (!req.params.path || req.params.path === "/") {
       const to = self(req)
