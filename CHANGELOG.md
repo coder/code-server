@@ -22,6 +22,19 @@ Code v99.99.999
 
 ## Unreleased
 
+## [4.99.3](https://github.com/coder/code-server/releases/tag/v4.99.3) - 2025-04-17
+
+Code v1.99.3
+
+### Added
+
+- Added `--skip-auth-preflight` flag to let preflight requests through the
+  proxy.
+
+### Changed
+
+- Update to Code 1.99.3.
+
 ## [4.99.2](https://github.com/coder/code-server/releases/tag/v4.99.2) - 2025-04-10
 
 Code v1.99.2
