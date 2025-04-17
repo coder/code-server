@@ -119,22 +119,22 @@ access code-server on an iPad or do not want to use SSH port forwarding.
 
 1. This option requires that the remote machine be exposed to the internet. Make sure that your instance allows HTTP/HTTPS traffic.
 
-1. You'll need a domain name (if you don't have one, you can purchase one from
+2. You'll need a domain name (if you don't have one, you can purchase one from
    [Google Domains](https://domains.google.com) or the domain service of your
    choice). Once you have a domain name, add an A record to your domain that contains your
    instance's IP address.
 
-1. Install [Caddy](https://caddyserver.com/docs/download#debian-ubuntu-raspbian):
+3. Install [Caddy](https://caddyserver.com/docs/download#debian-ubuntu-raspbian):
 
-```console
-sudo apt install -y debian-keyring debian-archive-keyring apt-transport-https
-curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | sudo gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
-curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | sudo tee /etc/apt/sources.list.d/caddy-stable.list
-sudo apt update
-sudo apt install caddy
-```
+   ```console
+   sudo apt install -y debian-keyring debian-archive-keyring apt-transport-https
+   curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | sudo gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
+   curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | sudo tee /etc/apt/sources.list.d/caddy-stable.list
+   sudo apt update
+   sudo apt install caddy
+   ```
 
-1. Replace `/etc/caddy/Caddyfile` using `sudo` so that the file looks like this:
+4. Replace `/etc/caddy/Caddyfile` using `sudo` so that the file looks like this:
 
    ```text
    mydomain.com {
@@ -153,7 +153,7 @@ sudo apt install caddy
 
    Remember to replace `mydomain.com` with your domain name!
 
-1. Reload Caddy:
+5. Reload Caddy:
 
    ```console
    sudo systemctl reload caddy
@@ -164,21 +164,22 @@ At this point, you should be able to access code-server via
 
 ### Using Let's Encrypt with NGINX
 
-1. This option requires that the remote machine be exposed to the internet. Make sure that your instance allows HTTP/HTTPS traffic.
+1. This option requires that the remote machine be exposed to the internet. Make
+   sure that your instance allows HTTP/HTTPS traffic.
 
-1. You'll need a domain name (if you don't have one, you can purchase one from
+2. You'll need a domain name (if you don't have one, you can purchase one from
    [Google Domains](https://domains.google.com) or the domain service of your
    choice). Once you have a domain name, add an A record to your domain that contains your
    instance's IP address.
 
-1. Install NGINX:
+3. Install NGINX:
 
    ```bash
    sudo apt update
    sudo apt install -y nginx certbot python3-certbot-nginx
    ```
 
-1. Update `/etc/nginx/sites-available/code-server` using sudo with the following
+4. Update `/etc/nginx/sites-available/code-server` using sudo with the following
    configuration:
 
    ```text
@@ -196,16 +197,13 @@ At this point, you should be able to access code-server via
        }
    }
    ```
-
    Be sure to replace `mydomain.com` with your domain name!
 
-1. Enable the config:
-
+5. Enable the config:
    ```console
    sudo ln -s ../sites-available/code-server /etc/nginx/sites-enabled/code-server
    sudo certbot --non-interactive --redirect --agree-tos --nginx -d mydomain.com -m me@example.com
    ```
-
    Be sure to replace `me@example.com` with your actual email.
 
 At this point, you should be able to access code-server via
@@ -292,7 +290,9 @@ redirect all HTTP requests to HTTPS.
 > You can use [Let's Encrypt](https://letsencrypt.org/) to get a TLS certificate
 > for free.
 
-Note: if you set `proxy_set_header Host $host;` in your reverse proxy config, it will change the address displayed in the green section of code-server in the bottom left to show the correct address.
+Note: if you set `proxy_set_header Host $host;` in your reverse proxy config, it
+will change the address displayed in the green section of code-server in the
+bottom left to show the correct address.
 
 ## Accessing web services
 
@@ -378,14 +378,16 @@ PUBLIC_URL=/absproxy/3000 \
   BROWSER=none yarn start
 ```
 
-You should then be able to visit `https://my-code-server-address.io/absproxy/3000` to see your app exposed through
-code-server!
+You should then be able to visit
+`https://my-code-server-address.io/absproxy/3000` to see your app exposed
+through code-server.
 
 > We highly recommend using the subdomain approach instead to avoid this class of issue.
 
 ### Proxying to a Vue app
 
-Similar to the situation with React apps, you have to make a few modifications to proxy a Vue app.
+Similar to the situation with React apps, you have to make a few modifications
+to proxy a Vue app.
 
 1. add `vue.config.js`
 2. update the values to match this (you can use any free port):
@@ -406,7 +408,8 @@ Read more about `publicPath` in the [Vue.js docs](https://cli.vuejs.org/config/#
 
 ### Proxying to an Angular app
 
-In order to use code-server's built-in proxy with Angular, you need to make the following changes in your app:
+In order to use code-server's built-in proxy with Angular, you need to make the
+following changes in your app:
 
 1. use `<base href="./.">` in `src/index.html`
 2. add `--serve-path /absproxy/4200` to `ng serve` in your `package.json`
@@ -415,7 +418,8 @@ For additional context, see [this GitHub Discussion](https://github.com/coder/co
 
 ### Proxying to a Svelte app
 
-In order to use code-server's built-in proxy with Svelte, you need to make the following changes in your app:
+In order to use code-server's built-in proxy with Svelte, you need to make the
+following changes in your app:
 
 1. Add `svelte.config.js` if you don't already have one
 2. Update the values to match this (you can use any free port):
@@ -436,9 +440,19 @@ For additional context, see [this Github Issue](https://github.com/sveltejs/kit/
 
 ### Prefixing `/absproxy/<port>` with a path
 
-This is a case where you need to serve an application via `absproxy` as explained above while serving `codeserver` itself from a path other than the root in your domain.
+This is a case where you need to serve an application via `absproxy` as
+explained above while serving code-server itself from a path other than the root
+in your domain.
 
-For example: `http://my-code-server.com/user/123/workspace/my-app`. To achieve this result:
+For example: `http://my-code-server.com/user/123/workspace/my-app`. To achieve
+this result:
 
-1. Start code server with the switch `--abs-proxy-base-path=/user/123/workspace`
+1. Start code-server with the switch `--abs-proxy-base-path=/user/123/workspace`
 2. Follow one of the instructions above for your framework.
+
+### Preflight requests
+
+By default, if you have auth enabled, code-server will authenticate all proxied
+requests including preflight requests. This can cause issues because preflight
+requests do not typically include credentials. To allow all preflight requests
+through the proxy without authentication, use `--skip-auth-preflight`.
