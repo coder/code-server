@@ -83,6 +83,7 @@ export interface UserProvidedArgs extends UserProvidedCodeArgs {
   "socket-mode"?: string
   "trusted-origins"?: string[]
   version?: boolean
+  "idle-timeout"?: number
   "proxy-domain"?: string[]
   "skip-auth-preflight"?: boolean
   "reuse-window"?: boolean
@@ -138,6 +139,13 @@ export type Options<T> = {
 
 export const options: Options<Required<UserProvidedArgs>> = {
   auth: { type: AuthType, description: "The type of authentication to use." },
+<<<<<<< HEAD
+=======
+  "auth-user": {
+     type: "string",
+     description: "The username for http-basic authentication."
+  },
+>>>>>>> c6a85663 (Add idle-timeout: Timeout in minutes to wait before shutting down when idle)
   password: {
     type: "string",
     description: "The password for password authentication (can only be passed in via $PASSWORD or the config file).",
@@ -252,6 +260,7 @@ export const options: Options<Required<UserProvidedArgs>> = {
     type: "string",
     description: "GitHub authentication token (can only be passed in via $GITHUB_TOKEN or the config file).",
   },
+  "idle-timeout": { type: "number", description: "Timeout in minutes to wait before shutting down when idle." },
   "proxy-domain": { type: "string[]", description: "Domain used for proxying ports." },
   "skip-auth-preflight": {
     type: "boolean",
@@ -482,6 +491,7 @@ export interface DefaultedArgs extends ConfigArgs {
   }
   host: string
   port: number
+  "idle-timeout": number
   "proxy-domain": string[]
   verbose: boolean
   usingEnvPassword: boolean
@@ -573,6 +583,10 @@ export async function setDefaults(cliArgs: UserProvidedArgs, configArgs?: Config
   let usingEnvPassword = !!process.env.PASSWORD
   if (process.env.PASSWORD) {
     args.password = process.env.PASSWORD
+  }
+
+  if (process.env.IDLE_TIMEOUT) {
+    args["idle-timeout"] = parseInt(process.env.IDLE_TIMEOUT, 10)
   }
 
   if (process.env.CS_DISABLE_FILE_DOWNLOADS?.match(/^(1|true)$/)) {
