@@ -5,6 +5,7 @@
 
 - [Expose code-server](#expose-code-server)
   - [Port forwarding via SSH](#port-forwarding-via-ssh)
+  - [Connect Using Tailscale (For IPads)](#using-tailscale)
   - [Using Let's Encrypt with Caddy](#using-lets-encrypt-with-caddy)
   - [Using Let's Encrypt with NGINX](#using-lets-encrypt-with-nginx)
   - [Using a self-signed certificate](#using-a-self-signed-certificate)
@@ -47,6 +48,7 @@ machine.
 There are several approaches to operating and exposing code-server securely:
 
 - Port forwarding via SSH
+- Connect using a free VPN (tailscale)
 - Using Let's Encrypt with Caddy
 - Using Let's Encrypt with NGINX
 - Using a self-signed certificate
@@ -112,6 +114,16 @@ we recommend using another method, such as [Let's Encrypt](#let-encrypt) instead
 > SSH](https://developer.github.com/v3/guides/using-ssh-agent-forwarding/) and
 > [GPG agent](https://wiki.gnupg.org/AgentForwarding) to the instance to
 > securely access GitHub and sign commits without having to copy your keys.
+
+### Using Tailscale
+
+[Tailscale](http://tailscale.com) is a free secure VPN. Although this depends
+on a third-party service, tailscale to be [up and
+running](https://status.tailscale.com/), it is a worthwhile alternative for
+those that want to setup a secure connection to their IPads without the need of
+setting up an external domain.
+See instructions [here](https://tailscale.com/kb/1166/vscode-ipad) on how to
+connect using tailscale.
 
 ### Using Let's Encrypt with Caddy
 
