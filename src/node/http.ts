@@ -318,6 +318,15 @@ export const getCookieOptions = (req: express.Request): express.CookieOptions =>
   // When logging in or out the request must include the href (the full current
   // URL of that page) and the relative path to the root as given to it by the
   // backend.  Using these two we can determine the true absolute root.
+
+  
+  function getConfigCookieMaxAgeAsMilliseconds(req: express.Request): number {
+    // the CLI flag or YAML key should be defined as "auth.cookie-max-age"
+    const days = Number(req.args["auth.cookie-max-age"] || 0)
+    return days * 24 * 60 * 60 * 1000
+  }
+  
+
   const url = new URL(
     req.query.base || req.body?.base || "/",
     req.query.href || req.body?.href || "http://" + (req.headers.host || "localhost"),
@@ -326,6 +335,7 @@ export const getCookieOptions = (req: express.Request): express.CookieOptions =>
     domain: getCookieDomain(url.host, req.args["proxy-domain"]),
     path: normalize(url.pathname) || "/",
     sameSite: "lax",
+    maxAge: getConfigCookieMaxAgeAsMilliseconds(req) || 0,
   }
 }
 
