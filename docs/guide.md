@@ -198,7 +198,6 @@ At this point, you should be able to access code-server via
        }
    }
    ```
-
    Be sure to replace `mydomain.com` with your domain name!
 
 5. Enable the config:
