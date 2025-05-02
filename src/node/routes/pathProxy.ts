@@ -13,7 +13,13 @@ const getProxyTarget = (
 ): string => {
   // If there is a base path, strip it out.
   const base = (req as any).base || ""
-  return `http://0.0.0.0:${req.params.port}${opts?.proxyBasePath || ""}/${req.originalUrl.slice(base.length)}`
+  let port: number
+  try {
+    port = parseInt(req.params.port, 10)
+  } catch (err) {
+    throw new HttpError("Invalid port", HttpCode.BadRequest)
+  }
+  return `http://0.0.0.0:${port}${opts?.proxyBasePath || ""}/${req.originalUrl.slice(base.length)}`
 }
 
 export async function proxy(
