@@ -53,8 +53,9 @@ export interface UserProvidedCodeArgs {
   "disable-getting-started-override"?: boolean
   "disable-proxy"?: boolean
   "session-socket"?: string
-  "abs-proxy-base-path"?: string
   "link-protection-trusted-domains"?: string[]
+  // locale is used by both VS Code and code-server.
+  locale?: string
 }
 
 /**
@@ -74,7 +75,6 @@ export interface UserProvidedArgs extends UserProvidedCodeArgs {
   enable?: string[]
   help?: boolean
   host?: string
-  locale?: string
   port?: number
   json?: boolean
   log?: LogLevel
@@ -92,6 +92,7 @@ export interface UserProvidedArgs extends UserProvidedCodeArgs {
   verbose?: boolean
   "app-name"?: string
   "welcome-text"?: string
+  "abs-proxy-base-path"?: string
   /* Positional arguments. */
   _?: string[]
 }
