@@ -713,12 +713,16 @@ export function parseConfigFile(configFile: string, configPath: string): ConfigA
 
   // We convert the config file into a set of flags.
   // This is a temporary measure until we add a proper CLI library.
-  const configFileArgv = Object.entries(config).map(([optName, opt]) => {
-    if (opt === true) {
-      return `--${optName}`
-    }
-    return `--${optName}=${opt}`
-  })
+  const configFileArgv = Object.entries(config)
+    .map(([optName, opt]) => {
+      if (opt === true) {
+        return `--${optName}`
+      } else if (Array.isArray(opt)) {
+        return opt.map((o) => `--${optName}=${o}`)
+      }
+      return `--${optName}=${opt}`
+    })
+    .flat()
   const args = parse(configFileArgv, {
     configFile: configPath,
   })
