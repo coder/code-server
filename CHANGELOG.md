@@ -22,6 +22,15 @@ Code v99.99.999
 
 ## Unreleased
 
+## [4.99.4](https://github.com/coder/code-server/releases/tag/v4.99.4) - 2025-05-02
+
+Code v1.99.3
+
+### Security
+
+- Validate that ports in the path proxy are numbers, to prevent proxying to
+  arbitrary domains.
+
 ## [4.99.3](https://github.com/coder/code-server/releases/tag/v4.99.3) - 2025-04-17
 
 Code v1.99.3
