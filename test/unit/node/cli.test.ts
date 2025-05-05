@@ -6,6 +6,7 @@ import {
   bindAddrFromArgs,
   defaultConfigFile,
   parse,
+  parseConfigFile,
   setDefaults,
   shouldOpenInExistingInstance,
   toCodeArgs,
@@ -287,11 +288,16 @@ describe("parser", () => {
   })
 
   it("should support repeatable flags", async () => {
+    expect(() => parse(["--proxy-domain", ""])).toThrowError(/--proxy-domain requires a value/)
     expect(parse(["--proxy-domain", "*.coder.com"])).toEqual({
       "proxy-domain": ["*.coder.com"],
     })
     expect(parse(["--proxy-domain", "*.coder.com", "--proxy-domain", "test.com"])).toEqual({
       "proxy-domain": ["*.coder.com", "test.com"],
+    })
+    // Commas are literal, at the moment.
+    expect(parse(["--proxy-domain", "*.coder.com,test.com"])).toEqual({
+      "proxy-domain": ["*.coder.com,test.com"],
     })
   })
 
@@ -489,6 +495,20 @@ describe("parser", () => {
         configFile: fakePath,
       }),
     ).toThrowError(expectedErrMsg)
+  })
+  it("should fail to parse invalid config", () => {
+    expect(() => parseConfigFile("test", "/fake-config-path")).toThrowError("invalid config: test")
+  })
+  it("should parse repeatable options", () => {
+    const configContents = `
+      install-extension:
+        - extension.number1
+        - extension.number2
+    `
+    expect(parseConfigFile(configContents, "/fake-config-path")).toEqual({
+      config: "/fake-config-path",
+      "install-extension": ["extension.number1", "extension.number2"],
+    })
   })
   it("should ignore optional strings set to false", async () => {
     expect(parse(["--cert=false"])).toEqual({})
