@@ -30,7 +30,7 @@ export enum LogLevel {
 export class OptionalString extends Optional<string> {}
 
 /**
- * Code flags provided by the user.
+ * (VS) Code flags provided by the user.
  */
 export interface UserProvidedCodeArgs {
   "disable-telemetry"?: boolean
@@ -54,6 +54,7 @@ export interface UserProvidedCodeArgs {
   "disable-proxy"?: boolean
   "session-socket"?: string
   "abs-proxy-base-path"?: string
+  "link-protection-trusted-domains"?: string[]
 }
 
 /**
@@ -194,6 +195,10 @@ export const options: Options<Required<UserProvidedArgs>> = {
   enable: { type: "string[]" },
   help: { type: "boolean", short: "h", description: "Show this output." },
   json: { type: "boolean" },
+  "link-protection-trusted-domains": {
+    type: "string[]",
+    description: "Links matching a trusted domain can be opened without link protection.",
+  },
   locale: {
     // The preferred way to set the locale is via the UI.
     type: "string",
