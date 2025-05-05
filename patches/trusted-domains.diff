@@ -1,0 +1,49 @@
+Allow configuring trusted domains via product.json or flag.
+
+Index: code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
++++ code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
+@@ -20,6 +20,7 @@ export const serverOptions: OptionDescri
+ 	'disable-file-uploads': { type: 'boolean' },
+ 	'disable-getting-started-override': { type: 'boolean' },
+ 	'locale': { type: 'string' },
++	'link-protection-trusted-domains': { type: 'string[]' },
+ 
+ 	/* ----- server setup ----- */
+ 
+@@ -108,6 +109,7 @@ export interface ServerParsedArgs {
+ 	'disable-file-uploads'?: boolean;
+ 	'disable-getting-started-override'?: boolean,
+ 	'locale'?: string
++	'link-protection-trusted-domains'?: string[],
+ 
+ 	/* ----- server setup ----- */
+ 
+Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
++++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
+@@ -339,6 +339,14 @@ export class WebClientServer {
+ 			scopes: [['user:email'], ['repo']]
+ 		} : undefined;
+ 
++		const linkProtectionTrustedDomains: string[] = [];
++		if (this._environmentService.args['link-protection-trusted-domains']) {
++			linkProtectionTrustedDomains.push(...this._environmentService.args['link-protection-trusted-domains']);
++		}
++		if (this._productService.linkProtectionTrustedDomains) {
++			linkProtectionTrustedDomains.push(...this._productService.linkProtectionTrustedDomains);
++		}
++
+ 		const productConfiguration = {
+ 			codeServerVersion: this._productService.codeServerVersion,
+ 			rootEndpoint: rootBase,
+@@ -353,6 +361,7 @@ export class WebClientServer {
+ 			telemetryEndpoint: this._productService.telemetryEndpoint,
+ 			embedderIdentifier: 'server-distro',
+ 			extensionsGallery: this._productService.extensionsGallery,
++			linkProtectionTrustedDomains,
+ 		} satisfies Partial<IProductConfiguration>;
+ 
+ 		if (!this._environmentService.isBuilt) {
