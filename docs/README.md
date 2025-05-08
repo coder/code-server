@@ -35,7 +35,9 @@ There are five ways to get started:
 3. Deploy code-server to your team with [coder/coder](https://cdr.co/coder-github)
 4. Using our one-click buttons and guides to [deploy code-server to a cloud
    provider](https://github.com/coder/deploy-code-server) ⚡
-5. Using [code-server feature for devcontainers](https://github.com/coder/devcontainer-features/blob/main/README.md), in case you already use devcontainers in your project.
+5. Using the [code-server feature for
+   devcontainers](https://github.com/coder/devcontainer-features/blob/main/src/code-server/README.md),
+   if you already use devcontainers in your project.
 
 If you use the install script, you can preview what occurs during the install
 process:
