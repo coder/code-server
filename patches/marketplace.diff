@@ -61,9 +61,9 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 -				}).toString(true)
 -			} : undefined
 +			extensionsGallery: this._productService.extensionsGallery,
- 		} satisfies Partial<IProductConfiguration>;
+ 		};
  
- 		if (!this._environmentService.isBuilt) {
+ 		const proposedApi = this._environmentService.args['enable-proposed-api'];
 Index: code-server/lib/vscode/src/vs/platform/extensionResourceLoader/common/extensionResourceLoader.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/platform/extensionResourceLoader/common/extensionResourceLoader.ts
