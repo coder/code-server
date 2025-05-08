@@ -21,18 +21,18 @@ Index: code-server/lib/vscode/src/vs/workbench/api/node/extHostExtensionService.
  
 +import * as _http from 'http';
  import * as performance from '../../../base/common/performance.js';
+ import type * as vscode from 'vscode';
  import { createApiFactoryAndRegisterActors } from '../common/extHost.api.impl.js';
- import { RequireInterceptor } from '../common/extHostRequireInterceptor.js';
-@@ -17,6 +18,7 @@ import { ExtensionRuntime } from '../com
+@@ -18,6 +19,7 @@ import { ExtensionRuntime } from '../com
  import { CLIServer } from './extHostCLIServer.js';
  import { realpathSync } from '../../../base/node/extpath.js';
  import { ExtHostConsoleForwarder } from './extHostConsoleForwarder.js';
 +import { IExtHostWorkspace } from '../common/extHostWorkspace.js';
  import { ExtHostDiskFileSystemProvider } from './extHostDiskFileSystemProvider.js';
- import { createRequire } from 'node:module';
- const require = createRequire(import.meta.url);
-@@ -97,6 +99,52 @@ export class ExtHostExtensionService ext
- 		await interceptor.install();
+ import nodeModule from 'node:module';
+ import { assertType } from '../../../base/common/types.js';
+@@ -226,6 +228,52 @@ export class ExtHostExtensionService ext
+ 
  		performance.mark('code/extHost/didInitAPI');
  
 +		(async () => {

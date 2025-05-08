@@ -21,3 +21,4 @@ keepalive.diff
 clipboard.diff
 display-language.diff
 trusted-domains.diff
+signature-verification.diff
