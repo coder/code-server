@@ -22,6 +22,28 @@ Code v99.99.999
 
 ## Unreleased
 
+## [4.100.0](https://github.com/coder/code-server/releases/tag/v4.100.0) - 2025-05-12
+
+Code v1.100.0
+
+### Added
+
+- Trusted domains for links can now be set at run-time by configuring
+  `linkProtectionTrustedDomains` in the `lib/vscode/product.json` file or via
+  the `--link-protection-trusted-domains` flag.
+
+### Changed
+
+- Update to Code 1.100.0.
+- Disable extension signature verification, which previously was skipped by
+  default (the package used for verification is not available to OSS builds of
+  VS Code) but now reportedly throws hard errors making it impossible to install
+  extensions.
+
+### Fixed
+
+- Flags with repeatable options now work via the config file.
+
 ## [4.99.4](https://github.com/coder/code-server/releases/tag/v4.99.4) - 2025-05-02
 
 Code v1.99.3
