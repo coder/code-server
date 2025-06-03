@@ -137,21 +137,30 @@ Index: code-server/lib/vscode/src/vs/workbench/services/clipboard/browser/clipbo
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/services/clipboard/browser/clipboardService.ts
 +++ code-server/lib/vscode/src/vs/workbench/services/clipboard/browser/clipboardService.ts
-@@ -15,6 +15,7 @@ import { IWorkbenchEnvironmentService }
+@@ -15,19 +15,36 @@ import { IWorkbenchEnvironmentService }
  import { ILogService } from '../../../../platform/log/common/log.js';
  import { ILayoutService } from '../../../../platform/layout/browser/layoutService.js';
  import { getActiveWindow } from '../../../../base/browser/dom.js';
 +import { isSafari } from '../../../../base/browser/browser.js';
++import { IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
  
  export class BrowserClipboardService extends BaseBrowserClipboardService {
  
-@@ -26,8 +27,19 @@ export class BrowserClipboardService ext
+ 	constructor(
+ 		@INotificationService private readonly notificationService: INotificationService,
++		@IContextKeyService	private readonly contextKeyService: IContextKeyService,
+ 		@IOpenerService private readonly openerService: IOpenerService,
+ 		@IWorkbenchEnvironmentService private readonly environmentService: IWorkbenchEnvironmentService,
+ 		@ILogService logService: ILogService,
  		@ILayoutService layoutService: ILayoutService
  	) {
  		super(layoutService, logService);
 +		if (isSafari) {
 +			window.addEventListener('keydown', event => {
-+				if (event.key.toLowerCase() === 'p' || (event.key === 'v' && (event.ctrlKey || event.metaKey))) {
++				if (
++					(event.key.toLowerCase() === 'p' && this.contextKeyService.getContextKeyValue('vim.mode') === 'Normal') ||
++					(event.key === 'v' && (event.ctrlKey || event.metaKey) && this.contextKeyService.getContextKeyValue('vim.mode') === 'SearchInProgressMode')
++				) {
 +					this.lastClipboardTextContent = navigator.clipboard.readText()
 +					this.lastCLipboardTime = Date.now();
 +				}
@@ -165,7 +174,7 @@ Index: code-server/lib/vscode/src/vs/workbench/services/clipboard/browser/clipbo
  	override async writeText(text: string, type?: string): Promise<void> {
  		if (!!this.environmentService.extensionTestsLocationURI && typeof type !== 'string') {
  			type = 'vscode-tests'; // force in-memory clipboard for tests to avoid permission issues
-@@ -46,6 +58,15 @@ export class BrowserClipboardService ext
+@@ -46,6 +63,15 @@ export class BrowserClipboardService ext
  		}
  
  		try {
