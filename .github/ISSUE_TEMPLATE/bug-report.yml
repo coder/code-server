@@ -20,6 +20,8 @@ body:
           - **Remote OS**: Ubuntu
           - **Remote Architecture**: amd64
           - **`code-server --version`**: 4.0.1
+
+        Please do not just put "latest" for the version.
       value: |
         - Web Browser:
         - Local OS:
