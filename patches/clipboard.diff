@@ -133,3 +133,37 @@ Index: code-server/lib/vscode/src/vs/server/node/server.cli.ts
  		if (parsedArgs.status) {
  			await sendToPipe({
  				type: 'status'
+Index: code-server/lib/vscode/src/vs/workbench/services/clipboard/browser/clipboardService.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/workbench/services/clipboard/browser/clipboardService.ts
++++ code-server/lib/vscode/src/vs/workbench/services/clipboard/browser/clipboardService.ts
+@@ -26,8 +26,17 @@ export class BrowserClipboardService ext
+ 		@ILayoutService layoutService: ILayoutService
+ 	) {
+ 		super(layoutService, logService);
++		window.addEventListener('keydown', event => {
++			if (event.key.toLowerCase() === 'p' || (event.key === 'v' && (event.ctrlKey || event.metaKey))) {
++				this.lastClipboardTextContent = navigator.clipboard.readText()
++				this.lastCLipboardTime = Date.now();
++			}
++		})
+ 	}
+ 
++	private lastClipboardTextContent?: Promise<string>
++	private lastCLipboardTime?: number
++
+ 	override async writeText(text: string, type?: string): Promise<void> {
+ 		if (!!this.environmentService.extensionTestsLocationURI && typeof type !== 'string') {
+ 			type = 'vscode-tests'; // force in-memory clipboard for tests to avoid permission issues
+@@ -46,6 +55,11 @@ export class BrowserClipboardService ext
+ 		}
+ 
+ 		try {
++			if (this.lastClipboardTextContent && this.lastCLipboardTime && Date.now() - this.lastCLipboardTime < 1000) {
++				const content = await this.lastClipboardTextContent;
++				if (content) return content
++			}
++
+ 			return await getActiveWindow().navigator.clipboard.readText();
+ 		} catch (error) {
+ 			return new Promise<string>(resolve => {
