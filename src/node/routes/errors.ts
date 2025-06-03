@@ -3,10 +3,10 @@ import express from "express"
 import { promises as fs } from "fs"
 import path from "path"
 import { HttpCode } from "../../common/http"
-import type { WebsocketRequest } from "../wsRouter"
 import { rootPath } from "../constants"
 import { replaceTemplates } from "../http"
 import { escapeHtml, getMediaMime } from "../util"
+import type { WebsocketRequest } from "../wsRouter"
 
 interface ErrorWithStatusCode {
   statusCode: number

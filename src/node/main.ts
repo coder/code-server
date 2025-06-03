@@ -1,5 +1,6 @@
 import { field, logger } from "@coder/logger"
 import http from "http"
+import * as os from "os"
 import * as path from "path"
 import { Disposable } from "../common/emitter"
 import { plural } from "../common/util"
@@ -9,7 +10,6 @@ import { commit, version, vsRootPath } from "./constants"
 import { register } from "./routes"
 import { VSCodeModule } from "./routes/vscode"
 import { isDirectory, open } from "./util"
-import * as os from "os"
 
 /**
  * Return true if the user passed an extension-related VS Code flag.
