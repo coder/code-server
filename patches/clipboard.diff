@@ -137,16 +137,26 @@ Index: code-server/lib/vscode/src/vs/workbench/services/clipboard/browser/clipbo
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/services/clipboard/browser/clipboardService.ts
 +++ code-server/lib/vscode/src/vs/workbench/services/clipboard/browser/clipboardService.ts
-@@ -26,8 +26,17 @@ export class BrowserClipboardService ext
+@@ -15,6 +15,7 @@ import { IWorkbenchEnvironmentService }
+ import { ILogService } from '../../../../platform/log/common/log.js';
+ import { ILayoutService } from '../../../../platform/layout/browser/layoutService.js';
+ import { getActiveWindow } from '../../../../base/browser/dom.js';
++import { isSafari } from '../../../../base/browser/browser.js';
+ 
+ export class BrowserClipboardService extends BaseBrowserClipboardService {
+ 
+@@ -26,8 +27,19 @@ export class BrowserClipboardService ext
  		@ILayoutService layoutService: ILayoutService
  	) {
  		super(layoutService, logService);
-+		window.addEventListener('keydown', event => {
-+			if (event.key.toLowerCase() === 'p' || (event.key === 'v' && (event.ctrlKey || event.metaKey))) {
-+				this.lastClipboardTextContent = navigator.clipboard.readText()
-+				this.lastCLipboardTime = Date.now();
-+			}
-+		})
++		if (isSafari) {
++			window.addEventListener('keydown', event => {
++				if (event.key.toLowerCase() === 'p' || (event.key === 'v' && (event.ctrlKey || event.metaKey))) {
++					this.lastClipboardTextContent = navigator.clipboard.readText()
++					this.lastCLipboardTime = Date.now();
++				}
++			})
++		}
  	}
  
 +	private lastClipboardTextContent?: Promise<string>
@@ -155,13 +165,17 @@ Index: code-server/lib/vscode/src/vs/workbench/services/clipboard/browser/clipbo
  	override async writeText(text: string, type?: string): Promise<void> {
  		if (!!this.environmentService.extensionTestsLocationURI && typeof type !== 'string') {
  			type = 'vscode-tests'; // force in-memory clipboard for tests to avoid permission issues
-@@ -46,6 +55,11 @@ export class BrowserClipboardService ext
+@@ -46,6 +58,15 @@ export class BrowserClipboardService ext
  		}
  
  		try {
-+			if (this.lastClipboardTextContent && this.lastCLipboardTime && Date.now() - this.lastCLipboardTime < 1000) {
-+				const content = await this.lastClipboardTextContent;
-+				if (content) return content
++			if (isSafari && this.lastClipboardTextContent && this.lastCLipboardTime && Date.now() - this.lastCLipboardTime < 1000) {
++				try {
++					const content = await this.lastClipboardTextContent;
++					if (content) return content
++				} catch {
++					// ignore error, we will try to read from the clipboard
++				}
 +			}
 +
  			return await getActiveWindow().navigator.clipboard.readText();
