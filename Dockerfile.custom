@@ -1,0 +1,54 @@
+# Custom Code-Server Dockerfile with QBraid branding
+FROM node:20-bullseye as builder
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    git \
+    git-lfs \
+    python3 \
+    quilt \
+    jq \
+    rsync \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set working directory
+WORKDIR /src
+
+# Copy source code
+COPY . .
+
+# Initialize git submodules
+RUN git submodule update --init
+
+# Apply patches
+RUN quilt push -a || true
+
+# Install dependencies and build
+RUN npm install && \
+    npm run build && \
+    VERSION=0.0.0 npm run build:vscode && \
+    npm run release
+
+# Build packages
+RUN npm run package
+
+# Production stage
+FROM codercom/code-server:latest
+
+# Switch to root to install packages
+USER root
+
+# Copy our custom build
+COPY --from=builder /src/release-packages/*.deb /tmp/
+
+# Install our custom build
+RUN dpkg -i /tmp/*.deb || apt-get update && apt-get install -f -y
+
+# Copy custom favicon files (we'll add these in the next step)
+# COPY logo-square.png /opt/code-server/lib/vscode/src/vs/workbench/browser/media/favicon.png
+
+USER 1000
+
+EXPOSE 8080
+ENTRYPOINT ["/usr/bin/entrypoint.sh", "--bind-addr", "0.0.0.0:8080", "."]

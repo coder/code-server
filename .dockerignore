@@ -1,3 +1,63 @@
-**
-!release-packages
-!ci
+# Node
+node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# VSCode
+.vscode
+
+# Build outputs
+/out
+/dist
+/lib/*.js
+/lib/*.d.ts
+/lib/*.js.map
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project specific
+/test/integration/node_modules
+
+# Logs
+*.log
+
+# Git files
+.git
+.gitignore
+
+# Docs (keep essential docs)
+docs/
+*.md
+!README.md
+!QBRAID_BUILD_README.md
+
+# Large directories we don't need
+.github/
+ci/
+test/
+patches/
+.pc/
+.tours/
+
+# Development files
+.eslintrc.js
+.prettierrc.yaml
+.editorconfig
+eslint.config.mjs
+tsconfig.json
+package-lock.json
+renovate.json
+.node-version
+.nvmrc
+flake.nix
+flake.lock
+
+# Include our custom files
+!extensions
+!logo-square.png
+!Dockerfile.qbraid
+!build-qbraid-docker.sh
+!install-qbraid-extensions.sh

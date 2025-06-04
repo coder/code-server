@@ -1,0 +1,43 @@
+FROM node:20-bullseye AS builder
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    git \
+    git-lfs \
+    python3 \
+    quilt \
+    jq \
+    rsync \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install nfpm from GitHub releases (latest version)
+RUN ARCH="$(dpkg --print-architecture)" && \
+    case "$ARCH" in \
+        "amd64") NFPM_ARCH="x86_64" ;; \
+        "arm64") NFPM_ARCH="aarch64" ;; \
+        *) NFPM_ARCH="$ARCH" ;; \
+    esac && \
+    echo "Installing nfpm for architecture: $NFPM_ARCH" && \
+    curl -fsSL "https://github.com/goreleaser/nfpm/releases/download/v2.42.1/nfpm_2.42.1_linux_${NFPM_ARCH}.tar.gz" | \
+    tar -xz -C /usr/local/bin && \
+    chmod +x /usr/local/bin/nfpm && \
+    nfpm --version
+
+WORKDIR /src
+COPY . .
+
+# Initialize submodules and apply patches
+RUN git submodule update --init && quilt push -a
+
+# Install dependencies and build
+RUN npm install && \
+    npm run build && \
+    VERSION=${TAG} npm run build:vscode && \
+    KEEP_MODULES=1 npm run release && \
+    npm run package
+
+# Extract the packages
+FROM scratch AS packages
+COPY --from=builder /src/release-packages/ /packages/

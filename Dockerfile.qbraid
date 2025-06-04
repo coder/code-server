@@ -1,0 +1,90 @@
+# syntax=docker/dockerfile:experimental
+# QBraid customized Code-Server
+
+FROM codercom/code-server:latest
+
+# Switch to root to make changes
+USER root
+
+# Copy QBraid favicon files and theme
+COPY src/browser/media/favicon.ico /tmp/favicon.ico
+COPY src/browser/media/favicon-dark-support.svg /tmp/favicon.svg
+COPY src/browser/media/pwa-icon-192.png /tmp/pwa-icon-192.png
+COPY src/browser/media/pwa-icon-512.png /tmp/pwa-icon-512.png
+COPY src/browser/media/qbraid/logo-square.png /tmp/logo-square.png
+COPY src/browser/media/qbraid-theme.css /tmp/qbraid-theme.css
+
+# Replace favicon files with QBraid branding
+RUN echo "Installing QBraid favicon files..."; \
+    find /usr/lib/code-server -name "favicon.ico" -exec cp /tmp/favicon.ico {} \; ; \
+    find /usr/lib/code-server -name "favicon.svg" -exec cp /tmp/favicon.svg {} \; ; \
+    find /usr/lib/code-server -name "pwa-icon-192.png" -exec cp /tmp/pwa-icon-192.png {} \; ; \
+    find /usr/lib/code-server -name "pwa-icon-512.png" -exec cp /tmp/pwa-icon-512.png {} \; ; \
+    find /usr/lib/code-server -name "*.png" -path "*/media/*" -exec cp /tmp/logo-square.png {} \; ; \
+    find /usr/lib/code-server -name "*.css" -path "*/workbench.css" -exec cp /tmp/qbraid-theme.css {} \; ; \
+    rm -f /tmp/favicon.ico /tmp/favicon.svg /tmp/pwa-icon-*.png /tmp/logo-square.png /tmp/qbraid-theme.css ; \
+    echo "QBraid favicon files installed";
+
+# Create extensions directory and copy extensions to permanent location
+RUN mkdir -p /opt/qbraid-extensions
+COPY ./extensions/ /opt/qbraid-extensions/
+
+# Copy the extension installation script
+COPY install-qbraid-extensions.sh /opt/install-qbraid-extensions.sh
+RUN chmod +x /opt/install-qbraid-extensions.sh
+
+# Create custom settings directory and default settings
+RUN mkdir -p /home/coder/.vscode/User && \
+    mkdir -p /home/coder/.vscode/Machine && \
+    mkdir -p /home/coder/.local/share/code-server/extensions
+
+# Create default user settings.json with QBraid customizations
+RUN echo '{ \
+  "workbench.colorTheme": "Default Dark+", \
+  "editor.fontSize": 14, \
+  "editor.tabSize": 4, \
+  "editor.insertSpaces": true, \
+  "editor.detectIndentation": true, \
+  "editor.minimap.enabled": true, \
+  "editor.wordWrap": "on", \
+  "files.autoSave": "afterDelay", \
+  "files.autoSaveDelay": 1000, \
+  "terminal.integrated.fontSize": 14, \
+  "workbench.startupEditor": "welcomePage", \
+  "git.enableSmartCommit": true, \
+  "git.confirmSync": false, \
+  "extensions.autoUpdate": true, \
+  "python.defaultInterpreterPath": "/usr/bin/python3", \
+  "workbench.iconTheme": "vs-seti" \
+}' > /home/coder/.vscode/User/settings.json
+
+# Create default machine settings.json
+RUN echo '{ \
+  "update.mode": "none", \
+  "extensions.autoCheckUpdates": false, \
+  "workbench.welcomePage.walkthroughs.openOnInstall": false, \
+  "telemetry.telemetryLevel": "off" \
+}' > /home/coder/.vscode/Machine/settings.json
+
+# Set ownership for coder user
+RUN chown -R coder:coder /home/coder && \
+    chown -R coder:coder /opt/qbraid-extensions
+
+# Allow users to have scripts run on container startup to prepare workspace.
+ENV ENTRYPOINTD=${HOME}/entrypoint.d
+
+# Disable authentication by setting empty password
+ENV PASSWORD=""
+
+# Create entrypoint.d directory and add our extension installation script
+RUN mkdir -p /home/coder/entrypoint.d && \
+    echo '#!/bin/bash' > /home/coder/entrypoint.d/install-extensions.sh && \
+    echo '/opt/install-qbraid-extensions.sh &' >> /home/coder/entrypoint.d/install-extensions.sh && \
+    chmod +x /home/coder/entrypoint.d/install-extensions.sh && \
+    chown coder:coder /home/coder/entrypoint.d/install-extensions.sh
+
+EXPOSE 8080
+USER coder
+ENV USER=coder
+WORKDIR /home/coder
+ENTRYPOINT ["/usr/bin/entrypoint.sh", "--bind-addr", "0.0.0.0:8080", "--auth", "none", "."]
