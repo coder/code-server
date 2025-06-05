@@ -1,6 +1,6 @@
 # QBraid Code-Server Custom Build
 
-This guide explains how to build a customized Code-Server Docker image with QBraid branding, custom favicon, pre-configured settings, and QBraid extensions.
+This guide explains how to build a customized Code-Server Docker image with QBraid branding, pre-configured settings, and QBraid extensions.
 
 ## Features
 
@@ -14,15 +14,11 @@ This guide explains how to build a customized Code-Server Docker image with QBra
 - Targets `linux/amd64` architecture by default for maximum compatibility
 - Works on Apple Silicon Macs, Intel Macs, and Linux development machines
 
-### Custom Favicon
-- Replaces all VS Code favicon files with your custom QBraid logo
-- Supports PNG format logos (recommended: 512x512 pixels, square format)
-
 ### Pre-installed QBraid Extensions
 - Automatically installs all VSIX extension files from the `extensions/` directory
 - Currently includes:
-  - QBraid Environment Manager (`qbraid-environment-manager-0.0.1.vsix`)
-  - Quantum Console (`quantum-console-0.2.1.vsix`)
+  - QBraid Environment Manager (`environment-manager-0.1.0.vsix`)
+  - Quantum Console (`quantum-console-0.2.2.vsix`)
 - Extensions are installed during the Docker build process and available immediately
 
 ### Pre-configured Settings
@@ -50,34 +46,18 @@ This guide explains how to build a customized Code-Server Docker image with QBra
 1. **Docker with buildx support** (Docker Desktop 19.03+ or Docker CE 20.10+)
 2. **Google Cloud CLI** (`gcloud`) installed and configured
 3. **Git** with access to this repository
-4. **Your custom logo** as `logo-square.png`
-5. **QBraid extensions** as VSIX files in the `extensions/` directory
+4. **QBraid extensions** as VSIX files in the `extensions/` directory
 
 ## Quick Start
 
-### 1. Prepare Your Logo
-
-Add your QBraid logo to the root directory:
-
-```bash
-# Copy your logo file to the code-server directory
-cp /path/to/your/qbraid-logo.png ./logo-square.png
-```
-
-**Logo Requirements:**
-- Format: PNG
-- Recommended size: 512x512 pixels (square)
-- File name: `logo-square.png`
-- Place in the same directory as this README
-
-### 2. Verify QBraid Extensions
+### 1. Verify QBraid Extensions
 
 The `extensions/` directory should contain your VSIX files:
 
 ```bash
 extensions/
-├── qbraid-environment-manager-0.0.1.vsix
-└── quantum-console-0.2.1.vsix
+├── environment-manager-0.1.0.vsix
+└── quantum-console-0.2.2.vsix
 ```
 
 **Extension Requirements:**
@@ -85,7 +65,7 @@ extensions/
 - Place all extension files in the `extensions/` directory
 - Extensions will be automatically installed during the build
 
-### 3. Run the Build Script
+### 2. Run the Build Script
 
 ```bash
 # Build and optionally push to Google Cloud Artifact Registry
@@ -95,14 +75,19 @@ extensions/
 ./build-qbraid-docker.sh v1.0.0
 ```
 
-### 4. What the Script Does
+### 3. What the Script Does
 
 1. **Sets up Docker buildx** - Creates a multi-platform builder if needed
-2. **Checks for your logo file** - warns if missing but continues
-3. **Checks for QBraid extensions** - lists found VSIX files
-4. **Builds for linux/amd64** - ensures compatibility with most cloud environments
-5. **Creates custom Docker image** - applies your branding, settings, and extensions
-6. **Optionally pushes to registry** - uploads to your Google Cloud Artifact Registry
+2. **Checks for QBraid extensions** - lists found VSIX files
+3. **Builds for linux/amd64** - ensures compatibility with most cloud environments
+4. **Creates custom Docker image** - applies your branding, settings, and extensions
+5. **Optionally pushes to registry** - uploads to your Google Cloud Artifact Registry
+
+echo "Features included in your custom build:"
+echo "   • No authentication required - direct access to code-server"
+echo "   • Pre-configured VS Code settings optimized for development"
+echo "   • Pre-installed QBraid extensions (if VSIX files were provided)"
+echo "   • Python development environment"
 
 ## Manual Build Process
 
@@ -213,26 +198,6 @@ ENV PASSWORD="your-default-password"
 ENTRYPOINT ["/usr/bin/entrypoint.sh", "--bind-addr", "0.0.0.0:8080", "."]
 ```
 
-#### Option 3: Kubernetes with authentication
-
-```yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: qbraid-code-server
-spec:
-  template:
-    spec:
-      containers:
-      - name: code-server
-        image: us-central1-docker.pkg.dev/qbraid-lab-gke/staging-qbraid/lab-code-server:latest
-        ports:
-        - containerPort: 8080
-        env:
-        - name: PASSWORD
-          value: "your-secure-password"
-        args: ["--auth", "password", "."]
-```
 
 ## Advanced Configuration
 
@@ -287,13 +252,6 @@ RUN code-server --install-extension ms-vscode.vscode-json
 If you have custom extensions to package:
 
 ```bash
-# Install vsce (VS Code Extension Manager)
-npm install -g vsce
-
-# Package your extension
-cd your-extension-directory
-vsce package
-
 # Copy the generated .vsix file to the extensions directory
 cp your-extension-1.0.0.vsix ../code-server/extensions/
 ```
@@ -338,12 +296,6 @@ The image is configured with no authentication by default. If you're seeing a lo
 #### Want to Add Authentication Back
 Follow the [Security Configuration](#security-configuration) section above.
 
-### Logo Not Showing
-1. Verify `logo-square.png` exists in the root directory
-2. Check the file is a valid PNG format
-3. Ensure `.dockerignore` includes `!logo-square.png` (already configured)
-4. Rebuild the image after adding the logo
-
 ### Extensions Not Loading
 1. Verify VSIX files exist in the `extensions/` directory
 2. Check that VSIX files are valid (not corrupted)
@@ -354,25 +306,16 @@ Follow the [Security Configuration](#security-configuration) section above.
 ### Settings Not Applied
 Settings are baked into the image and will be the defaults for new users. Existing user settings in persistent volumes will override these defaults.
 
-### Push Permission Denied
-Ensure you're authenticated and have push permissions:
-
-```bash
-gcloud auth login
-gcloud auth configure-docker us-central1-docker.pkg.dev
-```
-
 ## File Structure
 
-```
+```bash
 code-server/
 ├── build-qbraid-docker.sh      # Build script with buildx support
 ├── Dockerfile.qbraid           # Custom Dockerfile (no auth by default)
-├── .dockerignore              # Updated to include extensions and logo
-├── logo-square.png            # Your custom logo (you provide)
+├── .dockerignore              # Updated to include extensions
 ├── extensions/                # QBraid extensions directory
-│   ├── qbraid-environment-manager-0.0.1.vsix
-│   └── quantum-console-0.2.1.vsix
+│   ├── environment-manager-0.1.0.vsix
+│   └── quantum-console-0.2.2.vsix
 ├── QBRAID_BUILD_README.md     # This file
 └── ... (other code-server files)
 ```
@@ -380,11 +323,10 @@ code-server/
 ## Support
 
 For issues specific to the QBraid customizations, check:
-1. Logo file exists and is valid PNG
-2. Extension VSIX files exist and are valid
-3. Docker buildx is properly installed and configured
-4. Target platform compatibility
-5. Authentication configuration (if login issues occur)
-6. Network connectivity for registry push
+1. Extension VSIX files exist and are valid
+2. Docker buildx is properly installed and configured
+3. Target platform compatibility
+4. Authentication configuration (if login issues occur)
+5. Network connectivity for registry push
 
 For general code-server issues, refer to the main code-server documentation.

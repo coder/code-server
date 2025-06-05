@@ -31,6 +31,10 @@ RUN sed -i "s/# en_US.UTF-8/en_US.UTF-8/" /etc/locale.gen \
   && locale-gen
 ENV LANG=en_US.UTF-8
 
+# Set environment variables for user and home directory
+ENV NB_UID=1000
+ENV HOME=/home/coder
+
 RUN if grep -q 1000 /etc/passwd; then \
     userdel -r "$(id -un 1000)"; \
   fi \
@@ -51,11 +55,14 @@ RUN --mount=from=packages,src=/tmp,dst=/tmp/packages dpkg -i /tmp/packages/code-
 # https://github.com/coder/code-server/issues/5177
 ENV ENTRYPOINTD=${HOME}/entrypoint.d
 
+# Disable authentication by setting empty password
+ENV PASSWORD=""
+
 EXPOSE 8080
 # This way, if someone sets $DOCKER_USER, docker-exec will still work as
 # the uid will remain the same. note: only relevant if -u isn't passed to
 # docker-run.
-USER 1000
+USER ${NB_UID}
 ENV USER=coder
-WORKDIR /home/coder
-ENTRYPOINT ["/usr/bin/entrypoint.sh", "--bind-addr", "0.0.0.0:8080", "."]
+WORKDIR ${HOME}
+ENTRYPOINT ["/usr/bin/entrypoint.sh", "--bind-addr", "0.0.0.0:8080", "--auth", "none", "."]
