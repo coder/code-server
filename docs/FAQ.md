@@ -81,6 +81,40 @@ You can change the config file's location using the `--config` flag or
 
 The default location respects `$XDG_CONFIG_HOME`.
 
+### Login page customization
+
+You can customize the login page appearance using CLI flags or environment variables:
+
+**CLI flags:**
+```bash
+code-server --login-title "My Code Server" \
+           --login-env-password-msg "Password set via environment" \
+           --password-placeholder "Enter password" \
+           --submit-text "LOGIN"
+```
+
+**Environment variables:**
+```bash
+export CS_LOGIN_TITLE="My Code Server"
+export CS_LOGIN_ENV_PASSWORD_MSG="Password set via environment"
+export CS_PASSWORD_PLACEHOLDER="Enter password"
+export CS_SUBMIT_TEXT="LOGIN"
+code-server
+```
+
+**Config file:**
+```yaml
+bind-addr: 127.0.0.1:8080
+auth: password
+password: your-password
+login-title: "My Code Server"
+login-env-password-msg: "Password set via environment"
+password-placeholder: "Enter password"
+submit-text: "LOGIN"
+```
+
+CLI flags take priority over environment variables, which take priority over config file settings.
+
 ## How do I make my keyboard shortcuts work?
 
 Many shortcuts will not work by default, since they'll be "caught" by the browser.

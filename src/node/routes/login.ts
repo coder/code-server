@@ -31,23 +31,32 @@ const getRoot = async (req: Request, error?: Error): Promise<string> => {
   const locale = req.args["locale"] || "en"
   i18n.changeLanguage(locale)
   const appName = req.args["app-name"] || "code-server"
-  const welcomeText = req.args["welcome-text"] || (i18n.t("WELCOME", { app: appName }) as string)
-  let passwordMsg = i18n.t("LOGIN_PASSWORD", { configFile: req.args.config })
+  const welcomeText = escapeHtml(req.args["welcome-text"] || (i18n.t("WELCOME", { app: appName }) as string))
+
+  // Determine password message with custom overrides
+  let passwordMsg = req.args["login-password-msg"] || i18n.t("LOGIN_PASSWORD", { configFile: req.args.config })
   if (req.args.usingEnvPassword) {
-    passwordMsg = i18n.t("LOGIN_USING_ENV_PASSWORD")
+    passwordMsg = req.args["login-env-password-msg"] || i18n.t("LOGIN_USING_ENV_PASSWORD")
   } else if (req.args.usingEnvHashedPassword) {
-    passwordMsg = i18n.t("LOGIN_USING_HASHED_PASSWORD")
+    passwordMsg = req.args["login-hashed-password-msg"] || i18n.t("LOGIN_USING_HASHED_PASSWORD")
   }
+  passwordMsg = escapeHtml(passwordMsg)
+
+  // Get custom messages or fall back to i18n (with HTML escaping for security)
+  const loginTitle = escapeHtml(req.args["login-title"] || i18n.t("LOGIN_TITLE", { app: appName }))
+  const loginBelow = escapeHtml(req.args["login-below"] || i18n.t("LOGIN_BELOW"))
+  const passwordPlaceholder = escapeHtml(req.args["password-placeholder"] || i18n.t("PASSWORD_PLACEHOLDER"))
+  const submitText = escapeHtml(req.args["submit-text"] || i18n.t("SUBMIT"))
 
   return replaceTemplates(
     req,
     content
-      .replace(/{{I18N_LOGIN_TITLE}}/g, i18n.t("LOGIN_TITLE", { app: appName }))
+      .replace(/{{I18N_LOGIN_TITLE}}/g, loginTitle)
       .replace(/{{WELCOME_TEXT}}/g, welcomeText)
       .replace(/{{PASSWORD_MSG}}/g, passwordMsg)
-      .replace(/{{I18N_LOGIN_BELOW}}/g, i18n.t("LOGIN_BELOW"))
-      .replace(/{{I18N_PASSWORD_PLACEHOLDER}}/g, i18n.t("PASSWORD_PLACEHOLDER"))
-      .replace(/{{I18N_SUBMIT}}/g, i18n.t("SUBMIT"))
+      .replace(/{{I18N_LOGIN_BELOW}}/g, loginBelow)
+      .replace(/{{I18N_PASSWORD_PLACEHOLDER}}/g, passwordPlaceholder)
+      .replace(/{{I18N_SUBMIT}}/g, submitText)
       .replace(/{{ERROR}}/, error ? `<div class="error">${escapeHtml(error.message)}</div>` : ""),
   )
 }
@@ -75,11 +84,11 @@ router.post<{}, string, { password?: string; base?: string } | undefined, { to?:
   try {
     // Check to see if they exceeded their login attempts
     if (!limiter.canTry()) {
-      throw new Error(i18n.t("LOGIN_RATE_LIMIT") as string)
+      throw new Error(req.args["login-rate-limit-msg"] || (i18n.t("LOGIN_RATE_LIMIT") as string))
     }
 
     if (!password) {
-      throw new Error(i18n.t("MISS_PASSWORD") as string)
+      throw new Error(req.args["missing-password-msg"] || (i18n.t("MISS_PASSWORD") as string))
     }
 
     const passwordMethod = getPasswordMethod(hashedPasswordFromArgs)
@@ -113,7 +122,7 @@ router.post<{}, string, { password?: string; base?: string } | undefined, { to?:
       }),
     )
 
-    throw new Error(i18n.t("INCORRECT_PASSWORD") as string)
+    throw new Error(req.args["incorrect-password-msg"] || (i18n.t("INCORRECT_PASSWORD") as string))
   } catch (error: any) {
     const renderedHtml = await getRoot(req, error)
     res.send(renderedHtml)

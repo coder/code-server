@@ -92,6 +92,16 @@ export interface UserProvidedArgs extends UserProvidedCodeArgs {
   verbose?: boolean
   "app-name"?: string
   "welcome-text"?: string
+  "login-title"?: string
+  "login-below"?: string
+  "password-placeholder"?: string
+  "submit-text"?: string
+  "login-password-msg"?: string
+  "login-env-password-msg"?: string
+  "login-hashed-password-msg"?: string
+  "login-rate-limit-msg"?: string
+  "missing-password-msg"?: string
+  "incorrect-password-msg"?: string
   "abs-proxy-base-path"?: string
   /* Positional arguments. */
   _?: string[]
@@ -290,6 +300,46 @@ export const options: Options<Required<UserProvidedArgs>> = {
     type: "string",
     short: "w",
     description: "Text to show on login page",
+  },
+  "login-title": {
+    type: "string",
+    description: "Custom login page title",
+  },
+  "login-below": {
+    type: "string",
+    description: "Custom text to show below login title",
+  },
+  "password-placeholder": {
+    type: "string",
+    description: "Custom placeholder text for password field",
+  },
+  "submit-text": {
+    type: "string",
+    description: "Custom text for login submit button",
+  },
+  "login-password-msg": {
+    type: "string",
+    description: "Custom message for config file password",
+  },
+  "login-env-password-msg": {
+    type: "string",
+    description: "Custom message when password is set from $PASSWORD environment variable",
+  },
+  "login-hashed-password-msg": {
+    type: "string",
+    description: "Custom message when password is set from $HASHED_PASSWORD environment variable",
+  },
+  "login-rate-limit-msg": {
+    type: "string",
+    description: "Custom message for login rate limiting",
+  },
+  "missing-password-msg": {
+    type: "string",
+    description: "Custom message for missing password error",
+  },
+  "incorrect-password-msg": {
+    type: "string",
+    description: "Custom message for incorrect password error",
   },
   "abs-proxy-base-path": {
     type: "string",
@@ -591,6 +641,47 @@ export async function setDefaults(cliArgs: UserProvidedArgs, configArgs?: Config
 
   if (process.env.CS_DISABLE_PROXY?.match(/^(1|true)$/)) {
     args["disable-proxy"] = true
+  }
+
+  // Login message customization via environment variables
+  if (process.env.CS_LOGIN_TITLE) {
+    args["login-title"] = process.env.CS_LOGIN_TITLE
+  }
+
+  if (process.env.CS_LOGIN_BELOW) {
+    args["login-below"] = process.env.CS_LOGIN_BELOW
+  }
+
+  if (process.env.CS_PASSWORD_PLACEHOLDER) {
+    args["password-placeholder"] = process.env.CS_PASSWORD_PLACEHOLDER
+  }
+
+  if (process.env.CS_SUBMIT_TEXT) {
+    args["submit-text"] = process.env.CS_SUBMIT_TEXT
+  }
+
+  if (process.env.CS_LOGIN_PASSWORD_MSG) {
+    args["login-password-msg"] = process.env.CS_LOGIN_PASSWORD_MSG
+  }
+
+  if (process.env.CS_LOGIN_ENV_PASSWORD_MSG) {
+    args["login-env-password-msg"] = process.env.CS_LOGIN_ENV_PASSWORD_MSG
+  }
+
+  if (process.env.CS_LOGIN_HASHED_PASSWORD_MSG) {
+    args["login-hashed-password-msg"] = process.env.CS_LOGIN_HASHED_PASSWORD_MSG
+  }
+
+  if (process.env.CS_LOGIN_RATE_LIMIT_MSG) {
+    args["login-rate-limit-msg"] = process.env.CS_LOGIN_RATE_LIMIT_MSG
+  }
+
+  if (process.env.CS_MISSING_PASSWORD_MSG) {
+    args["missing-password-msg"] = process.env.CS_MISSING_PASSWORD_MSG
+  }
+
+  if (process.env.CS_INCORRECT_PASSWORD_MSG) {
+    args["incorrect-password-msg"] = process.env.CS_INCORRECT_PASSWORD_MSG
   }
 
   const usingEnvHashedPassword = !!process.env.HASHED_PASSWORD

@@ -287,6 +287,30 @@ docker run -it --name code-server -p 127.0.0.1:8080:8080 \
   codercom/code-server:latest
 ```
 
+### Customizing the login page
+
+You can customize the login page by setting environment variables:
+
+```bash
+# Example with login customization
+docker run -it --name code-server -p 127.0.0.1:8080:8080 \
+  -v "$PWD:/home/coder/project" \
+  -e "CS_LOGIN_TITLE=My Development Environment" \
+  -e "CS_LOGIN_ENV_PASSWORD_MSG=Password configured via environment variable" \
+  -e "CS_PASSWORD_PLACEHOLDER=Enter your secure password" \
+  -e "CS_SUBMIT_TEXT=ACCESS" \
+  codercom/code-server:latest
+```
+
+Available customization environment variables:
+- `CS_LOGIN_TITLE` - Custom login page title
+- `CS_LOGIN_BELOW` - Custom text below the login title
+- `CS_PASSWORD_PLACEHOLDER` - Custom password field placeholder
+- `CS_SUBMIT_TEXT` - Custom submit button text
+- `CS_LOGIN_PASSWORD_MSG` - Custom message for config file password
+- `CS_LOGIN_ENV_PASSWORD_MSG` - Custom message when using `$PASSWORD` env var
+- `CS_LOGIN_HASHED_PASSWORD_MSG` - Custom message when using `$HASHED_PASSWORD` env var
+
 Our official image supports `amd64` and `arm64`. For `arm32` support, you can
 use a [community-maintained code-server
 alternative](https://hub.docker.com/r/linuxserver/code-server).
