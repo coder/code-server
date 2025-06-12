@@ -49,6 +49,10 @@ describe("parser", () => {
     delete process.env.CS_DISABLE_GETTING_STARTED_OVERRIDE
     delete process.env.VSCODE_PROXY_URI
     delete process.env.CS_DISABLE_PROXY
+    delete process.env.CS_LOGIN_TITLE
+    delete process.env.CS_LOGIN_ENV_PASSWORD_MSG
+    delete process.env.CS_PASSWORD_PLACEHOLDER
+    delete process.env.CS_SUBMIT_TEXT
     console.log = jest.fn()
   })
 
@@ -75,6 +79,10 @@ describe("parser", () => {
           "--verbose",
           ["--app-name", "custom instance name"],
           ["--welcome-text", "welcome to code"],
+          ["--login-title", "Custom Login Portal"],
+          ["--login-env-password-msg", "Password from environment"],
+          ["--password-placeholder", "Enter code"],
+          ["--submit-text", "ACCESS"],
           "2",
 
           ["--locale", "ja"],
@@ -145,6 +153,10 @@ describe("parser", () => {
       verbose: true,
       "app-name": "custom instance name",
       "welcome-text": "welcome to code",
+      "login-title": "Custom Login Portal",
+      "login-env-password-msg": "Password from environment",
+      "password-placeholder": "Enter code",
+      "submit-text": "ACCESS",
       version: true,
       "bind-addr": "192.169.0.1:8080",
       "session-socket": "/tmp/override-code-server-ipc-socket",
@@ -344,6 +356,24 @@ describe("parser", () => {
       "hashed-password":
         "$argon2i$v=19$m=4096,t=3,p=1$0qR/o+0t00hsbJFQCKSfdQ$oFcM4rL6o+B7oxpuA4qlXubypbBPsf+8L531U7P9HYY",
       usingEnvHashedPassword: true,
+    })
+  })
+
+  it("should use env var login customization", async () => {
+    process.env.CS_LOGIN_TITLE = "Custom Portal"
+    process.env.CS_LOGIN_ENV_PASSWORD_MSG = "Password from env"
+    process.env.CS_PASSWORD_PLACEHOLDER = "Enter code here"
+    process.env.CS_SUBMIT_TEXT = "ACCESS NOW"
+    const args = parse([])
+    expect(args).toEqual({})
+
+    const defaultArgs = await setDefaults(args)
+    expect(defaultArgs).toEqual({
+      ...defaults,
+      "login-title": "Custom Portal",
+      "login-env-password-msg": "Password from env",
+      "password-placeholder": "Enter code here",
+      "submit-text": "ACCESS NOW",
     })
   })
 
