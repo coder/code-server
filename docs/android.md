@@ -11,7 +11,7 @@ curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
 ```
 
 6. Exit the terminal using `exit` and then reopen the terminal
-7. Install and use Node.js 20:
+7. Install and use Node.js 22:
 
 ```shell
 nvm install 18

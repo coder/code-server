@@ -269,7 +269,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -334,6 +334,7 @@ export class WebClientServer {
+@@ -333,6 +333,7 @@ export class WebClientServer {
  		} : undefined;
  
  		const productConfiguration: Partial<Mutable<IProductConfiguration>> = {
