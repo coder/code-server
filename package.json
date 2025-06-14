@@ -47,7 +47,7 @@
     "@types/express": "^5.0.0",
     "@types/http-proxy": "1.17.7",
     "@types/js-yaml": "^4.0.6",
-    "@types/node": "20.x",
+    "@types/node": "22.x",
     "@types/pem": "^1.14.1",
     "@types/proxy-from-env": "^1.0.1",
     "@types/safe-compare": "^1.1.0",
@@ -90,7 +90,7 @@
     "xdg-basedir": "^4.0.0"
   },
   "resolutions": {
-    "@types/node": "20.x"
+    "@types/node": "22.x"
   },
   "bin": {
     "code-server": "out/node/entry.js"
@@ -105,7 +105,7 @@
     "remote-development"
   ],
   "engines": {
-    "node": "20"
+    "node": "22"
   },
   "jest": {
     "transform": {

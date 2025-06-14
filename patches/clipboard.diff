@@ -85,7 +85,7 @@ Index: code-server/lib/vscode/src/vs/platform/environment/common/argv.ts
 +	'stdin-to-clipboard'?: boolean;
  	'unresponsive-sample-interval'?: string;
  	'unresponsive-sample-period'?: string;
- 
+ 	'enable-rdp-display-tracking'?: boolean;
 Index: code-server/lib/vscode/src/vs/platform/environment/node/argv.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/platform/environment/node/argv.ts

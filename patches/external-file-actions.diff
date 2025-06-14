@@ -112,7 +112,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -370,6 +370,8 @@ export class WebClientServer {
+@@ -369,6 +369,8 @@ export class WebClientServer {
  			serverBasePath: basePath,
  			webviewEndpoint: staticRoute + '/out/vs/workbench/contrib/webview/browser/pre',
  			userDataPath: this._environmentService.userDataPath,
@@ -208,7 +208,7 @@ Index: code-server/lib/vscode/src/vs/workbench/common/contextkeys.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/common/contextkeys.ts
 +++ code-server/lib/vscode/src/vs/workbench/common/contextkeys.ts
-@@ -40,6 +40,9 @@ export const HasWebFileSystemAccess = ne
+@@ -36,6 +36,9 @@ export const HasWebFileSystemAccess = ne
  
  export const EmbedderIdentifierContext = new RawContextKey<string | undefined>('embedderIdentifier', undefined, localize('embedderIdentifier', 'The identifier of the embedder according to the product service, if one is defined'));
  
@@ -217,7 +217,7 @@ Index: code-server/lib/vscode/src/vs/workbench/common/contextkeys.ts
 +
  //#endregion
  
- 
+ //#region < --- Window --- >
 Index: code-server/lib/vscode/src/vs/workbench/services/dialogs/browser/simpleFileDialog.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/services/dialogs/browser/simpleFileDialog.ts
