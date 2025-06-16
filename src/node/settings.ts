@@ -17,7 +17,7 @@ export class SettingsProvider<T> {
   public async read(): Promise<T> {
     try {
       const raw = (await fs.readFile(this.settingsPath, "utf8")).trim()
-      return raw ? JSON.parse(raw) : {}
+      return raw ? JSON.parse(raw) : ({} as T)
     } catch (error: any) {
       if (error.code !== "ENOENT") {
         logger.warn(error.message)
