@@ -29,7 +29,7 @@ describe("settings", () => {
       const settings = new SettingsProvider<CoderSettings>(pathToMockSettingsFile)
       await settings.read()
       // This happens when we can't parse a JSON (usually error in file)
-      expect(logger.warn).toHaveBeenCalledWith(expect.stringMatching(/Unexpected token/))
+      expect(logger.warn).toHaveBeenCalledWith(expect.stringMatching(/Expected ':'/))
     })
   })
   describe("with invalid settings file path", () => {
