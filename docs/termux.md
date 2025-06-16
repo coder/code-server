@@ -57,7 +57,7 @@ npm config set python python3
 node -v
 ```
 
-you will get Node version `v20`
+you will get Node version `v22`
 
 5. Now install code-server following our guide on [installing with npm](./npm.md)
 

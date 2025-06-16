@@ -22,7 +22,7 @@ Index: code-server/lib/vscode/src/vs/platform/extensionManagement/node/extension
  		@IConfigurationService private readonly configurationService: IConfigurationService,
  		@IExtensionGalleryManifestService protected readonly extensionGalleryManifestService: IExtensionGalleryManifestService,
  		@IProductService productService: IProductService,
-@@ -331,8 +333,7 @@ export class ExtensionManagementService
+@@ -339,8 +341,7 @@ export class ExtensionManagementService
  
  	private async downloadExtension(extension: IGalleryExtension, operation: InstallOperation, verifySignature: boolean, clientTargetPlatform?: TargetPlatform): Promise<{ readonly location: URI; readonly verificationStatus: ExtensionSignatureVerificationCode | undefined }> {
  		if (verifySignature) {

@@ -153,7 +153,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -26,6 +26,7 @@ import { URI } from '../../base/common/u
+@@ -25,6 +25,7 @@ import { URI } from '../../base/common/u
  import { streamToBuffer } from '../../base/common/buffer.js';
  import { IProductConfiguration } from '../../base/common/product.js';
  import { isString, Mutable } from '../../base/common/types.js';
@@ -161,7 +161,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
  import { CharCode } from '../../base/common/charCode.js';
  import { IExtensionManifest } from '../../platform/extensions/common/extensions.js';
  import { ICSSDevelopmentService } from '../../platform/cssDev/node/cssDevService.js';
-@@ -386,14 +387,22 @@ export class WebClientServer {
+@@ -385,14 +386,22 @@ export class WebClientServer {
  		};
  
  		const cookies = cookie.parse(req.headers.cookie || '');
@@ -272,7 +272,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/extensions/browser/extens
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/contrib/extensions/browser/extensionsActions.ts
 +++ code-server/lib/vscode/src/vs/workbench/contrib/extensions/browser/extensionsActions.ts
-@@ -474,9 +474,6 @@ export class InstallAction extends Exten
+@@ -475,9 +475,6 @@ export class InstallAction extends Exten
  		if (this.extension.isBuiltin) {
  			return;
  		}
@@ -282,7 +282,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/extensions/browser/extens
  		if (this.extension.state !== ExtensionState.Uninstalled) {
  			return;
  		}
-@@ -781,7 +778,7 @@ export abstract class InstallInOtherServ
+@@ -782,7 +779,7 @@ export abstract class InstallInOtherServ
  		}
  
  		if (isLanguagePackExtension(this.extension.local.manifest)) {
@@ -291,7 +291,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/extensions/browser/extens
  		}
  
  		// Prefers to run on UI
-@@ -2071,17 +2068,6 @@ export class SetLanguageAction extends E
+@@ -2073,17 +2070,6 @@ export class SetLanguageAction extends E
  	update(): void {
  		this.enabled = false;
  		this.class = SetLanguageAction.DisabledClass;
@@ -309,7 +309,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/extensions/browser/extens
  	}
  
  	override async run(): Promise<any> {
-@@ -2098,7 +2084,6 @@ export class ClearLanguageAction extends
+@@ -2100,7 +2086,6 @@ export class ClearLanguageAction extends
  	private static readonly DisabledClass = `${this.EnabledClass} disabled`;
  
  	constructor(
@@ -317,7 +317,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/extensions/browser/extens
  		@ILocaleService private readonly localeService: ILocaleService,
  	) {
  		super(ClearLanguageAction.ID, ClearLanguageAction.TITLE.value, ClearLanguageAction.DisabledClass, false);
-@@ -2108,17 +2093,6 @@ export class ClearLanguageAction extends
+@@ -2110,17 +2095,6 @@ export class ClearLanguageAction extends
  	update(): void {
  		this.enabled = false;
  		this.class = ClearLanguageAction.DisabledClass;
