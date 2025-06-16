@@ -43,7 +43,7 @@ jobs:
     permissions:
       contents: read # for actions/checkout to fetch code
       security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -72,7 +72,7 @@ jobs:
       contents: read # for actions/checkout to fetch code
       security-events: write # for github/codeql-action/autobuild to send a status report
     name: Analyze with CodeQL
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
 
     steps:
       - name: Checkout repository
