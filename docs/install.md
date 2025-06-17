@@ -289,27 +289,31 @@ docker run -it --name code-server -p 127.0.0.1:8080:8080 \
 
 ### Customizing the login page
 
-You can customize the login page by setting environment variables:
+You can customize the login page using the `--custom-strings` flag:
 
 ```bash
-# Example with login customization
+# Example with inline JSON customization
 docker run -it --name code-server -p 127.0.0.1:8080:8080 \
   -v "$PWD:/home/coder/project" \
-  -e "CS_LOGIN_TITLE=My Development Environment" \
-  -e "CS_LOGIN_ENV_PASSWORD_MSG=Password configured via environment variable" \
-  -e "CS_PASSWORD_PLACEHOLDER=Enter your secure password" \
-  -e "CS_SUBMIT_TEXT=ACCESS" \
-  codercom/code-server:latest
+  codercom/code-server:latest --custom-strings '{
+    "LOGIN_TITLE": "My Development Environment",
+    "WELCOME": "Welcome to your coding workspace",
+    "PASSWORD_PLACEHOLDER": "Enter your secure password",
+    "SUBMIT": "ACCESS"
+  }'
 ```
 
-Available customization environment variables:
-- `CS_LOGIN_TITLE` - Custom login page title
-- `CS_LOGIN_BELOW` - Custom text below the login title
-- `CS_PASSWORD_PLACEHOLDER` - Custom password field placeholder
-- `CS_SUBMIT_TEXT` - Custom submit button text
-- `CS_LOGIN_PASSWORD_MSG` - Custom message for config file password
-- `CS_LOGIN_ENV_PASSWORD_MSG` - Custom message when using `$PASSWORD` env var
-- `CS_LOGIN_HASHED_PASSWORD_MSG` - Custom message when using `$HASHED_PASSWORD` env var
+Or mount a JSON file:
+
+```bash
+# Example with JSON file
+docker run -it --name code-server -p 127.0.0.1:8080:8080 \
+  -v "$PWD:/home/coder/project" \
+  -v "$PWD/custom-strings.json:/config/strings.json" \
+  codercom/code-server:latest --custom-strings /config/strings.json
+```
+
+For detailed customization options, see the [customization guide](./customization.md).
 
 Our official image supports `amd64` and `arm64`. For `arm32` support, you can
 use a [community-maintained code-server
