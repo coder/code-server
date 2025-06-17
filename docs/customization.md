@@ -97,7 +97,7 @@ docker run -it --name code-server -p 127.0.0.1:8080:8080 \
 
 ## Legacy Support (Deprecated)
 
-The following individual flags are still supported but deprecated. Use `--custom-strings` for new deployments:
+The following flags are still supported but deprecated. Use `--custom-strings` for new deployments:
 
 ```bash
 # Deprecated - use --custom-strings instead
@@ -110,40 +110,25 @@ These legacy flags will show deprecation warnings and may be removed in future v
 
 ## Migration Guide
 
-### From Individual Flags to Custom Strings
+### From Legacy Flags to Custom Strings
 
 **Old approach:**
 ```bash
 code-server \
   --app-name "Dev Portal" \
-  --welcome-text "Welcome to development" \
-  --login-title "Portal Access"
+  --welcome-text "Welcome to development"
 ```
 
 **New approach:**
 ```bash
 code-server --custom-strings '{
-  "WELCOME": "Welcome to development",
-  "LOGIN_TITLE": "Portal Access"
+  "WELCOME": "Welcome to development"
 }'
 ```
 
-**Note:** The `--app-name` flag controls the `{{app}}` placeholder in templates. Use it alongside `--custom-strings` or customize the full text without placeholders.
-
-### From Environment Variables
-
-**Old approach:**
-```bash
-export CS_LOGIN_TITLE="Portal Access"
-export CS_WELCOME_TEXT="Welcome message"
-code-server
-```
-
-**New approach:**
-```bash
-echo '{"LOGIN_TITLE": "Portal Access", "WELCOME": "Welcome message"}' > strings.json
-code-server --custom-strings strings.json
-```
+**Note:** The `--app-name` flag controls the `{{app}}` placeholder in templates. You can either:
+1. Keep using `--app-name` alongside `--custom-strings`
+2. Customize the full text without placeholders in your JSON
 
 ## Benefits of Custom Strings
 
