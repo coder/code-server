@@ -92,17 +92,8 @@ export interface UserProvidedArgs extends UserProvidedCodeArgs {
   verbose?: boolean
   "app-name"?: string
   "welcome-text"?: string
-  "login-title"?: string
-  "login-below"?: string
-  "password-placeholder"?: string
-  "submit-text"?: string
-  "login-password-msg"?: string
-  "login-env-password-msg"?: string
-  "login-hashed-password-msg"?: string
-  "login-rate-limit-msg"?: string
-  "missing-password-msg"?: string
-  "incorrect-password-msg"?: string
   "abs-proxy-base-path"?: string
+  "custom-strings"?: string
   /* Positional arguments. */
   _?: string[]
 }
@@ -295,55 +286,21 @@ export const options: Options<Required<UserProvidedArgs>> = {
     type: "string",
     short: "an",
     description: "The name to use in branding. Will be shown in titlebar and welcome message",
+    deprecated: true,
   },
   "welcome-text": {
     type: "string",
     short: "w",
     description: "Text to show on login page",
-  },
-  "login-title": {
-    type: "string",
-    description: "Custom login page title",
-  },
-  "login-below": {
-    type: "string",
-    description: "Custom text to show below login title",
-  },
-  "password-placeholder": {
-    type: "string",
-    description: "Custom placeholder text for password field",
-  },
-  "submit-text": {
-    type: "string",
-    description: "Custom text for login submit button",
-  },
-  "login-password-msg": {
-    type: "string",
-    description: "Custom message for config file password",
-  },
-  "login-env-password-msg": {
-    type: "string",
-    description: "Custom message when password is set from $PASSWORD environment variable",
-  },
-  "login-hashed-password-msg": {
-    type: "string",
-    description: "Custom message when password is set from $HASHED_PASSWORD environment variable",
-  },
-  "login-rate-limit-msg": {
-    type: "string",
-    description: "Custom message for login rate limiting",
-  },
-  "missing-password-msg": {
-    type: "string",
-    description: "Custom message for missing password error",
-  },
-  "incorrect-password-msg": {
-    type: "string",
-    description: "Custom message for incorrect password error",
+    deprecated: true,
   },
   "abs-proxy-base-path": {
     type: "string",
     description: "The base path to prefix to all absproxy requests",
+  },
+  "custom-strings": {
+    type: "string",
+    description: "Path to JSON file or raw JSON string with custom UI strings. Merges with default strings and supports all i18n keys.",
   },
 }
 
@@ -509,6 +466,21 @@ export const parse = (
     throw new Error("--cert-key is missing")
   }
 
+  // Validate custom-strings flag
+  if (args["custom-strings"]) {
+    try {
+      // First try to parse as JSON directly
+      JSON.parse(args["custom-strings"])
+    } catch (jsonError) {
+      // If JSON parsing fails, check if it's a valid file path
+      if (!args["custom-strings"].startsWith("{") && !args["custom-strings"].startsWith("[")) {
+        // Assume it's a file path - validation will happen later when the file is read
+      } else {
+        throw error(`--custom-strings contains invalid JSON: ${jsonError instanceof Error ? jsonError.message : String(jsonError)}`)
+      }
+    }
+  }
+
   logger.debug(() => [`parsed ${opts?.configFile ? "config" : "command line"}`, field("args", redactArgs(args))])
 
   return args
@@ -643,46 +615,6 @@ export async function setDefaults(cliArgs: UserProvidedArgs, configArgs?: Config
     args["disable-proxy"] = true
   }
 
-  // Login message customization via environment variables
-  if (process.env.CS_LOGIN_TITLE) {
-    args["login-title"] = process.env.CS_LOGIN_TITLE
-  }
-
-  if (process.env.CS_LOGIN_BELOW) {
-    args["login-below"] = process.env.CS_LOGIN_BELOW
-  }
-
-  if (process.env.CS_PASSWORD_PLACEHOLDER) {
-    args["password-placeholder"] = process.env.CS_PASSWORD_PLACEHOLDER
-  }
-
-  if (process.env.CS_SUBMIT_TEXT) {
-    args["submit-text"] = process.env.CS_SUBMIT_TEXT
-  }
-
-  if (process.env.CS_LOGIN_PASSWORD_MSG) {
-    args["login-password-msg"] = process.env.CS_LOGIN_PASSWORD_MSG
-  }
-
-  if (process.env.CS_LOGIN_ENV_PASSWORD_MSG) {
-    args["login-env-password-msg"] = process.env.CS_LOGIN_ENV_PASSWORD_MSG
-  }
-
-  if (process.env.CS_LOGIN_HASHED_PASSWORD_MSG) {
-    args["login-hashed-password-msg"] = process.env.CS_LOGIN_HASHED_PASSWORD_MSG
-  }
-
-  if (process.env.CS_LOGIN_RATE_LIMIT_MSG) {
-    args["login-rate-limit-msg"] = process.env.CS_LOGIN_RATE_LIMIT_MSG
-  }
-
-  if (process.env.CS_MISSING_PASSWORD_MSG) {
-    args["missing-password-msg"] = process.env.CS_MISSING_PASSWORD_MSG
-  }
-
-  if (process.env.CS_INCORRECT_PASSWORD_MSG) {
-    args["incorrect-password-msg"] = process.env.CS_INCORRECT_PASSWORD_MSG
-  }
 
   const usingEnvHashedPassword = !!process.env.HASHED_PASSWORD
   if (process.env.HASHED_PASSWORD) {

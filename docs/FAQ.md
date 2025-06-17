@@ -83,37 +83,20 @@ The default location respects `$XDG_CONFIG_HOME`.
 
 ### Login page customization
 
-You can customize the login page appearance using CLI flags or environment variables:
+You can customize the login page using the `--custom-strings` flag:
 
-**CLI flags:**
 ```bash
-code-server --login-title "My Code Server" \
-           --login-env-password-msg "Password set via environment" \
-           --password-placeholder "Enter password" \
-           --submit-text "LOGIN"
+code-server --custom-strings '{"LOGIN_TITLE": "My Code Server", "WELCOME": "Welcome to my portal"}'
 ```
 
-**Environment variables:**
+Or use a JSON file:
 ```bash
-export CS_LOGIN_TITLE="My Code Server"
-export CS_LOGIN_ENV_PASSWORD_MSG="Password set via environment"
-export CS_PASSWORD_PLACEHOLDER="Enter password"
-export CS_SUBMIT_TEXT="LOGIN"
-code-server
+code-server --custom-strings /path/to/custom-strings.json
 ```
 
-**Config file:**
-```yaml
-bind-addr: 127.0.0.1:8080
-auth: password
-password: your-password
-login-title: "My Code Server"
-login-env-password-msg: "Password set via environment"
-password-placeholder: "Enter password"
-submit-text: "LOGIN"
-```
+Legacy individual flags (`--app-name`, `--welcome-text`) are still supported but deprecated.
 
-CLI flags take priority over environment variables, which take priority over config file settings.
+For detailed customization options and examples, see the [customization guide](./customization.md).
 
 ## How do I make my keyboard shortcuts work?
 

@@ -79,10 +79,7 @@ describe("parser", () => {
           "--verbose",
           ["--app-name", "custom instance name"],
           ["--welcome-text", "welcome to code"],
-          ["--login-title", "Custom Login Portal"],
-          ["--login-env-password-msg", "Password from environment"],
-          ["--password-placeholder", "Enter code"],
-          ["--submit-text", "ACCESS"],
+          ["--custom-strings", '{"LOGIN_TITLE": "Custom Portal"}'],
           "2",
 
           ["--locale", "ja"],
@@ -153,10 +150,7 @@ describe("parser", () => {
       verbose: true,
       "app-name": "custom instance name",
       "welcome-text": "welcome to code",
-      "login-title": "Custom Login Portal",
-      "login-env-password-msg": "Password from environment",
-      "password-placeholder": "Enter code",
-      "submit-text": "ACCESS",
+      "custom-strings": '{"LOGIN_TITLE": "Custom Portal"}',
       version: true,
       "bind-addr": "192.169.0.1:8080",
       "session-socket": "/tmp/override-code-server-ipc-socket",
@@ -359,21 +353,28 @@ describe("parser", () => {
     })
   })
 
-  it("should use env var login customization", async () => {
-    process.env.CS_LOGIN_TITLE = "Custom Portal"
-    process.env.CS_LOGIN_ENV_PASSWORD_MSG = "Password from env"
-    process.env.CS_PASSWORD_PLACEHOLDER = "Enter code here"
-    process.env.CS_SUBMIT_TEXT = "ACCESS NOW"
-    const args = parse([])
-    expect(args).toEqual({})
+  it("should parse custom-strings flag", async () => {
+    // Test with JSON string
+    const jsonString = '{"WELCOME": "Custom Welcome", "LOGIN_TITLE": "My App"}'
+    const args = parse(["--custom-strings", jsonString])
+    expect(args).toEqual({
+      "custom-strings": jsonString,
+    })
+  })
 
-    const defaultArgs = await setDefaults(args)
-    expect(defaultArgs).toEqual({
-      ...defaults,
-      "login-title": "Custom Portal",
-      "login-env-password-msg": "Password from env",
-      "password-placeholder": "Enter code here",
-      "submit-text": "ACCESS NOW",
+  it("should validate custom-strings JSON", async () => {
+    // Test with invalid JSON
+    expect(() => parse(["--custom-strings", '{"invalid": json}'])).toThrowError(/contains invalid JSON/)
+    
+    // Test with valid JSON that looks like a file path
+    expect(() => parse(["--custom-strings", "/path/to/file.json"])).not.toThrow()
+  })
+
+  it("should support deprecated app-name and welcome-text flags", async () => {
+    const args = parse(["--app-name", "My App", "--welcome-text", "Welcome!"])
+    expect(args).toEqual({
+      "app-name": "My App",
+      "welcome-text": "Welcome!",
     })
   })
 

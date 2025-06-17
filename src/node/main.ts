@@ -7,6 +7,7 @@ import { plural } from "../common/util"
 import { createApp, ensureAddress } from "./app"
 import { AuthType, DefaultedArgs, Feature, toCodeArgs, UserProvidedArgs } from "./cli"
 import { commit, version, vsRootPath } from "./constants"
+import { loadCustomStrings } from "./i18n"
 import { register } from "./routes"
 import { VSCodeModule } from "./routes/vscode"
 import { isDirectory, open } from "./util"
@@ -121,6 +122,17 @@ export const runCodeServer = async (
   args: DefaultedArgs,
 ): Promise<{ dispose: Disposable["dispose"]; server: http.Server }> => {
   logger.info(`code-server ${version} ${commit}`)
+
+  // Load custom strings if provided
+  if (args["custom-strings"]) {
+    try {
+      await loadCustomStrings(args["custom-strings"])
+      logger.info("Loaded custom strings")
+    } catch (error) {
+      logger.error("Failed to load custom strings", field("error", error))
+      throw error
+    }
+  }
 
   logger.info(`Using user-data-dir ${args["user-data-dir"]}`)
   logger.debug(`Using extensions-dir ${args["extensions-dir"]}`)

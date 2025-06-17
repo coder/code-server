@@ -1,68 +1,39 @@
 # Login Page Customization
 
-code-server allows you to customize the login page appearance and messages through CLI arguments, environment variables, or configuration files.
+code-server allows you to customize the login page appearance and messages through a unified `--custom-strings` flag or legacy CLI arguments.
 
-## Available Customization Options
+## Recommended Approach: Custom Strings
 
-### Branding and Appearance
-- **Login Title**: Customize the main title on the login page
-- **Welcome Text**: Set custom welcome message  
-- **App Name**: Change the application branding throughout the interface
+The `--custom-strings` flag provides a scalable way to customize any UI text by leveraging the built-in internationalization system.
 
-### Login Messages
-- **Password Instructions**: Customize the message explaining where to find the password
-- **Environment Password Message**: Custom message when password is set via `$PASSWORD`
-- **Hashed Password Message**: Custom message when password is set via `$HASHED_PASSWORD`
+### Using JSON File
 
-### Form Elements
-- **Password Placeholder**: Custom placeholder text for the password field
-- **Submit Button**: Custom text for the login button
+Create a JSON file with your customizations:
 
-### Error Messages
-- **Rate Limit Message**: Custom message when login attempts are rate limited
-- **Missing Password**: Custom message for empty password submissions
-- **Incorrect Password**: Custom message for wrong password attempts
-
-## Configuration Methods
-
-### CLI Arguments
-
-```bash
-code-server \
-  --app-name "My Development Server" \
-  --welcome-text "Welcome to the development environment" \
-  --login-title "Secure Access Portal" \
-  --login-below "Please authenticate to continue" \
-  --password-placeholder "Enter your access code" \
-  --submit-text "AUTHENTICATE" \
-  --login-env-password-msg "Access code provided via environment variable" \
-  --login-rate-limit-msg "Too many attempts. Please wait before trying again." \
-  --missing-password-msg "Access code is required" \
-  --incorrect-password-msg "Invalid access code"
+```json
+{
+  "WELCOME": "Welcome to {{app}} Development Portal",
+  "LOGIN_TITLE": "{{app}} Secure Access",
+  "LOGIN_BELOW": "Please authenticate to continue",
+  "PASSWORD_PLACEHOLDER": "Enter your access code",
+  "SUBMIT": "AUTHENTICATE",
+  "LOGIN_PASSWORD": "Check the config file at {{configFile}} for the password.",
+  "LOGIN_USING_ENV_PASSWORD": "Access code provided via environment variable",
+  "LOGIN_USING_HASHED_PASSWORD": "Access code configured securely",
+  "LOGIN_RATE_LIMIT": "Too many attempts. Please wait before trying again.",
+  "MISS_PASSWORD": "Access code is required",
+  "INCORRECT_PASSWORD": "Invalid access code"
+}
 ```
 
-### Environment Variables
+```bash
+code-server --custom-strings /path/to/custom-strings.json
+```
 
-Perfect for Docker deployments and containerized environments:
+### Using Inline JSON
 
 ```bash
-# Basic branding
-export CS_APP_NAME="My Development Server"
-export CS_WELCOME_TEXT="Welcome to the development environment"
-
-# Login page customization
-export CS_LOGIN_TITLE="Secure Access Portal"
-export CS_LOGIN_BELOW="Please authenticate to continue"
-export CS_PASSWORD_PLACEHOLDER="Enter your access code"
-export CS_SUBMIT_TEXT="AUTHENTICATE"
-
-# Message customization
-export CS_LOGIN_ENV_PASSWORD_MSG="Access code provided via environment variable"
-export CS_LOGIN_RATE_LIMIT_MSG="Too many attempts. Please wait before trying again."
-export CS_MISSING_PASSWORD_MSG="Access code is required"
-export CS_INCORRECT_PASSWORD_MSG="Invalid access code"
-
-code-server
+code-server --custom-strings '{"WELCOME": "Welcome to My Dev Portal", "LOGIN_TITLE": "Development Access", "SUBMIT": "SIGN IN"}'
 ```
 
 ### Configuration File
@@ -73,75 +44,142 @@ Add to your `~/.config/code-server/config.yaml`:
 bind-addr: 127.0.0.1:8080
 auth: password
 password: your-password
-
-# Branding
-app-name: "My Development Server"
-welcome-text: "Welcome to the development environment"
-
-# Login page
-login-title: "Secure Access Portal"
-login-below: "Please authenticate to continue"
-password-placeholder: "Enter your access code"
-submit-text: "AUTHENTICATE"
-
-# Messages
-login-env-password-msg: "Access code provided via environment variable"
-login-rate-limit-msg: "Too many attempts. Please wait before trying again."
-missing-password-msg: "Access code is required"
-incorrect-password-msg: "Invalid access code"
+custom-strings: |
+  {
+    "WELCOME": "Welcome to {{app}} Development Portal",
+    "LOGIN_TITLE": "{{app}} Secure Access",
+    "PASSWORD_PLACEHOLDER": "Enter your access code",
+    "SUBMIT": "AUTHENTICATE"
+  }
 ```
+
+## Available Customization Keys
+
+| Key | Description | Default | Supports {{app}} placeholder |
+|-----|-------------|---------|------------------------------|
+| `WELCOME` | Welcome message on login page | "Welcome to {{app}}" | ✅ |
+| `LOGIN_TITLE` | Main title on login page | "{{app}} login" | ✅ |
+| `LOGIN_BELOW` | Text below the login title | "Please log in below." | ❌ |
+| `PASSWORD_PLACEHOLDER` | Password field placeholder text | "PASSWORD" | ❌ |
+| `SUBMIT` | Login button text | "SUBMIT" | ❌ |
+| `LOGIN_PASSWORD` | Message for config file password | "Check the config file at {{configFile}} for the password." | ❌ |
+| `LOGIN_USING_ENV_PASSWORD` | Message when using `$PASSWORD` env var | "Password was set from $PASSWORD." | ❌ |
+| `LOGIN_USING_HASHED_PASSWORD` | Message when using `$HASHED_PASSWORD` env var | "Password was set from $HASHED_PASSWORD." | ❌ |
+| `LOGIN_RATE_LIMIT` | Rate limiting error message | "Login rate limited!" | ❌ |
+| `MISS_PASSWORD` | Empty password error message | "Missing password" | ❌ |
+| `INCORRECT_PASSWORD` | Wrong password error message | "Incorrect password" | ❌ |
 
 ## Docker Examples
 
-### Basic Docker Deployment with Customization
+### Basic Docker Deployment
 
 ```bash
 docker run -it --name code-server -p 127.0.0.1:8080:8080 \
   -v "$PWD:/home/coder/project" \
-  -e "CS_LOGIN_TITLE=Development Environment" \
-  -e "CS_LOGIN_ENV_PASSWORD_MSG=Password configured in container environment" \
-  -e "CS_PASSWORD_PLACEHOLDER=Enter development password" \
-  -e "CS_SUBMIT_TEXT=ACCESS ENVIRONMENT" \
-  codercom/code-server:latest
+  -v "$PWD/custom-strings.json:/custom-strings.json" \
+  codercom/code-server:latest --custom-strings /custom-strings.json
 ```
 
-### Corporate Branding Example
+### Corporate Branding with Inline JSON
 
 ```bash
 docker run -it --name code-server -p 127.0.0.1:8080:8080 \
   -v "$PWD:/home/coder/project" \
-  -e "CS_APP_NAME=ACME Corporation Dev Portal" \
-  -e "CS_LOGIN_TITLE=ACME Development Portal" \
-  -e "CS_LOGIN_BELOW=Enter your corporate credentials" \
-  -e "CS_PASSWORD_PLACEHOLDER=Corporate Password" \
-  -e "CS_SUBMIT_TEXT=SIGN IN" \
-  -e "CS_LOGIN_ENV_PASSWORD_MSG=Password managed by IT department" \
-  codercom/code-server:latest
+  codercom/code-server:latest --custom-strings '{
+    "WELCOME": "Welcome to ACME Corporation Development Portal",
+    "LOGIN_TITLE": "ACME Dev Portal Access",
+    "LOGIN_BELOW": "Enter your corporate credentials",
+    "PASSWORD_PLACEHOLDER": "Corporate Password",
+    "SUBMIT": "SIGN IN",
+    "LOGIN_USING_ENV_PASSWORD": "Password managed by IT department"
+  }'
 ```
 
-## Priority Order
+## Legacy Support (Deprecated)
 
-Settings are applied in the following priority order (highest to lowest):
+The following individual flags are still supported but deprecated. Use `--custom-strings` for new deployments:
 
-1. **CLI arguments** - Highest priority
-2. **Environment variables** - Medium priority  
-3. **Config file** - Lowest priority
+```bash
+# Deprecated - use --custom-strings instead
+code-server \
+  --app-name "My Development Server" \
+  --welcome-text "Welcome to the development environment"
+```
 
-This allows you to set defaults in your config file and override them with environment variables or CLI arguments as needed.
+These legacy flags will show deprecation warnings and may be removed in future versions.
 
-## Complete Reference
+## Migration Guide
 
-| CLI Argument | Environment Variable | Description |
-|--------------|---------------------|-------------|
-| `--app-name` | `CS_APP_NAME` | Application name used throughout the interface |
-| `--welcome-text` | `CS_WELCOME_TEXT` | Welcome message on login page |
-| `--login-title` | `CS_LOGIN_TITLE` | Main title on login page |
-| `--login-below` | `CS_LOGIN_BELOW` | Text below the login title |
-| `--password-placeholder` | `CS_PASSWORD_PLACEHOLDER` | Password field placeholder text |
-| `--submit-text` | `CS_SUBMIT_TEXT` | Login button text |
-| `--login-password-msg` | `CS_LOGIN_PASSWORD_MSG` | Message for config file password |
-| `--login-env-password-msg` | `CS_LOGIN_ENV_PASSWORD_MSG` | Message when using `$PASSWORD` env var |
-| `--login-hashed-password-msg` | `CS_LOGIN_HASHED_PASSWORD_MSG` | Message when using `$HASHED_PASSWORD` env var |
-| `--login-rate-limit-msg` | `CS_LOGIN_RATE_LIMIT_MSG` | Rate limiting error message |
-| `--missing-password-msg` | `CS_MISSING_PASSWORD_MSG` | Empty password error message |
-| `--incorrect-password-msg` | `CS_INCORRECT_PASSWORD_MSG` | Wrong password error message |
+### From Individual Flags to Custom Strings
+
+**Old approach:**
+```bash
+code-server \
+  --app-name "Dev Portal" \
+  --welcome-text "Welcome to development" \
+  --login-title "Portal Access"
+```
+
+**New approach:**
+```bash
+code-server --custom-strings '{
+  "WELCOME": "Welcome to development",
+  "LOGIN_TITLE": "Portal Access"
+}'
+```
+
+**Note:** The `--app-name` flag controls the `{{app}}` placeholder in templates. Use it alongside `--custom-strings` or customize the full text without placeholders.
+
+### From Environment Variables
+
+**Old approach:**
+```bash
+export CS_LOGIN_TITLE="Portal Access"
+export CS_WELCOME_TEXT="Welcome message"
+code-server
+```
+
+**New approach:**
+```bash
+echo '{"LOGIN_TITLE": "Portal Access", "WELCOME": "Welcome message"}' > strings.json
+code-server --custom-strings strings.json
+```
+
+## Benefits of Custom Strings
+
+- ✅ **Scalable**: Add any new UI strings without new CLI flags
+- ✅ **Flexible**: Supports both files and inline JSON
+- ✅ **Future-proof**: Automatically supports new UI strings as they're added
+- ✅ **Organized**: All customizations in one place
+- ✅ **Version-controlled**: JSON files can be tracked in your repository
+
+## Advanced Usage
+
+### Multi-language Support
+
+Create different JSON files for different languages:
+
+```bash
+# English
+code-server --custom-strings /config/strings-en.json
+
+# Spanish  
+code-server --custom-strings /config/strings-es.json --locale es
+```
+
+### Dynamic Customization
+
+Generate JSON dynamically in scripts:
+
+```bash
+#!/bin/bash
+COMPANY_NAME="ACME Corp"
+cat > /tmp/strings.json << EOF
+{
+  "WELCOME": "Welcome to ${COMPANY_NAME} Development Portal",
+  "LOGIN_TITLE": "${COMPANY_NAME} Access Portal"
+}
+EOF
+
+code-server --custom-strings /tmp/strings.json
+```
