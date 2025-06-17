@@ -124,7 +124,7 @@ jobs:
           echo "VERSION=${TAG#v}" >> $GITHUB_ENV
 
       - name: Validate package
-        uses: heyhusen/archlinux-package-action@v2.2.1
+        uses: heyhusen/archlinux-package-action@v2.4.0
         env:
           VERSION: ${{ env.VERSION }}
         with:

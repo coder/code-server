@@ -54,7 +54,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -361,6 +361,7 @@ export class WebClientServer {
+@@ -360,6 +360,7 @@ export class WebClientServer {
  		const workbenchWebConfiguration = {
  			remoteAuthority,
  			serverBasePath: basePath,
@@ -70,29 +70,12 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/index
  	<meta charset="UTF-8">
  
  	<meta http-equiv="Content-Security-Policy"
--		content="default-src 'none'; script-src 'sha256-nlLyDpnjtftJG2xvXh2vuy77l7xFTjfOz7Jnj1iXNmA=' 'self'; frame-src 'self'; style-src 'unsafe-inline';">
-+		content="default-src 'none'; script-src 'sha256-ap/AtocvSWp0rrxaO19DJy/nOpazT6M5Cv9utUWe7MA=' 'self'; frame-src 'self'; style-src 'unsafe-inline';">
- 
+-		content="default-src 'none'; script-src 'sha256-gEAyFzmkyqMoTTnN+3KReFUYoHsK4RAJEb+6eiul+UY=' 'self'; frame-src 'self'; style-src 'unsafe-inline';">
++		content="default-src 'none'; script-src 'sha256-1qYtPnTQa4VwKNJO61EOhs2agF9TvuQSYIJ27OgzZqI=' 'self'; frame-src 'self'; style-src 'unsafe-inline';">
  
  	<!-- Disable pinch zooming -->
-@@ -349,6 +349,12 @@
- 
- 				const hostname = location.hostname;
- 
-+				// It is safe to run if we are on the same host.
-+				const parent = new URL(parentOrigin)
-+				if (parent.hostname === hostname) {
-+					return start(parentOrigin)
-+				}
-+
- 				if (!crypto.subtle) {
- 					// cannot validate, not running in a secure context
- 					throw new Error(`'crypto.subtle' is not available so webviews will not work. This is likely because the editor is not running in a secure context (https://developer.mozilla.org/en-US/docs/Web/Security/Secure_Contexts).`);
-Index: code-server/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/index-no-csp.html
-===================================================================
---- code-server.orig/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/index-no-csp.html
-+++ code-server/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/index-no-csp.html
-@@ -343,6 +343,12 @@
+ 	<meta name="viewport"
+@@ -351,6 +351,12 @@
  
  				const hostname = location.hostname;
  
