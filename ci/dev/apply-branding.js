@@ -7,11 +7,7 @@ const root = path.resolve(__dirname, "../..")
 const replacements = [
   {
     files: ["ci/build/nfpm.yaml"],
-    from: [
-      /vendor: "Coder"/g,
-      /homepage: "https:\/\/github.com\/coder\/code-server"/g,
-      /maintainer: ".*"/g,
-    ],
+    from: [/vendor: "Coder"/g, /homepage: "https:\/\/github.com\/coder\/code-server"/g, /maintainer: ".*"/g],
     to: [
       `vendor: "${branding.companyName}"`,
       `homepage: "https://${branding.companyDomain}"`,
@@ -51,9 +47,7 @@ const replacements = [
   },
   {
     files: ["src/node/routes/index.ts"],
-    from: [
-      /new UpdateProvider\("https:\/\/api.github.com\/repos\/coder\/code-server\/releases\/latest", settings\)/g,
-    ],
+    from: [/new UpdateProvider\("https:\/\/api.github.com\/repos\/coder\/code-server\/releases\/latest", settings\)/g],
     to: [
       `new UpdateProvider("https://api.github.com/repos/${branding.companyName}/${branding.productName}/releases/latest", settings)`,
     ],
@@ -69,10 +63,7 @@ const assetReplacements = [
 ]
 
 // Directories that might contain prebuilt release artifacts we need to patch in-place.
-const releaseDirs = [
-  path.join(root, "release"),
-  path.join(root, "release-standalone"),
-]
+const releaseDirs = [path.join(root, "release"), path.join(root, "release-standalone")]
 
 // Helper to safely patch a JSON file by reading, merging, and writing.
 function patchJson(file, mutateFn) {
@@ -108,9 +99,7 @@ function applyBrandingToReleaseArtifacts() {
     patchJson(productJsonPath, (json) => {
       json.shortName = branding.productName
       json.longName = branding.productName
-      json.applicationName = branding.productName
-        .toLowerCase()
-        .replace(/[^a-z0-9-]/g, "-")
+      json.applicationName = branding.productName.toLowerCase().replace(/[^a-z0-9-]/g, "-")
       json.dataFolderName = `${branding.productName}-data`
       json.urlProtocol = branding.productName.toLowerCase()
       json.reportIssueUrl = `https://${branding.companyDomain}/support`
@@ -145,4 +134,4 @@ function applyReplacements() {
   console.log("Branding applied successfully.")
 }
 
-applyReplacements() 
+applyReplacements()
