@@ -1,0 +1,10 @@
+{
+  "companyName": "qBraid",
+  "productName": "qBraid-Code",
+  "companyDomain": "qbraid.com",
+  "logoSvg": "branding/logo.svg",
+  "faviconSvg": "branding/favicon.svg",
+  "faviconIco": "branding/favicon.ico",
+  "pwaIcon192": "branding/pwa-icon-192.png",
+  "pwaIcon512": "branding/pwa-icon-512.png"
+} 
