@@ -1,12 +1,13 @@
 name: Build
 
 on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
+  workflow_dispatch:
+  # push:
+  #   branches:
+  #     - main
+  # pull_request:
+  #   branches:
+  #     - main
 
 # Cancel in-progress runs for pull requests when developers push
 # additional changes, and serialize builds in branches.
