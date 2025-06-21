@@ -1,9 +1,74 @@
 import i18next, { init } from "i18next"
+import { promises as fs } from "fs"
 import * as en from "./locales/en.json"
 import * as ja from "./locales/ja.json"
 import * as th from "./locales/th.json"
 import * as ur from "./locales/ur.json"
 import * as zhCn from "./locales/zh-cn.json"
+
+const defaultResources = {
+  en: {
+    translation: en,
+  },
+  "zh-cn": {
+    translation: zhCn,
+  },
+  th: {
+    translation: th,
+  },
+  ja: {
+    translation: ja,
+  },
+  ur: {
+    translation: ur,
+  },
+}
+
+let customStrings: Record<string, any> = {}
+
+export async function loadCustomStrings(customStringsArg?: string): Promise<void> {
+  if (!customStringsArg) {
+    return
+  }
+
+  try {
+    let customStringsData: Record<string, any>
+
+    // Try to parse as JSON first
+    try {
+      customStringsData = JSON.parse(customStringsArg)
+    } catch {
+      // If JSON parsing fails, treat as file path
+      const fileContent = await fs.readFile(customStringsArg, "utf8")
+      customStringsData = JSON.parse(fileContent)
+    }
+
+    customStrings = customStringsData
+
+    // Re-initialize i18next with merged resources
+    const mergedResources = Object.keys(defaultResources).reduce((acc, lang) => {
+      const langKey = lang as keyof typeof defaultResources
+      acc[langKey] = {
+        translation: {
+          ...defaultResources[langKey].translation,
+          ...customStrings,
+        },
+      }
+      return acc
+    }, {} as typeof defaultResources)
+
+    await i18next.init({
+      lng: "en",
+      fallbackLng: "en",
+      returnNull: false,
+      lowerCaseLng: true,
+      debug: process.env.NODE_ENV === "development",
+      resources: mergedResources,
+    })
+  } catch (error) {
+    throw new Error(`Failed to load custom strings: ${error instanceof Error ? error.message : String(error)}`)
+  }
+}
 
 init({
   lng: "en",
@@ -11,23 +76,7 @@ init({
   returnNull: false,
   lowerCaseLng: true,
   debug: process.env.NODE_ENV === "development",
-  resources: {
-    en: {
-      translation: en,
-    },
-    "zh-cn": {
-      translation: zhCn,
-    },
-    th: {
-      translation: th,
-    },
-    ja: {
-      translation: ja,
-    },
-    ur: {
-      translation: ur,
-    },
-  },
+  resources: defaultResources,
 })
 
 export default i18next

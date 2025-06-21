@@ -49,6 +49,10 @@ describe("parser", () => {
     delete process.env.CS_DISABLE_GETTING_STARTED_OVERRIDE
     delete process.env.VSCODE_PROXY_URI
     delete process.env.CS_DISABLE_PROXY
+    delete process.env.CS_LOGIN_TITLE
+    delete process.env.CS_LOGIN_ENV_PASSWORD_MSG
+    delete process.env.CS_PASSWORD_PLACEHOLDER
+    delete process.env.CS_SUBMIT_TEXT
     console.log = jest.fn()
   })
 
@@ -75,6 +79,7 @@ describe("parser", () => {
           "--verbose",
           ["--app-name", "custom instance name"],
           ["--welcome-text", "welcome to code"],
+          ["--custom-strings", '{"LOGIN_TITLE": "Custom Portal"}'],
           "2",
 
           ["--locale", "ja"],
@@ -145,6 +150,7 @@ describe("parser", () => {
       verbose: true,
       "app-name": "custom instance name",
       "welcome-text": "welcome to code",
+      "custom-strings": '{"LOGIN_TITLE": "Custom Portal"}',
       version: true,
       "bind-addr": "192.169.0.1:8080",
       "session-socket": "/tmp/override-code-server-ipc-socket",
@@ -344,6 +350,31 @@ describe("parser", () => {
       "hashed-password":
         "$argon2i$v=19$m=4096,t=3,p=1$0qR/o+0t00hsbJFQCKSfdQ$oFcM4rL6o+B7oxpuA4qlXubypbBPsf+8L531U7P9HYY",
       usingEnvHashedPassword: true,
+    })
+  })
+
+  it("should parse custom-strings flag", async () => {
+    // Test with JSON string
+    const jsonString = '{"WELCOME": "Custom Welcome", "LOGIN_TITLE": "My App"}'
+    const args = parse(["--custom-strings", jsonString])
+    expect(args).toEqual({
+      "custom-strings": jsonString,
+    })
+  })
+
+  it("should validate custom-strings JSON", async () => {
+    // Test with invalid JSON
+    expect(() => parse(["--custom-strings", '{"invalid": json}'])).toThrowError(/contains invalid JSON/)
+    
+    // Test with valid JSON that looks like a file path
+    expect(() => parse(["--custom-strings", "/path/to/file.json"])).not.toThrow()
+  })
+
+  it("should support deprecated app-name and welcome-text flags", async () => {
+    const args = parse(["--app-name", "My App", "--welcome-text", "Welcome!"])
+    expect(args).toEqual({
+      "app-name": "My App",
+      "welcome-text": "Welcome!",
     })
   })
 

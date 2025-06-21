@@ -146,5 +146,70 @@ describe("login", () => {
       expect(resp.status).toBe(200)
       expect(htmlContent).toContain(`欢迎来到 code-server`)
     })
+
+    it("should return custom login title", async () => {
+      process.env.PASSWORD = previousEnvPassword
+      const loginTitle = "Custom Access Portal"
+      const codeServer = await integration.setup([`--login-title=${loginTitle}`], "")
+      const resp = await codeServer.fetch("/login", { method: "GET" })
+
+      const htmlContent = await resp.text()
+      expect(resp.status).toBe(200)
+      expect(htmlContent).toContain(`<title>${loginTitle}</title>`)
+    })
+
+    it("should return custom password placeholder", async () => {
+      process.env.PASSWORD = previousEnvPassword
+      const placeholder = "Enter access code"
+      const codeServer = await integration.setup([`--password-placeholder=${placeholder}`], "")
+      const resp = await codeServer.fetch("/login", { method: "GET" })
+
+      const htmlContent = await resp.text()
+      expect(resp.status).toBe(200)
+      expect(htmlContent).toContain(`placeholder="${placeholder}"`)
+    })
+
+    it("should return custom submit button text", async () => {
+      process.env.PASSWORD = previousEnvPassword
+      const submitText = "ACCESS PORTAL"
+      const codeServer = await integration.setup([`--submit-text=${submitText}`], "")
+      const resp = await codeServer.fetch("/login", { method: "GET" })
+
+      const htmlContent = await resp.text()
+      expect(resp.status).toBe(200)
+      expect(htmlContent).toContain(`value="${submitText}"`)
+    })
+
+    it("should return custom env password message", async () => {
+      const envMessage = "Password configured via container environment"
+      const codeServer = await integration.setup([`--login-env-password-msg=${envMessage}`, `--password=test123`], "")
+      const resp = await codeServer.fetch("/login", { method: "GET" })
+
+      const htmlContent = await resp.text()
+      expect(resp.status).toBe(200)
+      expect(htmlContent).toContain(envMessage)
+    })
+
+    it("should escape HTML in custom messages", async () => {
+      process.env.PASSWORD = previousEnvPassword
+      const maliciousTitle = "<script>alert('xss')</script>"
+      const codeServer = await integration.setup([`--login-title=${maliciousTitle}`, `--password=test123`], "")
+      const resp = await codeServer.fetch("/login", { method: "GET" })
+
+      const htmlContent = await resp.text()
+      expect(resp.status).toBe(200)
+      expect(htmlContent).toContain("&lt;script&gt;alert(&apos;xss&apos;)&lt;/script&gt;")
+      expect(htmlContent).not.toContain("<script>alert('xss')</script>")
+    })
+
+    it("should return custom error messages", async () => {
+      const customMissingMsg = "Access code required"
+      const codeServer = await integration.setup([`--missing-password-msg=${customMissingMsg}`, `--password=test123`], "")
+      const resp = await codeServer.fetch("/login", { method: "POST" })
+
+      const htmlContent = await resp.text()
+      expect(resp.status).toBe(200)
+      expect(htmlContent).toContain(customMissingMsg)
+    })
   })
 })

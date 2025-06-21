@@ -93,6 +93,7 @@ export interface UserProvidedArgs extends UserProvidedCodeArgs {
   "app-name"?: string
   "welcome-text"?: string
   "abs-proxy-base-path"?: string
+  "custom-strings"?: string
   /* Positional arguments. */
   _?: string[]
 }
@@ -285,15 +286,21 @@ export const options: Options<Required<UserProvidedArgs>> = {
     type: "string",
     short: "an",
     description: "The name to use in branding. Will be shown in titlebar and welcome message",
+    deprecated: true,
   },
   "welcome-text": {
     type: "string",
     short: "w",
     description: "Text to show on login page",
+    deprecated: true,
   },
   "abs-proxy-base-path": {
     type: "string",
     description: "The base path to prefix to all absproxy requests",
+  },
+  "custom-strings": {
+    type: "string",
+    description: "Path to JSON file or raw JSON string with custom UI strings. Merges with default strings and supports all i18n keys.",
   },
 }
 
@@ -459,6 +466,21 @@ export const parse = (
     throw new Error("--cert-key is missing")
   }
 
+  // Validate custom-strings flag
+  if (args["custom-strings"]) {
+    try {
+      // First try to parse as JSON directly
+      JSON.parse(args["custom-strings"])
+    } catch (jsonError) {
+      // If JSON parsing fails, check if it's a valid file path
+      if (!args["custom-strings"].startsWith("{") && !args["custom-strings"].startsWith("[")) {
+        // Assume it's a file path - validation will happen later when the file is read
+      } else {
+        throw error(`--custom-strings contains invalid JSON: ${jsonError instanceof Error ? jsonError.message : String(jsonError)}`)
+      }
+    }
+  }
+
   logger.debug(() => [`parsed ${opts?.configFile ? "config" : "command line"}`, field("args", redactArgs(args))])
 
   return args
@@ -592,6 +614,7 @@ export async function setDefaults(cliArgs: UserProvidedArgs, configArgs?: Config
   if (process.env.CS_DISABLE_PROXY?.match(/^(1|true)$/)) {
     args["disable-proxy"] = true
   }
+
 
   const usingEnvHashedPassword = !!process.env.HASHED_PASSWORD
   if (process.env.HASHED_PASSWORD) {
