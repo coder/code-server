@@ -461,22 +461,29 @@ through the proxy without authentication, use `--skip-auth-preflight`.
 
 ## Internationalization and customization
 
-code-server allows you to provide a language file or JSON to configure certain strings. This can be used for both internationalization and customization.
+code-server allows you to provide a JSON file to configure certain strings. This can be used for both internationalization and customization.
 
-For example:
+Create a JSON file with your custom strings:
+
+```json
+{
+  "WELCOME": "Welcome to {{app}}",
+  "LOGIN_TITLE": "{{app}} Access Portal", 
+  "LOGIN_BELOW": "Please log in to continue",
+  "PASSWORD_PLACEHOLDER": "Enter Password"
+}
+```
+
+Then reference the file:
 
 ```shell
-code-server --i18n /custom-strings.json
-code-server --i18n '{"WELCOME": "{{app}} ログイン"}'
+code-server --i18n /path/to/custom-strings.json
 ```
 
 Or this can be done in the config file:
 
 ```yaml
-i18n: |
-  {
-    "WELCOME": "Welcome to the {{app}} Development Portal"
-  }
+i18n: /path/to/custom-strings.json
 ```
 
 You can combine this with the `--locale` flag to configure language support for both code-server and VS Code in cases where code-server has no support but VS Code does. If you are using this for internationalization, please consider sending us a pull request to contribute it to `src/node/i18n/locales`.

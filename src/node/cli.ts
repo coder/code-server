@@ -299,7 +299,7 @@ export const options: Options<Required<UserProvidedArgs>> = {
   },
   i18n: {
     type: "string",
-    description: "Path to JSON file or raw JSON string with custom translations. Merges with default strings and supports all i18n keys.",
+    description: "Path to JSON file with custom translations. Merges with default strings and supports all i18n keys.",
   },
 }
 

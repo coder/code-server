@@ -25,26 +25,24 @@ const defaultResources = {
 }
 
 
-export async function loadCustomStrings(customStringsArg: string): Promise<void> {
-
+export async function loadCustomStrings(filePath: string): Promise<void> {
   try {
-    let customStringsData: Record<string, any>
-
-    // Try to parse as JSON first
-    try {
-      customStringsData = JSON.parse(customStringsArg)
-    } catch {
-      // If JSON parsing fails, treat as file path
-      const fileContent = await fs.readFile(customStringsArg, "utf8")
-      customStringsData = JSON.parse(fileContent)
-    }
+    // Read custom strings from file path only
+    const fileContent = await fs.readFile(filePath, "utf8")
+    const customStringsData = JSON.parse(fileContent)
 
     // User-provided strings override all languages.
     Object.keys(defaultResources).forEach((locale) => {
       i18next.addResourceBundle(locale, "translation", customStringsData)
     })
   } catch (error) {
-    throw new Error(`Failed to load custom strings: ${error instanceof Error ? error.message : String(error)}`)
+    if (error && typeof error === 'object' && 'code' in error && error.code === 'ENOENT') {
+      throw new Error(`Custom strings file not found: ${filePath}\nPlease ensure the file exists and is readable.`)
+    } else if (error instanceof SyntaxError) {
+      throw new Error(`Invalid JSON in custom strings file: ${filePath}\n${error.message}`)
+    } else {
+      throw new Error(`Failed to load custom strings from ${filePath}: ${error instanceof Error ? error.message : String(error)}`)
+    }
   }
 }
 

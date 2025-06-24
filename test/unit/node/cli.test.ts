@@ -349,21 +349,18 @@ describe("parser", () => {
     })
   })
 
-  it("should parse i18n flag", async () => {
-    // Test with JSON string
-    const jsonString = '{"WELCOME": "Custom Welcome", "LOGIN_TITLE": "My App"}'
-    const args = parse(["--i18n", jsonString])
+  it("should parse i18n flag with file path", async () => {
+    // Test with file path (no validation at CLI parsing level)
+    const args = parse(["--i18n", "/path/to/custom-strings.json"])
     expect(args).toEqual({
-      i18n: jsonString,
+      i18n: "/path/to/custom-strings.json",
     })
   })
 
-  it("should parse i18n file paths and JSON", async () => {
-    // Test with valid JSON that looks like a file path
-    expect(() => parse(["--i18n", "/path/to/file.json"])).not.toThrow()
-    
-    // Test with JSON string (no validation at CLI level)
-    expect(() => parse(["--i18n", '{"valid": "json"}'])).not.toThrow()
+  it("should parse i18n flag with relative file path", async () => {
+    // Test with relative file path
+    expect(() => parse(["--i18n", "./custom-strings.json"])).not.toThrow()
+    expect(() => parse(["--i18n", "strings.json"])).not.toThrow()
   })
 
   it("should support app-name and deprecated welcome-text flags", async () => {
