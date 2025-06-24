@@ -458,3 +458,7 @@ By default, if you have auth enabled, code-server will authenticate all proxied
 requests including preflight requests. This can cause issues because preflight
 requests do not typically include credentials. To allow all preflight requests
 through the proxy without authentication, use `--skip-auth-preflight`.
+
+## Internationalization and customization
+
+You can customize some of code-server's strings for either internationalization or customization purposes. See our [customization guide](./customization.md).

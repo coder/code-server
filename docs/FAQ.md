@@ -81,22 +81,6 @@ You can change the config file's location using the `--config` flag or
 
 The default location respects `$XDG_CONFIG_HOME`.
 
-### Login page customization
-
-You can customize the login page using the `--custom-strings` flag:
-
-```bash
-code-server --custom-strings '{"LOGIN_TITLE": "My Code Server", "WELCOME": "Welcome to my portal"}'
-```
-
-Or use a JSON file:
-```bash
-code-server --custom-strings /path/to/custom-strings.json
-```
-
-Legacy individual flags (`--app-name`, `--welcome-text`) are still supported but deprecated.
-
-For detailed customization options and examples, see the [customization guide](./customization.md).
 
 ## How do I make my keyboard shortcuts work?
 
