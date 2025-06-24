@@ -300,7 +300,7 @@ export const options: Options<Required<UserProvidedArgs>> = {
   },
   "custom-strings": {
     type: "string",
-    description: "Path to JSON file or raw JSON string with custom UI strings. Merges with default strings and supports all i18n keys.",
+    description: "Path to JSON file or raw JSON string with custom translations. Merges with default strings and supports all i18n keys.",
   },
 }
 
