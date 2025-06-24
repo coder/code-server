@@ -461,4 +461,35 @@ through the proxy without authentication, use `--skip-auth-preflight`.
 
 ## Internationalization and customization
 
-You can customize some of code-server's strings for either internationalization or customization purposes. See our [customization guide](./customization.md).
+code-server allows you to provide a language file or JSON to configure certain strings. This can be used for both internationalization and customization.
+
+For example:
+
+```shell
+code-server --i18n /custom-strings.json
+code-server --i18n '{"WELCOME": "{{app}} ログイン"}'
+```
+
+Or this can be done in the config file:
+
+```yaml
+i18n: |
+  {
+    "WELCOME": "Welcome to the {{app}} Development Portal"
+  }
+```
+
+You can combine this with the `--locale` flag to configure language support for both code-server and VS Code in cases where code-server has no support but VS Code does. If you are using this for internationalization, please consider sending us a pull request to contribute it to `src/node/i18n/locales`.
+
+### Available keys and placeholders
+
+Refer to [../src/node/i18n/locales/en.json](../src/node/i18n/locales/en.json) for a full list of the available keys for translations. Note that the only placeholders supported for each key are the ones used in the default string.
+
+The `--app-name` flag controls the `{{app}}` placeholder in templates. If you want to change the name, you can either:
+
+1. Set `--app-name` (potentially alongside `--i18n`)
+2. Use `--i18n` and hardcode the name in your strings
+
+### Legacy flag
+
+The `--welcome-text` flag is now deprecated. Use the `WELCOME` key instead.
