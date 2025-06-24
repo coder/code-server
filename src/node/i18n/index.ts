@@ -39,25 +39,9 @@ export async function loadCustomStrings(customStringsArg: string): Promise<void>
       customStringsData = JSON.parse(fileContent)
     }
 
-    // Re-initialize i18next with merged resources
-    const mergedResources = Object.keys(defaultResources).reduce((acc, lang) => {
-      const langKey = lang as keyof typeof defaultResources
-      acc[langKey] = {
-        translation: {
-          ...defaultResources[langKey].translation,
-          ...customStringsData,
-        },
-      }
-      return acc
-    }, {} as typeof defaultResources)
-
-    await i18next.init({
-      lng: "en",
-      fallbackLng: "en",
-      returnNull: false,
-      lowerCaseLng: true,
-      debug: process.env.NODE_ENV === "development",
-      resources: mergedResources,
+    // User-provided strings override all languages.
+    Object.keys(defaultResources).forEach((locale) => {
+      i18next.addResourceBundle(locale, "translation", customStringsData)
     })
   } catch (error) {
     throw new Error(`Failed to load custom strings: ${error instanceof Error ? error.message : String(error)}`)
