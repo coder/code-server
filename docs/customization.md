@@ -95,40 +95,58 @@ docker run -it --name code-server -p 127.0.0.1:8080:8080 \
   }'
 ```
 
-## Legacy Support (Deprecated)
+## Using App Name with Custom Strings
 
-The following flags are still supported but deprecated. Use `--custom-strings` for new deployments:
+The `--app-name` flag works perfectly with `--custom-strings` to provide the `{{app}}` placeholder functionality:
 
-```bash
-# Deprecated - use --custom-strings instead
-code-server \
-  --app-name "My Development Server" \
-  --welcome-text "Welcome to the development environment"
-```
-
-These legacy flags will show deprecation warnings and may be removed in future versions.
-
-## Migration Guide
-
-### From Legacy Flags to Custom Strings
-
-**Old approach:**
 ```bash
 code-server \
   --app-name "Dev Portal" \
-  --welcome-text "Welcome to development"
+  --custom-strings '{"WELCOME": "Welcome to {{app}} environment"}'
 ```
 
-**New approach:**
+This approach allows you to:
+- Set a custom app name once with `--app-name`
+- Use `{{app}}` placeholders in your custom strings
+- Easily change the app name without updating all strings
+
+### Examples with App Name
+
+**Corporate branding with dynamic app name:**
 ```bash
-code-server --custom-strings '{
-  "WELCOME": "Welcome to development"
-}'
+code-server \
+  --app-name "ACME Development Platform" \
+  --custom-strings '{
+    "WELCOME": "Welcome to {{app}}",
+    "LOGIN_TITLE": "{{app}} Access Portal",
+    "LOGIN_BELOW": "Please authenticate to access {{app}}"
+  }'
 ```
 
-**Note:** The `--app-name` flag controls the `{{app}}` placeholder in templates. You can either:
-1. Keep using `--app-name` alongside `--custom-strings`
-2. Customize the full text without placeholders in your JSON
+**Internationalization with app name:**
+```bash
+code-server \
+  --app-name "Mon Portail" \
+  --custom-strings '{
+    "WELCOME": "Bienvenue sur {{app}}",
+    "LOGIN_TITLE": "Connexion à {{app}}",
+    "SUBMIT": "SE CONNECTER"
+  }'
+```
+
+## Legacy Flag Migration
+
+The `--welcome-text` flag is deprecated. Migrate to `--custom-strings`:
+
+**Old:**
+```bash
+code-server --welcome-text "Welcome to development"
+```
+
+**New:**
+```bash
+code-server --custom-strings '{"WELCOME": "Welcome to development"}'
+```
 
 ## Benefits of Custom Strings
 

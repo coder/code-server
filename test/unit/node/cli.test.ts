@@ -366,7 +366,7 @@ describe("parser", () => {
     expect(() => parse(["--custom-strings", "/path/to/file.json"])).not.toThrow()
   })
 
-  it("should support deprecated app-name and welcome-text flags", async () => {
+  it("should support app-name and deprecated welcome-text flags", async () => {
     const args = parse(["--app-name", "My App", "--welcome-text", "Welcome!"])
     expect(args).toEqual({
       "app-name": "My App",

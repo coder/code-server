@@ -285,8 +285,7 @@ export const options: Options<Required<UserProvidedArgs>> = {
   "app-name": {
     type: "string",
     short: "an",
-    description: "The name to use in branding. Will be shown in titlebar and welcome message",
-    deprecated: true,
+    description: "Will replace the {{app}} placeholder in any strings, which by default includes the title bar and welcome message",
   },
   "welcome-text": {
     type: "string",
