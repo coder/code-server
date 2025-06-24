@@ -24,7 +24,6 @@ const defaultResources = {
   },
 }
 
-let customStrings: Record<string, any> = {}
 
 export async function loadCustomStrings(customStringsArg?: string): Promise<void> {
   if (!customStringsArg) {
@@ -43,15 +42,13 @@ export async function loadCustomStrings(customStringsArg?: string): Promise<void
       customStringsData = JSON.parse(fileContent)
     }
 
-    customStrings = customStringsData
-
     // Re-initialize i18next with merged resources
     const mergedResources = Object.keys(defaultResources).reduce((acc, lang) => {
       const langKey = lang as keyof typeof defaultResources
       acc[langKey] = {
         translation: {
           ...defaultResources[langKey].translation,
-          ...customStrings,
+          ...customStringsData,
         },
       }
       return acc

@@ -466,20 +466,6 @@ export const parse = (
     throw new Error("--cert-key is missing")
   }
 
-  // Validate custom-strings flag
-  if (args["custom-strings"]) {
-    try {
-      // First try to parse as JSON directly
-      JSON.parse(args["custom-strings"])
-    } catch (jsonError) {
-      // If JSON parsing fails, check if it's a valid file path
-      if (!args["custom-strings"].startsWith("{") && !args["custom-strings"].startsWith("[")) {
-        // Assume it's a file path - validation will happen later when the file is read
-      } else {
-        throw error(`--custom-strings contains invalid JSON: ${jsonError instanceof Error ? jsonError.message : String(jsonError)}`)
-      }
-    }
-  }
 
   logger.debug(() => [`parsed ${opts?.configFile ? "config" : "command line"}`, field("args", redactArgs(args))])
 
