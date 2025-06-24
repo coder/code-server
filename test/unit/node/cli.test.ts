@@ -49,10 +49,6 @@ describe("parser", () => {
     delete process.env.CS_DISABLE_GETTING_STARTED_OVERRIDE
     delete process.env.VSCODE_PROXY_URI
     delete process.env.CS_DISABLE_PROXY
-    delete process.env.CS_LOGIN_TITLE
-    delete process.env.CS_LOGIN_ENV_PASSWORD_MSG
-    delete process.env.CS_PASSWORD_PLACEHOLDER
-    delete process.env.CS_SUBMIT_TEXT
     console.log = jest.fn()
   })
 
