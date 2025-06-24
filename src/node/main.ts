@@ -124,8 +124,8 @@ export const runCodeServer = async (
   logger.info(`code-server ${version} ${commit}`)
 
   // Load custom strings if provided
-  if (args["custom-strings"]) {
-    await loadCustomStrings(args["custom-strings"])
+  if (args.i18n) {
+    await loadCustomStrings(args.i18n)
     logger.info("Loaded custom strings")
   }
 

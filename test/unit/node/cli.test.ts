@@ -75,7 +75,7 @@ describe("parser", () => {
           "--verbose",
           ["--app-name", "custom instance name"],
           ["--welcome-text", "welcome to code"],
-          ["--custom-strings", '{"LOGIN_TITLE": "Custom Portal"}'],
+          ["--i18n", '{"LOGIN_TITLE": "Custom Portal"}'],
           "2",
 
           ["--locale", "ja"],
@@ -146,7 +146,7 @@ describe("parser", () => {
       verbose: true,
       "app-name": "custom instance name",
       "welcome-text": "welcome to code",
-      "custom-strings": '{"LOGIN_TITLE": "Custom Portal"}',
+      i18n: '{"LOGIN_TITLE": "Custom Portal"}',
       version: true,
       "bind-addr": "192.169.0.1:8080",
       "session-socket": "/tmp/override-code-server-ipc-socket",
@@ -349,21 +349,21 @@ describe("parser", () => {
     })
   })
 
-  it("should parse custom-strings flag", async () => {
+  it("should parse i18n flag", async () => {
     // Test with JSON string
     const jsonString = '{"WELCOME": "Custom Welcome", "LOGIN_TITLE": "My App"}'
-    const args = parse(["--custom-strings", jsonString])
+    const args = parse(["--i18n", jsonString])
     expect(args).toEqual({
-      "custom-strings": jsonString,
+      i18n: jsonString,
     })
   })
 
-  it("should validate custom-strings JSON", async () => {
-    // Test with invalid JSON
-    expect(() => parse(["--custom-strings", '{"invalid": json}'])).toThrowError(/contains invalid JSON/)
-    
+  it("should parse i18n file paths and JSON", async () => {
     // Test with valid JSON that looks like a file path
-    expect(() => parse(["--custom-strings", "/path/to/file.json"])).not.toThrow()
+    expect(() => parse(["--i18n", "/path/to/file.json"])).not.toThrow()
+    
+    // Test with JSON string (no validation at CLI level)
+    expect(() => parse(["--i18n", '{"valid": "json"}'])).not.toThrow()
   })
 
   it("should support app-name and deprecated welcome-text flags", async () => {

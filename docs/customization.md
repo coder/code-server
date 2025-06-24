@@ -1,10 +1,10 @@
 # Login Page Customization
 
-code-server allows you to customize the login page appearance and messages through a unified `--custom-strings` flag or legacy CLI arguments.
+code-server allows you to customize the login page appearance and messages through the `--i18n` flag or legacy CLI arguments.
 
-## Recommended Approach: Custom Strings
+## Recommended Approach: Internationalization
 
-The `--custom-strings` flag provides a scalable way to customize any UI text by leveraging the built-in internationalization system.
+The `--i18n` flag provides a scalable way to customize any UI text by leveraging the built-in internationalization system.
 
 ### Using JSON File
 
@@ -27,13 +27,13 @@ Create a JSON file with your customizations:
 ```
 
 ```bash
-code-server --custom-strings /path/to/custom-strings.json
+code-server --i18n /path/to/custom-strings.json
 ```
 
 ### Using Inline JSON
 
 ```bash
-code-server --custom-strings '{"WELCOME": "Welcome to My Dev Portal", "LOGIN_TITLE": "Development Access", "SUBMIT": "SIGN IN"}'
+code-server --i18n '{"WELCOME": "Welcome to My Dev Portal", "LOGIN_TITLE": "Development Access", "SUBMIT": "SIGN IN"}'
 ```
 
 ### Configuration File
@@ -44,7 +44,7 @@ Add to your `~/.config/code-server/config.yaml`:
 bind-addr: 127.0.0.1:8080
 auth: password
 password: your-password
-custom-strings: |
+i18n: |
   {
     "WELCOME": "Welcome to {{app}} Development Portal",
     "LOGIN_TITLE": "{{app}} Secure Access",
@@ -77,7 +77,7 @@ custom-strings: |
 docker run -it --name code-server -p 127.0.0.1:8080:8080 \
   -v "$PWD:/home/coder/project" \
   -v "$PWD/custom-strings.json:/custom-strings.json" \
-  codercom/code-server:latest --custom-strings /custom-strings.json
+  codercom/code-server:latest --i18n /custom-strings.json
 ```
 
 ### Corporate Branding with Inline JSON
@@ -85,7 +85,7 @@ docker run -it --name code-server -p 127.0.0.1:8080:8080 \
 ```bash
 docker run -it --name code-server -p 127.0.0.1:8080:8080 \
   -v "$PWD:/home/coder/project" \
-  codercom/code-server:latest --custom-strings '{
+  codercom/code-server:latest --i18n '{
     "WELCOME": "Welcome to ACME Corporation Development Portal",
     "LOGIN_TITLE": "ACME Dev Portal Access",
     "LOGIN_BELOW": "Enter your corporate credentials",
@@ -95,14 +95,14 @@ docker run -it --name code-server -p 127.0.0.1:8080:8080 \
   }'
 ```
 
-## Using App Name with Custom Strings
+## Using App Name with Internationalization
 
-The `--app-name` flag works perfectly with `--custom-strings` to provide the `{{app}}` placeholder functionality:
+The `--app-name` flag works perfectly with `--i18n` to provide the `{{app}}` placeholder functionality:
 
 ```bash
 code-server \
   --app-name "Dev Portal" \
-  --custom-strings '{"WELCOME": "Welcome to {{app}} environment"}'
+  --i18n '{"WELCOME": "Welcome to {{app}} environment"}'
 ```
 
 This approach allows you to:
@@ -116,7 +116,7 @@ This approach allows you to:
 ```bash
 code-server \
   --app-name "ACME Development Platform" \
-  --custom-strings '{
+  --i18n '{
     "WELCOME": "Welcome to {{app}}",
     "LOGIN_TITLE": "{{app}} Access Portal",
     "LOGIN_BELOW": "Please authenticate to access {{app}}"
@@ -127,7 +127,7 @@ code-server \
 ```bash
 code-server \
   --app-name "Mon Portail" \
-  --custom-strings '{
+  --i18n '{
     "WELCOME": "Bienvenue sur {{app}}",
     "LOGIN_TITLE": "Connexion à {{app}}",
     "SUBMIT": "SE CONNECTER"
@@ -136,7 +136,7 @@ code-server \
 
 ## Legacy Flag Migration
 
-The `--welcome-text` flag is deprecated. Migrate to `--custom-strings`:
+The `--welcome-text` flag is deprecated. Migrate to `--i18n`:
 
 **Old:**
 ```bash
@@ -145,7 +145,7 @@ code-server --welcome-text "Welcome to development"
 
 **New:**
 ```bash
-code-server --custom-strings '{"WELCOME": "Welcome to development"}'
+code-server --i18n '{"WELCOME": "Welcome to development"}'
 ```
 
 ## Benefits of Custom Strings
@@ -164,10 +164,10 @@ Create different JSON files for different languages:
 
 ```bash
 # English
-code-server --custom-strings /config/strings-en.json
+code-server --i18n /config/strings-en.json
 
 # Spanish  
-code-server --custom-strings /config/strings-es.json --locale es
+code-server --i18n /config/strings-es.json --locale es
 ```
 
 ### Dynamic Customization
@@ -184,5 +184,5 @@ cat > /tmp/strings.json << EOF
 }
 EOF
 
-code-server --custom-strings /tmp/strings.json
+code-server --i18n /tmp/strings.json
 ```

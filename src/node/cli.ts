@@ -93,7 +93,7 @@ export interface UserProvidedArgs extends UserProvidedCodeArgs {
   "app-name"?: string
   "welcome-text"?: string
   "abs-proxy-base-path"?: string
-  "custom-strings"?: string
+  i18n?: string
   /* Positional arguments. */
   _?: string[]
 }
@@ -297,7 +297,7 @@ export const options: Options<Required<UserProvidedArgs>> = {
     type: "string",
     description: "The base path to prefix to all absproxy requests",
   },
-  "custom-strings": {
+  i18n: {
     type: "string",
     description: "Path to JSON file or raw JSON string with custom translations. Merges with default strings and supports all i18n keys.",
   },
