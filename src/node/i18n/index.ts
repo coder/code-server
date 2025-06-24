@@ -25,10 +25,7 @@ const defaultResources = {
 }
 
 
-export async function loadCustomStrings(customStringsArg?: string): Promise<void> {
-  if (!customStringsArg) {
-    return
-  }
+export async function loadCustomStrings(customStringsArg: string): Promise<void> {
 
   try {
     let customStringsData: Record<string, any>

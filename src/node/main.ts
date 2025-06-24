@@ -125,13 +125,8 @@ export const runCodeServer = async (
 
   // Load custom strings if provided
   if (args["custom-strings"]) {
-    try {
-      await loadCustomStrings(args["custom-strings"])
-      logger.info("Loaded custom strings")
-    } catch (error) {
-      logger.error("Failed to load custom strings", field("error", error))
-      throw error
-    }
+    await loadCustomStrings(args["custom-strings"])
+    logger.info("Loaded custom strings")
   }
 
   logger.info(`Using user-data-dir ${args["user-data-dir"]}`)
