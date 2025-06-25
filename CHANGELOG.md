@@ -22,6 +22,12 @@ Code v99.99.999
 
 ## Unreleased
 
+Code v1.101.1
+
+### Fixed
+
+- Fix web views not loading due to 401 when requesting the service worker.
+
 ## [4.101.1](https://github.com/coder/code-server/releases/tag/v4.101.1) - 2025-06-20
 
 Code v1.101.1
