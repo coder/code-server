@@ -144,6 +144,8 @@ export const runCodeServer = async (
       logger.info("    - Using password from $PASSWORD")
     } else if (args.usingEnvHashedPassword) {
       logger.info("    - Using password from $HASHED_PASSWORD")
+    } else if (args["hashed-password"]) {
+      logger.info(`    - Using hashed-password from ${args.config}`)
     } else {
       logger.info(`    - Using password from ${args.config}`)
     }
