@@ -24,7 +24,6 @@ const defaultResources = {
   },
 }
 
-
 export async function loadCustomStrings(filePath: string): Promise<void> {
   try {
     // Read custom strings from file path only
@@ -36,12 +35,14 @@ export async function loadCustomStrings(filePath: string): Promise<void> {
       i18next.addResourceBundle(locale, "translation", customStringsData)
     })
   } catch (error) {
-    if (error && typeof error === 'object' && 'code' in error && error.code === 'ENOENT') {
+    if (error && typeof error === "object" && "code" in error && error.code === "ENOENT") {
       throw new Error(`Custom strings file not found: ${filePath}\nPlease ensure the file exists and is readable.`)
     } else if (error instanceof SyntaxError) {
       throw new Error(`Invalid JSON in custom strings file: ${filePath}\n${error.message}`)
     } else {
-      throw new Error(`Failed to load custom strings from ${filePath}: ${error instanceof Error ? error.message : String(error)}`)
+      throw new Error(
+        `Failed to load custom strings from ${filePath}: ${error instanceof Error ? error.message : String(error)}`,
+      )
     }
   }
 }

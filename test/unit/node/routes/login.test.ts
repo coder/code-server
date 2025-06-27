@@ -146,6 +146,5 @@ describe("login", () => {
       expect(resp.status).toBe(200)
       expect(htmlContent).toContain(`欢迎来到 code-server`)
     })
-
   })
 })

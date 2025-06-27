@@ -285,7 +285,8 @@ export const options: Options<Required<UserProvidedArgs>> = {
   "app-name": {
     type: "string",
     short: "an",
-    description: "Will replace the {{app}} placeholder in any strings, which by default includes the title bar and welcome message",
+    description:
+      "Will replace the {{app}} placeholder in any strings, which by default includes the title bar and welcome message",
   },
   "welcome-text": {
     type: "string",
@@ -465,7 +466,6 @@ export const parse = (
     throw new Error("--cert-key is missing")
   }
 
-
   logger.debug(() => [`parsed ${opts?.configFile ? "config" : "command line"}`, field("args", redactArgs(args))])
 
   return args
@@ -599,7 +599,6 @@ export async function setDefaults(cliArgs: UserProvidedArgs, configArgs?: Config
   if (process.env.CS_DISABLE_PROXY?.match(/^(1|true)$/)) {
     args["disable-proxy"] = true
   }
-
 
   const usingEnvHashedPassword = !!process.env.HASHED_PASSWORD
   if (process.env.HASHED_PASSWORD) {

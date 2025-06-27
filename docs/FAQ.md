@@ -81,7 +81,6 @@ You can change the config file's location using the `--config` flag or
 
 The default location respects `$XDG_CONFIG_HOME`.
 
-
 ## How do I make my keyboard shortcuts work?
 
 Many shortcuts will not work by default, since they'll be "caught" by the browser.

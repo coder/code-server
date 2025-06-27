@@ -22,6 +22,9 @@
   - [Proxying to a Svelte app](#proxying-to-a-svelte-app)
   - [Prefixing `/absproxy/<port>` with a path](#prefixing-absproxyport-with-a-path)
   - [Preflight requests](#preflight-requests)
+- [Internationalization and customization](#internationalization-and-customization)
+  - [Available keys and placeholders](#available-keys-and-placeholders)
+  - [Legacy flag](#legacy-flag)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 <!-- prettier-ignore-end -->
@@ -468,7 +471,7 @@ Create a JSON file with your custom strings:
 ```json
 {
   "WELCOME": "Welcome to {{app}}",
-  "LOGIN_TITLE": "{{app}} Access Portal", 
+  "LOGIN_TITLE": "{{app}} Access Portal",
   "LOGIN_BELOW": "Please log in to continue",
   "PASSWORD_PLACEHOLDER": "Enter Password"
 }

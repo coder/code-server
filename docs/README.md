@@ -61,7 +61,6 @@ code-server.
 We also have an in-depth [setup and
 configuration](https://coder.com/docs/code-server/latest/guide) guide.
 
-
 ## Questions?
 
 See answers to [frequently asked
