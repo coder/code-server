@@ -71,10 +71,19 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/index
  
  	<meta http-equiv="Content-Security-Policy"
 -		content="default-src 'none'; script-src 'sha256-gEAyFzmkyqMoTTnN+3KReFUYoHsK4RAJEb+6eiul+UY=' 'self'; frame-src 'self'; style-src 'unsafe-inline';">
-+		content="default-src 'none'; script-src 'sha256-1qYtPnTQa4VwKNJO61EOhs2agF9TvuQSYIJ27OgzZqI=' 'self'; frame-src 'self'; style-src 'unsafe-inline';">
++		content="default-src 'none'; script-src 'sha256-Oi71Tq4Buohx0KDH3yEbVJUzABnqYv9iVLo420HZXqI=' 'self'; frame-src 'self'; style-src 'unsafe-inline';">
  
  	<!-- Disable pinch zooming -->
  	<meta name="viewport"
+@@ -238,7 +238,7 @@
+ 			}
+ 
+ 			const swPath = encodeURI(`service-worker.js?v=${expectedWorkerVersion}&vscode-resource-base-authority=${searchParams.get('vscode-resource-base-authority')}&remoteAuthority=${searchParams.get('remoteAuthority') ?? ''}`);
+-			navigator.serviceWorker.register(swPath, { type: 'module' })
++			navigator.serviceWorker.register(swPath)
+ 				.then(async registration => {
+ 					/**
+ 					 * @param {MessageEvent} event
 @@ -351,6 +351,12 @@
  
  				const hostname = location.hostname;

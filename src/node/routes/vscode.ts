@@ -190,6 +190,7 @@ router.get("/manifest.json", async (req, res) => {
             src: `{{BASE}}/_static/src/browser/media/pwa-icon-${size}.png`,
             type: "image/png",
             sizes: `${size}x${size}`,
+            purpose: "maskable",
           })),
         },
         null,
