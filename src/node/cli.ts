@@ -93,6 +93,7 @@ export interface UserProvidedArgs extends UserProvidedCodeArgs {
   "app-name"?: string
   "welcome-text"?: string
   "abs-proxy-base-path"?: string
+  i18n?: string
   /* Positional arguments. */
   _?: string[]
 }
@@ -284,16 +285,23 @@ export const options: Options<Required<UserProvidedArgs>> = {
   "app-name": {
     type: "string",
     short: "an",
-    description: "The name to use in branding. Will be shown in titlebar and welcome message",
+    description:
+      "Will replace the {{app}} placeholder in any strings, which by default includes the title bar and welcome message",
   },
   "welcome-text": {
     type: "string",
     short: "w",
     description: "Text to show on login page",
+    deprecated: true,
   },
   "abs-proxy-base-path": {
     type: "string",
     description: "The base path to prefix to all absproxy requests",
+  },
+  i18n: {
+    type: "string",
+    path: true,
+    description: "Path to JSON file with custom translations. Merges with default strings and supports all i18n keys.",
   },
 }
 
