@@ -75,7 +75,7 @@ describe("parser", () => {
           "--verbose",
           ["--app-name", "custom instance name"],
           ["--welcome-text", "welcome to code"],
-          ["--i18n", '{"LOGIN_TITLE": "Custom Portal"}'],
+          ["--i18n", "path/to/custom-strings.json"],
           "2",
 
           ["--locale", "ja"],
@@ -146,7 +146,7 @@ describe("parser", () => {
       verbose: true,
       "app-name": "custom instance name",
       "welcome-text": "welcome to code",
-      i18n: '{"LOGIN_TITLE": "Custom Portal"}',
+      i18n: path.resolve("path/to/custom-strings.json"),
       version: true,
       "bind-addr": "192.169.0.1:8080",
       "session-socket": "/tmp/override-code-server-ipc-socket",

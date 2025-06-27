@@ -1,5 +1,5 @@
-import i18next, { init } from "i18next"
 import { promises as fs } from "fs"
+import i18next, { init } from "i18next"
 import * as en from "./locales/en.json"
 import * as ja from "./locales/ja.json"
 import * as th from "./locales/th.json"

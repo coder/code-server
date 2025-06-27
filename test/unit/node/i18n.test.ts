@@ -91,5 +91,64 @@ describe("i18n", () => {
 
       await expect(loadCustomStrings(unicodeJsonFile)).resolves.toBeUndefined()
     })
+
+    it("should handle generic errors that are not ENOENT or SyntaxError", async () => {
+      const testFile = path.join(tempDir, "test.json")
+      await fs.writeFile(testFile, "{}")
+
+      // Mock fs.readFile to throw a generic error
+      const originalReadFile = fs.readFile
+      const mockError = new Error("Permission denied")
+      fs.readFile = jest.fn().mockRejectedValue(mockError)
+
+      await expect(loadCustomStrings(testFile)).rejects.toThrow(
+        `Failed to load custom strings from ${testFile}: Permission denied`,
+      )
+
+      // Restore original function
+      fs.readFile = originalReadFile
+    })
+
+    it("should handle errors that are not Error instances", async () => {
+      const testFile = path.join(tempDir, "test.json")
+      await fs.writeFile(testFile, "{}")
+
+      // Mock fs.readFile to throw a non-Error object
+      const originalReadFile = fs.readFile
+      fs.readFile = jest.fn().mockRejectedValue("String error")
+
+      await expect(loadCustomStrings(testFile)).rejects.toThrow(
+        `Failed to load custom strings from ${testFile}: String error`,
+      )
+
+      // Restore original function
+      fs.readFile = originalReadFile
+    })
+
+    it("should handle null/undefined errors", async () => {
+      const testFile = path.join(tempDir, "test.json")
+      await fs.writeFile(testFile, "{}")
+
+      // Mock fs.readFile to throw null
+      const originalReadFile = fs.readFile
+      fs.readFile = jest.fn().mockRejectedValue(null)
+
+      await expect(loadCustomStrings(testFile)).rejects.toThrow(`Failed to load custom strings from ${testFile}: null`)
+
+      // Restore original function
+      fs.readFile = originalReadFile
+    })
+
+    it("should complete without errors for valid input", async () => {
+      const testFile = path.join(tempDir, "resource-test.json")
+      const customStrings = {
+        WELCOME: "Custom Welcome Message",
+        LOGIN_TITLE: "Custom Login Title",
+      }
+      await fs.writeFile(testFile, JSON.stringify(customStrings))
+
+      // Should not throw any errors
+      await expect(loadCustomStrings(testFile)).resolves.toBeUndefined()
+    })
   })
 })
