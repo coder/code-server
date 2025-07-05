@@ -1,5 +1,51 @@
 # code-server
+asmkhalid
+import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:location/location.dart';
 
+class LocationTrackingPage extends StatefulWidget {
+  @override
+  _LocationTrackingPageState createState() => _LocationTrackingPageState();
+}
+
+class _LocationTrackingPageState extends State<LocationTrackingPage> {
+  Location location = Location();
+  GoogleMapController? mapController;
+  LatLng? currentPosition;
+
+  @override
+  void initState() {
+    super.initState();
+    location.requestPermission().then((granted) {
+      if (granted == PermissionStatus.granted) {
+        location.onLocationChanged.listen((loc) {
+          setState(() {
+            currentPosition = LatLng(loc.latitude!, loc.longitude!);
+          });
+          mapController?.animateCamera(CameraUpdate.newLatLng(currentPosition!));
+        });
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('Location Tracking')),
+      body: currentPosition == null
+          ? Center(child: CircularProgressIndicator())
+          : GoogleMap(
+              initialCameraPosition: CameraPosition(
+                target: currentPosition!,
+                zoom: 15,
+              ),
+              myLocationEnabled: true,
+              onMapCreated: (controller) => mapController = controller,
+            ),
+    );
+  }
+}
 [!["GitHub Discussions"](https://img.shields.io/badge/%20GitHub-%20Discussions-gray.svg?longCache=true&logo=github&colorB=purple)](https://github.com/coder/code-server/discussions) [!["Join us on Slack"](https://img.shields.io/badge/join-us%20on%20slack-gray.svg?longCache=true&logo=slack&colorB=brightgreen)](https://coder.com/community) [![Twitter Follow](https://img.shields.io/twitter/follow/CoderHQ?label=%40CoderHQ&style=social)](https://twitter.com/coderhq) [![codecov](https://codecov.io/gh/coder/code-server/branch/main/graph/badge.svg?token=5iM9farjnC)](https://codecov.io/gh/coder/code-server) [![See latest](https://img.shields.io/static/v1?label=Docs&message=see%20latest&color=blue)](https://coder.com/docs/code-server/latest)
 
 Run [VS Code](https://github.com/Microsoft/vscode) on any machine anywhere and
