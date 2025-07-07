@@ -24,10 +24,20 @@ main() {
   # Generate PWA icons.  There should be enough padding to support masking.
   convert -quiet -border 60x60 -bordercolor white -background white \
           -resize 192x192 -density 192x192 \
-          favicon.svg pwa-icon-192.png
+          favicon.svg pwa-icon-maskable-192.png
   convert -quiet -border 160x160 -bordercolor white -background white \
           -resize 512x512 -density 512x512 \
-          favicon.svg pwa-icon-512.png
+          favicon.svg pwa-icon-maskable-512.png
+
+  # Generate non-maskable PWA icons.
+  magick pwa-icon-maskable-192.png \
+         \( +clone -threshold 101% -fill white -draw "roundRectangle 0,0 %[fx:int(w)],%[fx:int(h)] 50,50" \) \
+         -channel-fx "| gray=>alpha" \
+         pwa-icon-192.png
+  magick pwa-icon-maskable-512.png \
+         \( +clone -threshold 101% -fill white -draw "roundRectangle 0,0 %[fx:int(w)],%[fx:int(h)] 100,100" \) \
+         -channel-fx "| gray=>alpha" \
+         pwa-icon-512.png
 
   # The following adds dark mode support for the favicon as
   # favicon-dark-support.svg There is no similar capability for pwas or .ico so
