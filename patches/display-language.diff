@@ -18,9 +18,9 @@ Index: code-server/lib/vscode/src/vs/server/node/serverServices.ts
  import { ProtocolConstants } from '../../base/parts/ipc/common/ipc.net.js';
  import { IConfigurationService } from '../../platform/configuration/common/configuration.js';
  import { ConfigurationService } from '../../platform/configuration/common/configurationService.js';
-@@ -255,6 +255,9 @@ export async function setupServerService
- 		const channel = new ExtensionManagementChannel(extensionManagementService, (ctx: RemoteAgentConnectionContext) => getUriTransformer(ctx.remoteAuthority));
- 		socketServer.registerChannel('extensions', channel);
+@@ -267,6 +267,9 @@ export async function setupServerService
+ 
+ 		socketServer.registerChannel('mcpManagement', new McpManagementChannel(mcpManagementService, (ctx: RemoteAgentConnectionContext) => getUriTransformer(ctx.remoteAuthority)));
  
 +		const languagePackChannel = ProxyChannel.fromService<RemoteAgentConnectionContext>(accessor.get(ILanguagePackService), disposables);
 +		socketServer.registerChannel('languagePacks', languagePackChannel);
@@ -32,7 +32,7 @@ Index: code-server/lib/vscode/src/vs/platform/environment/common/environmentServ
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/platform/environment/common/environmentService.ts
 +++ code-server/lib/vscode/src/vs/platform/environment/common/environmentService.ts
-@@ -101,7 +101,7 @@ export abstract class AbstractNativeEnvi
+@@ -98,7 +98,7 @@ export abstract class AbstractNativeEnvi
  			return URI.file(join(vscodePortable, 'argv.json'));
  		}
  
@@ -190,7 +190,7 @@ Index: code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
 +++ code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
-@@ -19,6 +19,7 @@ export const serverOptions: OptionDescri
+@@ -21,6 +21,7 @@ export const serverOptions: OptionDescri
  	'disable-file-downloads': { type: 'boolean' },
  	'disable-file-uploads': { type: 'boolean' },
  	'disable-getting-started-override': { type: 'boolean' },
@@ -198,7 +198,7 @@ Index: code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
  
  	/* ----- server setup ----- */
  
-@@ -107,6 +108,7 @@ export interface ServerParsedArgs {
+@@ -109,6 +110,7 @@ export interface ServerParsedArgs {
  	'disable-file-downloads'?: boolean;
  	'disable-file-uploads'?: boolean;
  	'disable-getting-started-override'?: boolean,
@@ -244,10 +244,10 @@ Index: code-server/lib/vscode/src/vs/platform/languagePacks/browser/languagePack
 +		return this.languagePackService.getInstalledLanguages()
  	}
  }
-Index: code-server/lib/vscode/src/vs/workbench/services/localization/electron-sandbox/localeService.ts
+Index: code-server/lib/vscode/src/vs/workbench/services/localization/electron-browser/localeService.ts
 ===================================================================
---- code-server.orig/lib/vscode/src/vs/workbench/services/localization/electron-sandbox/localeService.ts
-+++ code-server/lib/vscode/src/vs/workbench/services/localization/electron-sandbox/localeService.ts
+--- code-server.orig/lib/vscode/src/vs/workbench/services/localization/electron-browser/localeService.ts
++++ code-server/lib/vscode/src/vs/workbench/services/localization/electron-browser/localeService.ts
 @@ -51,7 +51,8 @@ class NativeLocaleService implements ILo
  		@IProductService private readonly productService: IProductService
  	) { }
@@ -335,18 +335,6 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/extensions/browser/extens
  	}
  
  	override async run(): Promise<any> {
-Index: code-server/lib/vscode/build/gulpfile.reh.js
-===================================================================
---- code-server.orig/lib/vscode/build/gulpfile.reh.js
-+++ code-server/lib/vscode/build/gulpfile.reh.js
-@@ -58,6 +58,7 @@ const serverResourceIncludes = [
- 
- 	// NLS
- 	'out-build/nls.messages.json',
-+	'out-build/nls.keys.json', // Required to generate translations.
- 
- 	// Process monitor
- 	'out-build/vs/base/node/cpuUsage.sh',
 Index: code-server/lib/vscode/src/vs/workbench/workbench.web.main.internal.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/workbench.web.main.internal.ts
@@ -356,7 +344,7 @@ Index: code-server/lib/vscode/src/vs/workbench/workbench.web.main.internal.ts
  import './services/lifecycle/browser/lifecycleService.js';
  import './services/clipboard/browser/clipboardService.js';
 -import './services/localization/browser/localeService.js';
-+import './services/localization/electron-sandbox/localeService.js';
++import './services/localization/electron-browser/localeService.js';
  import './services/path/browser/pathService.js';
  import './services/themes/browser/browserHostColorSchemeService.js';
  import './services/encryption/browser/encryptionService.js';
