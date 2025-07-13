@@ -59,13 +59,13 @@ href="tel:+16202669837">
 </div>
 <div align="center">
   <a
-href="https://github.com/statikfintechllc/AscendAI/blob/master/About Us/LICENSE.md">
+href="https://github.com/statikfintechllc/statik-server/blob/master/About Us/LICENSE.md">
   <img  
-	  src="https://img.shields.io/badge/FAIR%20USE-black?style=for-the-badge&logo=dragon&logoColor=gold" alt="Fair Use License"/>
+	  src="https://img.shields.io/badge/SFTi-black?style=for-the-badge&logo=dragon&logoColor=gold" alt="Fair Use License"/>
   </a>
-  <a href="https://github.com/statikfintechllc/AscendAI/blob/master/About Us/LICENSE.md">
+  <a href="https://github.com/statikfintechllc/statik-server/blob/master/About Us/LICENSE.md">
   <img  
-	  src="https://img.shields.io/badge/GREMLINGPT%20v1.0.3-darkred?style=for-the-badge&logo=dragon&logoColor=gold" alt="GremlinGPT License"/>
+	  src="https://img.shields.io/badge/Open%20Use-darkred?style=for-the-badge&logo=dragon&logoColor=gold" alt="GremlinGPT License"/>
   </a>
 </div>
 <div align="center">
@@ -76,7 +76,7 @@ href="https://github.com/statikfintechllc/AscendAI/blob/master/About Us/WHY_GREM
   </a>
   <a href="https://github.com/statikfintechllc/AscendAI/blob/master/About Us/WHY_GREMLINGPT.md">
   <img  
-	  src="https://img.shields.io/badge/GremlinGPT-darkred?style=for-the-badge&logo=dragon&logoColor=gold" alt="GremlinGPT"/>
+	  src="https://img.shields.io/badge/SFTI-darkred?style=for-the-badge&logo=dragon&logoColor=gold" alt="GremlinGPT"/>
   </a>
 </div>
 
