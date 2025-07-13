@@ -327,22 +327,11 @@ yarn build
 - **AI Integration** - New memory router capabilities
 - **Mobile Support** - Enhanced Mobile-Mirror integration
 
-## 📄 License
-
-Statik-Server is released under the **Fair Use License** with the following clarifications:
-
-- ✅ **Personal/Self-Hosted Use** - Freely use for your own development
-- ✅ **Statik-Server Base** - Built on MIT-licensed statik-server
-- ✅ **Headscale Integration** - Uses BSD-licensed headscale
-- ⚠️ **VS Code Components** - Respects Microsoft's VS Code license terms
-- ⚠️ **GitHub Copilot** - Requires valid GitHub Copilot subscription
-
 ## 🆘 Support
-
 - **📖 Documentation** - `/docs/statik-server/`
 - **🐛 Issues** - GitHub Issues for bug reports
 - **💬 Discord** - AscendNet Community for real-time help
-- **📧 Email** - statik@ascendnet.ai for enterprise support
+- **📧 Email** - ascend.gremlin@gmail.com for enterprise support
 
 ## 🔮 Roadmap
 
