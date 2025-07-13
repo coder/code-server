@@ -1,4 +1,4 @@
-module github.com/juanfont/headscale
+module github.com/statikfintech/statik-server/internal/mesh
 
 go 1.24.0
 
