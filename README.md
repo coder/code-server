@@ -88,6 +88,7 @@ href="https://github.com/statikfintechllc/AscendAI/blob/master/About Us/WHY_GREM
   <img src="https://img.shields.io/badge/Copilot%20Chat-Enabled-green?style=for-the-badge&logo=github" alt="Copilot"/>
   <img src="https://img.shields.io/badge/Mesh%20VPN-Embedded-purple?style=for-the-badge&logo=network-wired" alt="Mesh VPN"/>
 </div>
+</div>
 
 ## 🔥 Mission
 
