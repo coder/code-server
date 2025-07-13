@@ -45,7 +45,8 @@ fi
 
 APP_TITLE="Statik-Server v1.0.0"
 SUB_TITLE="Sovereign AI Development Mesh"
-STATIK_DIR="$HOME/statik-server"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+STATIK_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 LOG_FILE="$HOME/.statik/logs/statik-server.log"
 PID_FILE="$HOME/.statik/statik-server.pid"
 
@@ -122,7 +123,7 @@ while true; do
     case $CHOICE in
         1)
             echo "🚀 Starting Statik-Server..."
-            cd "$STATIK_DIR" && ./startup.sh &
+            cd "$STATIK_DIR" && ./scripts/startup.sh &
             echo $! > "$PID_FILE"
             echo -e "\nStatik-Server started! Access at: http://localhost:8080"
             echo "Press enter to continue..."
@@ -146,7 +147,7 @@ while true; do
                 kill "$(cat "$PID_FILE")"
                 sleep 2
             fi
-            cd "$STATIK_DIR" && ./startup.sh &
+            cd "$STATIK_DIR" && ./scripts/startup.sh &
             echo $! > "$PID_FILE"
             echo -e "\nStatik-Server restarted!"
             echo "Press enter to continue..."
@@ -154,7 +155,7 @@ while true; do
             ;;
         4)
             echo "🔨 Building/Updating Statik-Server..."
-            cd "$STATIK_DIR" && ./build.sh
+            cd "$STATIK_DIR" && ./scripts/build.sh
             echo -e "\nBuild complete!"
             echo "Press enter to continue..."
             read -r
