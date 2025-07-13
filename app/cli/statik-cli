@@ -4,19 +4,7 @@
 
 set -e
 
-# Find statik-server root directory dynamically
-if [[ -f "$HOME/.local/bin/statik-cli" ]] && [[ "$(readlink -f "${BASH_SOURCE[0]}")" == "$HOME/.local/bin/statik-cli" ]]; then
-    # Running from installed location, find the repo
-    STATIK_DIR="$HOME/statik-server"
-    if [[ ! -d "$STATIK_DIR" ]]; then
-        STATIK_DIR="/home/statiksmoke8/Copilot-Workspace/statik-server"
-    fi
-else
-    # Running from repo, calculate relative path
-    SCRIPT_PATH="$(readlink -f "${BASH_SOURCE[0]}")"
-    STATIK_DIR="$(dirname "$(dirname "$(dirname "$SCRIPT_PATH")")")"
-fi
-
+STATIK_DIR="$HOME/statik-server"
 LOG_FILE="$HOME/.statik/logs/statik-server.log"
 PID_FILE="$HOME/.statik/statik-server.pid"
 
@@ -45,9 +33,6 @@ function usage() {
     echo "  gui           Launch interactive GUI"
     echo "  install       Install desktop app"
     echo "  uninstall     Remove desktop app"
-    echo "  commit        Git commit with message"
-    echo "  push          Git push to remote"
-    echo "  sync          Git add, commit, and push"
     echo ""
     echo "Options:"
     echo "  -h, --help    Show this help message"
@@ -59,9 +44,6 @@ function usage() {
     echo "  statik-cli status          # Check status"
     echo "  statik-cli logs --tail 50  # View last 50 log lines"
     echo "  statik-cli config token    # Set GitHub token"
-    echo "  statik-cli commit -m 'Fix' # Git commit with message"
-    echo "  statik-cli push            # Push to remote"
-    echo "  statik-cli sync -m 'Done'  # Add, commit, and push"
 }
 
 function log() {
@@ -101,54 +83,21 @@ function start_server() {
     verbose "Changing to $STATIK_DIR"
     cd "$STATIK_DIR"
     
-    if [[ ! -f "./scripts/startup.sh" ]]; then
-        error "scripts/startup.sh not found in $STATIK_DIR"
+    if [[ ! -f "./startup.sh" ]]; then
+        error "startup.sh not found in $STATIK_DIR"
         error "Run 'statik-cli build' first or check installation"
         return 1
     fi
     
-    # Ensure log and PID directories exist
-    mkdir -p "$(dirname "$LOG_FILE")" "$(dirname "$PID_FILE")"
-    
     log "${BLUE}Starting Statik-Server...${NC}"
-    nohup ./scripts/startup.sh > "$LOG_FILE" 2>&1 &
+    nohup ./startup.sh > "$LOG_FILE" 2>&1 &
     echo $! > "$PID_FILE"
     
     # Wait a moment and check if it started successfully
-    sleep 4
+    sleep 2
     if [[ "$(get_status)" == "running" ]]; then
         success "Statik-Server started (PID: $(cat "$PID_FILE"))"
-        
-        # Get local IP for QR code
-        local LOCAL_IP
-        LOCAL_IP=$(ip route get 1.1.1.1 2>/dev/null | head -1 | awk '{print $7}' | head -1)
-        if [[ -z "$LOCAL_IP" ]]; then
-            LOCAL_IP=$(hostname -I 2>/dev/null | awk '{print $1}')
-        fi
-        if [[ -z "$LOCAL_IP" ]]; then
-            LOCAL_IP="localhost"
-        fi
-        
-        local SERVER_URL="http://${LOCAL_IP}:8080"
-        
-        echo ""
-        log "${GREEN}✅ Server Access Information:${NC}"
-        log "   Local:    ${CYAN}http://localhost:8080${NC}"
-        log "   Network:  ${CYAN}$SERVER_URL${NC}"
-        echo ""
-        
-        # Display QR code for mobile access
-        if command -v qrencode >/dev/null; then
-            log "${YELLOW}📱 Mobile QR Code:${NC}"
-            echo "=================="
-            qrencode -t ansiutf8 "$SERVER_URL"
-            echo ""
-            log "${GREEN}📲 Scan with your mobile device to access VS Code!${NC}"
-        else
-            log "${YELLOW}📱 Mobile URL: $SERVER_URL${NC}"
-        fi
-        echo ""
-        
+        log "Access at: ${CYAN}http://localhost:8080${NC}"
     else
         error "Failed to start server. Check logs with 'statik-cli logs'"
         return 1
@@ -248,13 +197,13 @@ function view_logs() {
 function build_server() {
     cd "$STATIK_DIR"
     
-    if [[ ! -f "./scripts/build.sh" ]]; then
-        error "scripts/build.sh not found in $STATIK_DIR"
+    if [[ ! -f "./build.sh" ]]; then
+        error "build.sh not found in $STATIK_DIR"
         return 1
     fi
     
     log "${BLUE}Building Statik-Server...${NC}"
-    ./scripts/build.sh
+    ./build.sh
     success "Build complete"
 }
 
@@ -350,10 +299,10 @@ function launch_gui() {
 
 function install_app() {
     cd "$STATIK_DIR"
-    if [[ -f "./app/install-app.sh" ]]; then
-        ./app/install-app.sh
+    if [[ -f "./install-app.sh" ]]; then
+        ./install-app.sh
     else
-        error "app/install-app.sh not found in $STATIK_DIR"
+        error "install-app.sh not found in $STATIK_DIR"
     fi
 }
 
@@ -370,128 +319,6 @@ function uninstall_app() {
         success "Statik-Server app uninstalled"
     else
         log "Uninstall cancelled"
-    fi
-}
-
-function git_commit() {
-    local message=""
-    
-    # Parse options for commit message
-    while [[ $# -gt 0 ]]; do
-        case $1 in
-            -m|--message)
-                message="$2"
-                shift 2
-                ;;
-            *)
-                if [[ -z "$message" ]]; then
-                    message="$1"
-                fi
-                shift
-                ;;
-        esac
-    done
-    
-    if [[ -z "$message" ]]; then
-        echo -n "Enter commit message: "
-        read -r message
-    fi
-    
-    if [[ -z "$message" ]]; then
-        error "Commit message required"
-        return 1
-    fi
-    
-    cd "$STATIK_DIR"
-    
-    log "${BLUE}Adding files to git...${NC}"
-    git add . || { error "Failed to add files"; return 1; }
-    
-    log "${BLUE}Committing with message: '$message'${NC}"
-    git commit -m "$message" || { error "Failed to commit"; return 1; }
-    
-    success "Changes committed successfully"
-}
-
-function git_push() {
-    cd "$STATIK_DIR"
-    
-    # Check if we have a remote
-    if ! git remote get-url origin >/dev/null 2>&1; then
-        error "No git remote 'origin' configured"
-        log "Add a remote with: git remote add origin <repository-url>"
-        return 1
-    fi
-    
-    log "${BLUE}Pushing to remote repository...${NC}"
-    git push origin "$(git branch --show-current)" || { 
-        error "Failed to push. You may need to set upstream or check credentials"
-        log "Try: git push --set-upstream origin \$(git branch --show-current)"
-        return 1
-    }
-    
-    success "Changes pushed successfully"
-}
-
-function git_sync() {
-    local message=""
-    
-    # Parse options for commit message
-    while [[ $# -gt 0 ]]; do
-        case $1 in
-            -m|--message)
-                message="$2"
-                shift 2
-                ;;
-            *)
-                if [[ -z "$message" ]]; then
-                    message="$1"
-                fi
-                shift
-                ;;
-        esac
-    done
-    
-    if [[ -z "$message" ]]; then
-        echo -n "Enter commit message: "
-        read -r message
-    fi
-    
-    if [[ -z "$message" ]]; then
-        error "Commit message required"
-        return 1
-    fi
-    
-    cd "$STATIK_DIR"
-    
-    # Check if we're in a git repository
-    if ! git rev-parse --git-dir >/dev/null 2>&1; then
-        error "Not in a git repository"
-        return 1
-    fi
-    
-    # Check for uncommitted changes
-    if git diff-index --quiet HEAD -- 2>/dev/null; then
-        log "${YELLOW}No changes to commit${NC}"
-        return 0
-    fi
-    
-    log "${BLUE}Syncing changes...${NC}"
-    log "1. Adding all files..."
-    git add . || { error "Failed to add files"; return 1; }
-    
-    log "2. Committing with message: '$message'"
-    git commit -m "$message" || { error "Failed to commit"; return 1; }
-    
-    log "3. Pushing to remote..."
-    if git remote get-url origin >/dev/null 2>&1; then
-        git push origin "$(git branch --show-current)" || { 
-            error "Failed to push. You may need to set upstream or check credentials"
-            return 1
-        }
-        success "All changes synced successfully (added, committed, and pushed)"
-    else
-        success "Changes committed successfully (no remote configured for push)"
     fi
 }
 
@@ -561,15 +388,6 @@ case "$COMMAND" in
         ;;
     uninstall)
         uninstall_app "$@"
-        ;;
-    commit)
-        git_commit "$@"
-        ;;
-    push)
-        git_push "$@"
-        ;;
-    sync)
-        git_sync "$@"
         ;;
     help)
         usage
