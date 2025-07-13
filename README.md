@@ -13,25 +13,12 @@
 - **VS Code v1.102.0+** with upstream Copilot Chat support
 - **Embedded headscale mesh** with non-expiring keys + self-tunnel
 - **GitHub Copilot agent mode** with persistent session (no UI login)
-- **Integrated dashboards** from GremlinGPT, GodCore, and Mobile-Mirror
 - **Offline-first architecture** that runs on phone, laptop, or tower
-
-## 🎯 Core Philosophy
-
-> **"Why be dependent on Microsoft's Codespaces when you can own your entire AI development stack?"**
-
-Statik-Server eliminates:
-- ❌ Dependency on external cloud IDEs
-- ❌ GitHub Copilot login loops
-- ❌ VPN subscription services  
-- ❌ Fragmented development environments
-- ❌ Privacy compromises with cloud providers
 
 Statik-Server provides:
 - ✅ **Full Copilot Chat** in latest VS Code
 - ✅ **Persistent GitHub auth** bypassing UI flows
-- ✅ **Embedded mesh VPN** (Tailscale-compatible)
-- ✅ **Memory integration** from all AscendNet AI components
+- ✅ **Embedded mesh VPN** (Tailscale-Style)
 - ✅ **Sovereign development environment** you fully control
 
 ## 🏗️ Architecture
