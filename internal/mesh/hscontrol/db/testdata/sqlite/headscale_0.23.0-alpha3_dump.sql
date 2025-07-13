@@ -1,0 +1,16 @@
+PRAGMA foreign_keys=OFF;
+BEGIN TRANSACTION;
+CREATE TABLE `migrations` (`id` text,PRIMARY KEY (`id`));
+INSERT INTO migrations VALUES('202312101416');
+INSERT INTO migrations VALUES('202312101430');
+CREATE TABLE `users` (`id` integer PRIMARY KEY AUTOINCREMENT,`created_at` datetime,`updated_at` datetime,`deleted_at` datetime,`name` text UNIQUE);
+CREATE TABLE `pre_auth_keys` (`id` integer PRIMARY KEY AUTOINCREMENT,`key` text,`user_id` integer,`reusable` numeric,`ephemeral` numeric DEFAULT false,`used` numeric DEFAULT false,`created_at` datetime,`expiration` datetime);
+CREATE TABLE `nodes` (`id` integer PRIMARY KEY AUTOINCREMENT,`machine_key` text,`node_key` text,`disco_key` text,`endpoints` text,`host_info` text,`ip_addresses` text,`hostname` text,`given_name` varchar(63),`user_id` integer,`register_method` text,`forced_tags` text,`auth_key_id` integer,`last_seen` datetime,`expiry` datetime,`created_at` datetime,`updated_at` datetime,`deleted_at` datetime);
+CREATE TABLE `routes` (`id` integer PRIMARY KEY AUTOINCREMENT,`created_at` datetime,`updated_at` datetime,`deleted_at` datetime,`node_id` integer,`prefix` text,`advertised` numeric,`enabled` numeric,`is_primary` numeric);
+CREATE TABLE `pre_auth_key_acl_tags` (`id` integer PRIMARY KEY AUTOINCREMENT,`pre_auth_key_id` integer,`tag` text);
+CREATE TABLE `api_keys` (`id` integer PRIMARY KEY AUTOINCREMENT,`prefix` text,`hash` blob,`created_at` datetime,`expiration` datetime,`last_seen` datetime);
+DELETE FROM sqlite_sequence;
+CREATE INDEX `idx_users_deleted_at` ON `users`(`deleted_at`);
+CREATE INDEX `idx_routes_deleted_at` ON `routes`(`deleted_at`);
+CREATE UNIQUE INDEX `idx_api_keys_prefix` ON `api_keys`(`prefix`);
+COMMIT;

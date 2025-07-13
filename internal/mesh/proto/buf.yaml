@@ -1,0 +1,12 @@
+version: v1
+lint:
+  use:
+    - DEFAULT
+breaking:
+  use:
+    - FILE
+
+deps:
+  - buf.build/googleapis/googleapis
+  - buf.build/grpc-ecosystem/grpc-gateway
+  - buf.build/ufoundit-dev/protoc-gen-gorm

@@ -1,0 +1,21 @@
+version: v1
+plugins:
+  - name: go
+    out: gen/go
+    opt:
+      - paths=source_relative
+  - name: go-grpc
+    out: gen/go
+    opt:
+      - paths=source_relative
+  - name: grpc-gateway
+    out: gen/go
+    opt:
+      - paths=source_relative
+      - generate_unbound_methods=true
+  # - name: gorm
+  #   out: gen/go
+  #   opt:
+  #     - paths=source_relative,enums=string,gateway=true
+  - name: openapiv2
+    out: gen/openapiv2

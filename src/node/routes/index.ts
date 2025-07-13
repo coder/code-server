@@ -24,6 +24,7 @@ import * as logout from "./logout"
 import * as pathProxy from "./pathProxy"
 import * as update from "./update"
 import * as vscode from "./vscode"
+import { StatikMemoryRouter } from "../statik/memory-router"
 
 /**
  * Register all routes and middleware.
@@ -56,11 +57,11 @@ export const register = async (app: App, args: DefaultedArgs): Promise<Disposabl
   app.wsRouter.use(cookieParser())
 
   const settings = new SettingsProvider<CoderSettings>(path.join(args["user-data-dir"], "coder.json"))
-  const updater = new UpdateProvider("https://api.github.com/repos/coder/code-server/releases/latest", settings)
+  const updater = new UpdateProvider("https://api.github.com/repos/coder/statik-server/releases/latest", settings)
 
   const common: express.RequestHandler = (req, _, next) => {
     // /healthz|/healthz/ needs to be excluded otherwise health checks will make
-    // it look like code-server is always in use.
+    // it look like statik-server is always in use.
     if (!/^\/healthz\/?$/.test(req.url)) {
       // NOTE@jsjoeio - intentionally not awaiting the .beat() call here because
       // we don't want to slow down the request.
@@ -157,6 +158,10 @@ export const register = async (app: App, args: DefaultedArgs): Promise<Disposabl
   }
 
   app.router.use("/update", update.router)
+
+  // Add Statik Memory Router for unified dashboard API
+  const statikMemoryRouter = new StatikMemoryRouter()
+  app.router.use(statikMemoryRouter.getRouter())
 
   // For historic reasons we also load at /vscode because the root was replaced
   // by a plugin in v1 of Coder.  The plugin system (which was for internal use

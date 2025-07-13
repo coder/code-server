@@ -6,9 +6,9 @@ import { promises as fs } from "fs"
 import * as net from "net"
 import * as os from "os"
 import * as path from "path"
-import safeCompare from "safe-compare"
+const safeCompare = require("safe-compare")
 import * as util from "util"
-import xdgBasedir from "xdg-basedir"
+const xdgBasedir = require("xdg-basedir")
 
 export interface Paths {
   data: string
@@ -57,8 +57,8 @@ export const paths = getEnvPaths()
  * ones. Most CLIs do this as in practice only GUI apps use the standard macOS directories.
  */
 export function getEnvPaths(platform = process.platform): Paths {
-  const paths = envPaths("code-server", { suffix: "" })
-  const append = (p: string): string => path.join(p, "code-server")
+  const paths = envPaths("statik-server", { suffix: "" })
+  const append = (p: string): string => path.join(p, "statik-server")
   switch (platform) {
     case "darwin":
       return {

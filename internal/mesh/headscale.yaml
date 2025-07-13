@@ -1,0 +1,32 @@
+server_url: http://127.0.0.1:8081
+listen_addr: 0.0.0.0:8081
+metrics_listen_addr: 127.0.0.1:9090
+grpc_listen_addr: 0.0.0.0:50443
+
+private_key_path: /root/.statik/keys/private.key
+noise:
+  private_key_path: /root/.statik/keys/noise_private.key
+
+database:
+  type: sqlite3
+  sqlite:
+    path: /root/.statik/db/headscale.db
+
+log:
+  level: info
+
+acme_url: https://acme-v02.api.letsencrypt.org/directory
+acme_email: ""
+
+dns_config:
+  override_local_dns: true
+  nameservers:
+    - 1.1.1.1
+    - 8.8.8.8
+  domains: []
+  magic_dns: true
+  base_domain: statik.mesh
+
+# Infinite preauth keys for mesh
+preauth_key_expiry: 0s
+ephemeral_node_inactivity_timeout: 0s

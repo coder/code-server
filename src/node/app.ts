@@ -1,8 +1,9 @@
 import { logger } from "@coder/logger"
-import compression from "compression"
-import express, { Express } from "express"
+const compression = require("compression")
+const express = require("express")
+import { Express } from "express"
 import { promises as fs } from "fs"
-import http from "http"
+import * as http from "http"
 import * as httpolyglot from "httpolyglot"
 import { Disposable } from "../common/emitter"
 import * as util from "../common/util"

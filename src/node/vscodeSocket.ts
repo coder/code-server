@@ -1,5 +1,5 @@
 import { logger } from "@coder/logger"
-import express from "express"
+const express = require("express")
 import * as http from "http"
 import * as path from "path"
 import { HttpCode } from "../common/http"
@@ -39,9 +39,9 @@ export async function makeEditorSessionManagerServer(
 
   router.use(express.json())
 
-  router.get<{}, GetSessionResponse | string | unknown, undefined, { filePath?: string }>(
+  router.get(
     "/session",
-    async (req, res) => {
+    async (req: any, res: any) => {
       const filePath = req.query.filePath
       if (!filePath) {
         res.status(HttpCode.BadRequest).send("filePath is required")
@@ -57,7 +57,7 @@ export async function makeEditorSessionManagerServer(
     },
   )
 
-  router.post<{}, string, AddSessionRequest | undefined>("/add-session", async (req, res) => {
+  router.post("/add-session", async (req: any, res: any) => {
     const entry = req.body?.entry
     if (!entry) {
       res.status(400).send("entry is required")
@@ -67,7 +67,7 @@ export async function makeEditorSessionManagerServer(
     res.status(200).send("session added")
   })
 
-  router.post<{}, string, DeleteSessionRequest | undefined>("/delete-session", async (req, res) => {
+  router.post("/delete-session", async (req: any, res: any) => {
     const socketPath = req.body?.socketPath
     if (!socketPath) {
       res.status(400).send("socketPath is required")

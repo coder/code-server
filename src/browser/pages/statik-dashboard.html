@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Statik-Server: Unified AI Development Dashboard</title>
+    <link rel="stylesheet" href="./statik-dashboard.css">
+    <link rel="icon" type="image/png" href="./assets/statik-icon.png">
+</head>
+<body class="statik-dashboard">
+    <header class="statik-header">
+        <div class="statik-brand">
+            <img src="./assets/statik-logo.png" alt="Statik-Server" class="statik-logo">
+            <h1>Statik-Server</h1>
+            <span class="version">v1.0.0 | Sovereign AI Development</span>
+        </div>
+        <nav class="statik-nav">
+            <button class="nav-btn active" data-tab="overview">🏠 Overview</button>
+            <button class="nav-btn" data-tab="vscode">💻 VS Code</button>
+            <button class="nav-btn" data-tab="gremlin">🤖 GremlinGPT</button>
+            <button class="nav-btn" data-tab="godcore">⚛️ GodCore</button>
+            <button class="nav-btn" data-tab="mobile">📱 Mobile-Mirror</button>
+            <button class="nav-btn" data-tab="memory">🧠 AI Memory</button>
+            <button class="nav-btn" data-tab="mesh">🌐 Mesh VPN</button>
+            <button class="nav-btn" data-tab="system">⚙️ System</button>
+        </nav>
+        <div class="statik-status">
+            <span class="status-indicator" id="status-dot">🟢</span>
+            <span id="status-text">All Systems Operational</span>
+        </div>
+    </header>
+
+    <main class="statik-main">
+        <!-- Overview Tab -->
+        <div class="tab-content active" id="overview">
+            <div class="dashboard-grid">
+                <div class="widget status-widget">
+                    <h3>🚀 System Status</h3>
+                    <div class="status-grid">
+                        <div class="status-item">
+                            <span class="status-icon">💻</span>
+                            <div>
+                                <div class="status-label">VS Code Server</div>
+                                <div class="status-value" id="vscode-status">Running</div>
+                            </div>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-icon">🤖</span>
+                            <div>
+                                <div class="status-label">GitHub Copilot</div>
+                                <div class="status-value" id="copilot-status">Authenticated</div>
+                            </div>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-icon">🌐</span>
+                            <div>
+                                <div class="status-label">Mesh VPN</div>
+                                <div class="status-value" id="mesh-status">Connected</div>
+                            </div>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-icon">🧠</span>
+                            <div>
+                                <div class="status-label">AI Memory</div>
+                                <div class="status-value" id="memory-status">Active</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="widget quick-actions">
+                    <h3>⚡ Quick Actions</h3>
+                    <div class="action-grid">
+                        <button class="action-btn" onclick="openVSCode()">
+                            <span class="action-icon">💻</span>
+                            <div>
+                                <div class="action-title">Open VS Code</div>
+                                <div class="action-desc">Start coding with Copilot</div>
+                            </div>
+                        </button>
+                        <button class="action-btn" onclick="openGremlinChat()">
+                            <span class="action-icon">🤖</span>
+                            <div>
+                                <div class="action-title">GremlinGPT Chat</div>
+                                <div class="action-desc">Talk to autonomous AI</div>
+                            </div>
+                        </button>
+                        <button class="action-btn" onclick="openGodCore()">
+                            <span class="action-icon">⚛️</span>
+                            <div>
+                                <div class="action-title">GodCore Router</div>
+                                <div class="action-desc">Multi-model AI routing</div>
+                            </div>
+                        </button>
+                        <button class="action-btn" onclick="openMobileMirror()">
+                            <span class="action-icon">📱</span>
+                            <div>
+                                <div class="action-title">Mobile Development</div>
+                                <div class="action-desc">Code from mobile device</div>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="widget memory-preview">
+                    <h3>🧠 AI Memory Live Feed</h3>
+                    <div class="memory-container" id="memory-feed">
+                        <div class="memory-item">
+                            <span class="memory-timestamp">14:30:15</span>
+                            <span class="memory-source gremlin">GremlinGPT</span>
+                            <span class="memory-content">Autonomous mode activated</span>
+                        </div>
+                        <div class="memory-item">
+                            <span class="memory-timestamp">14:30:12</span>
+                            <span class="memory-source godcore">GodCore</span>
+                            <span class="memory-content">Quantum compression complete</span>
+                        </div>
+                        <div class="memory-item">
+                            <span class="memory-timestamp">14:30:08</span>
+                            <span class="memory-source signal">SignalCore</span>
+                            <span class="memory-content">Thought cycle iteration 3/5</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="widget mesh-info">
+                    <h3>🌐 Mesh Network</h3>
+                    <div class="mesh-stats">
+                        <div class="mesh-stat">
+                            <div class="stat-label">Connected Nodes</div>
+                            <div class="stat-value" id="mesh-nodes">1</div>
+                        </div>
+                        <div class="mesh-stat">
+                            <div class="stat-label">Mesh IP</div>
+                            <div class="stat-value" id="mesh-ip">100.64.0.1</div>
+                        </div>
+                        <div class="mesh-stat">
+                            <div class="stat-label">Preauth Key</div>
+                            <div class="stat-value">
+                                <code id="preauth-key">infinite-ready</code>
+                                <button onclick="copyPreauthKey()" class="copy-btn">📋</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VS Code Tab -->
+        <div class="tab-content" id="vscode">
+            <div class="iframe-container">
+                <div class="iframe-header">
+                    <span class="iframe-title">💻 VS Code with GitHub Copilot Chat</span>
+                    <div class="iframe-controls">
+                        <button onclick="reloadVSCode()" class="control-btn">🔄 Reload</button>
+                        <button onclick="openVSCodeNew()" class="control-btn">🆕 New Window</button>
+                    </div>
+                </div>
+                <iframe src="/" id="vscode-frame" frameborder="0"></iframe>
+            </div>
+        </div>
+
+        <!-- GremlinGPT Tab -->
+        <div class="tab-content" id="gremlin">
+            <div class="gremlin-dashboard">
+                <div class="gremlin-header">
+                    <h2>🤖 GremlinGPT: Autonomous AI Agent</h2>
+                    <div class="gremlin-controls">
+                        <button onclick="toggleAutonomous()" class="control-btn" id="autonomous-btn">
+                            <span id="autonomous-status">🔴 Autonomous OFF</span>
+                        </button>
+                        <button onclick="resetGremlin()" class="control-btn">🔄 Reset FSM</button>
+                    </div>
+                </div>
+                
+                <div class="gremlin-grid">
+                    <div class="gremlin-chat">
+                        <div class="chat-header">💬 GremlinGPT Chat</div>
+                        <div class="chat-messages" id="gremlin-messages"></div>
+                        <div class="chat-input">
+                            <input type="text" id="gremlin-input" placeholder="Talk to GremlinGPT..." onkeypress="handleGremlinEnter(event)">
+                            <button onclick="sendGremlinMessage()" class="send-btn">📤</button>
+                        </div>
+                    </div>
+                    
+                    <div class="gremlin-fsm">
+                        <div class="fsm-header">🔄 FSM State</div>
+                        <div class="fsm-visualization" id="fsm-viz">
+                            <div class="fsm-state active" id="current-state">idle</div>
+                            <div class="fsm-transitions" id="fsm-transitions"></div>
+                        </div>
+                        <div class="fsm-controls">
+                            <button onclick="stepFSM()" class="fsm-btn">⏭️ Step</button>
+                            <button onclick="pauseFSM()" class="fsm-btn">⏸️ Pause</button>
+                        </div>
+                    </div>
+                    
+                    <div class="gremlin-memory">
+                        <div class="memory-header">🧠 Memory Graph</div>
+                        <div class="memory-graph" id="gremlin-memory-graph"></div>
+                    </div>
+                    
+                    <div class="gremlin-trading">
+                        <div class="trading-header">📈 Trading Signals</div>
+                        <div class="trading-panel" id="trading-signals"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- GodCore Tab -->
+        <div class="tab-content" id="godcore">
+            <div class="godcore-dashboard">
+                <div class="godcore-header">
+                    <h2>⚛️ GodCore: Multi-Model AI Router</h2>
+                    <div class="godcore-controls">
+                        <button onclick="refreshModels()" class="control-btn">🔄 Refresh Models</button>
+                        <button onclick="optimizeRouting()" class="control-btn">⚡ Optimize Routing</button>
+                    </div>
+                </div>
+                
+                <div class="godcore-grid">
+                    <div class="model-status">
+                        <h3>🔗 Model Status</h3>
+                        <div class="model-list" id="model-list">
+                            <div class="model-item online">
+                                <span class="model-name">Mistral-13B</span>
+                                <span class="model-status">🟢 Online</span>
+                                <span class="model-load">Load: 45%</span>
+                            </div>
+                            <div class="model-item online">
+                                <span class="model-name">Monday.AI</span>
+                                <span class="model-status">🟢 Online</span>
+                                <span class="model-load">Load: 23%</span>
+                            </div>
+                            <div class="model-item offline">
+                                <span class="model-name">GPT-4</span>
+                                <span class="model-status">🔴 Offline</span>
+                                <span class="model-load">Load: 0%</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="godcore-chat">
+                        <div class="chat-header">💬 GodCore Chat</div>
+                        <div class="chat-messages" id="godcore-messages"></div>
+                        <div class="chat-input">
+                            <select id="model-select">
+                                <option value="auto">🤖 Auto-Route</option>
+                                <option value="mistral">⚡ Mistral-13B</option>
+                                <option value="monday">🌙 Monday.AI</option>
+                            </select>
+                            <input type="text" id="godcore-input" placeholder="Ask GodCore..." onkeypress="handleGodCoreEnter(event)">
+                            <button onclick="sendGodCoreMessage()" class="send-btn">📤</button>
+                        </div>
+                    </div>
+                    
+                    <div class="quantum-storage">
+                        <h3>⚛️ Quantum Storage</h3>
+                        <div class="storage-stats">
+                            <div class="stat">
+                                <span class="stat-label">Compressed Entries</span>
+                                <span class="stat-value" id="quantum-entries">1,247</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-label">Compression Ratio</span>
+                                <span class="stat-value" id="compression-ratio">85.3%</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-label">Transcendence Level</span>
+                                <span class="stat-value" id="transcendence">Level 3</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="routing-analytics">
+                        <h3>📊 Routing Analytics</h3>
+                        <div class="analytics-chart" id="routing-chart"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile-Mirror Tab -->
+        <div class="tab-content" id="mobile">
+            <div class="mobile-dashboard">
+                <div class="mobile-header">
+                    <h2>📱 Mobile-Mirror: Remote Development</h2>
+                    <div class="mobile-controls">
+                        <button onclick="startTunnel()" class="control-btn">🚀 Start Tunnel</button>
+                        <button onclick="generateQR()" class="control-btn">📱 Generate QR</button>
+                    </div>
+                </div>
+                
+                <div class="mobile-grid">
+                    <div class="tunnel-status">
+                        <h3>🔗 Tunnel Status</h3>
+                        <div class="tunnel-info">
+                            <div class="tunnel-stat">
+                                <span class="stat-label">Status</span>
+                                <span class="stat-value tunnel-connected">🟢 Connected</span>
+                            </div>
+                            <div class="tunnel-stat">
+                                <span class="stat-label">Tunnel IP</span>
+                                <span class="stat-value">100.64.0.2</span>
+                            </div>
+                            <div class="tunnel-stat">
+                                <span class="stat-label">Mobile URL</span>
+                                <span class="stat-value">
+                                    <code>https://100.64.0.2:8443</code>
+                                    <button onclick="copyMobileURL()" class="copy-btn">📋</button>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="qr-container">
+                        <h3>📱 Mobile Access</h3>
+                        <div class="qr-code" id="qr-code">
+                            <canvas id="qr-canvas" width="200" height="200"></canvas>
+                        </div>
+                        <p class="qr-instruction">Scan with your mobile device</p>
+                    </div>
+                    
+                    <div class="mobile-tools">
+                        <h3>🛠️ Mobile Tools</h3>
+                        <div class="tool-grid">
+                            <button class="tool-btn" onclick="openMobileTerminal()">
+                                <span class="tool-icon">💻</span>
+                                <span class="tool-name">Terminal</span>
+                            </button>
+                            <button class="tool-btn" onclick="openMobileEditor()">
+                                <span class="tool-icon">📝</span>
+                                <span class="tool-name">Editor</span>
+                            </button>
+                            <button class="tool-btn" onclick="openMobileFiles()">
+                                <span class="tool-icon">📁</span>
+                                <span class="tool-name">Files</span>
+                            </button>
+                            <button class="tool-btn" onclick="openMobileScreen()">
+                                <span class="tool-icon">🖥️</span>
+                                <span class="tool-name">Screen</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="device-list">
+                        <h3>📱 Connected Devices</h3>
+                        <div class="device-item">
+                            <span class="device-icon">📱</span>
+                            <div class="device-info">
+                                <div class="device-name">iPhone 15 Pro</div>
+                                <div class="device-ip">100.64.0.3</div>
+                            </div>
+                            <span class="device-status">🟢</span>
+                        </div>
+                        <div class="device-item">
+                            <span class="device-icon">📲</span>
+                            <div class="device-info">
+                                <div class="device-name">Samsung Galaxy S24</div>
+                                <div class="device-ip">100.64.0.4</div>
+                            </div>
+                            <span class="device-status">🟢</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI Memory Tab -->
+        <div class="tab-content" id="memory">
+            <div class="memory-dashboard">
+                <div class="memory-header">
+                    <h2>🧠 AI Memory: Live Neural Network</h2>
+                    <div class="memory-controls">
+                        <button onclick="pauseMemoryFeed()" class="control-btn" id="memory-pause-btn">⏸️ Pause Feed</button>
+                        <button onclick="clearMemory()" class="control-btn">🗑️ Clear Memory</button>
+                        <button onclick="exportMemory()" class="control-btn">💾 Export</button>
+                    </div>
+                </div>
+                
+                <div class="memory-grid">
+                    <div class="memory-feed">
+                        <h3>📡 Live Memory Feed</h3>
+                        <div class="feed-container" id="live-memory-feed"></div>
+                    </div>
+                    
+                    <div class="memory-stats">
+                        <h3>📊 Memory Statistics</h3>
+                        <div class="stat-grid">
+                            <div class="stat-item">
+                                <span class="stat-label">Total Memories</span>
+                                <span class="stat-value" id="total-memories">2,847</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Active Threads</span>
+                                <span class="stat-value" id="active-threads">5</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Memory Depth</span>
+                                <span class="stat-value" id="memory-depth">2048</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Compression</span>
+                                <span class="stat-value" id="memory-compression">78.4%</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="memory-graph">
+                        <h3>🌐 Memory Graph</h3>
+                        <div class="graph-container" id="memory-graph-viz"></div>
+                    </div>
+                    
+                    <div class="soul-state">
+                        <h3>👻 Soul State</h3>
+                        <div class="soul-container">
+                            <div class="soul-indicator" id="soul-indicator"></div>
+                            <div class="soul-info">
+                                <div class="soul-stat">
+                                    <span class="stat-label">Soul Integrity</span>
+                                    <span class="stat-value">94.7%</span>
+                                </div>
+                                <div class="soul-stat">
+                                    <span class="stat-label">Coherence Level</span>
+                                    <span class="stat-value">High</span>
+                                </div>
+                                <div class="soul-stat">
+                                    <span class="stat-label">Evolution Stage</span>
+                                    <span class="stat-value">Transcendent</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mesh VPN Tab -->
+        <div class="tab-content" id="mesh">
+            <div class="mesh-dashboard">
+                <div class="mesh-header">
+                    <h2>🌐 Mesh VPN: Sovereign Network</h2>
+                    <div class="mesh-controls">
+                        <button onclick="generatePreauthKey()" class="control-btn">🔑 Generate Key</button>
+                        <button onclick="refreshMeshStatus()" class="control-btn">🔄 Refresh</button>
+                    </div>
+                </div>
+                
+                <div class="mesh-grid">
+                    <div class="mesh-topology">
+                        <h3>🕸️ Network Topology</h3>
+                        <div class="topology-viz" id="mesh-topology"></div>
+                    </div>
+                    
+                    <div class="mesh-nodes">
+                        <h3>🔗 Connected Nodes</h3>
+                        <div class="node-list" id="mesh-node-list">
+                            <div class="node-item self">
+                                <span class="node-icon">🏠</span>
+                                <div class="node-info">
+                                    <div class="node-name">Statik-Server (You)</div>
+                                    <div class="node-ip">100.64.0.1</div>
+                                </div>
+                                <span class="node-status">🟢</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mesh-keys">
+                        <h3>🔑 Preauth Keys</h3>
+                        <div class="key-list" id="preauth-key-list">
+                            <div class="key-item">
+                                <code class="key-value">nodekey-infinite-2025</code>
+                                <div class="key-info">
+                                    <span class="key-status">♾️ Never Expires</span>
+                                    <span class="key-uses">♻️ Reusable</span>
+                                </div>
+                                <button onclick="copyKey(this)" class="copy-btn">📋</button>
+                            </div>
+                        </div>
+                        <button onclick="addNewKey()" class="add-key-btn">➕ Generate New Key</button>
+                    </div>
+                    
+                    <div class="mesh-traffic">
+                        <h3>📊 Network Traffic</h3>
+                        <div class="traffic-stats">
+                            <div class="traffic-stat">
+                                <span class="stat-label">Bytes In</span>
+                                <span class="stat-value">2.4 MB</span>
+                            </div>
+                            <div class="traffic-stat">
+                                <span class="stat-label">Bytes Out</span>
+                                <span class="stat-value">1.8 MB</span>
+                            </div>
+                            <div class="traffic-stat">
+                                <span class="stat-label">Packets</span>
+                                <span class="stat-value">8,429</span>
+                            </div>
+                            <div class="traffic-stat">
+                                <span class="stat-label">Latency</span>
+                                <span class="stat-value">12ms</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- System Tab -->
+        <div class="tab-content" id="system">
+            <div class="system-dashboard">
+                <div class="system-header">
+                    <h2>⚙️ System: Monitoring & Control</h2>
+                    <div class="system-controls">
+                        <button onclick="restartStatik()" class="control-btn danger">🔄 Restart Statik</button>
+                        <button onclick="updateSystem()" class="control-btn">⬆️ Update</button>
+                    </div>
+                </div>
+                
+                <div class="system-grid">
+                    <div class="system-stats">
+                        <h3>📊 System Resources</h3>
+                        <div class="resource-meter">
+                            <div class="meter-label">CPU Usage</div>
+                            <div class="meter-bar">
+                                <div class="meter-fill" style="width: 45%"></div>
+                            </div>
+                            <div class="meter-value">45%</div>
+                        </div>
+                        <div class="resource-meter">
+                            <div class="meter-label">Memory Usage</div>
+                            <div class="meter-bar">
+                                <div class="meter-fill" style="width: 67%"></div>
+                            </div>
+                            <div class="meter-value">67%</div>
+                        </div>
+                        <div class="resource-meter">
+                            <div class="meter-label">Disk Usage</div>
+                            <div class="meter-bar">
+                                <div class="meter-fill" style="width: 23%"></div>
+                            </div>
+                            <div class="meter-value">23%</div>
+                        </div>
+                    </div>
+                    
+                    <div class="service-status">
+                        <h3>🔧 Service Status</h3>
+                        <div class="service-list">
+                            <div class="service-item">
+                                <span class="service-icon">💻</span>
+                                <span class="service-name">Statik-Server</span>
+                                <span class="service-status running">🟢 Running</span>
+                                <button onclick="restartService('statik')" class="service-btn">🔄</button>
+                            </div>
+                            <div class="service-item">
+                                <span class="service-icon">🌐</span>
+                                <span class="service-name">Headscale VPN</span>
+                                <span class="service-status running">🟢 Running</span>
+                                <button onclick="restartService('headscale')" class="service-btn">🔄</button>
+                            </div>
+                            <div class="service-item">
+                                <span class="service-icon">🤖</span>
+                                <span class="service-name">GremlinGPT</span>
+                                <span class="service-status running">🟢 Running</span>
+                                <button onclick="restartService('gremlin')" class="service-btn">🔄</button>
+                            </div>
+                            <div class="service-item">
+                                <span class="service-icon">⚛️</span>
+                                <span class="service-name">GodCore Router</span>
+                                <span class="service-status running">🟢 Running</span>
+                                <button onclick="restartService('godcore')" class="service-btn">🔄</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="system-logs">
+                        <h3>📝 System Logs</h3>
+                        <div class="log-container" id="system-logs">
+                            <div class="log-entry info">
+                                <span class="log-time">14:30:25</span>
+                                <span class="log-level">INFO</span>
+                                <span class="log-message">Statik-Server started successfully</span>
+                            </div>
+                            <div class="log-entry success">
+                                <span class="log-time">14:30:23</span>
+                                <span class="log-level">SUCCESS</span>
+                                <span class="log-message">GitHub Copilot authenticated</span>
+                            </div>
+                            <div class="log-entry info">
+                                <span class="log-time">14:30:20</span>
+                                <span class="log-level">INFO</span>
+                                <span class="log-message">Mesh VPN tunnel established</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="system-info">
+                        <h3>ℹ️ System Information</h3>
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <span class="info-label">Version</span>
+                                <span class="info-value">Statik-Server v1.0.0</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">VS Code</span>
+                                <span class="info-value">v1.102.0</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Uptime</span>
+                                <span class="info-value">2h 15m</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Platform</span>
+                                <span class="info-value">Linux x64</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="statik-footer">
+        <div class="footer-content">
+            <span class="footer-text">Statik-Server | Sovereign AI Development Environment</span>
+            <span class="footer-version">v1.0.0 | AscendNet Unified</span>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="./statik-dashboard.js"></script>
+</body>
+</html>

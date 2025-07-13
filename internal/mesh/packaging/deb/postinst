@@ -1,0 +1,87 @@
+#!/bin/sh
+# postinst script for headscale.
+
+set -e
+
+# Summary of how this script can be called:
+#        * <postinst> 'configure' <most-recently-configured-version>
+#        * <old-postinst> 'abort-upgrade' <new version>
+#        * <conflictor's-postinst> 'abort-remove' 'in-favour' <package>
+#          <new-version>
+#        * <postinst> 'abort-remove'
+#        * <deconfigured's-postinst> 'abort-deconfigure' 'in-favour'
+#          <failed-install-package> <version> 'removing'
+#          <conflicting-package> <version>
+# for details, see https://www.debian.org/doc/debian-policy/ or
+# the debian-policy package.
+
+HEADSCALE_USER="headscale"
+HEADSCALE_GROUP="headscale"
+HEADSCALE_HOME_DIR="/var/lib/headscale"
+HEADSCALE_SHELL="/usr/sbin/nologin"
+HEADSCALE_SERVICE="headscale.service"
+
+case "$1" in
+    configure)
+      groupadd --force --system "$HEADSCALE_GROUP"
+      if ! id -u "$HEADSCALE_USER" >/dev/null 2>&1; then
+        useradd --system --shell "$HEADSCALE_SHELL" \
+          --gid "$HEADSCALE_GROUP" --home-dir "$HEADSCALE_HOME_DIR" \
+          --comment "headscale default user" "$HEADSCALE_USER"
+      fi
+
+      if dpkg --compare-versions "$2" lt-nl "0.27"; then
+        # < 0.24.0-beta.1 used /home/headscale as home and /bin/sh as shell.
+        # The directory /home/headscale was not created by the package or
+        # useradd but the service always used /var/lib/headscale which was
+        # always shipped by the package as empty directory. Previous versions
+        # of the package did not update the user account properties.
+        usermod --home "$HEADSCALE_HOME_DIR" --shell "$HEADSCALE_SHELL" \
+          "$HEADSCALE_USER" >/dev/null
+      fi
+
+      if dpkg --compare-versions "$2" lt-nl "0.27" \
+        && [ $(id --user "$HEADSCALE_USER") -ge 1000 ] \
+        && [ $(id --group "$HEADSCALE_GROUP") -ge 1000 ]; then
+        # < 0.26.0-beta.1 created a regular user/group to run headscale.
+        # Previous versions of the package did not migrate to system uid/gid.
+        # Assume that the *default* uid/gid range is in use and only run this
+        # migration when the current uid/gid is allocated in the user range.
+        # Create a temporary system user/group to guarantee the allocation of a
+        # uid/gid in the system range. Assign this new uid/gid to the existing
+        # user and group and remove the temporary user/group afterwards.
+        tmp_name="headscaletmp"
+        useradd --system --no-log-init --no-create-home --shell "$HEADSCALE_SHELL" "$tmp_name"
+        tmp_uid="$(id --user "$tmp_name")"
+        tmp_gid="$(id --group "$tmp_name")"
+        usermod --non-unique --uid "$tmp_uid" --gid "$tmp_gid" "$HEADSCALE_USER"
+        groupmod --non-unique --gid "$tmp_gid" "$HEADSCALE_USER"
+        userdel --force "$tmp_name"
+      fi
+
+      # Enable service and keep track of its state
+      if deb-systemd-helper --quiet was-enabled "$HEADSCALE_SERVICE"; then
+        deb-systemd-helper enable "$HEADSCALE_SERVICE" >/dev/null || true
+      else
+        deb-systemd-helper update-state "$HEADSCALE_SERVICE" >/dev/null || true
+      fi
+
+      # Bounce service
+      if [ -d /run/systemd/system ]; then
+        systemctl --system daemon-reload >/dev/null || true
+        if [ -n "$2" ]; then
+          deb-systemd-invoke restart "$HEADSCALE_SERVICE" >/dev/null || true
+        else
+          deb-systemd-invoke start "$HEADSCALE_SERVICE" >/dev/null || true
+        fi
+      fi
+    ;;
+
+    abort-upgrade|abort-remove|abort-deconfigure)
+    ;;
+
+    *)
+        echo "postinst called with unknown argument '$1'" >&2
+        exit 1
+    ;;
+esac

@@ -1,0 +1,51 @@
+[Unit]
+After=network.target
+Description=headscale coordination server for Tailscale
+X-Restart-Triggers=/etc/headscale/config.yaml
+
+[Service]
+Type=simple
+User=headscale
+Group=headscale
+ExecStart=/usr/bin/headscale serve
+ExecReload=/usr/bin/kill -HUP $MAINPID
+Restart=always
+RestartSec=5
+
+WorkingDirectory=/var/lib/headscale
+ReadWritePaths=/var/lib/headscale
+
+AmbientCapabilities=CAP_NET_BIND_SERVICE CAP_CHOWN
+CapabilityBoundingSet=CAP_NET_BIND_SERVICE CAP_CHOWN
+LockPersonality=true
+NoNewPrivileges=true
+PrivateDevices=true
+PrivateMounts=true
+PrivateTmp=true
+ProcSubset=pid
+ProtectClock=true
+ProtectControlGroups=true
+ProtectHome=true
+ProtectHostname=true
+ProtectKernelLogs=true
+ProtectKernelModules=true
+ProtectKernelTunables=true
+ProtectProc=invisible
+ProtectSystem=strict
+RemoveIPC=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+RestrictNamespaces=true
+RestrictRealtime=true
+RestrictSUIDSGID=true
+RuntimeDirectory=headscale
+RuntimeDirectoryMode=0750
+StateDirectory=headscale
+StateDirectoryMode=0750
+SystemCallArchitectures=native
+SystemCallFilter=@chown
+SystemCallFilter=@system-service
+SystemCallFilter=~@privileged
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target

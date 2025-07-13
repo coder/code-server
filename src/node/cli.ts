@@ -54,7 +54,7 @@ export interface UserProvidedCodeArgs {
   "disable-proxy"?: boolean
   "session-socket"?: string
   "link-protection-trusted-domains"?: string[]
-  // locale is used by both VS Code and code-server.
+  // locale is used by both VS Code and statik-server.
   locale?: string
 }
 
@@ -164,7 +164,7 @@ export const options: Options<Required<UserProvidedArgs>> = {
   "disable-update-check": {
     type: "boolean",
     description:
-      "Disable update check. Without this flag, code-server checks every 6 hours against the latest github release and \n" +
+      "Disable update check. Without this flag, statik-server checks every 6 hours against the latest github release and \n" +
       "then notifies you once every week that a new release is available.",
   },
   "session-socket": {
@@ -516,7 +516,7 @@ export async function setDefaults(cliArgs: UserProvidedArgs, configArgs?: Config
   }
 
   if (!args["session-socket"]) {
-    args["session-socket"] = path.join(args["user-data-dir"], "code-server-ipc.sock")
+    args["session-socket"] = path.join(args["user-data-dir"], "statik-server-ipc.sock")
   }
   process.env.CODE_SERVER_SESSION_SOCKET = args["session-socket"]
 
@@ -612,7 +612,7 @@ export async function setDefaults(cliArgs: UserProvidedArgs, configArgs?: Config
   const proxyDomains = new Set((args["proxy-domain"] || []).map((d) => d.replace(/^\*\./, "")))
   const finalProxies = []
 
-  for (const proxyDomain of proxyDomains) {
+  for (const proxyDomain of Array.from(proxyDomains)) {
     if (!proxyDomain.includes("{{port}}")) {
       finalProxies.push("{{port}}." + proxyDomain)
     } else {
@@ -664,7 +664,7 @@ interface ConfigArgs extends UserProvidedArgs {
 }
 
 /**
- * Reads the code-server yaml config file and returns it as Args.
+ * Reads the statik-server yaml config file and returns it as Args.
  *
  * @param configPath Read the config from configPath instead of $CODE_SERVER_CONFIG or the default.
  */
@@ -738,7 +738,7 @@ function parseBindAddr(bindAddr: string): Addr {
     host: u.hostname,
     // With the http scheme 80 will be dropped so assume it's 80 if missing.
     // This means --bind-addr <addr> without a port will default to 80 as well
-    // and not the code-server default.
+    // and not the statik-server default.
     port: u.port ? parseInt(u.port, 10) : 80,
   }
 }
@@ -807,7 +807,7 @@ export const shouldOpenInExistingInstance = async (
   // If these flags are set then assume the user is trying to open in an
   // existing instance since these flags have no effect otherwise.  That means
   // if there is no existing instance we should error rather than falling back
-  // to spawning code-server normally.
+  // to spawning statik-server normally.
   const openInFlagCount = ["reuse-window", "new-window"].reduce((prev, cur) => {
     return args[cur as keyof UserProvidedArgs] ? prev + 1 : prev
   }, 0)
@@ -815,14 +815,14 @@ export const shouldOpenInExistingInstance = async (
     logger.debug("Found --reuse-window or --new-window")
     const socketPath = await client.getConnectedSocketPath(paths[0])
     if (!socketPath) {
-      throw new Error(`No opened code-server instances found to handle ${paths[0]}`)
+      throw new Error(`No opened statik-server instances found to handle ${paths[0]}`)
     }
     return socketPath
   }
 
-  // It's possible the user is trying to spawn another instance of code-server.
+  // It's possible the user is trying to spawn another instance of statik-server.
   // 1. Check if any unrelated flags are set (this should only run when
-  //    code-server is invoked exactly like this: `code-server my-file`).
+  //    statik-server is invoked exactly like this: `statik-server my-file`).
   // 2. That a file or directory was passed.
   // 3. That the socket is active.
   // 4. That an instance exists to handle the path (implied by #3).
@@ -832,7 +832,7 @@ export const shouldOpenInExistingInstance = async (
     }
     const socketPath = await client.getConnectedSocketPath(paths[0])
     if (socketPath) {
-      logger.debug("Found existing code-server socket")
+      logger.debug("Found existing statik-server socket")
       return socketPath
     }
   }

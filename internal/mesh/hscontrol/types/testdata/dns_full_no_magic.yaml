@@ -1,0 +1,36 @@
+# minimum to not fatal
+noise:
+  private_key_path: "private_key.pem"
+server_url: "https://derp.no"
+
+dns:
+  magic_dns: false
+  base_domain: example.com
+
+  override_local_dns: false
+  nameservers:
+    global:
+      - 1.1.1.1
+      - 1.0.0.1
+      - 2606:4700:4700::1111
+      - 2606:4700:4700::1001
+      - https://dns.nextdns.io/abc123
+
+    split:
+      foo.bar.com:
+        - 1.1.1.1
+      darp.headscale.net:
+        - 1.1.1.1
+        - 8.8.8.8
+
+  search_domains:
+    - test.com
+    - bar.com
+
+  extra_records:
+    - name: "grafana.myvpn.example.com"
+      type: "A"
+      value: "100.64.0.3"
+
+    # you can also put it in one line
+    - { name: "prometheus.myvpn.example.com", type: "A", value: "100.64.0.4" }

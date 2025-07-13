@@ -2,7 +2,7 @@ import * as express from "express"
 import * as expressCore from "express-serve-static-core"
 import * as http from "http"
 import * as stream from "stream"
-import Websocket from "ws"
+import * as Websocket from "ws"
 
 export interface WebsocketRequest extends express.Request {
   ws: stream.Duplex

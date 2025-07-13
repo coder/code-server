@@ -1,0 +1,29 @@
+syntax = "proto3";
+package headscale.v1;
+option go_package = "github.com/juanfont/headscale/gen/go/v1";
+
+import "google/protobuf/timestamp.proto";
+
+message ApiKey {
+  uint64 id = 1;
+  string prefix = 2;
+  google.protobuf.Timestamp expiration = 3;
+  google.protobuf.Timestamp created_at = 4;
+  google.protobuf.Timestamp last_seen = 5;
+}
+
+message CreateApiKeyRequest { google.protobuf.Timestamp expiration = 1; }
+
+message CreateApiKeyResponse { string api_key = 1; }
+
+message ExpireApiKeyRequest { string prefix = 1; }
+
+message ExpireApiKeyResponse {}
+
+message ListApiKeysRequest {}
+
+message ListApiKeysResponse { repeated ApiKey api_keys = 1; }
+
+message DeleteApiKeyRequest { string prefix = 1; }
+
+message DeleteApiKeyResponse {}

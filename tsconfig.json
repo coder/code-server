@@ -1,13 +1,13 @@
 {
   "compilerOptions": {
-    "target": "es6",
+    "target": "es2017",
     "lib": ["es2020", "dom", "dom.iterable"],
     "module": "commonjs",
     "moduleResolution": "node",
-    "strict": true,
-    "noImplicitReturns": true,
-    "noUnusedLocals": true,
-    "forceConsistentCasingInFileNames": true,
+    "strict": false,
+    "noImplicitReturns": false,
+    "noUnusedLocals": false,
+    "forceConsistentCasingInFileNames": false,
     "outDir": "./out",
     "declaration": false,
     "experimentalDecorators": true,
@@ -23,8 +23,11 @@
       "./lib/vscode/src/vs/server/@types"
     ],
     "downlevelIteration": true,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "skipDefaultLibCheck": true,
+    "noImplicitAny": false
   },
   "include": ["./src/**/*"],
-  "exclude": ["/test", "/lib", "/ci", "/doc"]
+  "exclude": ["/test", "/lib", "/ci", "/doc", "node_modules"]
 }

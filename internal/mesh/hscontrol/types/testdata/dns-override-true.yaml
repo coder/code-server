@@ -1,0 +1,20 @@
+noise:
+  private_key_path: "private_key.pem"
+
+prefixes:
+  v6: fd7a:115c:a1e0::/48
+  v4: 100.64.0.0/10
+
+database:
+  type: sqlite3
+
+server_url: "https://server.derp.no"
+
+dns:
+  magic_dns: true
+  base_domain: derp2.no
+  override_local_dns: true
+  nameservers:
+    global:
+      - 1.1.1.1
+      - 1.0.0.1

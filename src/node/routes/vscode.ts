@@ -1,4 +1,4 @@
-import { logger } from "@coder/logger"
+import { logger, field } from "@coder/logger"
 import * as crypto from "crypto"
 import * as express from "express"
 import { promises as fs } from "fs"
@@ -19,7 +19,7 @@ export const router = express.Router()
 export const wsRouter = WsRouter()
 
 /**
- * The API of VS Code's web client server.  code-server delegates requests to VS
+ * The API of VS Code's web client server.  statik-server delegates requests to VS
  * Code here.
  *
  * @see ../../../lib/vscode/src/vs/server/node/server.main.ts:72
@@ -172,7 +172,7 @@ router.get("/", ensureVSCodeLoaded, async (req, res, next) => {
 })
 
 router.get("/manifest.json", async (req, res) => {
-  const appName = req.args["app-name"] || "code-server"
+  const appName = req.args["app-name"] || "statik-server"
   res.writeHead(200, { "Content-Type": "application/manifest+json" })
 
   res.end(
@@ -208,6 +208,48 @@ router.get("/manifest.json", async (req, res) => {
       ),
     ),
   )
+})
+
+// Statik Dashboard route - Unified AscendNet AI modules
+router.get("/statik-dashboard", ensureAuthenticated, async (req, res) => {
+  try {
+    const dashboardPath = path.join(__dirname, "../../browser/pages/statik-dashboard.html")
+    const dashboardHtml = await fs.readFile(dashboardPath, "utf8")
+    
+    // Replace template variables
+    const processedHtml = replaceTemplates(req, dashboardHtml, {
+      title: "Statik-Server - Unified AI Dashboard"
+    })
+    
+    res.setHeader("Content-Type", "text/html")
+    res.send(processedHtml)
+  } catch (error) {
+    logger.error("Failed to serve Statik dashboard:", field("error", error))
+    res.status(500).send("Dashboard temporarily unavailable")
+  }
+})
+
+// Dashboard asset routes
+router.get("/statik-dashboard.css", async (req, res) => {
+  try {
+    const cssPath = path.join(__dirname, "../../browser/pages/statik-dashboard.css")
+    const cssContent = await fs.readFile(cssPath, "utf8")
+    res.setHeader("Content-Type", "text/css")
+    res.send(cssContent)
+  } catch (error) {
+    res.status(404).send("CSS not found")
+  }
+})
+
+router.get("/statik-dashboard.js", async (req, res) => {
+  try {
+    const jsPath = path.join(__dirname, "../../browser/pages/statik-dashboard.js")
+    const jsContent = await fs.readFile(jsPath, "utf8")
+    res.setHeader("Content-Type", "application/javascript")
+    res.send(jsContent)
+  } catch (error) {
+    res.status(404).send("JavaScript not found")
+  }
 })
 
 let mintKeyPromise: Promise<Buffer> | undefined

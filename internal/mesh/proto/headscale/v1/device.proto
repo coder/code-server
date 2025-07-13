@@ -1,0 +1,76 @@
+syntax = "proto3";
+package headscale.v1;
+option go_package = "github.com/juanfont/headscale/gen/go/v1";
+
+import "google/protobuf/timestamp.proto";
+
+// This is a potential reimplementation of Tailscale's API
+// https://github.com/tailscale/tailscale/blob/main/api.md
+
+message Latency {
+  float latency_ms = 1;
+  bool preferred = 2;
+}
+
+message ClientSupports {
+  bool hair_pinning = 1;
+  bool ipv6 = 2;
+  bool pcp = 3;
+  bool pmp = 4;
+  bool udp = 5;
+  bool upnp = 6;
+}
+
+message ClientConnectivity {
+  repeated string endpoints = 1;
+  string derp = 2;
+  bool mapping_varies_by_dest_ip = 3;
+  map<string, Latency> latency = 4;
+  ClientSupports client_supports = 5;
+}
+
+message GetDeviceRequest { string id = 1; }
+
+message GetDeviceResponse {
+  repeated string addresses = 1;
+  string id = 2;
+  string user = 3;
+  string name = 4;
+  string hostname = 5;
+  string client_version = 6;
+  bool update_available = 7;
+  string os = 8;
+  google.protobuf.Timestamp created = 9;
+  google.protobuf.Timestamp last_seen = 10;
+  bool key_expiry_disabled = 11;
+  google.protobuf.Timestamp expires = 12;
+  bool authorized = 13;
+  bool is_external = 14;
+  string machine_key = 15;
+  string node_key = 16;
+  bool blocks_incoming_connections = 17;
+  repeated string enabled_routes = 18;
+  repeated string advertised_routes = 19;
+  ClientConnectivity client_connectivity = 20;
+}
+
+message DeleteDeviceRequest { string id = 1; }
+
+message DeleteDeviceResponse {}
+
+message GetDeviceRoutesRequest { string id = 1; }
+
+message GetDeviceRoutesResponse {
+  repeated string enabled_routes = 1;
+  repeated string advertised_routes = 2;
+}
+
+message EnableDeviceRoutesRequest {
+  string id = 1;
+  repeated string routes = 2;
+}
+
+message EnableDeviceRoutesResponse {
+  repeated string enabled_routes = 1;
+  repeated string advertised_routes = 2;
+}

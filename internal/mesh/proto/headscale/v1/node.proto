@@ -1,0 +1,118 @@
+syntax = "proto3";
+package headscale.v1;
+
+import "google/protobuf/timestamp.proto";
+import "headscale/v1/preauthkey.proto";
+import "headscale/v1/user.proto";
+
+option go_package = "github.com/juanfont/headscale/gen/go/v1";
+
+enum RegisterMethod {
+  REGISTER_METHOD_UNSPECIFIED = 0;
+  REGISTER_METHOD_AUTH_KEY = 1;
+  REGISTER_METHOD_CLI = 2;
+  REGISTER_METHOD_OIDC = 3;
+}
+
+message Node {
+  // 9: removal of last_successful_update
+  reserved 9;
+
+  uint64 id = 1;
+  string machine_key = 2;
+  string node_key = 3;
+  string disco_key = 4;
+  repeated string ip_addresses = 5;
+  string name = 6;
+  User user = 7;
+
+  google.protobuf.Timestamp last_seen = 8;
+  google.protobuf.Timestamp expiry = 10;
+
+  PreAuthKey pre_auth_key = 11;
+
+  google.protobuf.Timestamp created_at = 12;
+
+  RegisterMethod register_method = 13;
+
+  reserved 14 to 17;
+  // google.protobuf.Timestamp updated_at = 14;
+  // google.protobuf.Timestamp deleted_at = 15;
+
+  // bytes host_info      = 15;
+  // bytes endpoints      = 16;
+  // bytes enabled_routes = 17;
+
+  repeated string forced_tags = 18;
+  repeated string invalid_tags = 19;
+  repeated string valid_tags = 20;
+  string given_name = 21;
+  bool online = 22;
+  repeated string approved_routes = 23;
+  repeated string available_routes = 24;
+  repeated string subnet_routes = 25;
+}
+
+message RegisterNodeRequest {
+  string user = 1;
+  string key = 2;
+}
+
+message RegisterNodeResponse { Node node = 1; }
+
+message GetNodeRequest { uint64 node_id = 1; }
+
+message GetNodeResponse { Node node = 1; }
+
+message SetTagsRequest {
+  uint64 node_id = 1;
+  repeated string tags = 2;
+}
+
+message SetTagsResponse { Node node = 1; }
+
+message SetApprovedRoutesRequest {
+  uint64 node_id = 1;
+  repeated string routes = 2;
+}
+
+message SetApprovedRoutesResponse { Node node = 1; }
+
+message DeleteNodeRequest { uint64 node_id = 1; }
+
+message DeleteNodeResponse {}
+
+message ExpireNodeRequest { uint64 node_id = 1; }
+
+message ExpireNodeResponse { Node node = 1; }
+
+message RenameNodeRequest {
+  uint64 node_id = 1;
+  string new_name = 2;
+}
+
+message RenameNodeResponse { Node node = 1; }
+
+message ListNodesRequest { string user = 1; }
+
+message ListNodesResponse { repeated Node nodes = 1; }
+
+message MoveNodeRequest {
+  uint64 node_id = 1;
+  uint64 user = 2;
+}
+
+message MoveNodeResponse { Node node = 1; }
+
+message DebugCreateNodeRequest {
+  string user = 1;
+  string key = 2;
+  string name = 3;
+  repeated string routes = 4;
+}
+
+message DebugCreateNodeResponse { Node node = 1; }
+
+message BackfillNodeIPsRequest { bool confirmed = 1; }
+
+message BackfillNodeIPsResponse { repeated string changes = 1; }

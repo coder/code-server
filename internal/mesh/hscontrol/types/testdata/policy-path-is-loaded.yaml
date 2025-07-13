@@ -1,0 +1,20 @@
+noise:
+  private_key_path: "private_key.pem"
+
+prefixes:
+  v6: fd7a:115c:a1e0::/48
+  v4: 100.64.0.0/10
+
+database:
+  type: sqlite3
+
+server_url: "https://derp.no"
+
+acl_policy_path: "/etc/acl_policy.yaml"
+policy:
+  type: file
+  path: "/etc/policy.hujson"
+
+dns:
+  magic_dns: false
+  override_local_dns: false

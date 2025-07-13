@@ -1,0 +1,19 @@
+syntax = "proto3";
+package headscale.v1;
+option go_package = "github.com/juanfont/headscale/gen/go/v1";
+
+import "google/protobuf/timestamp.proto";
+
+message SetPolicyRequest { string policy = 1; }
+
+message SetPolicyResponse {
+  string policy = 1;
+  google.protobuf.Timestamp updated_at = 2;
+}
+
+message GetPolicyRequest {}
+
+message GetPolicyResponse {
+  string policy = 1;
+  google.protobuf.Timestamp updated_at = 2;
+}

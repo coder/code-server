@@ -1,0 +1,44 @@
+syntax = "proto3";
+package headscale.v1;
+option go_package = "github.com/juanfont/headscale/gen/go/v1";
+
+import "google/protobuf/timestamp.proto";
+
+message User {
+  uint64 id = 1;
+  string name = 2;
+  google.protobuf.Timestamp created_at = 3;
+  string display_name = 4;
+  string email = 5;
+  string provider_id = 6;
+  string provider = 7;
+  string profile_pic_url = 8;
+}
+
+message CreateUserRequest {
+  string name = 1;
+  string display_name = 2;
+  string email = 3;
+  string picture_url = 4;
+}
+
+message CreateUserResponse { User user = 1; }
+
+message RenameUserRequest {
+  uint64 old_id = 1;
+  string new_name = 2;
+}
+
+message RenameUserResponse { User user = 1; }
+
+message DeleteUserRequest { uint64 id = 1; }
+
+message DeleteUserResponse {}
+
+message ListUsersRequest {
+  uint64 id = 1;
+  string name = 2;
+  string email = 3;
+}
+
+message ListUsersResponse { repeated User users = 1; }

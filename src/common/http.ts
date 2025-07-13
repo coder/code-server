@@ -25,5 +25,5 @@ export class HttpError extends Error {
 }
 
 export enum CookieKeys {
-  Session = "code-server-session",
+  Session = "statik-server-session",
 }

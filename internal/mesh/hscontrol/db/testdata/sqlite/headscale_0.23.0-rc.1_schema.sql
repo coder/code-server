@@ -1,0 +1,12 @@
+CREATE TABLE `migrations` (`id` text,PRIMARY KEY (`id`));
+CREATE TABLE `users` (`id` integer PRIMARY KEY AUTOINCREMENT,`created_at` datetime,`updated_at` datetime,`deleted_at` datetime,`name` text,CONSTRAINT `uni_users_name` UNIQUE (`name`));
+CREATE INDEX `idx_users_deleted_at` ON `users`(`deleted_at`);
+CREATE TABLE `pre_auth_keys` (`id` integer PRIMARY KEY AUTOINCREMENT,`key` text,`user_id` integer,`reusable` numeric,`ephemeral` numeric DEFAULT false,`used` numeric DEFAULT false,`created_at` datetime,`expiration` datetime,CONSTRAINT `fk_pre_auth_keys_user` FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE);
+CREATE TABLE `routes` (`id` integer PRIMARY KEY AUTOINCREMENT,`created_at` datetime,`updated_at` datetime,`deleted_at` datetime,`node_id` integer,`prefix` text,`advertised` numeric,`enabled` numeric,`is_primary` numeric,CONSTRAINT `fk_nodes_routes` FOREIGN KEY (`node_id`) REFERENCES `nodes`(`id`) ON DELETE CASCADE);
+CREATE INDEX `idx_routes_deleted_at` ON `routes`(`deleted_at`);
+CREATE TABLE `pre_auth_key_acl_tags` (`id` integer PRIMARY KEY AUTOINCREMENT,`pre_auth_key_id` integer,`tag` text,CONSTRAINT `fk_pre_auth_keys_acl_tags` FOREIGN KEY (`pre_auth_key_id`) REFERENCES `pre_auth_keys`(`id`) ON DELETE CASCADE);
+CREATE TABLE `api_keys` (`id` integer PRIMARY KEY AUTOINCREMENT,`prefix` text,`hash` blob,`created_at` datetime,`expiration` datetime,`last_seen` datetime);
+CREATE UNIQUE INDEX `idx_api_keys_prefix` ON `api_keys`(`prefix`);
+CREATE TABLE IF NOT EXISTS "nodes"  (`id` integer PRIMARY KEY AUTOINCREMENT,`machine_key` text,`node_key` text,`disco_key` text,`endpoints` text,`host_info` text,`ipv4` text,`ipv6` text,`hostname` text,`given_name` varchar(63),`user_id` integer,`register_method` text,`forced_tags` text,`auth_key_id` integer,`last_seen` datetime,`expiry` datetime,`created_at` datetime,`updated_at` datetime,`deleted_at` datetime,CONSTRAINT `fk_nodes_user` FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,CONSTRAINT `fk_nodes_auth_key` FOREIGN KEY (`auth_key_id`) REFERENCES `pre_auth_keys`(`id`) ON DELETE SET NULL);
+CREATE TABLE `policies` (`id` integer PRIMARY KEY AUTOINCREMENT,`created_at` datetime,`updated_at` datetime,`deleted_at` datetime,`data` text);
+CREATE INDEX `idx_policies_deleted_at` ON `policies`(`deleted_at`);

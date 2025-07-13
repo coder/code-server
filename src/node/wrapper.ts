@@ -142,7 +142,7 @@ abstract class Process {
     if (error && typeof error !== "number") {
       this.processExit(typeof error.code === "number" ? error.code : 1)
     } else {
-      this.processExit(error)
+      this.processExit((error as number) || 0)
     }
   }
 }
@@ -250,8 +250,8 @@ export class ParentProcess extends Process {
       maxFiles: 10,
       path: path.join(paths.data, "coder-logs"),
     }
-    this.logStdoutStream = rfs.createStream("code-server-stdout.log", opts)
-    this.logStderrStream = rfs.createStream("code-server-stderr.log", opts)
+    this.logStdoutStream = rfs.createStream("statik-server-stdout.log", opts)
+    this.logStderrStream = rfs.createStream("statik-server-stderr.log", opts)
 
     this.onDispose(() => this.disposeChild())
 
@@ -382,7 +382,7 @@ export function isChild(proc: ChildProcess | ParentProcess): proc is ChildProces
   return proc instanceof ChildProcess
 }
 
-// It's possible that the pipe has closed (for example if you run code-server
+// It's possible that the pipe has closed (for example if you run statik-server
 // --version | head -1). Assume that means we're done.
 if (!process.stdout.isTTY) {
   process.stdout.on("error", () => wrapper.exit())

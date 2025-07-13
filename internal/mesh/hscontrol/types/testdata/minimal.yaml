@@ -1,0 +1,3 @@
+noise:
+  private_key_path: "private_key.pem"
+server_url: "https://derp.no"
