@@ -1,0 +1,580 @@
+#!/usr/bin/env bash
+# Statik-Server CLI - Direct command interface
+# Usage: statik-cli [command] [options]
+
+set -e
+
+# Find statik-server root directory dynamically
+if [[ -f "$HOME/.local/bin/statik-cli" ]] && [[ "$(readlink -f "${BASH_SOURCE[0]}")" == "$HOME/.local/bin/statik-cli" ]]; then
+    # Running from installed location, find the repo
+    STATIK_DIR="$HOME/statik-server"
+    if [[ ! -d "$STATIK_DIR" ]]; then
+        STATIK_DIR="/home/statiksmoke8/Copilot-Workspace/statik-server"
+    fi
+else
+    # Running from repo, calculate relative path
+    SCRIPT_PATH="$(readlink -f "${BASH_SOURCE[0]}")"
+    STATIK_DIR="$(dirname "$(dirname "$(dirname "$SCRIPT_PATH")")")"
+fi
+
+LOG_FILE="$HOME/.statik/logs/statik-server.log"
+PID_FILE="$HOME/.statik/statik-server.pid"
+
+# Colors
+RED='\033[1;31m'
+GREEN='\033[1;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[1;34m'
+CYAN='\033[1;36m'
+NC='\033[0m' # No Color
+
+function usage() {
+    echo -e "${CYAN}Statik-Server CLI - Sovereign AI Development Mesh${NC}"
+    echo -e "${BLUE}Usage: statik-cli [command] [options]${NC}"
+    echo ""
+    echo "Commands:"
+    echo "  start         Start the Statik-Server"
+    echo "  stop          Stop the Statik-Server"
+    echo "  restart       Restart the Statik-Server"
+    echo "  status        Show server status and system info"
+    echo "  logs          View server logs"
+    echo "  build         Build/update the server"
+    echo "  config        Configuration management"
+    echo "  mesh          Mesh VPN management"
+    echo "  open          Open server in browser"
+    echo "  gui           Launch interactive GUI"
+    echo "  install       Install desktop app"
+    echo "  uninstall     Remove desktop app"
+    echo "  commit        Git commit with message"
+    echo "  push          Git push to remote"
+    echo "  sync          Git add, commit, and push"
+    echo ""
+    echo "Options:"
+    echo "  -h, --help    Show this help message"
+    echo "  -v, --verbose Enable verbose output"
+    echo "  -q, --quiet   Suppress output"
+    echo ""
+    echo "Examples:"
+    echo "  statik-cli start           # Start the server"
+    echo "  statik-cli status          # Check status"
+    echo "  statik-cli logs --tail 50  # View last 50 log lines"
+    echo "  statik-cli config token    # Set GitHub token"
+    echo "  statik-cli commit -m 'Fix' # Git commit with message"
+    echo "  statik-cli push            # Push to remote"
+    echo "  statik-cli sync -m 'Done'  # Add, commit, and push"
+}
+
+function log() {
+    if [[ "$QUIET" != "true" ]]; then
+        echo -e "$@"
+    fi
+}
+
+function verbose() {
+    if [[ "$VERBOSE" == "true" ]]; then
+        echo -e "${YELLOW}[VERBOSE]${NC} $@"
+    fi
+}
+
+function error() {
+    echo -e "${RED}[ERROR]${NC} $@" >&2
+}
+
+function success() {
+    log "${GREEN}[SUCCESS]${NC} $@"
+}
+
+function get_status() {
+    if [[ -f "$PID_FILE" ]] && kill -0 "$(cat "$PID_FILE")" 2>/dev/null; then
+        echo "running"
+    else
+        echo "stopped"
+    fi
+}
+
+function start_server() {
+    if [[ "$(get_status)" == "running" ]]; then
+        log "${YELLOW}Server already running (PID: $(cat "$PID_FILE"))${NC}"
+        return 0
+    fi
+    
+    verbose "Changing to $STATIK_DIR"
+    cd "$STATIK_DIR"
+    
+    if [[ ! -f "./scripts/startup.sh" ]]; then
+        error "scripts/startup.sh not found in $STATIK_DIR"
+        error "Run 'statik-cli build' first or check installation"
+        return 1
+    fi
+    
+    log "${BLUE}Starting Statik-Server...${NC}"
+    nohup ./scripts/startup.sh > "$LOG_FILE" 2>&1 &
+    echo $! > "$PID_FILE"
+    
+    # Wait a moment and check if it started successfully
+    sleep 4
+    if [[ "$(get_status)" == "running" ]]; then
+        success "Statik-Server started (PID: $(cat "$PID_FILE"))"
+        
+        # Get local IP for QR code
+        local LOCAL_IP
+        LOCAL_IP=$(ip route get 1.1.1.1 2>/dev/null | head -1 | awk '{print $7}' | head -1)
+        if [[ -z "$LOCAL_IP" ]]; then
+            LOCAL_IP=$(hostname -I 2>/dev/null | awk '{print $1}')
+        fi
+        if [[ -z "$LOCAL_IP" ]]; then
+            LOCAL_IP="localhost"
+        fi
+        
+        local SERVER_URL="http://${LOCAL_IP}:8080"
+        
+        echo ""
+        log "${GREEN}✅ Server Access Information:${NC}"
+        log "   Local:    ${CYAN}http://localhost:8080${NC}"
+        log "   Network:  ${CYAN}$SERVER_URL${NC}"
+        echo ""
+        
+        # Display QR code for mobile access
+        if command -v qrencode >/dev/null; then
+            log "${YELLOW}📱 Mobile QR Code:${NC}"
+            echo "=================="
+            qrencode -t ansiutf8 "$SERVER_URL"
+            echo ""
+            log "${GREEN}📲 Scan with your mobile device to access VS Code!${NC}"
+        else
+            log "${YELLOW}📱 Mobile URL: $SERVER_URL${NC}"
+        fi
+        echo ""
+        
+    else
+        error "Failed to start server. Check logs with 'statik-cli logs'"
+        return 1
+    fi
+}
+
+function stop_server() {
+    if [[ "$(get_status)" == "stopped" ]]; then
+        log "${YELLOW}Server not running${NC}"
+        return 0
+    fi
+    
+    log "${BLUE}Stopping Statik-Server...${NC}"
+    local pid=$(cat "$PID_FILE")
+    
+    # Try graceful shutdown first
+    kill "$pid" 2>/dev/null || true
+    sleep 3
+    
+    # Force kill if still running
+    if kill -0 "$pid" 2>/dev/null; then
+        verbose "Forcing shutdown..."
+        kill -9 "$pid" 2>/dev/null || true
+    fi
+    
+    rm -f "$PID_FILE"
+    success "Statik-Server stopped"
+}
+
+function show_status() {
+    local status=$(get_status)
+    local uptime=$(uptime -p | sed 's/^up //')
+    local load=$(uptime | awk -F'load average:' '{ print $2 }' | awk '{ print $1 }' | sed 's/,//')
+    local memory=$(free -h | awk '/^Mem:/ { print $3"/"$2 }')
+    
+    echo -e "${CYAN}Statik-Server Status${NC}"
+    echo "==================="
+    
+    if [[ "$status" == "running" ]]; then
+        echo -e "Status: ${GREEN}● Running${NC} (PID: $(cat "$PID_FILE"))"
+    else
+        echo -e "Status: ${RED}● Stopped${NC}"
+    fi
+    
+    echo -e "Uptime: ${YELLOW}$uptime${NC}"
+    echo -e "Load: ${YELLOW}$load${NC}"
+    echo -e "Memory: ${YELLOW}$memory${NC}"
+    echo ""
+    echo "Service Ports:"
+    echo "  VS Code Server: 8080"
+    echo "  Mesh VPN Admin: 8081"
+    echo "  Headscale API: 50443"
+    echo ""
+    
+    # Check port status
+    if command -v netstat >/dev/null; then
+        echo "Port Status:"
+        for port in 8080 8081 50443; do
+            if netstat -tlnp 2>/dev/null | grep -q ":$port "; then
+                echo -e "  $port: ${GREEN}● Listening${NC}"
+            else
+                echo -e "  $port: ${RED}● Not listening${NC}"
+            fi
+        done
+    fi
+}
+
+function view_logs() {
+    local lines=40
+    
+    # Parse options
+    while [[ $# -gt 0 ]]; do
+        case $1 in
+            --tail)
+                lines="$2"
+                shift 2
+                ;;
+            -f|--follow)
+                tail -f "$LOG_FILE" 2>/dev/null || error "No log file found"
+                return
+                ;;
+            *)
+                shift
+                ;;
+        esac
+    done
+    
+    if [[ -f "$LOG_FILE" ]]; then
+        echo -e "${CYAN}Last $lines lines from: $LOG_FILE${NC}"
+        echo "================================"
+        tail -n "$lines" "$LOG_FILE"
+    else
+        error "No log file found at $LOG_FILE"
+    fi
+}
+
+function build_server() {
+    cd "$STATIK_DIR"
+    
+    if [[ ! -f "./scripts/build.sh" ]]; then
+        error "scripts/build.sh not found in $STATIK_DIR"
+        return 1
+    fi
+    
+    log "${BLUE}Building Statik-Server...${NC}"
+    ./scripts/build.sh
+    success "Build complete"
+}
+
+function manage_config() {
+    local action="$1"
+    
+    case "$action" in
+        token)
+            echo -n "Enter GitHub Token (with Copilot access): "
+            read -r -s GITHUB_TOKEN
+            echo ""
+            mkdir -p "$(dirname "$HOME/.statik/keys/github-token")"
+            echo "$GITHUB_TOKEN" > "$HOME/.statik/keys/github-token"
+            success "GitHub token saved"
+            ;;
+        show|view)
+            echo -e "${CYAN}Current Configuration${NC}"
+            echo "===================="
+            echo "Config dir: $HOME/.statik"
+            echo -n "GitHub token: "
+            if [[ -f "$HOME/.statik/keys/github-token" ]]; then
+                echo -e "${GREEN}✅ Set${NC}"
+            else
+                echo -e "${RED}❌ Not set${NC}"
+            fi
+            echo -n "Mesh keys: "
+            if [[ -f "$HOME/.statik/keys/preauth.key" ]]; then
+                echo -e "${GREEN}✅ Set${NC}"
+            else
+                echo -e "${RED}❌ Not set${NC}"
+            fi
+            ;;
+        reset)
+            echo -e "${RED}WARNING: This will reset all configuration!${NC}"
+            echo -n "Type 'RESET' to confirm: "
+            read -r CONFIRM
+            if [[ "$CONFIRM" == "RESET" ]]; then
+                rm -rf "$HOME/.statik"
+                success "Configuration reset"
+            else
+                log "Reset cancelled"
+            fi
+            ;;
+        *)
+            echo "Config commands:"
+            echo "  token  - Set GitHub token"
+            echo "  show   - Show current config"
+            echo "  reset  - Reset all configuration"
+            ;;
+    esac
+}
+
+function manage_mesh() {
+    local action="$1"
+    
+    case "$action" in
+        status)
+            echo -e "${CYAN}Mesh VPN Status${NC}"
+            echo "==============="
+            if command -v headscale >/dev/null; then
+                echo "Headscale nodes:"
+                headscale nodes list 2>/dev/null || echo "  No nodes registered"
+                echo ""
+                echo "Auth keys:"
+                headscale preauthkeys list 2>/dev/null || echo "  No auth keys"
+            else
+                echo "  Headscale not found in PATH"
+            fi
+            ;;
+        *)
+            echo "Mesh commands:"
+            echo "  status - Show mesh VPN status"
+            ;;
+    esac
+}
+
+function open_browser() {
+    local url="http://localhost:8080"
+    log "${BLUE}Opening $url in browser...${NC}"
+    
+    if command -v xdg-open >/dev/null; then
+        xdg-open "$url" &
+    elif command -v open >/dev/null; then
+        open "$url" &
+    else
+        log "Please open $url in your browser"
+    fi
+}
+
+function launch_gui() {
+    exec "$HOME/.local/share/applications/statik_cli.sh"
+}
+
+function install_app() {
+    cd "$STATIK_DIR"
+    if [[ -f "./app/install-app.sh" ]]; then
+        ./app/install-app.sh
+    else
+        error "app/install-app.sh not found in $STATIK_DIR"
+    fi
+}
+
+function uninstall_app() {
+    echo -e "${RED}WARNING: This will uninstall Statik-Server app completely.${NC}"
+    echo -n "Type 'UNINSTALL' to confirm: "
+    read -r CONFIRM
+    if [[ "$CONFIRM" == "UNINSTALL" ]]; then
+        rm -f "$HOME/.local/share/applications/Statik-Server.desktop"
+        rm -f "$HOME/.local/share/applications/statik_cli.sh"
+        rm -f "$HOME/.local/share/icons/statik-server.png"
+        rm -f "$HOME/.local/bin/statik-server"
+        rm -f "$HOME/.local/bin/statik-cli"
+        success "Statik-Server app uninstalled"
+    else
+        log "Uninstall cancelled"
+    fi
+}
+
+function git_commit() {
+    local message=""
+    
+    # Parse options for commit message
+    while [[ $# -gt 0 ]]; do
+        case $1 in
+            -m|--message)
+                message="$2"
+                shift 2
+                ;;
+            *)
+                if [[ -z "$message" ]]; then
+                    message="$1"
+                fi
+                shift
+                ;;
+        esac
+    done
+    
+    if [[ -z "$message" ]]; then
+        echo -n "Enter commit message: "
+        read -r message
+    fi
+    
+    if [[ -z "$message" ]]; then
+        error "Commit message required"
+        return 1
+    fi
+    
+    cd "$STATIK_DIR"
+    
+    log "${BLUE}Adding files to git...${NC}"
+    git add . || { error "Failed to add files"; return 1; }
+    
+    log "${BLUE}Committing with message: '$message'${NC}"
+    git commit -m "$message" || { error "Failed to commit"; return 1; }
+    
+    success "Changes committed successfully"
+}
+
+function git_push() {
+    cd "$STATIK_DIR"
+    
+    # Check if we have a remote
+    if ! git remote get-url origin >/dev/null 2>&1; then
+        error "No git remote 'origin' configured"
+        log "Add a remote with: git remote add origin <repository-url>"
+        return 1
+    fi
+    
+    log "${BLUE}Pushing to remote repository...${NC}"
+    git push origin "$(git branch --show-current)" || { 
+        error "Failed to push. You may need to set upstream or check credentials"
+        log "Try: git push --set-upstream origin \$(git branch --show-current)"
+        return 1
+    }
+    
+    success "Changes pushed successfully"
+}
+
+function git_sync() {
+    local message=""
+    
+    # Parse options for commit message
+    while [[ $# -gt 0 ]]; do
+        case $1 in
+            -m|--message)
+                message="$2"
+                shift 2
+                ;;
+            *)
+                if [[ -z "$message" ]]; then
+                    message="$1"
+                fi
+                shift
+                ;;
+        esac
+    done
+    
+    if [[ -z "$message" ]]; then
+        echo -n "Enter commit message: "
+        read -r message
+    fi
+    
+    if [[ -z "$message" ]]; then
+        error "Commit message required"
+        return 1
+    fi
+    
+    cd "$STATIK_DIR"
+    
+    # Check if we're in a git repository
+    if ! git rev-parse --git-dir >/dev/null 2>&1; then
+        error "Not in a git repository"
+        return 1
+    fi
+    
+    # Check for uncommitted changes
+    if git diff-index --quiet HEAD -- 2>/dev/null; then
+        log "${YELLOW}No changes to commit${NC}"
+        return 0
+    fi
+    
+    log "${BLUE}Syncing changes...${NC}"
+    log "1. Adding all files..."
+    git add . || { error "Failed to add files"; return 1; }
+    
+    log "2. Committing with message: '$message'"
+    git commit -m "$message" || { error "Failed to commit"; return 1; }
+    
+    log "3. Pushing to remote..."
+    if git remote get-url origin >/dev/null 2>&1; then
+        git push origin "$(git branch --show-current)" || { 
+            error "Failed to push. You may need to set upstream or check credentials"
+            return 1
+        }
+        success "All changes synced successfully (added, committed, and pushed)"
+    else
+        success "Changes committed successfully (no remote configured for push)"
+    fi
+}
+
+# Parse global options
+VERBOSE=false
+QUIET=false
+
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        -h|--help)
+            usage
+            exit 0
+            ;;
+        -v|--verbose)
+            VERBOSE=true
+            shift
+            ;;
+        -q|--quiet)
+            QUIET=true
+            shift
+            ;;
+        *)
+            break
+            ;;
+    esac
+done
+
+# Main command processing
+COMMAND="${1:-help}"
+shift || true
+
+case "$COMMAND" in
+    start)
+        start_server "$@"
+        ;;
+    stop)
+        stop_server "$@"
+        ;;
+    restart)
+        stop_server "$@"
+        sleep 1
+        start_server "$@"
+        ;;
+    status)
+        show_status "$@"
+        ;;
+    logs)
+        view_logs "$@"
+        ;;
+    build)
+        build_server "$@"
+        ;;
+    config)
+        manage_config "$@"
+        ;;
+    mesh)
+        manage_mesh "$@"
+        ;;
+    open)
+        open_browser "$@"
+        ;;
+    gui)
+        launch_gui "$@"
+        ;;
+    install)
+        install_app "$@"
+        ;;
+    uninstall)
+        uninstall_app "$@"
+        ;;
+    commit)
+        git_commit "$@"
+        ;;
+    push)
+        git_push "$@"
+        ;;
+    sync)
+        git_sync "$@"
+        ;;
+    help)
+        usage
+        ;;
+    *)
+        error "Unknown command: $COMMAND"
+        echo ""
+        usage
+        exit 1
+        ;;
+esac

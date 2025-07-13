@@ -55,36 +55,32 @@ Statik-Server Architecture
 ### 1. Clone and Build
 
 ```bash
-cd $HOME/AscendNet
-./build.sh
+git clone https://github.com/statikfintechllc/statik-server.git
+cd statik-server
+./setup.sh
 ```
 
 ### 2. Configure GitHub Token
 
 ```bash
-# Create auth directory
-mkdir -p /root/.statik/keys
+# Using CLI
+statik-cli config token
 
-# Add your GitHub token (with Copilot access)
-echo "ghp_your_github_token_here" > /root/.statik/keys/github-token
+# Or manually
+mkdir -p ~/.statik/keys
+echo "ghp_your_github_token_here" > ~/.statik/keys/github-token
 ```
 
 ### 3. Launch Statik-Server
 
 ```bash
-# One-command build and run
-./quick-build.sh
+# Quick start
+statik-cli build
+statik-cli start
 
 # Or manual Docker approach
-docker build -t statikfintech/statik-server ./
-docker run -d \
-  --name statik-server \
-  -p 8080:8080 \
-  -p 8081:8081 \
-  -p 50443:50443 \
-  -v $HOME/AscendNet:/mnt/ascendnet \
-  -v statik-data:/root/.statik \
-  statikfintech/statik-server
+./scripts/build.sh
+./scripts/startup.sh
 ```
 
 ### 4. Access Your Environment
@@ -93,6 +89,28 @@ docker run -d \
 - **🌐 Mesh VPN Admin:** http://localhost:8081  
 - **🧠 AI Memory Dashboard:** http://localhost:8080/api/statik/memory
 - **📊 System Status:** http://localhost:8080/api/statik/status
+
+## 🖥️ Desktop App Interface
+
+Statik-Server includes a comprehensive desktop application interface:
+
+```bash
+# Interactive GUI menu
+statik-server
+
+# Direct CLI commands  
+statik-cli start
+statik-cli status
+statik-cli logs
+```
+
+**Features:**
+- State-of-the-art CLI with direct commands
+- Interactive GUI with system monitoring
+- Desktop integration with application menu
+- Full pre-launch and runtime control
+
+See [App Interface Documentation](docs/user/APP_INTERFACE.md) for details.
 
 ## 🤖 Copilot Integration
 

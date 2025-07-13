@@ -7,8 +7,12 @@ set -e
 echo "🔥 Building Statik-Server: Sovereign AI Dev Mesh"
 echo "================================================"
 
+# Get the root directory (one level up from scripts)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+STATIK_ROOT="$(dirname "$SCRIPT_DIR")"
+cd "$STATIK_ROOT"
+
 # Configuration
-STATIK_ROOT="$HOME/AscendNet/statik-server"
 VSCODE_VERSION="1.102.0"
 HEADSCALE_VERSION="v0.22.3"
 
