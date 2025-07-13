@@ -1,4 +1,9 @@
-Contact: mailto:security@coder.com
+Contact: security@statikfintech.com
+Acknowledgments: https://statikfintech.com/security/thanks
+Preferred-Languages: en
+Canonical: https://statikfintech.com/.well-known/security.txt
+Policy: https://statikfintech.com/security/policy
+Hiring: https://statikfintech.com/careerst: mailto:security@statikfintech.com
 Acknowledgments: https://coder.com/security/thanks
 Preferred-Languages: en-US
 Canonical: https://coder.com/.well-known/security.txt

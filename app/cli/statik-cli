@@ -107,6 +107,9 @@ function start_server() {
         return 1
     fi
     
+    # Ensure log and PID directories exist
+    mkdir -p "$(dirname "$LOG_FILE")" "$(dirname "$PID_FILE")"
+    
     log "${BLUE}Starting Statik-Server...${NC}"
     nohup ./scripts/startup.sh > "$LOG_FILE" 2>&1 &
     echo $! > "$PID_FILE"

@@ -104,11 +104,26 @@ function show_system_info() {
     echo -e "  Disk: \033[1;33m$disk\033[0m"
 }
 
+function show_git_info() {
+    cd "$STATIK_DIR" 2>/dev/null || return
+    if git rev-parse --git-dir >/dev/null 2>&1; then
+        local branch=$(git branch --show-current 2>/dev/null || echo "unknown")
+        local status=""
+        if ! git diff-index --quiet HEAD -- 2>/dev/null; then
+            status="\033[1;31m●\033[0m"  # Red dot for uncommitted changes
+        else
+            status="\033[1;32m●\033[0m"  # Green dot for clean
+        fi
+        echo -e "Git: \033[1;34m$branch\033[0m $status"
+    fi
+}
+
 while true; do
     clear
     echo -e "\033[1;36m$APP_TITLE\033[0m"
     echo -e "\033[0;32m$SUB_TITLE\033[0m"
     echo -e "Status: $(get_status)"
+    show_git_info
     echo ""
     show_system_info
     echo ""
@@ -122,6 +137,7 @@ while true; do
     echo "7) Mesh VPN Status"
     echo "8) Open in Browser"
     echo "9) Configuration"
+    echo "c) Open CLI Shell"
     echo "0) Exit"
     echo "u) Uninstall"
     echo -n "Select> "
@@ -289,6 +305,35 @@ while true; do
             esac
             echo "Press enter to continue..."
             read -r
+            ;;
+        c)
+            clear
+            echo -e "\033[1;36mStatik-Server CLI Shell\033[0m"
+            echo "======================="
+            echo "Available commands:"
+            echo "  statik-cli start    - Start the server"
+            echo "  statik-cli stop     - Stop the server"
+            echo "  statik-cli status   - Show status"
+            echo "  statik-cli logs     - View logs"
+            echo "  statik-cli commit   - Git commit"
+            echo "  statik-cli push     - Git push"
+            echo "  statik-cli sync     - Git sync"
+            echo "  exit               - Return to menu"
+            echo ""
+            echo "Type 'statik-cli --help' for full command list"
+            echo ""
+            
+            # Change to statik directory
+            cd "$STATIK_DIR" || { echo "Failed to change to $STATIK_DIR"; sleep 2; continue; }
+            
+            # Start an interactive shell with statik-cli in PATH
+            export PATH="$HOME/.local/bin:$PATH"
+            echo -e "\033[1;32mEntering CLI shell... (type 'exit' to return to menu)\033[0m"
+            echo ""
+            
+            # Start interactive shell with custom prompt
+            SHELL_PROMPT="(statik-cli) $ "
+            bash --rcfile <(echo "PS1='$SHELL_PROMPT'") -i
             ;;
         0)
             exit 0

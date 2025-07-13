@@ -1,26 +1,31 @@
 #!/bin/bash
-# Statik-Server Mesh VPN Boot
+# Headscale mesh startup for global broadcasting
 
-export HEADSCALE_CONFIG="/app/internal/mesh/headscale.yaml"
+set -e
 
-# Ensure directories exist
-mkdir -p /root/.statik/{keys,db}
+echo "🌐 Starting headscale mesh VPN for global access..."
+
+MESH_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$MESH_DIR"
+
+# Ensure database directory exists
+mkdir -p "$HOME/.statik/db"
 
 # Initialize headscale if needed
-if [ ! -f "/root/.statik/keys/private.key" ]; then
-    echo "🔐 Initializing Statik mesh identity..."
-    ./headscale init
+if [[ ! -f "$HOME/.statik/keys/headscale_private.key" ]]; then
+    echo "🔐 Initializing headscale..."
+    ./headscale init --config headscale.yaml
 fi
 
-# Create statik namespace if needed
-./headscale namespaces create statik 2>/dev/null || true
+# Create default namespace
+./headscale namespaces create default 2>/dev/null || true
 
-# Generate reusable preauth key
-if [ ! -f "/root/.statik/keys/preauth.key" ]; then
-    ./headscale preauthkeys create --namespace statik --reusable --expiration=never > /root/.statik/keys/preauth.key
-    echo "🔑 Generated infinite preauth key"
+# Generate preauth key for easy connection
+if [[ ! -f "$HOME/.statik/keys/preauth.key" ]]; then
+    ./headscale preauthkeys create --namespace default --reusable --expiration 24h > "$HOME/.statik/keys/preauth.key"
+    echo "🔑 Generated preauth key: $(cat "$HOME/.statik/keys/preauth.key")"
 fi
 
 # Start headscale server
-echo "🌐 Starting Statik mesh VPN..."
-exec ./headscale serve --config "$HEADSCALE_CONFIG"
+echo "🚀 Starting headscale on port 8443 with TLS..."
+exec ./headscale serve --config headscale.yaml

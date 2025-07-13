@@ -1,4 +1,10 @@
-import { logger } from "@coder/logger"
+// Logger functionality for Statik Server
+const logger = {
+  debug: (...args: any[]) => console.debug(...args),
+  info: (...args: any[]) => console.info(...args),
+  warn: (...args: any[]) => console.warn(...args),
+  error: (...args: any[]) => console.error(...args),
+}
 
 /**
  * Event emitter callback. Called with the emitted value and a promise that

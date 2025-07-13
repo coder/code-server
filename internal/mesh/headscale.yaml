@@ -1,23 +1,24 @@
-server_url: http://127.0.0.1:8081
-listen_addr: 0.0.0.0:8081
+server_url: https://GodCore.local:8443
+listen_addr: 0.0.0.0:8443
 metrics_listen_addr: 127.0.0.1:9090
 grpc_listen_addr: 0.0.0.0:50443
 
-private_key_path: /root/.statik/keys/private.key
-noise:
-  private_key_path: /root/.statik/keys/noise_private.key
+# TLS Configuration for domain
+tls_cert_path: /home/statiksmoke8/.statik/certs/GodCore.local.crt
+tls_key_path: /home/statiksmoke8/.statik/certs/GodCore.local.key
 
+# Database
 database:
   type: sqlite3
   sqlite:
-    path: /root/.statik/db/headscale.db
+    path: /home/statiksmoke8/.statik/db/headscale.db
 
+# Logging
 log:
   level: info
+  format: text
 
-acme_url: https://acme-v02.api.letsencrypt.org/directory
-acme_email: ""
-
+# DNS configuration for global access
 dns_config:
   override_local_dns: true
   nameservers:
@@ -25,8 +26,26 @@ dns_config:
     - 8.8.8.8
   domains: []
   magic_dns: true
-  base_domain: statik.mesh
+  base_domain: GodCore.local
 
-# Infinite preauth keys for mesh
-preauth_key_expiry: 0s
-ephemeral_node_inactivity_timeout: 0s
+# Security
+private_key_path: /home/statiksmoke8/.statik/keys/headscale_private.key
+noise:
+  private_key_path: /home/statiksmoke8/.statik/keys/headscale_noise.key
+
+# Preauth keys for easy connection
+preauth_key_expiry: 24h
+ephemeral_node_inactivity_timeout: 30m
+
+# DERP configuration for global relay
+derp:
+  server:
+    enabled: true
+    region_id: 900
+    region_code: "statik"
+    region_name: "Statik Server"
+    stun_listen_addr: "0.0.0.0:3478"
+  urls: []
+  paths: []
+  auto_update_enabled: false
+  update_frequency: 24h

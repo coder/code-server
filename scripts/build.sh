@@ -19,7 +19,7 @@ HEADSCALE_VERSION="v0.22.3"
 # Step 1: Fork and setup Statik-Server base
 echo "📦 Step 1: Setting up Statik-Server fork..."
 if [ ! -d "Statik-Server" ]; then
-    git clone https://github.com/coder/statik-server.git Statik-Server
+    git clone https://github.com/statikfintechllc/AscendNet.git Statik-Server
     cd Statik-Server
     
     # Rename to statik-server

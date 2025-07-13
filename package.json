@@ -1,16 +1,16 @@
 {
   "name": "statik-server",
   "license": "MIT",
-  "version": "0.0.0",
-  "description": "Run VS Code on a remote server.",
-  "homepage": "https://github.com/coder/code-server",
+  "version": "1.0.0",
+  "description": "Self-hosted VS Code broadcasting server with domain and mesh VPN",
+  "homepage": "https://github.com/statikfintechllc/AscendNet",
   "bugs": {
-    "url": "https://github.com/coder/code-server/issues"
+    "url": "https://github.com/statikfintechllc/AscendNet/issues"
   },
-  "repository": "https://github.com/coder/code-server",
+  "repository": "https://github.com/statikfintechllc/AscendNet",
   "scripts": {
     "clean": "./ci/build/clean.sh",
-    "build": "./ci/build/build-code-server.sh",
+    "build": "./scripts/build.sh",
     "build:vscode": "./ci/build/build-vscode.sh",
     "doctoc": "./ci/dev/doctoc.sh",
     "release": "./ci/build/build-release.sh",
@@ -68,7 +68,6 @@
     "typescript-eslint": "^8.8.0"
   },
   "dependencies": {
-    "@coder/logger": "^3.0.1",
     "argon2": "^0.31.1",
     "compression": "^1.7.4",
     "cookie-parser": "^1.4.6",
@@ -93,16 +92,16 @@
     "@types/node": "22.x"
   },
   "bin": {
-    "code-server": "out/node/entry.js"
+    "statik-server": "out/node/entry.js"
   },
   "keywords": [
     "vscode",
     "development",
     "ide",
-    "coder",
-    "vscode-remote",
-    "browser-ide",
-    "remote-development"
+    "statik",
+    "mesh-vpn",
+    "broadcasting",
+    "self-hosted"
   ],
   "engines": {
     "node": "22"
