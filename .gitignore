@@ -66,6 +66,7 @@ noise.key
 preauth.key
 api.key
 derp.key
+auto-connect.key
 
 # GitHub tokens and authentication
 github-token

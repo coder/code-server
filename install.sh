@@ -36,13 +36,13 @@ fi
 print_header() {
     echo -e "${CYAN}"
     echo "╔══════════════════════════════════════════════════════════════════╗"
-    echo "║                    🚀 STATIK-SERVER INSTALLER                   ║"
-    echo "║              Sovereign AI Development Environment               ║"
+    echo "║                    🚀 STATIK-SERVER INSTALLER                    ║"
+    echo "║              Sovereign AI Development Environment                ║"
     echo "║                                                                  ║"
-    echo "║  ✨ Official VS Code Server + GitHub Copilot                    ║"
-    echo "║  🌐 Mesh VPN with Headscale Integration                         ║"
-    echo "║  🔐 Auto-generated Keys & Certificates                          ║"
-    echo "║  📱 Mobile Access via QR Codes                                  ║"
+    echo "║  ✨ Official VS Code Server + GitHub Copilot                     ║"
+    echo "║  🌐 Mesh VPN with Headscale Integration                          ║"
+    echo "║  🔐 Auto-generated Keys & Certificates                           ║"
+    echo "║  📱 Mobile Access via QR Codes                                   ║"
     echo "║  🎯 Zero Configuration Required                                  ║"
     echo "╚══════════════════════════════════════════════════════════════════╝"
     echo -e "${NC}"
@@ -185,13 +185,42 @@ install_vscode_cli() {
 build_mesh() {
     progress 9 20 "Building mesh VPN components..."
     
+    # Check if headscale already exists
+    if [[ -f "./lib/headscale" ]]; then
+        echo "  ✅ Headscale binary already exists"
+        progress 10 20 "Mesh VPN components ready"
+        return 0
+    fi
+    
+    # If mesh sources exist, try to build
     if [[ -d "./internal/mesh" ]]; then
         cd ./internal/mesh
         if [[ -f "go.mod" ]]; then
+            echo "  🔧 Compiling mesh VPN from source..."
             go build -o ../../lib/headscale ./cmd/headscale >/dev/null 2>&1
             go build -o ../../lib/statik-meshd ./cmd/headscale >/dev/null 2>&1
         fi
         cd - >/dev/null
+    else
+        # Download precompiled headscale if not available
+        echo "  📥 Downloading headscale binary..."
+        local headscale_version="0.26.1"
+        local download_url="https://github.com/juanfont/headscale/releases/download/v${headscale_version}/headscale_${headscale_version}_linux_amd64"
+        
+        if command -v curl >/dev/null 2>&1; then
+            curl -L -o "./lib/headscale" "$download_url" >/dev/null 2>&1
+        elif command -v wget >/dev/null 2>&1; then
+            wget -O "./lib/headscale" "$download_url" >/dev/null 2>&1
+        else
+            echo "  ⚠️  Could not download headscale (no curl/wget), mesh VPN will be disabled"
+            progress 10 20 "Mesh VPN build skipped"
+            return 0
+        fi
+        
+        if [[ -f "./lib/headscale" ]]; then
+            chmod +x "./lib/headscale"
+            echo "  ✅ Headscale binary downloaded and ready"
+        fi
     fi
     
     progress 10 20 "Mesh VPN build complete"
@@ -246,6 +275,9 @@ generate_keys() {
         echo "  🔑 Generating DERP private key for mesh VPN..."
         echo "privkey:$(openssl rand -hex 32)" > "$cert_dir/derp.key"
     fi
+    
+    # Note: Auto-connect key will be generated at first startup
+    echo "  🚀 Auto-connect mesh key will be generated on first startup"
     
     # Set proper permissions on all keys
     chmod 600 "$cert_dir"/* 2>/dev/null
@@ -742,3 +774,7 @@ main() {
 
 # Run installation
 main "$@"
+# Run desktop app installer
+if [[ -f "$(dirname "$0")/install-app.sh" ]]; then
+    bash "$(dirname "$0")/install-app.sh"
+fi

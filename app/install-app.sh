@@ -21,11 +21,14 @@ echo "============================================="
 mkdir -p "$APPDIR" "$ICNDIR" "$BINDIR"
 
 # Copy icon to system location
-if [[ -f "$SCRIPT_DIR/src/AscendAI-v1.0.3.png" ]]; then
-    cp "$SCRIPT_DIR/src/AscendAI-v1.0.3.png" "$ICNDIR/statik-server.png"
+if [[ -f "$SCRIPT_DIR/icons/AscendAI-v1.0.3.png" ]]; then
+    cp "$SCRIPT_DIR/icons/AscendAI-v1.0.3.png" "$ICNDIR/statik-server.png"
     echo "✅ Icon installed to $ICNDIR/statik-server.png"
-elif [[ -f "$SCRIPT_DIR/src/browser/media/pwa-icon-512.png" ]]; then
-    cp "$SCRIPT_DIR/src/browser/media/pwa-icon-512.png" "$ICNDIR/statik-server.png"
+elif [[ -f "$SCRIPT_DIR/icons/statik-server.png" ]]; then
+    cp "$SCRIPT_DIR/icons/statik-server.png" "$ICNDIR/statik-server.png"
+    echo "✅ Icon installed to $ICNDIR/statik-server.png"
+elif [[ -f "$SCRIPT_DIR/../src/browser/media/pwa-icon-512.png" ]]; then
+    cp "$SCRIPT_DIR/../src/browser/media/pwa-icon-512.png" "$ICNDIR/statik-server.png"
     echo "✅ Icon installed to $ICNDIR/statik-server.png"
 else
     echo "⚠️  No icon found, creating placeholder"
@@ -45,8 +48,12 @@ fi
 
 APP_TITLE="Statik-Server v1.0.0"
 SUB_TITLE="Sovereign AI Development Mesh"
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-STATIK_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+# Try to find statik-server directory
+if [[ -d "$HOME/statik-server" ]]; then
+    STATIK_DIR="$HOME/statik-server"
+else
+    STATIK_DIR="/home/statiksmoke8/Copilot-Workspace/statik-server"
+fi
 LOG_FILE="$HOME/.statik/logs/statik-server.log"
 PID_FILE="$HOME/.statik/statik-server.pid"
 
@@ -125,7 +132,41 @@ while true; do
             echo "🚀 Starting Statik-Server..."
             cd "$STATIK_DIR" && ./scripts/startup.sh &
             echo $! > "$PID_FILE"
-            echo -e "\nStatik-Server started! Access at: http://localhost:8080"
+            
+            # Wait a moment for server to start
+            sleep 4
+            
+            # Get local IP and show QR code
+            LOCAL_IP=$(ip route get 1.1.1.1 2>/dev/null | head -1 | awk '{print $7}' | head -1)
+            if [[ -z "$LOCAL_IP" ]]; then
+                LOCAL_IP=$(hostname -I 2>/dev/null | awk '{print $1}')
+            fi
+            if [[ -z "$LOCAL_IP" ]]; then
+                LOCAL_IP="localhost"
+            fi
+            
+            SERVER_URL="http://${LOCAL_IP}:8080"
+            
+            echo ""
+            echo "✅ Statik-Server started!"
+            echo "========================"
+            echo "🌐 Access URLs:"
+            echo "   Local:    http://localhost:8080"
+            echo "   Network:  $SERVER_URL"
+            echo ""
+            
+            # Show QR code if available
+            if command -v qrencode >/dev/null; then
+                echo "📱 Mobile QR Code:"
+                echo "=================="
+                qrencode -t ansiutf8 "$SERVER_URL"
+                echo ""
+                echo "📲 Scan with your mobile device!"
+            else
+                echo "📱 Mobile URL: $SERVER_URL"
+            fi
+            
+            echo ""
             echo "Press enter to continue..."
             read -r
             ;;
@@ -308,8 +349,8 @@ chmod +x "$BINDIR/statik-server"
 echo "✅ GUI launcher created at $BINDIR/statik-server"
 
 # Create direct CLI launcher
-if [[ -f "$SCRIPT_DIR/statik-cli" ]]; then
-    cp "$SCRIPT_DIR/statik-cli" "$BINDIR/statik-cli"
+if [[ -f "$SCRIPT_DIR/cli/statik-cli" ]]; then
+    cp "$SCRIPT_DIR/cli/statik-cli" "$BINDIR/statik-cli"
     chmod +x "$BINDIR/statik-cli"
     echo "✅ CLI command created at $BINDIR/statik-cli"
 fi
@@ -344,6 +385,7 @@ echo "  ✅ Mesh VPN management"
 echo "  ✅ Configuration management"
 echo "  ✅ Log viewing and troubleshooting"
 echo "  ✅ Browser integration"
+echo "  ✅ QR Code for mobile access"
 echo ""
 echo "Next steps:"
 echo "  1. Set up GitHub token: statik-cli config token"

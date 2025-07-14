@@ -345,9 +345,9 @@ function manage_mesh() {
             echo -e "${CYAN}Global Mesh VPN Status${NC}"
             echo "======================"
             
-            # Check if mesh is running
-            if [[ -f "$STATIK_HOME/mesh.pid" ]] && kill -0 "$(cat "$STATIK_HOME/mesh.pid")" 2>/dev/null; then
-                echo -e "${GREEN}✅ Mesh VPN: Running${NC}"
+            # Check headscale mesh
+            if [[ -f "$STATIK_DIR/mesh.pid" ]] && kill -0 "$(cat "$STATIK_DIR/mesh.pid")" 2>/dev/null; then
+                echo -e "${GREEN}✅ Headscale Mesh VPN: Running${NC}"
                 
                 # Show connection details
                 if [[ -f "$mesh_config" ]]; then
@@ -362,7 +362,21 @@ function manage_mesh() {
                     echo "⚠️  No connection details found"
                 fi
             else
-                echo -e "${RED}❌ Mesh VPN: Stopped${NC}"
+                echo -e "${RED}❌ Headscale Mesh VPN: Stopped${NC}"
+                
+                # Check for Tailscale fallback
+                if [[ -f "$STATIK_DIR/config/tailscale-connection.json" ]]; then
+                    echo -e "${YELLOW}🔗 Tailscale Fallback: Available${NC}"
+                    local ts_ip=$(jq -r '.tailscale_ip // "unknown"' "$STATIK_DIR/config/tailscale-connection.json" 2>/dev/null || echo "unknown")
+                    local vs_code_url=$(jq -r '.vs_code_url // "unknown"' "$STATIK_DIR/config/tailscale-connection.json" 2>/dev/null || echo "unknown")
+                    echo "📱 Tailscale IP: $ts_ip"
+                    echo "🌐 VS Code URL: $vs_code_url"
+                elif command -v tailscale >/dev/null 2>&1; then
+                    echo -e "${YELLOW}🔗 Tailscale: Available (not configured)${NC}"
+                    echo "   Run: sudo tailscale up"
+                else
+                    echo -e "${GRAY}ℹ️  No mesh VPN available${NC}"
+                fi
             fi
             
             echo ""
@@ -378,7 +392,8 @@ function manage_mesh() {
                 $headscale_cmd nodes list 2>/dev/null || echo "  No devices connected"
                 echo ""
                 echo "🔑 Auth Keys:"
-                $headscale_cmd preauthkeys list 2>/dev/null || echo "  No auth keys available"
+                # List keys for user 1 (default statik user)
+                $headscale_cmd preauthkeys list --user 1 2>/dev/null || echo "  No auth keys available"
             else
                 echo "  Headscale not available"
             fi
@@ -391,7 +406,12 @@ function manage_mesh() {
                 local key_name="${2:-statik-$(date +%s)}"
                 echo "Generating connection key: $key_name"
                 
-                local auth_key=$("$REPO_DIR/lib/headscale" -c "$STATIK_DIR/config/headscale.yaml" preauthkeys create --reusable --expiration 720h 2>/dev/null | grep "Key:" | awk '{print $2}')
+                # Get the first user ID
+                local user_id=$("$REPO_DIR/lib/headscale" -c "$STATIK_DIR/config/headscale.yaml" users list | tail -1 | awk '{print $1}' | head -1)
+                if [[ -n "$user_id" && "$user_id" =~ ^[0-9]+$ ]]; then
+                    local auth_key=$("$REPO_DIR/lib/headscale" -c "$STATIK_DIR/config/headscale.yaml" preauthkeys create --user "$user_id" --reusable --expiration 720h 2>/dev/null | tail -1)
+                    
+                    if [[ -n "$auth_key" && ${#auth_key} -gt 20 ]]; then
                 
                 if [[ -n "$auth_key" ]]; then
                     echo ""
@@ -437,8 +457,59 @@ function manage_mesh() {
             if [[ -f "$mesh_config" ]]; then
                 echo "Configuration:"
                 cat "$mesh_config" | jq . 2>/dev/null || cat "$mesh_config"
+                echo ""
             else
                 echo "No mesh configuration found. Start the server first."
+                echo ""
+            fi
+            
+            # Show auto-connect instructions if available
+            if [[ -f "$STATIK_DIR/keys/auto-connect.key" ]]; then
+                local auto_key=$(cat "$STATIK_DIR/keys/auto-connect.key")
+                local server_url=$(jq -r '.server_url' "$mesh_config" 2>/dev/null || echo "https://$(hostname -I | awk '{print $1}'):8443")
+                
+                echo -e "${GREEN}🚀 Instant Device Connection:${NC}"
+                echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+                echo -e "${YELLOW}1. On any device, install Tailscale:${NC}"
+                echo "   curl -fsSL https://tailscale.com/install.sh | sh"
+                echo ""
+                echo -e "${YELLOW}2. Connect to this mesh instantly:${NC}"
+                echo "   sudo tailscale up --login-server $server_url --authkey $auto_key"
+                echo ""
+                echo -e "${GREEN}🎯 That's it! Device will be connected to your sovereign mesh VPN${NC}"
+                echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+            else
+                echo "⚠️  Auto-connect key not available. Restart server to generate one."
+            fi
+            ;;
+        connect)
+            echo -e "${CYAN}Quick Connect Instructions${NC}"
+            echo "=========================="
+            
+            if [[ -f "$STATIK_DIR/keys/auto-connect.key" ]]; then
+                local auto_key=$(cat "$STATIK_DIR/keys/auto-connect.key")
+                local server_url=$(jq -r '.server_url' "$mesh_config" 2>/dev/null || echo "https://$(hostname -I | awk '{print $1}'):8443")
+                local local_ip=$(hostname -I | awk '{print $1}')
+                local web_url="http://${local_ip}:8080"
+                
+                echo -e "${GREEN}� 3-Step Device Connection:${NC}"
+                echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+                echo -e "${YELLOW}1. Install Tailscale:${NC}"
+                echo "   curl -fsSL https://tailscale.com/install.sh | sh"
+                echo ""
+                echo -e "${YELLOW}2. Connect to mesh:${NC}"
+                echo "   sudo tailscale up --login-server $server_url --authkey $auto_key"
+                echo ""
+                echo -e "${YELLOW}3. Access VS Code:${NC}"
+                echo "   Open: ${CYAN}$web_url${NC}"
+                echo ""
+                echo -e "${GREEN}🎯 Complete command for copy/paste:${NC}"
+                echo "curl -fsSL https://tailscale.com/install.sh | sh && sudo tailscale up --login-server $server_url --authkey $auto_key"
+                echo ""
+                echo -e "${BLUE}� After connecting, scan QR code from server startup or visit $web_url${NC}"
+                echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+            else
+                echo "❌ Auto-connect key not available. Start the server first."
             fi
             ;;
         *)
@@ -446,12 +517,13 @@ function manage_mesh() {
             echo "================="
             echo "  status    - Show mesh VPN status and connection details"
             echo "  key       - Generate connection key for new devices"
+            echo "  connect   - Show auto-connect instructions for instant setup"
             echo "  devices   - List connected devices"
             echo "  info      - Show detailed mesh configuration"
             echo ""
             echo "Examples:"
             echo "  statik-cli mesh status         # Check global mesh status"
-            echo "  statik-cli mesh key            # Generate device connection key"
+            echo "  statik-cli mesh connect        # Get instant connect command"
             echo "  statik-cli mesh devices        # List all connected devices"
             ;;
     esac
@@ -471,7 +543,15 @@ function open_browser() {
 }
 
 function launch_gui() {
-    exec "$HOME/.local/share/applications/statik_cli.sh"
+    local gui_script="$HOME/.local/share/applications/statik_cli.sh"
+    if [[ -f "$gui_script" ]]; then
+        log "${BLUE}Launching Statik-Server GUI...${NC}"
+        # Run in background and detach from terminal
+        nohup bash "$gui_script" >/dev/null 2>&1 & disown
+    else
+        error "GUI not installed. Run 'statik-cli install' first."
+        log "Or install manually with: ./app/install-app.sh"
+    fi
 }
 
 function install_app() {
