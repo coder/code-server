@@ -230,6 +230,23 @@ generate_keys() {
         openssl rand -hex 16 > "$cert_dir/api.key"
     fi
     
+    # Generate noise private key for headscale
+    if [[ ! -f "$cert_dir/noise.key" ]]; then
+        echo "  🔑 Generating noise private key for mesh VPN..."
+        if [[ -f "lib/headscale" ]]; then
+            ./lib/headscale generate private-key > "$cert_dir/noise.key"
+        else
+            # Fallback: generate a random key with proper format
+            echo "privkey:$(openssl rand -hex 32)" > "$cert_dir/noise.key"
+        fi
+    fi
+    
+    # Generate DERP private key for mesh VPN
+    if [[ ! -f "$cert_dir/derp.key" ]]; then
+        echo "  🔑 Generating DERP private key for mesh VPN..."
+        echo "privkey:$(openssl rand -hex 32)" > "$cert_dir/derp.key"
+    fi
+    
     # Set proper permissions on all keys
     chmod 600 "$cert_dir"/* 2>/dev/null
     echo "  🔒 Key permissions secured"

@@ -88,6 +88,20 @@ start_mesh() {
         log "Mesh server: $MESH_SERVER_URL"
         log "Public IP: $PUBLIC_IP"
         
+        # Generate noise private key if it doesn't exist
+        if [[ ! -f "$STATIK_HOME/keys/noise.key" ]]; then
+            if [[ -f "$REPO_DIR/lib/headscale" ]]; then
+                "$REPO_DIR/lib/headscale" generate private-key > "$STATIK_HOME/keys/noise.key"
+                chmod 600 "$STATIK_HOME/keys/noise.key"
+            fi
+        fi
+        
+        # Generate DERP private key if it doesn't exist
+        if [[ ! -f "$STATIK_HOME/keys/derp.key" ]]; then
+            echo "privkey:$(openssl rand -hex 32)" > "$STATIK_HOME/keys/derp.key"
+            chmod 600 "$STATIK_HOME/keys/derp.key"
+        fi
+        
         # Create headscale config for global access
         cat > "$STATIK_HOME/config/headscale.yaml" << EOF
 # Statik-Server Global Mesh Configuration
@@ -99,12 +113,13 @@ grpc_allow_insecure: false
 
 private_key_path: $STATIK_HOME/keys/server.key
 noise:
-  private_key_path: $STATIK_HOME/keys/server.key
+  private_key_path: $STATIK_HOME/keys/noise.key
 tls_cert_path: $STATIK_HOME/keys/server.crt
 
-ip_prefixes:
-  - fd7a:115c:a1e0::/48
-  - 100.64.0.0/10
+# IP prefixes for the VPN network (updated format for v0.26+)
+prefixes:
+  v4: 100.64.0.0/10
+  v6: fd7a:115c:a1e0::/48
 
 # DERP configuration for NAT traversal
 derp:
@@ -114,14 +129,17 @@ derp:
     region_code: "statik"
     region_name: "Statik Mesh"
     stun_listen_addr: "0.0.0.0:3478"
+    private_key_path: $STATIK_HOME/keys/derp.key
   urls: 
     - https://controlplane.tailscale.com/derpmap/default
   auto_update_enabled: true
   update_frequency: 24h
 
 # Database
-db_type: sqlite3
-db_path: $STATIK_HOME/data/headscale.db
+database:
+  type: sqlite
+  sqlite:
+    path: $STATIK_HOME/data/headscale.db
 
 # Logging
 log:

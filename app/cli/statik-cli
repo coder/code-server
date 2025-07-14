@@ -368,10 +368,10 @@ function manage_mesh() {
             echo ""
             
             # Show registered devices if headscale is available
-            if command -v headscale >/dev/null || [[ -f "$STATIK_DIR/lib/headscale" ]]; then
+            if command -v headscale >/dev/null || [[ -f "$REPO_DIR/lib/headscale" ]]; then
                 local headscale_cmd="headscale"
-                if [[ -f "$STATIK_DIR/lib/headscale" ]]; then
-                    headscale_cmd="$STATIK_DIR/lib/headscale -c $STATIK_HOME/config/headscale.yaml"
+                if [[ -f "$REPO_DIR/lib/headscale" ]]; then
+                    headscale_cmd="$REPO_DIR/lib/headscale -c $STATIK_DIR/config/headscale.yaml"
                 fi
                 
                 echo "📱 Connected Devices:"
@@ -387,11 +387,11 @@ function manage_mesh() {
             echo -e "${CYAN}Generate Connection Key${NC}"
             echo "======================"
             
-            if [[ -f "$STATIK_DIR/lib/headscale" ]]; then
+            if [[ -f "$REPO_DIR/lib/headscale" ]]; then
                 local key_name="${2:-statik-$(date +%s)}"
                 echo "Generating connection key: $key_name"
                 
-                local auth_key=$("$STATIK_DIR/lib/headscale" -c "$STATIK_HOME/config/headscale.yaml" preauthkeys create --reusable --expiration 720h 2>/dev/null | grep "Key:" | awk '{print $2}')
+                local auth_key=$("$REPO_DIR/lib/headscale" -c "$STATIK_DIR/config/headscale.yaml" preauthkeys create --reusable --expiration 720h 2>/dev/null | grep "Key:" | awk '{print $2}')
                 
                 if [[ -n "$auth_key" ]]; then
                     echo ""
@@ -424,8 +424,8 @@ function manage_mesh() {
             echo -e "${CYAN}Connected Devices${NC}"
             echo "================="
             
-            if [[ -f "$STATIK_DIR/lib/headscale" ]]; then
-                "$STATIK_DIR/lib/headscale" -c "$STATIK_HOME/config/headscale.yaml" nodes list 2>/dev/null || echo "No devices connected"
+            if [[ -f "$REPO_DIR/lib/headscale" ]]; then
+                "$REPO_DIR/lib/headscale" -c "$STATIK_DIR/config/headscale.yaml" nodes list 2>/dev/null || echo "No devices connected"
             else
                 echo "Headscale not available"
             fi

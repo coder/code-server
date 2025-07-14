@@ -21,5 +21,57 @@ coverage
 test/test-results
 
 # Quilt's internal data.
-/.pc
+/pc
 /patches/*.diff~
+
+# Statik-Server Security: Protect Keys and Sensitive Data
+# Private Keys and Certificates
+*.key
+*.crt
+*.pem
+*.p12
+*.pfx
+
+# Configuration files with sensitive data
+**/keys/**
+**/config/headscale.yaml
+**/config/mesh-connection.json
+
+# Logs and runtime data
+**/logs/**
+*.log
+*.pid
+
+# Database files
+**/data/**
+*.db
+*.sqlite
+*.sqlite3
+
+# Environment files
+.env
+.env.local
+.env.production
+
+# User-specific statik directories
+~/.statik-server/keys/
+~/.statik-server/config/
+~/.statik-server/data/
+~/.statik-server/logs/
+
+# Mesh VPN specific
+tailscale.log
+headscale.db*
+noise.key
+preauth.key
+api.key
+derp.key
+
+# GitHub tokens and authentication
+github-token
+.github-token
+auth-token
+
+# Backup files
+*.bak
+*.backup
