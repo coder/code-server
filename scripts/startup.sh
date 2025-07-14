@@ -98,6 +98,8 @@ grpc_listen_addr: 0.0.0.0:50444
 grpc_allow_insecure: false
 
 private_key_path: $STATIK_HOME/keys/server.key
+noise:
+  private_key_path: $STATIK_HOME/keys/server.key
 tls_cert_path: $STATIK_HOME/keys/server.crt
 
 ip_prefixes:
@@ -126,15 +128,16 @@ log:
   level: info
   format: text
 
-# DNS Configuration for global mesh
-dns_config:
-  nameservers:
-    - 1.1.1.1
-    - 8.8.8.8
-  domains: []
+# DNS Configuration for global mesh (updated format)
+dns:
   magic_dns: true
   base_domain: statik.local
   override_local_dns: true
+  nameservers:
+    global:
+      - 1.1.1.1
+      - 8.8.8.8
+  search_domains: []
 
 # Global access settings
 disable_check_updates: true
@@ -256,16 +259,12 @@ main() {
         warn "No GitHub token found. Copilot will require authentication on first use."
     fi
     
-    # Start VS Code server
+    # Start VS Code server with correct arguments
     "$REPO_DIR/lib/code" serve-web \
       --host 0.0.0.0 \
       --port $PORT \
       --without-connection-token \
-      --disable-telemetry \
-      --disable-workspace-trust \
-      --extensions-dir "$STATIK_HOME/extensions" \
-      --user-data-dir "$STATIK_HOME/data" \
-      $HOME &
+      --accept-server-license-terms &
     
     SERVER_PID=$!
     echo $SERVER_PID > "$STATIK_HOME/statik-server.pid"

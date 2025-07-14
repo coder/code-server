@@ -204,30 +204,87 @@ generate_keys() {
     local cert_dir="$STATIK_HOME/keys"
     local domain_name="statik.local"
     
-    # Generate self-signed certificate
+    # Generate self-signed certificate for HTTPS and mesh VPN
     if [[ ! -f "$cert_dir/server.crt" ]]; then
+        echo "  🔑 Generating SSL certificate..."
         openssl req -x509 -newkey rsa:4096 -keyout "$cert_dir/server.key" -out "$cert_dir/server.crt" \
             -days 365 -nodes -subj "/CN=$domain_name" >/dev/null 2>&1
+        
+        if [[ $? -eq 0 ]]; then
+            echo "  ✅ SSL certificate generated"
+        else
+            echo "  ❌ Failed to generate SSL certificate"
+            exit 1
+        fi
     fi
     
     # Generate mesh preauth key
     if [[ ! -f "$cert_dir/preauth.key" ]]; then
+        echo "  🔑 Generating mesh preauth key..."
         openssl rand -hex 32 > "$cert_dir/preauth.key"
     fi
     
     # Generate API keys
     if [[ ! -f "$cert_dir/api.key" ]]; then
+        echo "  🔑 Generating API key..."
         openssl rand -hex 16 > "$cert_dir/api.key"
     fi
     
-    chmod 600 "$cert_dir"/*
+    # Set proper permissions on all keys
+    chmod 600 "$cert_dir"/* 2>/dev/null
+    echo "  🔒 Key permissions secured"
     
     progress 12 20 "Key generation complete"
 }
 
+# Initialize mesh VPN database
+initialize_mesh() {
+    progress 13 20 "Initializing mesh VPN database..."
+    
+    if [[ -f "$STATIK_HOME/../lib/headscale" ]]; then
+        echo "  🗄️ Setting up headscale database..."
+        
+        # Create headscale config directory if it doesn't exist
+        mkdir -p "$STATIK_HOME/config"
+        
+        # Initialize database by running headscale with minimal config
+        cat > "$STATIK_HOME/config/temp-headscale.yaml" << EOF
+server_url: https://localhost:8443
+listen_addr: 0.0.0.0:50443
+metrics_listen_addr: 127.0.0.1:9090
+private_key_path: $STATIK_HOME/keys/server.key
+tls_cert_path: $STATIK_HOME/keys/server.crt
+db_type: sqlite3
+db_path: $STATIK_HOME/data/headscale.db
+log:
+  level: info
+ip_prefixes:
+  - fd7a:115c:a1e0::/48
+  - 100.64.0.0/10
+dns_config:
+  magic_dns: true
+  base_domain: statik.local
+EOF
+        
+        # Initialize database
+        if "$STATIK_HOME/../lib/headscale" -c "$STATIK_HOME/config/temp-headscale.yaml" users create statik >/dev/null 2>&1; then
+            echo "  ✅ Mesh database initialized with default user 'statik'"
+        else
+            echo "  ⚠️ Mesh database will be initialized on first startup"
+        fi
+        
+        # Clean up temp config
+        rm -f "$STATIK_HOME/config/temp-headscale.yaml"
+    else
+        echo "  ⚠️ Headscale not found, mesh will be configured on first run"
+    fi
+    
+    progress 14 20 "Mesh VPN initialization complete"
+}
+
 # Setup GitHub Copilot
 setup_copilot() {
-    progress 13 20 "Setting up GitHub Copilot integration..."
+    progress 15 20 "Setting up GitHub Copilot integration..."
     
     echo -e "\n${CYAN}🤖 GitHub Copilot Setup${NC}"
     echo "To enable GitHub Copilot Chat in VS Code, you'll need to authenticate."
@@ -250,12 +307,12 @@ setup_copilot() {
 }
 EOF
     
-    progress 14 20 "GitHub Copilot configuration complete"
+    progress 16 20 "GitHub Copilot configuration complete"
 }
 
 # Create launch scripts
 create_launch_scripts() {
-    progress 15 20 "Creating launch scripts..."
+    progress 17 20 "Creating launch scripts..."
     
     # Create main statik command
     cat > "$BIN_DIR/statik" << 'EOF'
@@ -296,12 +353,12 @@ EOF
 
     chmod +x "$BIN_DIR/statik" "$BIN_DIR/statik-cli"
     
-    progress 16 20 "Launch scripts created"
+    progress 18 20 "Launch scripts created"
 }
 
 # Create desktop integration
 create_desktop_integration() {
-    progress 17 20 "Setting up desktop integration..."
+    progress 19 20 "Setting up desktop integration..."
     
     # Copy icon if it exists
     if [[ -f "./app/icons/statik-server.png" ]]; then
@@ -326,12 +383,12 @@ Keywords=vscode;development;mesh;vpn;ai;copilot;
 StartupNotify=true
 EOF
     
-    progress 18 20 "Desktop integration complete"
+    progress 20 20 "Desktop integration complete"
 }
 
 # Organize documentation
 organize_docs() {
-    progress 19 20 "Organizing documentation..."
+    progress 21 20 "Organizing documentation..."
     
     # Move existing documentation to docs/
     [[ -f "STATIK_README.md" ]] && mv "STATIK_README.md" "docs/README_STATIK.md"
@@ -508,7 +565,7 @@ tailscale up --login-server https://[server]:8443 --authkey [key]
 - No external dependencies or cloud services
 EOF
     
-    progress 20 20 "Documentation organization complete"
+    progress 22 20 "Documentation organization complete"
 }
 
 # Create updated README
@@ -641,6 +698,7 @@ main() {
     install_vscode_cli
     build_mesh
     generate_keys
+    initialize_mesh
     setup_copilot
     create_launch_scripts
     create_desktop_integration

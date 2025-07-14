@@ -116,7 +116,7 @@ function start_server() {
     mkdir -p "$(dirname "$LOG_FILE")" "$(dirname "$PID_FILE")"
     
     log "${BLUE}Starting Statik-Server...${NC}"
-    nohup ./scripts/startup.sh > "$LOG_FILE" 2>&1 &
+    nohup ./scripts/startup.sh --daemon > "$LOG_FILE" 2>&1 &
     echo $! > "$PID_FILE"
     
     # Wait a moment and check if it started successfully
@@ -163,24 +163,48 @@ function start_server() {
 function stop_server() {
     if [[ "$(get_status)" == "stopped" ]]; then
         log "${YELLOW}Server not running${NC}"
-        return 0
     fi
     
-    log "${BLUE}Stopping Statik-Server...${NC}"
-    local pid=$(cat "$PID_FILE")
+    log "${BLUE}Stopping Statik-Server and all related processes...${NC}"
     
-    # Try graceful shutdown first
-    kill "$pid" 2>/dev/null || true
-    sleep 3
-    
-    # Force kill if still running
-    if kill -0 "$pid" 2>/dev/null; then
-        verbose "Forcing shutdown..."
-        kill -9 "$pid" 2>/dev/null || true
+    # Stop main process if PID file exists
+    if [[ -f "$PID_FILE" ]]; then
+        local pid=$(cat "$PID_FILE")
+        
+        # Try graceful shutdown first
+        kill "$pid" 2>/dev/null || true
+        sleep 2
+        
+        # Force kill if still running
+        if kill -0 "$pid" 2>/dev/null; then
+            verbose "Forcing shutdown of main process..."
+            kill -9 "$pid" 2>/dev/null || true
+        fi
+        
+        rm -f "$PID_FILE"
     fi
     
-    rm -f "$PID_FILE"
-    success "Statik-Server stopped"
+    # Kill any remaining VS Code, headscale, and socat processes
+    local cleanup_procs=()
+    
+    # Find all related processes
+    while IFS= read -r line; do
+        if [[ -n "$line" ]]; then
+            cleanup_procs+=("$line")
+        fi
+    done < <(ps aux | grep -E "(code serve-web|headscale|socat.*8443)" | grep -v grep | awk '{print $2}')
+    
+    if [[ ${#cleanup_procs[@]} -gt 0 ]]; then
+        verbose "Cleaning up ${#cleanup_procs[@]} related processes..."
+        for pid in "${cleanup_procs[@]}"; do
+            kill -9 "$pid" 2>/dev/null || true
+        done
+    fi
+    
+    # Clean up PID files
+    rm -f "$STATIK_HOME"/{mesh.pid,proxy.pid,vscode.pid} 2>/dev/null
+    
+    success "Statik-Server stopped completely"
 }
 
 function show_status() {
@@ -251,10 +275,10 @@ function view_logs() {
 }
 
 function build_server() {
-    cd "$STATIK_DIR"
+    cd "$REPO_DIR"
     
     if [[ ! -f "./scripts/build.sh" ]]; then
-        error "scripts/build.sh not found in $STATIK_DIR"
+        error "scripts/build.sh not found in $REPO_DIR"
         return 1
     fi
     
@@ -451,11 +475,11 @@ function launch_gui() {
 }
 
 function install_app() {
-    cd "$STATIK_DIR"
+    cd "$REPO_DIR"
     if [[ -f "./app/install-app.sh" ]]; then
         ./app/install-app.sh
     else
-        error "app/install-app.sh not found in $STATIK_DIR"
+        error "app/install-app.sh not found in $REPO_DIR"
     fi
 }
 
