@@ -11,6 +11,29 @@ PORT=${STATIK_PORT:-8080}
 HTTPS_PORT=${STATIK_HTTPS_PORT:-8443}
 DOMAIN=${STATIK_DOMAIN:-$(hostname).statik.local}
 
+# Detect public IP for global mesh access
+detect_public_ip() {
+    local public_ip=""
+    
+    # Try multiple methods to get public IP
+    if command -v curl >/dev/null 2>&1; then
+        public_ip=$(curl -s --connect-timeout 5 ifconfig.me 2>/dev/null || 
+                   curl -s --connect-timeout 5 ipinfo.io/ip 2>/dev/null ||
+                   curl -s --connect-timeout 5 checkip.amazonaws.com 2>/dev/null)
+    fi
+    
+    # Fallback to local IP if public detection fails
+    if [[ -z "$public_ip" ]] || [[ "$public_ip" =~ ^192\.168\. ]] || [[ "$public_ip" =~ ^10\. ]] || [[ "$public_ip" =~ ^172\.(1[6-9]|2[0-9]|3[0-1])\. ]]; then
+        public_ip=$(hostname -I | awk '{print $1}' 2>/dev/null || echo "127.0.0.1")
+    fi
+    
+    echo "$public_ip"
+}
+
+PUBLIC_IP=$(detect_public_ip)
+# Use public IP for global access, fallback to domain for local
+MESH_SERVER_URL=${STATIK_PUBLIC_URL:-"https://$PUBLIC_IP:$HTTPS_PORT"}
+
 # Colors
 RED='\033[1;31m'
 GREEN='\033[1;32m'
@@ -61,11 +84,14 @@ generate_qr() {
 # Start mesh VPN if available
 start_mesh() {
     if [[ -f "$REPO_DIR/lib/headscale" ]] || [[ -f "$REPO_DIR/lib/statik-meshd" ]]; then
-        log "Starting mesh VPN..."
+        log "Starting mesh VPN with global access..."
+        log "Mesh server: $MESH_SERVER_URL"
+        log "Public IP: $PUBLIC_IP"
         
-        # Create headscale config
+        # Create headscale config for global access
         cat > "$STATIK_HOME/config/headscale.yaml" << EOF
-server_url: https://$DOMAIN:$HTTPS_PORT
+# Statik-Server Global Mesh Configuration
+server_url: $MESH_SERVER_URL
 listen_addr: 0.0.0.0:50443
 metrics_listen_addr: 127.0.0.1:9090
 grpc_listen_addr: 0.0.0.0:50444
@@ -78,19 +104,42 @@ ip_prefixes:
   - fd7a:115c:a1e0::/48
   - 100.64.0.0/10
 
+# DERP configuration for NAT traversal
 derp:
-  urls: []
-  auto_update_enabled: false
+  server:
+    enabled: true
+    region_id: 999
+    region_code: "statik"
+    region_name: "Statik Mesh"
+    stun_listen_addr: "0.0.0.0:3478"
+  urls: 
+    - https://controlplane.tailscale.com/derpmap/default
+  auto_update_enabled: true
+  update_frequency: 24h
 
+# Database
+db_type: sqlite3
+db_path: $STATIK_HOME/data/headscale.db
+
+# Logging
 log:
   level: info
+  format: text
 
+# DNS Configuration for global mesh
 dns_config:
   nameservers:
     - 1.1.1.1
+    - 8.8.8.8
   domains: []
   magic_dns: true
   base_domain: statik.local
+  override_local_dns: true
+
+# Global access settings
+disable_check_updates: true
+ephemeral_node_inactivity_timeout: 120m
+node_update_check_interval: 10s
 EOF
 
         # Start headscale/statik-meshd
@@ -102,7 +151,19 @@ EOF
         
         MESH_PID=$!
         echo $MESH_PID > "$STATIK_HOME/mesh.pid"
-        log "Mesh VPN started (PID: $MESH_PID)"
+        log "Mesh VPN started globally (PID: $MESH_PID)"
+        
+        # Save connection details for CLI
+        cat > "$STATIK_HOME/config/mesh-connection.json" << EOF
+{
+    "server_url": "$MESH_SERVER_URL",
+    "public_ip": "$PUBLIC_IP",
+    "domain": "$DOMAIN",
+    "https_port": $HTTPS_PORT,
+    "setup_time": "$(date -Iseconds)"
+}
+EOF
+        
     fi
 }
 
@@ -119,6 +180,52 @@ start_https_proxy() {
     fi
 }
 
+# Check firewall and port accessibility for global mesh
+check_global_access() {
+    log "Checking global mesh accessibility..."
+    
+    # List of required ports for global access
+    local required_ports=("$HTTPS_PORT" "50443" "3478")
+    local warnings=()
+    
+    for port in "${required_ports[@]}"; do
+        # Check if port is listening
+        if ! netstat -tuln 2>/dev/null | grep -q ":$port "; then
+            if [[ "$port" == "$HTTPS_PORT" ]]; then
+                warnings+=("HTTPS port $port not yet listening (will be available after startup)")
+            else
+                warnings+=("Mesh port $port not listening")
+            fi
+        fi
+        
+        # Basic connectivity test (if public IP is not local)
+        if [[ "$PUBLIC_IP" != "127.0.0.1" ]] && [[ ! "$PUBLIC_IP" =~ ^192\.168\. ]] && [[ ! "$PUBLIC_IP" =~ ^10\. ]]; then
+            # Only test if we have a public IP
+            if command -v nc >/dev/null 2>&1; then
+                if ! timeout 3 nc -z "$PUBLIC_IP" "$port" 2>/dev/null; then
+                    warnings+=("Port $port may not be accessible from internet (check firewall/router)")
+                fi
+            fi
+        fi
+    done
+    
+    # Display warnings if any
+    if [[ ${#warnings[@]} -gt 0 ]]; then
+        warn "Global access warnings:"
+        for warning in "${warnings[@]}"; do
+            echo "  ⚠️  $warning"
+        done
+        echo ""
+        echo "For global mesh access, ensure these ports are open:"
+        echo "  - $HTTPS_PORT (HTTPS/Web interface)"
+        echo "  - 50443 (Headscale mesh coordination)"
+        echo "  - 3478 (STUN for NAT traversal)"
+        echo ""
+    else
+        log "Global mesh ports appear accessible ✅"
+    fi
+}
+
 # Main startup function
 main() {
     echo -e "${CYAN}"
@@ -129,6 +236,7 @@ main() {
     echo -e "${NC}"
     
     check_dependencies
+    check_global_access
     start_mesh
     start_https_proxy
     
@@ -153,7 +261,7 @@ main() {
       --host 0.0.0.0 \
       --port $PORT \
       --without-connection-token \
-      --disable-update-check \
+      --disable-telemetry \
       --disable-workspace-trust \
       --extensions-dir "$STATIK_HOME/extensions" \
       --user-data-dir "$STATIK_HOME/data" \
@@ -171,12 +279,15 @@ main() {
     echo -e "  ${BLUE}Local:${NC}      http://localhost:$PORT"
     echo -e "  ${BLUE}Network:${NC}    http://$(hostname -I | awk '{print $1}'):$PORT"
     echo -e "  ${BLUE}Secure:${NC}     https://$DOMAIN:$HTTPS_PORT"
+    if [[ "$PUBLIC_IP" != "127.0.0.1" ]] && [[ ! "$PUBLIC_IP" =~ ^192\.168\. ]]; then
+        echo -e "  ${GREEN}🌍 Global:${NC}     $MESH_SERVER_URL"
+    fi
     echo ""
     
     echo -e "${CYAN}🔧 Service Information:${NC}"
     echo -e "  ${YELLOW}VS Code Server:${NC}  PID $SERVER_PID (Port $PORT)"
     if [[ -f "$STATIK_HOME/mesh.pid" ]]; then
-        echo -e "  ${YELLOW}Mesh VPN:${NC}       PID $(cat "$STATIK_HOME/mesh.pid") (Port 50443)"
+        echo -e "  ${YELLOW}Mesh VPN:${NC}       PID $(cat "$STATIK_HOME/mesh.pid") (Global: $MESH_SERVER_URL)"
     fi
     if [[ -f "$STATIK_HOME/proxy.pid" ]]; then
         echo -e "  ${YELLOW}HTTPS Proxy:${NC}    PID $(cat "$STATIK_HOME/proxy.pid") (Port $HTTPS_PORT)"
@@ -195,6 +306,9 @@ main() {
     
     # Log startup
     echo "$(date): Statik-Server started (PID: $SERVER_PID)" >> "$STATIK_HOME/logs/statik-server.log"
+    
+    # Check global access
+    check_global_access
     
     # Keep running if not backgrounded
     if [[ "${1:-}" != "--daemon" ]]; then

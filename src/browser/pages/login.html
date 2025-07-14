@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta
       name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no"
+      content="width=device-width, initial-scale=1.0"
     />
     <meta
       http-equiv="Content-Security-Policy"
@@ -30,11 +30,14 @@
         </div>
         <div class="content">
           <form class="login-form" method="post">
-            <input class="user" type="text" autocomplete="username" />
+            <label for="username" class="sr-only">Username</label>
+            <input id="username" class="user" type="text" autocomplete="username" aria-label="Username" />
             <input id="base" type="hidden" name="base" value="{{BASE}}" />
             <input id="href" type="hidden" name="href" value="" />
             <div class="field">
+              <label for="password" class="sr-only">Password</label>
               <input
+                id="password"
                 required
                 autofocus
                 class="password"

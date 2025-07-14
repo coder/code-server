@@ -1,3 +1,16 @@
+/* Screen reader only class for accessibility */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 body {
   min-height: 568px;
   min-width: 320px;
@@ -30,13 +43,27 @@ body {
 
 .login-form > .field > .password {
   background-color: rgb(244, 247, 252);
-  background-color: light-dark(rgb(244, 247, 252), #374151);
   border-radius: 5px;
   border: 1px solid #ddd;
-  border: 1px solid light-dark(#ddd, #4b5563);
   box-sizing: border-box;
   flex: 1;
   padding: 16px;
+}
+
+/* Dark mode styles with media query fallback for older browsers */
+@media (prefers-color-scheme: dark) {
+  .login-form > .field > .password {
+    background-color: #374151;
+    border: 1px solid #4b5563;
+  }
+}
+
+/* Modern browsers with light-dark() support */
+@supports (background-color: light-dark(white, black)) {
+  .login-form > .field > .password {
+    background-color: light-dark(rgb(244, 247, 252), #374151);
+    border: 1px solid light-dark(#ddd, #4b5563);
+  }
 }
 
 .login-form > .field > .password::placeholder {
@@ -64,4 +91,5 @@ body {
 
 input {
   -webkit-appearance: none;
+  appearance: none;
 }

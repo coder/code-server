@@ -4,9 +4,26 @@
 
 set -e
 
-STATIK_DIR="$HOME/statik-server"
-LOG_FILE="$HOME/.statik/logs/statik-server.log"
-PID_FILE="$HOME/.statik/statik-server.pid"
+# Find statik-server root directory dynamically
+if [[ -f "$HOME/.local/bin/statik-cli" ]] && [[ "$(readlink -f "${BASH_SOURCE[0]}")" == "$HOME/.local/bin/statik-cli" ]]; then
+    # Running from installed location, find the repo
+    STATIK_DIR="$HOME/.statik-server"
+    REPO_DIR="$HOME/statik-server"
+    if [[ ! -d "$REPO_DIR" ]]; then
+        REPO_DIR="/home/statiksmoke8/Copilot-Workspace/statik-server"
+    fi
+else
+    # Running from repo, calculate relative path
+    SCRIPT_PATH="$(readlink -f "${BASH_SOURCE[0]}")"
+    REPO_DIR="$(dirname "$(dirname "$(dirname "$SCRIPT_PATH")")")"
+    STATIK_DIR="$HOME/.statik-server"
+fi
+
+# Ensure statik directory exists
+mkdir -p "$STATIK_DIR"/{config,keys,logs,data,extensions}
+
+LOG_FILE="$STATIK_DIR/logs/statik-server.log"
+PID_FILE="$STATIK_DIR/statik-server.pid"
 
 # Colors
 RED='\033[1;31m'
@@ -33,6 +50,9 @@ function usage() {
     echo "  gui           Launch interactive GUI"
     echo "  install       Install desktop app"
     echo "  uninstall     Remove desktop app"
+    echo "  commit        Git commit with message"
+    echo "  push          Git push to remote"
+    echo "  sync          Git add, commit, and push"
     echo ""
     echo "Options:"
     echo "  -h, --help    Show this help message"
@@ -44,6 +64,9 @@ function usage() {
     echo "  statik-cli status          # Check status"
     echo "  statik-cli logs --tail 50  # View last 50 log lines"
     echo "  statik-cli config token    # Set GitHub token"
+    echo "  statik-cli commit -m 'Fix' # Git commit with message"
+    echo "  statik-cli push            # Push to remote"
+    echo "  statik-cli sync -m 'Done'  # Add, commit, and push"
 }
 
 function log() {
@@ -80,24 +103,57 @@ function start_server() {
         return 0
     fi
     
-    verbose "Changing to $STATIK_DIR"
-    cd "$STATIK_DIR"
+    verbose "Changing to $REPO_DIR"
+    cd "$REPO_DIR"
     
-    if [[ ! -f "./startup.sh" ]]; then
-        error "startup.sh not found in $STATIK_DIR"
+    if [[ ! -f "./scripts/startup.sh" ]]; then
+        error "scripts/startup.sh not found in $REPO_DIR"
         error "Run 'statik-cli build' first or check installation"
         return 1
     fi
     
+    # Ensure log and PID directories exist
+    mkdir -p "$(dirname "$LOG_FILE")" "$(dirname "$PID_FILE")"
+    
     log "${BLUE}Starting Statik-Server...${NC}"
-    nohup ./startup.sh > "$LOG_FILE" 2>&1 &
+    nohup ./scripts/startup.sh > "$LOG_FILE" 2>&1 &
     echo $! > "$PID_FILE"
     
     # Wait a moment and check if it started successfully
-    sleep 2
+    sleep 4
     if [[ "$(get_status)" == "running" ]]; then
         success "Statik-Server started (PID: $(cat "$PID_FILE"))"
-        log "Access at: ${CYAN}http://localhost:8080${NC}"
+        
+        # Get local IP for QR code
+        local LOCAL_IP
+        LOCAL_IP=$(ip route get 1.1.1.1 2>/dev/null | head -1 | awk '{print $7}' | head -1)
+        if [[ -z "$LOCAL_IP" ]]; then
+            LOCAL_IP=$(hostname -I 2>/dev/null | awk '{print $1}')
+        fi
+        if [[ -z "$LOCAL_IP" ]]; then
+            LOCAL_IP="localhost"
+        fi
+        
+        local SERVER_URL="http://${LOCAL_IP}:8080"
+        
+        echo ""
+        log "${GREEN}✅ Server Access Information:${NC}"
+        log "   Local:    ${CYAN}http://localhost:8080${NC}"
+        log "   Network:  ${CYAN}$SERVER_URL${NC}"
+        echo ""
+        
+        # Display QR code for mobile access
+        if command -v qrencode >/dev/null; then
+            log "${YELLOW}📱 Mobile QR Code:${NC}"
+            echo "=================="
+            qrencode -t ansiutf8 "$SERVER_URL"
+            echo ""
+            log "${GREEN}📲 Scan with your mobile device to access VS Code!${NC}"
+        else
+            log "${YELLOW}📱 Mobile URL: $SERVER_URL${NC}"
+        fi
+        echo ""
+        
     else
         error "Failed to start server. Check logs with 'statik-cli logs'"
         return 1
@@ -197,13 +253,13 @@ function view_logs() {
 function build_server() {
     cd "$STATIK_DIR"
     
-    if [[ ! -f "./build.sh" ]]; then
-        error "build.sh not found in $STATIK_DIR"
+    if [[ ! -f "./scripts/build.sh" ]]; then
+        error "scripts/build.sh not found in $STATIK_DIR"
         return 1
     fi
     
     log "${BLUE}Building Statik-Server...${NC}"
-    ./build.sh
+    ./scripts/build.sh
     success "Build complete"
 }
 
@@ -258,24 +314,121 @@ function manage_config() {
 
 function manage_mesh() {
     local action="$1"
+    local mesh_config="$STATIK_HOME/config/mesh-connection.json"
     
     case "$action" in
         status)
-            echo -e "${CYAN}Mesh VPN Status${NC}"
-            echo "==============="
-            if command -v headscale >/dev/null; then
-                echo "Headscale nodes:"
-                headscale nodes list 2>/dev/null || echo "  No nodes registered"
-                echo ""
-                echo "Auth keys:"
-                headscale preauthkeys list 2>/dev/null || echo "  No auth keys"
+            echo -e "${CYAN}Global Mesh VPN Status${NC}"
+            echo "======================"
+            
+            # Check if mesh is running
+            if [[ -f "$STATIK_HOME/mesh.pid" ]] && kill -0 "$(cat "$STATIK_HOME/mesh.pid")" 2>/dev/null; then
+                echo -e "${GREEN}✅ Mesh VPN: Running${NC}"
+                
+                # Show connection details
+                if [[ -f "$mesh_config" ]]; then
+                    local server_url=$(jq -r '.server_url // "unknown"' "$mesh_config" 2>/dev/null || echo "unknown")
+                    local public_ip=$(jq -r '.public_ip // "unknown"' "$mesh_config" 2>/dev/null || echo "unknown")
+                    local setup_time=$(jq -r '.setup_time // "unknown"' "$mesh_config" 2>/dev/null || echo "unknown")
+                    
+                    echo "📡 Global Server: $server_url"
+                    echo "🌍 Public IP: $public_ip"
+                    echo "⏰ Started: $setup_time"
+                else
+                    echo "⚠️  No connection details found"
+                fi
             else
-                echo "  Headscale not found in PATH"
+                echo -e "${RED}❌ Mesh VPN: Stopped${NC}"
+            fi
+            
+            echo ""
+            
+            # Show registered devices if headscale is available
+            if command -v headscale >/dev/null || [[ -f "$STATIK_DIR/lib/headscale" ]]; then
+                local headscale_cmd="headscale"
+                if [[ -f "$STATIK_DIR/lib/headscale" ]]; then
+                    headscale_cmd="$STATIK_DIR/lib/headscale -c $STATIK_HOME/config/headscale.yaml"
+                fi
+                
+                echo "📱 Connected Devices:"
+                $headscale_cmd nodes list 2>/dev/null || echo "  No devices connected"
+                echo ""
+                echo "🔑 Auth Keys:"
+                $headscale_cmd preauthkeys list 2>/dev/null || echo "  No auth keys available"
+            else
+                echo "  Headscale not available"
+            fi
+            ;;
+        key|keys)
+            echo -e "${CYAN}Generate Connection Key${NC}"
+            echo "======================"
+            
+            if [[ -f "$STATIK_DIR/lib/headscale" ]]; then
+                local key_name="${2:-statik-$(date +%s)}"
+                echo "Generating connection key: $key_name"
+                
+                local auth_key=$("$STATIK_DIR/lib/headscale" -c "$STATIK_HOME/config/headscale.yaml" preauthkeys create --reusable --expiration 720h 2>/dev/null | grep "Key:" | awk '{print $2}')
+                
+                if [[ -n "$auth_key" ]]; then
+                    echo ""
+                    echo -e "${GREEN}🔑 Connection Key Generated:${NC}"
+                    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+                    echo "$auth_key"
+                    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+                    echo ""
+                    echo -e "${YELLOW}📋 Connection Instructions:${NC}"
+                    echo "1. Install Tailscale on target device:"
+                    echo "   curl -fsSL https://tailscale.com/install.sh | sh"
+                    echo ""
+                    echo "2. Connect to this mesh:"
+                    if [[ -f "$mesh_config" ]]; then
+                        local server_url=$(jq -r '.server_url' "$mesh_config" 2>/dev/null || echo "https://$(hostname -I | awk '{print $1}'):8443")
+                        echo "   sudo tailscale up --login-server $server_url --authkey $auth_key"
+                    else
+                        echo "   sudo tailscale up --login-server https://$(hostname -I | awk '{print $1}'):8443 --authkey $auth_key"
+                    fi
+                    echo ""
+                    echo "3. Access development environment globally! 🌍"
+                else
+                    error "Failed to generate auth key"
+                fi
+            else
+                error "Headscale not found. Run 'statik-cli start' first."
+            fi
+            ;;
+        devices|nodes)
+            echo -e "${CYAN}Connected Devices${NC}"
+            echo "================="
+            
+            if [[ -f "$STATIK_DIR/lib/headscale" ]]; then
+                "$STATIK_DIR/lib/headscale" -c "$STATIK_HOME/config/headscale.yaml" nodes list 2>/dev/null || echo "No devices connected"
+            else
+                echo "Headscale not available"
+            fi
+            ;;
+        info)
+            echo -e "${CYAN}Global Mesh Information${NC}"
+            echo "======================="
+            
+            if [[ -f "$mesh_config" ]]; then
+                echo "Configuration:"
+                cat "$mesh_config" | jq . 2>/dev/null || cat "$mesh_config"
+            else
+                echo "No mesh configuration found. Start the server first."
             fi
             ;;
         *)
-            echo "Mesh commands:"
-            echo "  status - Show mesh VPN status"
+            echo -e "${CYAN}Mesh VPN Commands${NC}"
+            echo "================="
+            echo "  status    - Show mesh VPN status and connection details"
+            echo "  key       - Generate connection key for new devices"
+            echo "  devices   - List connected devices"
+            echo "  info      - Show detailed mesh configuration"
+            echo ""
+            echo "Examples:"
+            echo "  statik-cli mesh status         # Check global mesh status"
+            echo "  statik-cli mesh key            # Generate device connection key"
+            echo "  statik-cli mesh devices        # List all connected devices"
             ;;
     esac
 }
@@ -299,10 +452,10 @@ function launch_gui() {
 
 function install_app() {
     cd "$STATIK_DIR"
-    if [[ -f "./install-app.sh" ]]; then
-        ./install-app.sh
+    if [[ -f "./app/install-app.sh" ]]; then
+        ./app/install-app.sh
     else
-        error "install-app.sh not found in $STATIK_DIR"
+        error "app/install-app.sh not found in $STATIK_DIR"
     fi
 }
 
@@ -319,6 +472,128 @@ function uninstall_app() {
         success "Statik-Server app uninstalled"
     else
         log "Uninstall cancelled"
+    fi
+}
+
+function git_commit() {
+    local message=""
+    
+    # Parse options for commit message
+    while [[ $# -gt 0 ]]; do
+        case $1 in
+            -m|--message)
+                message="$2"
+                shift 2
+                ;;
+            *)
+                if [[ -z "$message" ]]; then
+                    message="$1"
+                fi
+                shift
+                ;;
+        esac
+    done
+    
+    if [[ -z "$message" ]]; then
+        echo -n "Enter commit message: "
+        read -r message
+    fi
+    
+    if [[ -z "$message" ]]; then
+        error "Commit message required"
+        return 1
+    fi
+    
+    cd "$STATIK_DIR"
+    
+    log "${BLUE}Adding files to git...${NC}"
+    git add . || { error "Failed to add files"; return 1; }
+    
+    log "${BLUE}Committing with message: '$message'${NC}"
+    git commit -m "$message" || { error "Failed to commit"; return 1; }
+    
+    success "Changes committed successfully"
+}
+
+function git_push() {
+    cd "$STATIK_DIR"
+    
+    # Check if we have a remote
+    if ! git remote get-url origin >/dev/null 2>&1; then
+        error "No git remote 'origin' configured"
+        log "Add a remote with: git remote add origin <repository-url>"
+        return 1
+    fi
+    
+    log "${BLUE}Pushing to remote repository...${NC}"
+    git push origin "$(git branch --show-current)" || { 
+        error "Failed to push. You may need to set upstream or check credentials"
+        log "Try: git push --set-upstream origin \$(git branch --show-current)"
+        return 1
+    }
+    
+    success "Changes pushed successfully"
+}
+
+function git_sync() {
+    local message=""
+    
+    # Parse options for commit message
+    while [[ $# -gt 0 ]]; do
+        case $1 in
+            -m|--message)
+                message="$2"
+                shift 2
+                ;;
+            *)
+                if [[ -z "$message" ]]; then
+                    message="$1"
+                fi
+                shift
+                ;;
+        esac
+    done
+    
+    if [[ -z "$message" ]]; then
+        echo -n "Enter commit message: "
+        read -r message
+    fi
+    
+    if [[ -z "$message" ]]; then
+        error "Commit message required"
+        return 1
+    fi
+    
+    cd "$STATIK_DIR"
+    
+    # Check if we're in a git repository
+    if ! git rev-parse --git-dir >/dev/null 2>&1; then
+        error "Not in a git repository"
+        return 1
+    fi
+    
+    # Check for uncommitted changes
+    if git diff-index --quiet HEAD -- 2>/dev/null; then
+        log "${YELLOW}No changes to commit${NC}"
+        return 0
+    fi
+    
+    log "${BLUE}Syncing changes...${NC}"
+    log "1. Adding all files..."
+    git add . || { error "Failed to add files"; return 1; }
+    
+    log "2. Committing with message: '$message'"
+    git commit -m "$message" || { error "Failed to commit"; return 1; }
+    
+    log "3. Pushing to remote..."
+    if git remote get-url origin >/dev/null 2>&1; then
+        git push origin "$(git branch --show-current)" || { 
+            error "Failed to push. You may need to set upstream or check credentials"
+            return 1
+        }
+        success "All changes synced successfully (added, committed, and pushed)"
+    else
+        success "Changes committed successfully (no remote configured for push)"
     fi
 }
 
@@ -388,6 +663,15 @@ case "$COMMAND" in
         ;;
     uninstall)
         uninstall_app "$@"
+        ;;
+    commit)
+        git_commit "$@"
+        ;;
+    push)
+        git_push "$@"
+        ;;
+    sync)
+        git_sync "$@"
         ;;
     help)
         usage
