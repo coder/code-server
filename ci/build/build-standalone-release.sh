@@ -16,7 +16,7 @@ main() {
   # Package managers may shim their own "node" wrapper into the PATH, so run
   # node and ask it for its true path.
   local node_path
-  node_path="$(node <<< 'console.info(process.execPath)')"
+  node_path="$(node -p process.execPath)"
 
   mkdir -p "$RELEASE_PATH/bin"
   mkdir -p "$RELEASE_PATH/lib"
