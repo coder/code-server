@@ -73,6 +73,7 @@ jobs:
 
       - name: Install cross-compiler and system dependencies
         run: |
+          sed -i 's/deb\.debian\.org/archive.debian.org/g' /etc/apt/sources.list
           dpkg --add-architecture $TARGET_ARCH
           apt update && apt install -y --no-install-recommends \
             crossbuild-essential-$TARGET_ARCH \
