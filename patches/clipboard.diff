@@ -78,7 +78,7 @@ Index: code-server/lib/vscode/src/vs/platform/environment/common/argv.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/platform/environment/common/argv.ts
 +++ code-server/lib/vscode/src/vs/platform/environment/common/argv.ts
-@@ -122,6 +122,7 @@ export interface NativeParsedArgs {
+@@ -134,6 +134,7 @@ export interface NativeParsedArgs {
  	'disable-chromium-sandbox'?: boolean;
  	sandbox?: boolean;
  	'enable-coi'?: boolean;
@@ -90,7 +90,7 @@ Index: code-server/lib/vscode/src/vs/platform/environment/node/argv.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/platform/environment/node/argv.ts
 +++ code-server/lib/vscode/src/vs/platform/environment/node/argv.ts
-@@ -91,6 +91,7 @@ export const OPTIONS: OptionDescriptions
+@@ -104,6 +104,7 @@ export const OPTIONS: OptionDescriptions
  	'user-data-dir': { type: 'string', cat: 'o', args: 'dir', description: localize('userDataDir', "Specifies the directory that user data is kept in. Can be used to open multiple distinct instances of Code.") },
  	'profile': { type: 'string', 'cat': 'o', args: 'profileName', description: localize('profileName', "Opens the provided folder or workspace with the given profile and associates the profile with the workspace. If the profile does not exist, a new empty one is created.") },
  	'help': { type: 'boolean', cat: 'o', alias: 'h', description: localize('help', "Print usage.") },

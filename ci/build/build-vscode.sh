@@ -112,7 +112,9 @@ EOF
   # this because we have an NPM package that could be installed on any platform.
   # The correct platform dependencies and scripts will be installed as part of
   # the post-install during `npm install` or when building a standalone release.
-  npm run gulp "vscode-reh-web-linux-x64${MINIFY:+-min}"
+  node --max-old-space-size=16384 --optimize-for-size \
+       ./node_modules/gulp/bin/gulp.js \
+       "vscode-reh-web-linux-x64${MINIFY:+-min}"
 
   # Reset so if you develop after building you will not be stuck with the wrong
   # commit (the dev client will use `oss-dev` but the dev server will still use
