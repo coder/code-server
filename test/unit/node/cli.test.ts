@@ -75,6 +75,7 @@ describe("parser", () => {
           "--verbose",
           ["--app-name", "custom instance name"],
           ["--welcome-text", "welcome to code"],
+          ["--i18n", "path/to/custom-strings.json"],
           "2",
 
           ["--locale", "ja"],
@@ -145,6 +146,7 @@ describe("parser", () => {
       verbose: true,
       "app-name": "custom instance name",
       "welcome-text": "welcome to code",
+      i18n: path.resolve("path/to/custom-strings.json"),
       version: true,
       "bind-addr": "192.169.0.1:8080",
       "session-socket": "/tmp/override-code-server-ipc-socket",
@@ -344,6 +346,28 @@ describe("parser", () => {
       "hashed-password":
         "$argon2i$v=19$m=4096,t=3,p=1$0qR/o+0t00hsbJFQCKSfdQ$oFcM4rL6o+B7oxpuA4qlXubypbBPsf+8L531U7P9HYY",
       usingEnvHashedPassword: true,
+    })
+  })
+
+  it("should parse i18n flag with file path", async () => {
+    // Test with file path (no validation at CLI parsing level)
+    const args = parse(["--i18n", "/path/to/custom-strings.json"])
+    expect(args).toEqual({
+      i18n: "/path/to/custom-strings.json",
+    })
+  })
+
+  it("should parse i18n flag with relative file path", async () => {
+    // Test with relative file path
+    expect(() => parse(["--i18n", "./custom-strings.json"])).not.toThrow()
+    expect(() => parse(["--i18n", "strings.json"])).not.toThrow()
+  })
+
+  it("should support app-name and deprecated welcome-text flags", async () => {
+    const args = parse(["--app-name", "My App", "--welcome-text", "Welcome!"])
+    expect(args).toEqual({
+      "app-name": "My App",
+      "welcome-text": "Welcome!",
     })
   })
 
