@@ -22,6 +22,22 @@ Code v99.99.999
 
 ## Unreleased
 
+## [4.102.0](https://github.com/coder/code-server/releases/tag/v4.102.0) - 2025-07-16
+
+Code v1.102.0
+
+### Changed
+
+- Update to Code 1.102.0.
+
+### Added
+
+- Custom strings can be configured using the `--i18n` flag set to a JSON
+  file. This can be used for either translation (and can be used alongside
+  `--locale`) or for customizing the strings. See
+  [./src/node/i18n/locales/en.json](./src/node/i18n/locales/en.json) for the
+  available keys.
+
 ## [4.101.2](https://github.com/coder/code-server/releases/tag/v4.101.2) - 2025-06-25
 
 Code v1.101.2
