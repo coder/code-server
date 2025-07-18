@@ -1,4 +1,4 @@
-Add base path support
+Add base path support ok
 
 Some users will host code-server behind a path-rewriting reverse proxy, for
 example domain.tld/my/base/path.  This patch adds support for that since Code
