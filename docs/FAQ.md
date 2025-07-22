@@ -383,6 +383,9 @@ mount into `/home/coder/myproject` from inside the `code-server` container. You
 need to make sure the Docker daemon's `/home/coder/myproject` is the same as the
 one mounted inside the `code-server` container, and the mount will work.
 
+If you want Docker enabled when deploying on Kubernetes, look at the `values.yaml`
+file for the 3 fields: `extraVars`, `lifecycle.postStart`, and `extraContainers`.
+
 ## How do I disable telemetry?
 
 Use the `--disable-telemetry` flag to disable telemetry.
