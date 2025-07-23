@@ -1,3 +1,21 @@
+# Exclude everything by default
 **
+
+# Include necessary files for building
+!package.json
+!package-lock.json
+!tsconfig.json
+!src/
+!lib/
+!patches/
+!ci/
 !release-packages
-!ci
+!.git/
+!.gitmodules
+!eslint.config.mjs
+!.prettierrc.yaml
+!.prettierignore
+!.editorconfig
+!.node-version
+!.nvmrc
+!test/

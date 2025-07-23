@@ -29,7 +29,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/welcomeGettingStarted/bro
  import { IWebviewElement, IWebviewService } from '../../webview/browser/webview.js';
  import './gettingStartedColors.js';
 @@ -874,6 +874,72 @@ export class GettingStartedPage extends
- 			$('p.subtitle.description', {}, localize({ key: 'gettingStarted.editingEvolved', comment: ['Shown as subtitle on the Welcome page.'] }, "Editing evolved"))
+ 			$('p.subtitle.description', {}, localize({ key: 'gettingStarted.editingEvolved', comment: ['Shown as subtitle on the Welcome page.'] }, "The One-Stop Quantum Platform"))
  		);
  
 +		let gettingStartedCoder: HTMLElement = $('.header', {});
@@ -39,7 +39,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/welcomeGettingStarted/bro
 +					style: 'margin-bottom: 12px',
 +				}, 'Next Up'),
 +				$('a', {
-+					href: 'https://cdr.co/code-server-to-coder',
++					href: 'https://account.qbraid.com/account-details',
 +					target: '_blank',
 +				},
 +					$('button', {
@@ -57,21 +57,21 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/welcomeGettingStarted/bro
 +							'margin: 0px 0px 6px',
 +							'font-weight: 500',
 +						].join(';'),
-+					}, 'Deploy code-server for your team'),
++					}, 'Run Quantum Jobs with qBraid'),
 +					$('p', {
 +						style: [
 +							'margin: 0',
 +							'font-size: 13px',
 +							'color: #dcdee2',
 +						].join(';'),
-+					}, 'Provision software development environments on your infrastructure with Coder.'),
++					}, 'Submit quantum programs to 24+ devices using the qBraid-SDK.'),
 +					$('p', {
 +						style: [
 +							'margin-top: 8px',
 +							'font-size: 13px',
 +							'color: #dcdee2',
 +						].join(';'),
-+					}, 'Coder is a self-service portal which provisions via Terraform—Linux, macOS, Windows, x86, ARM, and, of course, Kubernetes based infrastructure.'),
++					}, 'Access QPUs from QuEra, IQM, IonQ, OQC, and Rigetti, along with on-demand simulators from qBraid, AWS, IonQ, and more.'),
 +					$('p', {
 +						style: [
 +							'margin: 0',
@@ -80,7 +80,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/welcomeGettingStarted/bro
 +							'display: flex',
 +							'align-items: center',
 +						].join(';'),
-+					}, 'Get started ', $('span', {
++					}, 'Get credits', $('span', {
 +						class: ThemeIcon.asClassName(Codicon.arrowRight),
 +						style: [
 +							'color: white',
