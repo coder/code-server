@@ -141,6 +141,14 @@ jobs:
           draft: true
           discussion_category_name: "📣 Announcements"
           files: ./release-packages/*
+          
+      - name: Upload .deb files to GCP bucket
+        uses: google-github-actions/upload-cloud-storage@v1
+        with:
+          path: ./release-packages/
+          destination: qbraid-code-server
+          glob: '*.deb'
+          credentials: ${{ secrets.GCP_UPLOAD_CREDENTIALS }}
 
   package-macos-amd64:
     name: x86-64 macOS build
@@ -325,3 +333,4 @@ jobs:
         with:
           name: npm-release-package
           path: ./package.tar.gz
+
