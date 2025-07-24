@@ -72,18 +72,36 @@ jobs:
             test/package-lock.json
 
       - name: Install cross-compiler and system dependencies
-        run: 
-          sed -i 's/deb\.debian\.org/archive.debian.org/g' /etc/apt/sources.list
-          dpkg --add-architecture $TARGET_ARCH
-          apt update && apt install -y --no-install-recommends \
-            crossbuild-essential-$TARGET_ARCH \
-            libx11-dev:$TARGET_ARCH \
-            libx11-xcb-dev:$TARGET_ARCH \
-            libxkbfile-dev:$TARGET_ARCH \
-            libsecret-1-dev:$TARGET_ARCH \
-            libkrb5-dev:$TARGET_ARCH \
+        run: |
+          set -e
+      
+          # Ensure TARGET_ARCH is set
+          : "${TARGET_ARCH:?Environment variable TARGET_ARCH must be set}"
+      
+          # Update sources to use archive.debian.org
+          sed -i 's|http://deb\.debian\.org|http://archive.debian.org|g' /etc/apt/sources.list
+          sed -i 's|http://security\.debian\.org|http://archive.debian.org|g' /etc/apt/sources.list
+      
+          # Disable "valid-until" check for expired Release files
+          echo 'Acquire::Check-Valid-Until "false";' > /etc/apt/apt.conf.d/99no-check-valid-until
+      
+          # Add cross-compilation architecture
+          dpkg --add-architecture "$TARGET_ARCH"
+      
+          # Update and install packages
+          apt-get update
+          apt-get install -y --no-install-recommends \
+            crossbuild-essential-"$TARGET_ARCH" \
+            libx11-dev:"$TARGET_ARCH" \
+            libx11-xcb-dev:"$TARGET_ARCH" \
+            libxkbfile-dev:"$TARGET_ARCH" \
+            libsecret-1-dev:"$TARGET_ARCH" \
+            libkrb5-dev:"$TARGET_ARCH" \
             ca-certificates \
-            curl wget rsync gettext-base
+            curl \
+            wget \
+            rsync \
+            gettext-base
 
       - run: SKIP_SUBMODULE_DEPS=1 npm ci
 
