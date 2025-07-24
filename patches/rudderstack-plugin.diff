@@ -1,0 +1,447 @@
+Index: code-server/lib/vscode/src/vs/workbench/workbench.common.main.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/workbench/workbench.common.main.ts
++++ code-server/lib/vscode/src/vs/workbench/workbench.common.main.ts
+@@ -420,5 +420,8 @@ import './contrib/dropOrPasteInto/browse
+ // Edit Telemetry
+ import './contrib/editTelemetry/browser/editTelemetry.contribution.js';
+ 
++// Rudderstack
++import './contrib/rudderstack/browser/rudderstack.contribution.js';
++
+ 
+ //#endregion
+Index: code-server/lib/vscode/src/vs/workbench/contrib/rudderstack/browser/media/rudderstack-icon.svg
+===================================================================
+--- /dev/null
++++ code-server/lib/vscode/src/vs/workbench/contrib/rudderstack/browser/media/rudderstack-icon.svg
+@@ -0,0 +1,4 @@
++<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
++<rect width="16" height="16" rx="2" fill="#105ED5"/>
++<path d="M4 4.38095C4 4.17056 4.17056 4 4.38095 4H11.7714C11.8977 4 12 4.10233 12 4.22857V11.619C12 11.8294 11.8294 12 11.619 12C7.41116 12 4 8.58884 4 4.38095Z" fill="white"/>
++</svg>
+Index: code-server/lib/vscode/src/vs/workbench/contrib/rudderstack/browser/rudderstack.contribution.ts
+===================================================================
+--- /dev/null
++++ code-server/lib/vscode/src/vs/workbench/contrib/rudderstack/browser/rudderstack.contribution.ts
+@@ -0,0 +1,39 @@
++/* eslint-disable header/header */
++import { ViewContainerLocation, Extensions as ViewExtensions } from '../../../common/views.js';
++import { IViewContainersRegistry, IViewsRegistry } from '../../../common/views.js';
++import { Registry } from '../../../../platform/registry/common/platform.js';
++import { SyncDescriptor } from '../../../../platform/instantiation/common/descriptors.js';
++import * as nls from '../../../../nls.js';
++import { KeyMod, KeyCode } from '../../../../base/common/keyCodes.js';
++import { rudderstackFeatureViewIcon } from './rudderstackIcons.js';
++import { RudderstackViewPaneContainer } from './rudderstackViewlet.js';
++import { RudderstackMainView } from './rudderstackMainView.js';
++import { VIEWLET_ID, MAIN_VIEW_ID } from '../common/rudderstack.js';
++
++// Register the view container (activity bar icon)
++const viewContainer = Registry.as<IViewContainersRegistry>(ViewExtensions.ViewContainersRegistry).registerViewContainer({
++    id: VIEWLET_ID, // Unique ID
++    title: nls.localize2('rudderstack', "Rudderstack"), // Display name
++    openCommandActionDescriptor: {
++        id: VIEWLET_ID,
++        mnemonicTitle: nls.localize({ key: 'miViewRudderstack', comment: ['&& denotes a mnemonic'] }, "&&Rudderstack"),
++        keybindings: { primary: KeyMod.CtrlCmd | KeyMod.Shift | KeyCode.KeyX }, // Optional shortcut
++    },
++    ctorDescriptor: new SyncDescriptor(RudderstackViewPaneContainer), // Container class
++    icon: rudderstackFeatureViewIcon, // Icon for activity bar
++    alwaysUseContainerInfo: true,
++    order: 1000, // High number to appear last
++}, ViewContainerLocation.Sidebar);
++
++// Register views inside the container
++const viewsRegistry = Registry.as<IViewsRegistry>(ViewExtensions.ViewsRegistry);
++viewsRegistry.registerViews([{
++    id: MAIN_VIEW_ID,
++    name: nls.localize2('rudderstackMainView', "Rudderstack"),
++    containerIcon: rudderstackFeatureViewIcon,
++    ctorDescriptor: new SyncDescriptor(RudderstackMainView),
++    order: 10,
++    weight: 40,
++    canToggleVisibility: true,
++    canMoveView: true
++}], viewContainer);
+\ No newline at end of file
+Index: code-server/lib/vscode/src/vs/workbench/contrib/rudderstack/browser/rudderstackIcons.ts
+===================================================================
+--- /dev/null
++++ code-server/lib/vscode/src/vs/workbench/contrib/rudderstack/browser/rudderstackIcons.ts
+@@ -0,0 +1,6 @@
++/* eslint-disable header/header */
++import { URI } from '../../../../base/common/uri.js';
++import { FileAccess } from '../../../../base/common/network.js';
++
++// Main activity bar icon - direct URI to custom SVG
++export const rudderstackFeatureViewIcon = URI.parse(FileAccess.asBrowserUri('vs/workbench/contrib/rudderstack/browser/media/rudderstack-icon.svg').toString());
+Index: code-server/lib/vscode/src/vs/workbench/contrib/rudderstack/browser/rudderstackMainView.ts
+===================================================================
+--- /dev/null
++++ code-server/lib/vscode/src/vs/workbench/contrib/rudderstack/browser/rudderstackMainView.ts
+@@ -0,0 +1,307 @@
++/* eslint-disable header/header */
++import { IKeybindingService } from '../../../../platform/keybinding/common/keybinding.js';
++import { IContextMenuService } from '../../../../platform/contextview/browser/contextView.js';
++import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
++import { IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
++import { IViewDescriptorService } from '../../../common/views.js';
++import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
++import { IOpenerService } from '../../../../platform/opener/common/opener.js';
++import { IThemeService } from '../../../../platform/theme/common/themeService.js';
++import { IHoverService } from '../../../../platform/hover/browser/hover.js';
++import { IDialogService } from '../../../../platform/dialogs/common/dialogs.js';
++import { IWorkspaceContextService } from '../../../../platform/workspace/common/workspace.js';
++import { ITerminalService, ITerminalGroupService, ITerminalEditorService } from '../../../contrib/terminal/browser/terminal.js';
++import { TerminalLocation } from '../../../../platform/terminal/common/terminal.js';
++import { IEditorService } from '../../../services/editor/common/editorService.js';
++import { IFileService } from '../../../../platform/files/common/files.js';
++import { VSBuffer } from '../../../../base/common/buffer.js';
++import { URI } from '../../../../base/common/uri.js';
++import { SaveReason } from '../../../common/editor.js';
++import { ViewPane } from '../../../browser/parts/views/viewPane.js';
++import { IViewletViewOptions } from '../../../browser/parts/views/viewsViewlet.js';
++import { MAIN_VIEW_ID } from '../common/rudderstack.js';
++import { Button } from '../../../../base/browser/ui/button/button.js';
++import { defaultButtonStyles } from '../../../../platform/theme/browser/defaultStyles.js';
++import { $, append } from '../../../../base/browser/dom.js';
++import { Severity } from '../../../../platform/notification/common/notification.js';
++import * as nls from '../../../../nls.js';
++
++export class RudderstackMainView extends ViewPane {
++
++	static readonly ID = MAIN_VIEW_ID;
++
++	private primaryButton: Button | undefined;
++	private runProjectButton: Button | undefined;
++	private compileProjectButton: Button | undefined;
++
++	constructor(
++		options: IViewletViewOptions,
++		@IKeybindingService keybindingService: IKeybindingService,
++		@IContextMenuService contextMenuService: IContextMenuService,
++		@IConfigurationService configurationService: IConfigurationService,
++		@IContextKeyService contextKeyService: IContextKeyService,
++		@IViewDescriptorService viewDescriptorService: IViewDescriptorService,
++		@IInstantiationService instantiationService: IInstantiationService,
++		@IOpenerService openerService: IOpenerService,
++		@IThemeService themeService: IThemeService,
++		@IHoverService hoverService: IHoverService,
++		@IDialogService private readonly dialogService: IDialogService,
++		@IWorkspaceContextService private readonly workspaceContextService: IWorkspaceContextService,
++		@ITerminalService private readonly terminalService: ITerminalService,
++		@ITerminalGroupService private readonly terminalGroupService: ITerminalGroupService,
++		@ITerminalEditorService private readonly terminalEditorService: ITerminalEditorService,
++		@IEditorService private readonly editorService: IEditorService,
++		@IFileService private readonly fileService: IFileService,
++	) {
++		super(options, keybindingService, contextMenuService, configurationService, contextKeyService, viewDescriptorService, instantiationService, openerService, themeService, hoverService);
++	}
++
++	protected override renderBody(container: HTMLElement): void {
++		super.renderBody(container);
++		
++		// Clear container
++		container.innerHTML = '';
++		
++		// Create main content container with proper spacing
++		const contentContainer = append(container, $('.rudderstack-content'));
++		contentContainer.style.padding = '20px';
++		contentContainer.style.display = 'flex';
++		contentContainer.style.flexDirection = 'column';
++		contentContainer.style.gap = '16px';
++
++		// Title
++		const title = append(contentContainer, $('.rudderstack-title'));
++		title.style.fontSize = '14px';
++		title.style.fontWeight = '600';
++		title.style.color = 'var(--vscode-foreground)';
++		title.textContent = nls.localize('rudderstackTitle', 'Rudderstack Profiles');
++
++		// Description
++		const description = append(contentContainer, $('.rudderstack-description'));
++		description.style.fontSize = '12px';
++		description.style.color = 'var(--vscode-descriptionForeground)';
++		description.style.marginBottom = '8px';
++		description.textContent = nls.localize('rudderstackDescription', 'edit your project');
++
++		// Button container
++		const buttonContainer = append(contentContainer, $('.button-container'));
++		buttonContainer.style.display = 'flex';
++		buttonContainer.style.flexDirection = 'column';
++		buttonContainer.style.gap = '8px';
++
++		// Primary action button (like "Run and Debug" button)
++		this.primaryButton = this._register(new Button(buttonContainer, {
++			supportIcons: true,
++			title: nls.localize('saveAndExit', 'Save and Exit'),
++			...defaultButtonStyles
++		}));
++		this.primaryButton.label = `$(save) ${nls.localize('saveAndExit', 'Save and Exit')}`;
++		this._register(this.primaryButton.onDidClick(async () => {
++			await this.onSaveAndExit();
++		}));
++
++		// Project Actions Section
++		const projectActionsTitle = append(contentContainer, $('.project-actions-title'));
++		projectActionsTitle.style.fontSize = '12px';
++		projectActionsTitle.style.fontWeight = '600';
++		projectActionsTitle.style.color = 'var(--vscode-foreground)';
++		projectActionsTitle.style.marginTop = '16px';
++		projectActionsTitle.style.marginBottom = '8px';
++		projectActionsTitle.textContent = nls.localize('projectActions', 'Project Actions');
++
++		// Project buttons container
++		const projectButtonContainer = append(contentContainer, $('.project-button-container'));
++		projectButtonContainer.style.display = 'flex';
++		projectButtonContainer.style.flexDirection = 'column';
++		projectButtonContainer.style.gap = '8px';
++
++		// Run Project button
++		this.runProjectButton = this._register(new Button(projectButtonContainer, {
++			supportIcons: true,
++			secondary: true,
++			title: nls.localize('runProject', 'Run Project'),
++			...defaultButtonStyles
++		}));
++		this.runProjectButton.label = `$(play) ${nls.localize('runProject', 'Run Project')}`;
++		this._register(this.runProjectButton.onDidClick(async () => {
++			await this.onRunProject();
++		}));
++
++		// Compile Project button
++		this.compileProjectButton = this._register(new Button(projectButtonContainer, {
++			supportIcons: true,
++			secondary: true,
++			title: nls.localize('compileProject', 'Compile Project'),
++			...defaultButtonStyles
++		}));
++		this.compileProjectButton.label = `$(tools) ${nls.localize('compileProject', 'Compile Project')}`;
++		this._register(this.compileProjectButton.onDidClick(async () => {
++			await this.onCompileProject();
++		}));
++	}
++
++	private async getStatusFileUri(): Promise<URI | undefined> {
++		// Try to get the status file path from VS Code configuration
++		const statusFilePath = this.configurationService.getValue<string>('rudderstack.statusFilePath');
++		if (statusFilePath) {
++			// If it's a relative path, resolve it against the workspace
++			if (!statusFilePath.startsWith('/') && !statusFilePath.match(/^[a-zA-Z]:/)) {
++				const workspace = this.workspaceContextService.getWorkspace();
++				if (workspace.folders && workspace.folders.length > 0) {
++					return URI.joinPath(workspace.folders[0].uri, statusFilePath);
++				}
++			}
++			// For absolute paths, try to create URI (may not work in browser context)
++			try {
++				return URI.file(statusFilePath);
++			} catch (error) {
++				console.warn('Failed to create URI from absolute path:', statusFilePath, error);
++			}
++		}
++
++		// Fallback: Use workspace-relative path with proper URI handling
++		const workspace = this.workspaceContextService.getWorkspace();
++		if (workspace.folders && workspace.folders.length > 0) {
++			const statusFileUri = URI.joinPath(workspace.folders[0].uri, 'rudderstack_status.json');
++			console.log('No rudderstack.statusFilePath configured, using workspace-relative location:', statusFileUri.toString());
++			return statusFileUri;
++		}
++		
++		console.warn('No workspace found, cannot determine status file location');
++		return undefined;
++	}
++
++	private async onSaveAndExit(): Promise<void> {
++		const result = await this.dialogService.confirm({
++			type: Severity.Warning,
++			message: nls.localize('saveAndExitConfirm', 'Save and Exit'),
++			detail: nls.localize('saveAndExitDetail', 'Are you sure you want to save all files and exit?'),
++			primaryButton: nls.localize('saveAndExit', 'Save and Exit'),
++			cancelButton: nls.localize('cancel', 'Cancel')
++		});
++
++		if (result.confirmed) {
++			try {
++				// Step 1: Save all files in the active folder
++				console.log('Saving all files...');
++				const saveResult = await this.editorService.saveAll({ 
++					includeUntitled: true, 
++					reason: SaveReason.EXPLICIT
++				});
++				
++				if (!saveResult.success) {
++					throw new Error('Some files could not be saved');
++				}
++				
++				// Step 2: Write status file to configured location
++				const statusFileUri = await this.getStatusFileUri();
++				if (statusFileUri) {
++					console.log(`Writing status file to: ${statusFileUri.toString()}`);
++					const statusData = {
++						timestamp: new Date().toISOString(),
++						action: 'save_and_exit',
++						status: 'completed',
++						savedFiles: saveResult.editors.length
++					};
++					
++					const statusFileContent = VSBuffer.fromString(JSON.stringify(statusData, null, 2));
++					await this.fileService.writeFile(statusFileUri, statusFileContent);
++					
++					console.log('Status file written successfully');
++				} else {
++					console.warn('No status file path configured, skipping status file creation');
++				}
++				
++				// Show success notification
++				this.dialogService.confirm({
++					type: Severity.Info,
++					message: nls.localize('saveAndExitSuccess', 'Save and Exit Complete'),
++					detail: nls.localize('saveAndExitSuccessDetail', 'All files have been saved successfully.'),
++					primaryButton: nls.localize('ok', 'OK')
++				});
++				
++				console.log('Save and exit operation completed successfully');
++				
++			} catch (error) {
++				console.error('Save and exit operation failed:', error);
++				this.dialogService.confirm({
++					type: Severity.Error,
++					message: nls.localize('saveAndExitError', 'Save and Exit Failed'),
++					detail: nls.localize('saveAndExitErrorDetail', `Failed to save files or write status: ${error instanceof Error ? error.message : 'Unknown error'}`),
++					primaryButton: nls.localize('ok', 'OK')
++				});
++			}
++		}
++	}
++
++	private async onRunProject(): Promise<void> {
++		try {
++			// Get or create a terminal instance
++			const terminal = await this.terminalService.getActiveOrCreateInstance();
++			
++			// Ensure the terminal is visible based on its location
++			if (terminal.target === TerminalLocation.Editor) {
++				const existingEditors = this.editorService.findEditors(terminal.resource);
++				this.terminalEditorService.openEditor(terminal, { viewColumn: existingEditors?.[0]?.groupId });
++			} else {
++				// Show the terminal panel
++				await this.terminalGroupService.showPanel(true);
++			}
++			
++			// Make sure the terminal is focused and ready
++			await terminal.focusWhenReady(true);
++			
++			// Execute the 'pb run' command
++			terminal.runCommand('pb run', true);
++			
++			console.log('Executing: pb run');
++		} catch (error) {
++			console.error('Failed to run project:', error);
++			// Optionally show an error dialog
++			this.dialogService.confirm({
++				type: Severity.Error,
++				message: nls.localize('runProjectError', 'Failed to run project'),
++				detail: nls.localize('runProjectErrorDetail', 'Could not execute "pb run" in terminal. Please check if the terminal is available.'),
++				primaryButton: nls.localize('ok', 'OK')
++			});
++		}
++	}
++
++	private async onCompileProject(): Promise<void> {
++		try {
++			// Get or create a terminal instance
++			const terminal = await this.terminalService.getActiveOrCreateInstance();
++			
++			// Ensure the terminal is visible based on its location
++			if (terminal.target === TerminalLocation.Editor) {
++				const existingEditors = this.editorService.findEditors(terminal.resource);
++				this.terminalEditorService.openEditor(terminal, { viewColumn: existingEditors?.[0]?.groupId });
++			} else {
++				// Show the terminal panel
++				await this.terminalGroupService.showPanel(true);
++			}
++			
++			// Make sure the terminal is focused and ready
++			await terminal.focusWhenReady(true);
++			
++			// Execute the 'pb compile' command
++			terminal.runCommand('pb compile', true);
++			
++			console.log('Executing: pb compile');
++		} catch (error) {
++			console.error('Failed to compile project:', error);
++			// Optionally show an error dialog
++			this.dialogService.confirm({
++				type: Severity.Error,
++				message: nls.localize('compileProjectError', 'Failed to compile project'),
++				detail: nls.localize('compileProjectErrorDetail', 'Could not execute "pb compile" in terminal. Please check if the terminal is available.'),
++				primaryButton: nls.localize('ok', 'OK')
++			});
++		}
++	}
++
++	protected override layoutBody(height: number, width: number): void {
++		super.layoutBody(height, width);
++		// Handle any layout changes if needed
++	}
++}
+\ No newline at end of file
+Index: code-server/lib/vscode/src/vs/workbench/contrib/rudderstack/browser/rudderstackViewlet.ts
+===================================================================
+--- /dev/null
++++ code-server/lib/vscode/src/vs/workbench/contrib/rudderstack/browser/rudderstackViewlet.ts
+@@ -0,0 +1,37 @@
++/* eslint-disable header/header */
++import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
++import { IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
++import { IContextMenuService } from '../../../../platform/contextview/browser/contextView.js';
++import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
++import { IStorageService } from '../../../../platform/storage/common/storage.js';
++import { ITelemetryService } from '../../../../platform/telemetry/common/telemetry.js';
++import { IThemeService } from '../../../../platform/theme/common/themeService.js';
++import { IWorkspaceContextService } from '../../../../platform/workspace/common/workspace.js';
++import { ViewPaneContainer } from '../../../browser/parts/views/viewPaneContainer.js';
++import { IViewDescriptorService } from '../../../common/views.js';
++import { IViewsService } from '../../../services/views/common/viewsService.js';
++import { IExtensionService } from '../../../services/extensions/common/extensions.js';
++import { IWorkbenchLayoutService } from '../../../services/layout/browser/layoutService.js';
++import { ILogService } from '../../../../platform/log/common/log.js';
++import { VIEWLET_ID } from '../common/rudderstack.js';
++
++export class RudderstackViewPaneContainer extends ViewPaneContainer {
++
++	constructor(
++		@IWorkbenchLayoutService layoutService: IWorkbenchLayoutService,
++		@ITelemetryService telemetryService: ITelemetryService,
++		@IWorkspaceContextService contextService: IWorkspaceContextService,
++		@IStorageService storageService: IStorageService,
++		@IConfigurationService configurationService: IConfigurationService,
++		@IInstantiationService instantiationService: IInstantiationService,
++		@IThemeService themeService: IThemeService,
++		@IContextMenuService contextMenuService: IContextMenuService,
++		@IExtensionService extensionService: IExtensionService,
++		@IContextKeyService contextKeyService: IContextKeyService,
++		@IViewDescriptorService viewDescriptorService: IViewDescriptorService,
++		@IViewsService viewsService: IViewsService,
++		@ILogService logService: ILogService,
++	) {
++		super(VIEWLET_ID, { mergeViewWithContainerWhenSingleView: true }, instantiationService, configurationService, layoutService, contextMenuService, telemetryService, extensionService, themeService, storageService, contextService, viewDescriptorService, logService);
++	}
++}
+\ No newline at end of file
+Index: code-server/lib/vscode/src/vs/workbench/contrib/rudderstack/common/rudderstack.ts
+===================================================================
+--- /dev/null
++++ code-server/lib/vscode/src/vs/workbench/contrib/rudderstack/common/rudderstack.ts
+@@ -0,0 +1,7 @@
++/*---------------------------------------------------------------------------------------------
++ *  Copyright (c) Microsoft Corporation. All rights reserved.
++ *  Licensed under the MIT License. See License.txt in the project root for license information.
++ *--------------------------------------------------------------------------------------------*/
++
++export const VIEWLET_ID = 'workbench.view.rudderstack';
++export const MAIN_VIEW_ID = 'workbench.rudderstack.mainView'; 
+\ No newline at end of file
