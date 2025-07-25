@@ -34,7 +34,7 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
       - name: Check changed files
-        uses: dorny/paths-filter@v3
+        uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 #v3
         id: filter
         with:
           filters: |
@@ -173,7 +173,7 @@ jobs:
         with:
           submodules: true
       - run: sudo apt update && sudo apt install -y libkrb5-dev
-      - uses: awalsh128/cache-apt-pkgs-action@latest
+      - uses: awalsh128/cache-apt-pkgs-action@4c82c3ccdc1344ee11e9775dbdbdf43aa8a5614e
         with:
           packages: quilt
           version: 1.0

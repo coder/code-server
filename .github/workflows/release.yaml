@@ -118,7 +118,7 @@ jobs:
           VERSION: ${{ env.VERSION }}
         run: npm run package $PKG_ARCH
 
-      - uses: softprops/action-gh-release@v1
+      - uses: softprops/action-gh-release@de2c0eb89ae2a093876385947365aca7b0e5f844 #v1
         with:
           draft: true
           discussion_category_name: "📣 Announcements"
@@ -179,7 +179,7 @@ jobs:
           VERSION: ${{ env.VERSION }}
         run: npm run package
 
-      - uses: softprops/action-gh-release@v1
+      - uses: softprops/action-gh-release@de2c0eb89ae2a093876385947365aca7b0e5f844 #v1
         with:
           draft: true
           discussion_category_name: "📣 Announcements"
@@ -240,7 +240,7 @@ jobs:
           VERSION: ${{ env.VERSION }}
         run: npm run package
 
-      - uses: softprops/action-gh-release@v1
+      - uses: softprops/action-gh-release@de2c0eb89ae2a093876385947365aca7b0e5f844 #v1
         with:
           draft: true
           discussion_category_name: "📣 Announcements"
@@ -257,7 +257,7 @@ jobs:
         with:
           name: npm-release-package
 
-      - uses: softprops/action-gh-release@v1
+      - uses: softprops/action-gh-release@de2c0eb89ae2a093876385947365aca7b0e5f844 #v1
         with:
           draft: true
           discussion_category_name: "📣 Announcements"
@@ -269,7 +269,7 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Download artifacts
-        uses: dawidd6/action-download-artifact@v10
+        uses: dawidd6/action-download-artifact@4c1e823582f43b179e2cbb49c3eade4e41f992e2 #v10
         id: download
         with:
           branch: ${{ github.ref }}
