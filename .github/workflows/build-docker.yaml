@@ -10,43 +10,109 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  arch_amd64: amd64
+  arch_arm64: arm64
+  docker_images: |
+    name=rudderstack/profiles-code-server
+  docker_tags: |
+    type=ref,event=branch
+    type=raw,value=latest
+    type=raw,value=${{ github.head_ref }}
+
 jobs:
-  docker:
+  metadata:
     runs-on: ubuntu-latest
+    outputs:
+      labels: ${{ steps.meta.outputs.labels }}
+      build-date: ${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
+      version: ${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}
+      revision: ${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
+      tags: ${{ steps.meta.outputs.tags }}
+      arm64_tags: ${{ steps.arm64_meta.outputs.tags }}
+      arm64_labels: ${{ steps.arm64_meta.outputs.labels }}
+      amd64_tags: ${{ steps.amd64_meta.outputs.tags }}
+      amd64_labels: ${{ steps.amd64_meta.outputs.labels }}
     steps:
-      - name: Check out repository code
-        uses: actions/checkout@v4
-
-      # This is a separate action that sets up buildx runner
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@master
-
-      - name: Docker meta
+      - name: docker meta
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: |
-            rudderstack/profiles-code-server
-          tags: |
-            type=ref,event=branch
-            type=raw,value=latest
-            type=raw,value=${{ github.head_ref }}
+          images: ${{ env.docker_images }}
+          tags: ${{ env.docker_tags }}
+      - name: docker arm64 meta
+        id: arm64_meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.docker_images }}
+          tags: ${{ env.docker_tags }}
+          flavor: |
+            suffix=-${{ env.arch_arm64 }},onlatest=true
+      - name: docker amd64 meta
+        id: amd64_meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.docker_images }}
+          tags: ${{ env.docker_tags }}
+          flavor: |
+            suffix=-${{ env.arch_amd64 }},onlatest=true
 
-      - name: Login to DockerHub
+  build:
+    needs:
+      - metadata
+    strategy:
+      fail-fast: false
+      matrix:
+        build-config:
+          - os: ubuntu-latest
+            tags: ${{ needs.metadata.outputs.arm64_tags }}
+            labels: ${{ needs.metadata.outputs.arm64_labels }}
+            platform: linux/arm64
+          - os: ubuntu-latest
+            tags: ${{ needs.metadata.outputs.amd64_tags }}
+            labels: ${{ needs.metadata.outputs.amd64_labels }}
+            platform: linux/amd64
+    runs-on: ${{ matrix.build-config.os }}
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+      - name: setup buildx
+        uses: docker/setup-buildx-action@v3
+      - name: docker login
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Build and push
-        uses: rudderlabs/build-scan-push-action@v1.5.3
+      - name: docker build
+        uses: docker/build-push-action@v5
         with:
           context: .
+          platforms: ${{ matrix.build-config.platform }}
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: ${{ matrix.build-config.tags }}
+          labels: ${{ matrix.build-config.labels }}
           build-args: |
             VERSION=${{ github.ref_name }}
             GITHUB_PAT=${{ secrets.PAT }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+  manifest:
+    runs-on: ubuntu-latest
+    needs: [build, metadata]
+    steps:
+      - name: setup buildx
+        uses: docker/setup-buildx-action@v3
+      - name: docker login
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: multi-arch manifest
+        run: |
+          while read -r tag; do
+            echo "$tag"
+            arm_tag=$(echo "${{ needs.metadata.outputs.arm64_tags }}" | grep "$tag")
+            amd_tag=$(echo "${{ needs.metadata.outputs.amd64_tags }}" | grep "$tag")
+            docker buildx imagetools create -t $tag $arm_tag $amd_tag
+          done <<< "${{ needs.metadata.outputs.tags }}"
