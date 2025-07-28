@@ -310,7 +310,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/rudderstack/browser/rudde
 +				this.dialogService.confirm({
 +					type: Severity.Error,
 +					message: nls.localize('saveAndExitError', 'Save and Exit Failed'),
-+					detail: nls.localize('saveAndExitErrorDetail', `Failed to save files or write status: ${error instanceof Error ? error.message : 'Unknown error'}`),
++					detail:  nls.localize('saveAndExitErrorDetail', 'Failed to save files or write status: {0}', error instanceof Error ? error.message : 'Unknown error'),
 +					primaryButton: nls.localize('ok', 'OK')
 +				});
 +			}
