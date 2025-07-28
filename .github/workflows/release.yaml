@@ -130,7 +130,7 @@ jobs:
     timeout-minutes: 15
     needs: npm-version
     env:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GITHUB_TOKEN: ${{ secrets.PAT }}
 
     steps:
       - name: Checkout repo
@@ -191,7 +191,7 @@ jobs:
     timeout-minutes: 15
     needs: npm-version
     env:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GITHUB_TOKEN: ${{ secrets.PAT }}
 
     steps:
       - name: Checkout repo
