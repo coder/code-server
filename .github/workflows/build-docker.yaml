@@ -62,7 +62,7 @@ jobs:
       fail-fast: false
       matrix:
         build-config:
-          - os: [ self-hosted, Linux, ARM64, ubuntu-22 ]
+          - os: [self-hosted, Linux, ARM64, ubuntu-22]
             tags: ${{ needs.metadata.outputs.arm64_tags }}
             labels: ${{ needs.metadata.outputs.arm64_labels }}
             platform: linux/arm64

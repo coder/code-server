@@ -167,7 +167,7 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          password: ${{ secrets.PAT }}
 
       # Strip out the v (v4.9.1 -> 4.9.1).
       - name: Get and set VERSION
