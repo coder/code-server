@@ -16,9 +16,7 @@ env:
   docker_images: |
     name=rudderstack/profiles-code-server
   docker_tags: |
-    type=ref,event=branch
     type=raw,value=latest
-    type=raw,value=${{ github.head_ref }}
 
 jobs:
   metadata:
@@ -64,7 +62,7 @@ jobs:
       fail-fast: false
       matrix:
         build-config:
-          - os: ubuntu-latest
+          - os: [ self-hosted, Linux, ARM64, ubuntu-22 ]
             tags: ${{ needs.metadata.outputs.arm64_tags }}
             labels: ${{ needs.metadata.outputs.arm64_labels }}
             platform: linux/arm64
@@ -79,12 +77,12 @@ jobs:
       - name: setup buildx
         uses: docker/setup-buildx-action@v3
       - name: docker login
-        uses: docker/login-action@v3
+        uses: docker/login-action@v3.1.0
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: docker build
-        uses: docker/build-push-action@v5
+        uses: rudderlabs/build-scan-push-action@v1.5.3
         with:
           context: .
           platforms: ${{ matrix.build-config.platform }}
@@ -94,6 +92,7 @@ jobs:
           build-args: |
             VERSION=${{ github.ref_name }}
             GITHUB_PAT=${{ secrets.PAT }}
+            ENTERPRISE_TOKEN=${{ secrets.ENTERPRISE_TOKEN }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -104,7 +103,7 @@ jobs:
       - name: setup buildx
         uses: docker/setup-buildx-action@v3
       - name: docker login
-        uses: docker/login-action@v3
+        uses: docker/login-action@v3.1.0
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
