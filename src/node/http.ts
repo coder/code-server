@@ -1,9 +1,8 @@
 import { field, logger } from "@coder/logger"
 import * as express from "express"
-import * as expressCore from "express-serve-static-core"
 import * as http from "http"
 import * as net from "net"
-import * as qs from "qs"
+import qs from "qs"
 import { Disposable } from "../common/emitter"
 import { CookieKeys, HttpCode, HttpError } from "../common/http"
 import { normalize } from "../common/util"
@@ -185,12 +184,7 @@ export const constructRedirectPath = (req: express.Request, query: qs.ParsedQs, 
  * preserved.  `to` should be a simple path without any query parameters
  * `override` will merge with the existing query (use `undefined` to unset).
  */
-export const redirect = (
-  req: express.Request,
-  res: express.Response,
-  to: string,
-  override: expressCore.Query = {},
-): void => {
+export const redirect = (req: express.Request, res: express.Response, to: string, override: qs.ParsedQs = {}): void => {
   const query = Object.assign({}, req.query, override)
   Object.keys(override).forEach((key) => {
     if (typeof override[key] === "undefined") {
