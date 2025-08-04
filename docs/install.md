@@ -82,13 +82,11 @@ _exact_ same commands presented in the rest of this document.
 - For Arch Linux, code-server will install the AUR package.
 - For any unrecognized Linux operating system, code-server will install the
   latest standalone release into `~/.local`.
-
   - Ensure that you add `~/.local/bin` to your `$PATH` to run code-server.
 
 - For macOS, code-server will install the Homebrew package (if you don't have
   Homebrew installed, code-server will install the latest standalone release
   into `~/.local`).
-
   - Ensure that you add `~/.local/bin` to your `$PATH` to run code-server.
 
 - For FreeBSD, code-server will install the [npm package](#npm) with `npm`

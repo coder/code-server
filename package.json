@@ -61,7 +61,7 @@
     "eslint-plugin-import": "^2.28.1",
     "eslint-plugin-prettier": "^5.0.0",
     "globals": "^16.1.0",
-    "prettier": "3.4.2",
+    "prettier": "3.6.2",
     "prettier-plugin-sh": "^0.14.0",
     "ts-node": "^10.9.1",
     "typescript": "^5.6.2",

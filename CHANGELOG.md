@@ -810,7 +810,6 @@ Code v1.68.1
   would be accessible at `my.domain/proxy/8000/` without any authentication.
 
   If all of the following apply to you please update as soon as possible:
-
   - You run code-server with the built-in password authentication.
   - You run unprotected HTTP services on ports accessible by code-server.
 
