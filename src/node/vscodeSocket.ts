@@ -2,8 +2,9 @@ import { logger } from "@coder/logger"
 import express from "express"
 import * as http from "http"
 import * as path from "path"
-import { HttpCode } from "../common/http"
+import { HttpCode, HttpError } from "../common/http"
 import { listen } from "./app"
+import { errorHandler } from "./routes/errors"
 import { canConnect } from "./util"
 
 export interface EditorSessionEntry {
@@ -44,24 +45,18 @@ export async function makeEditorSessionManagerServer(
     async (req, res) => {
       const filePath = req.query.filePath
       if (!filePath) {
-        res.status(HttpCode.BadRequest).send("filePath is required")
-        return
+        throw new HttpError("filePath is required", HttpCode.BadRequest)
       }
-      try {
-        const socketPath = await editorSessionManager.getConnectedSocketPath(filePath)
-        const response: GetSessionResponse = { socketPath }
-        res.json(response)
-      } catch (error: unknown) {
-        res.status(HttpCode.ServerError).send(error)
-      }
+      const socketPath = await editorSessionManager.getConnectedSocketPath(filePath)
+      const response: GetSessionResponse = { socketPath }
+      res.json(response)
     },
   )
 
   router.post<{}, string, AddSessionRequest | undefined>("/add-session", async (req, res) => {
     const entry = req.body?.entry
     if (!entry) {
-      res.status(400).send("entry is required")
-      return
+      throw new HttpError("entry is required", HttpCode.BadRequest)
     }
     editorSessionManager.addSession(entry)
     res.status(200).send("session added")
@@ -70,12 +65,13 @@ export async function makeEditorSessionManagerServer(
   router.post<{}, string, DeleteSessionRequest | undefined>("/delete-session", async (req, res) => {
     const socketPath = req.body?.socketPath
     if (!socketPath) {
-      res.status(400).send("socketPath is required")
-      return
+      throw new HttpError("socketPath is required", HttpCode.BadRequest)
     }
     editorSessionManager.deleteSession(socketPath)
     res.status(200).send("session deleted")
   })
+
+  router.use(errorHandler)
 
   const server = http.createServer(router)
   try {
