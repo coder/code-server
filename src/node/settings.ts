@@ -1,5 +1,5 @@
 import { logger } from "@coder/logger"
-import { Query } from "express-serve-static-core"
+import type { ParsedQs } from "qs"
 import { promises as fs } from "fs"
 
 export type Settings = { [key: string]: Settings | string | boolean | number }
@@ -52,5 +52,5 @@ export interface UpdateSettings {
  * Global code-server settings.
  */
 export interface CoderSettings extends UpdateSettings {
-  query?: Query
+  query?: ParsedQs
 }
