@@ -12,7 +12,7 @@ Index: code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
  
  	/* ----- server setup ----- */
  
-@@ -111,6 +112,7 @@ export interface ServerParsedArgs {
+@@ -112,6 +113,7 @@ export interface ServerParsedArgs {
  	'disable-file-uploads'?: boolean;
  	'disable-getting-started-override'?: boolean,
  	'locale'?: string

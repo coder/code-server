@@ -28,7 +28,7 @@ Index: code-server/lib/vscode/src/vs/server/node/serverServices.ts
  import { NullPolicyService } from '../../platform/policy/common/policy.js';
  import { OneDataSystemAppender } from '../../platform/telemetry/node/1dsAppender.js';
  import { LoggerService } from '../../platform/log/node/loggerService.js';
-@@ -163,11 +165,23 @@ export async function setupServerService
+@@ -164,11 +166,23 @@ export async function setupServerService
  	const requestService = new RequestService('remote', configurationService, environmentService, logService);
  	services.set(IRequestService, requestService);
  

@@ -10,7 +10,7 @@ Index: code-server/lib/vscode/src/vs/base/common/network.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/base/common/network.ts
 +++ code-server/lib/vscode/src/vs/base/common/network.ts
-@@ -223,7 +223,9 @@ class RemoteAuthoritiesImpl {
+@@ -226,7 +226,9 @@ class RemoteAuthoritiesImpl {
  		return URI.from({
  			scheme: platform.isWeb ? this._preferredWebSchema : Schemas.vscodeRemoteResource,
  			authority: `${host}:${port}`,
@@ -253,7 +253,7 @@ Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/code/browser/workbench/workbench.ts
 +++ code-server/lib/vscode/src/vs/code/browser/workbench/workbench.ts
-@@ -333,7 +333,8 @@ class LocalStorageURLCallbackProvider ex
+@@ -338,7 +338,8 @@ class LocalStorageURLCallbackProvider ex
  			this.startListening();
  		}
  
@@ -263,7 +263,7 @@ Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench.ts
  	}
  
  	private startListening(): void {
-@@ -578,17 +579,6 @@ class WorkspaceProvider implements IWork
+@@ -583,17 +584,6 @@ class WorkspaceProvider implements IWork
  	}
  }
  
@@ -281,7 +281,7 @@ Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench.ts
  (function () {
  
  	// Find config by checking for DOM
-@@ -597,8 +587,8 @@ function readCookie(name: string): strin
+@@ -602,8 +592,8 @@ function readCookie(name: string): strin
  	if (!configElement || !configElementAttribute) {
  		throw new Error('Missing web configuration element');
  	}

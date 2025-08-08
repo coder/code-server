@@ -18,7 +18,7 @@ Index: code-server/lib/vscode/src/vs/server/node/serverServices.ts
  import { ProtocolConstants } from '../../base/parts/ipc/common/ipc.net.js';
  import { IConfigurationService } from '../../platform/configuration/common/configuration.js';
  import { ConfigurationService } from '../../platform/configuration/common/configurationService.js';
-@@ -267,6 +267,9 @@ export async function setupServerService
+@@ -269,6 +269,9 @@ export async function setupServerService
  
  		socketServer.registerChannel('mcpManagement', new McpManagementChannel(mcpManagementService, (ctx: RemoteAgentConnectionContext) => getUriTransformer(ctx.remoteAuthority)));
  
@@ -198,7 +198,7 @@ Index: code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
  
  	/* ----- server setup ----- */
  
-@@ -109,6 +110,7 @@ export interface ServerParsedArgs {
+@@ -110,6 +111,7 @@ export interface ServerParsedArgs {
  	'disable-file-downloads'?: boolean;
  	'disable-file-uploads'?: boolean;
  	'disable-getting-started-override'?: boolean,
@@ -339,7 +339,7 @@ Index: code-server/lib/vscode/src/vs/workbench/workbench.web.main.internal.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/workbench.web.main.internal.ts
 +++ code-server/lib/vscode/src/vs/workbench/workbench.web.main.internal.ts
-@@ -53,7 +53,7 @@ import './services/dialogs/browser/fileD
+@@ -54,7 +54,7 @@ import './services/dialogs/browser/fileD
  import './services/host/browser/browserHostService.js';
  import './services/lifecycle/browser/lifecycleService.js';
  import './services/clipboard/browser/clipboardService.js';
