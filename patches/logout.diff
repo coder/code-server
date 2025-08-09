@@ -28,7 +28,7 @@ Index: code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
  
  	/* ----- server setup ----- */
  
-@@ -101,6 +102,7 @@ export const serverOptions: OptionDescri
+@@ -102,6 +103,7 @@ export const serverOptions: OptionDescri
  export interface ServerParsedArgs {
  	/* ----- code-server ----- */
  	'disable-update-check'?: boolean;
