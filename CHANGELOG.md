@@ -22,6 +22,14 @@ Code v99.99.999
 
 ## Unreleased
 
+## [4.103.0](https://github.com/coder/code-server/releases/tag/v4.103.0) - 2025-08-12
+
+Code v1.103.0
+
+### Changed
+
+- Update to Code 1.103.0.
+
 ## [4.102.2](https://github.com/coder/code-server/releases/tag/v4.102.2) - 2025-07-24
 
 Code v1.102.2
