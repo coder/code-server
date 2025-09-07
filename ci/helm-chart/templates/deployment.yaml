@@ -8,7 +8,7 @@ metadata:
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
   {{- if .Values.annotations }}
-  annotations: {{- toYaml .Values.annotations | nindent 8 }}
+  annotations: {{- toYaml .Values.annotations | nindent 4 }}
   {{- end }}
 spec:
   replicas: {{ .Values.replicaCount | default 1 }}
