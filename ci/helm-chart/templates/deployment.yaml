@@ -7,6 +7,9 @@ metadata:
     helm.sh/chart: {{ include "code-server.chart" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
+  {{- if .Values.Annotations }}
+  annotations: {{- toYaml .Values.Annotations | nindent 8 }}
+  {{- end }}
 spec:
   replicas: {{ .Values.replicaCount | default 1 }}
   strategy:
