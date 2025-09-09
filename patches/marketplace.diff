@@ -19,7 +19,7 @@ Index: code-server/lib/vscode/src/vs/platform/product/common/product.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/platform/product/common/product.ts
 +++ code-server/lib/vscode/src/vs/platform/product/common/product.ts
-@@ -49,6 +49,16 @@ else if (globalThis._VSCODE_PRODUCT_JSON
+@@ -49,6 +49,17 @@ else if (globalThis._VSCODE_PRODUCT_JSON
  			version: pkg.version
  		});
  	}
@@ -28,6 +28,7 @@ Index: code-server/lib/vscode/src/vs/platform/product/common/product.ts
 +		extensionsGallery: env.EXTENSIONS_GALLERY ? JSON.parse(env.EXTENSIONS_GALLERY) : (product.extensionsGallery || {
 +			serviceUrl: "https://open-vsx.org/vscode/gallery",
 +			itemUrl: "https://open-vsx.org/vscode/item",
++			extensionUrlTemplate: "https://open-vsx.org/vscode/gallery/{publisher}/{name}/latest",
 +			resourceUrlTemplate: "https://open-vsx.org/vscode/asset/{publisher}/{name}/{version}/Microsoft.VisualStudio.Code.WebResources/{path}",
 +			controlUrl: "",
 +			recommendationsUrl: "",
