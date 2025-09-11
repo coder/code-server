@@ -292,7 +292,7 @@ Index: code-server/lib/vscode/src/server-main.ts
 +		osLocale: 'en',
 +		commit: product.commit,
 +		userDataPath: '',
-+		nlsMetadataPath: __dirname,
++		nlsMetadataPath: import.meta.dirname,
 +	});
 +	return loadCode(nlsConfiguration);
 +}
