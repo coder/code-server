@@ -10,7 +10,7 @@ Index: code-server/lib/vscode/src/vs/base/common/network.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/base/common/network.ts
 +++ code-server/lib/vscode/src/vs/base/common/network.ts
-@@ -226,7 +226,9 @@ class RemoteAuthoritiesImpl {
+@@ -232,7 +232,9 @@ class RemoteAuthoritiesImpl {
  		return URI.from({
  			scheme: platform.isWeb ? this._preferredWebSchema : Schemas.vscodeRemoteResource,
  			authority: `${host}:${port}`,
@@ -241,7 +241,7 @@ Index: code-server/lib/vscode/src/vs/base/common/product.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/base/common/product.ts
 +++ code-server/lib/vscode/src/vs/base/common/product.ts
-@@ -57,6 +57,7 @@ export type ExtensionVirtualWorkspaceSup
+@@ -65,6 +65,7 @@ export type ExtensionVirtualWorkspaceSup
  
  export interface IProductConfiguration {
  	readonly codeServerVersion?: string

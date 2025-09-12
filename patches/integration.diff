@@ -109,24 +109,6 @@ Index: code-server/lib/vscode/src/vs/base/common/processes.ts
  	];
  	const envKeys = Object.keys(env);
  	envKeys
-Index: code-server/lib/vscode/src/vs/workbench/browser/parts/dialogs/dialogHandler.ts
-===================================================================
---- code-server.orig/lib/vscode/src/vs/workbench/browser/parts/dialogs/dialogHandler.ts
-+++ code-server/lib/vscode/src/vs/workbench/browser/parts/dialogs/dialogHandler.ts
-@@ -78,8 +78,11 @@ export class BrowserDialogHandler extend
- 
- 	async about(): Promise<void> {
- 		const detailString = (useAgo: boolean): string => {
--			return localize('aboutDetail',
--				"Version: {0}\nCommit: {1}\nDate: {2}\nBrowser: {3}",
-+			return localize('aboutCodeServerDetail',
-+				"code-server: {0}",
-+				this.productService.codeServerVersion ? `v${this.productService.codeServerVersion}` : 'Unknown'
-+			) + '\n' + localize('aboutDetail',
-+				"Code: {0}\nCommit: {1}\nDate: {2}\nBrowser: {3}",
- 				this.productService.version || 'Unknown',
- 				this.productService.commit || 'Unknown',
- 				this.productService.date ? `${this.productService.date}${useAgo ? ' (' + fromNow(new Date(this.productService.date), true) + ')' : ''}` : 'Unknown',
 Index: code-server/lib/vscode/src/vs/workbench/browser/client.ts
 ===================================================================
 --- /dev/null
@@ -204,7 +186,7 @@ Index: code-server/lib/vscode/src/vs/base/common/product.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/base/common/product.ts
 +++ code-server/lib/vscode/src/vs/base/common/product.ts
-@@ -56,6 +56,8 @@ export type ExtensionVirtualWorkspaceSup
+@@ -64,6 +64,8 @@ export type ExtensionVirtualWorkspaceSup
  };
  
  export interface IProductConfiguration {
@@ -281,7 +263,7 @@ Index: code-server/lib/vscode/src/server-main.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/server-main.ts
 +++ code-server/lib/vscode/src/server-main.ts
-@@ -25,6 +25,9 @@ const __dirname = path.dirname(fileURLTo
+@@ -22,6 +22,9 @@ import { IServerAPI } from './vs/server/
  perf.mark('code/server/start');
  (globalThis as any).vscodeServerStartTime = performance.now();
  
@@ -291,7 +273,7 @@ Index: code-server/lib/vscode/src/server-main.ts
  // Do a quick parse to determine if a server or the cli needs to be started
  const parsedArgs = minimist(process.argv.slice(2), {
  	boolean: ['start-server', 'list-extensions', 'print-ip-address', 'help', 'version', 'accept-server-license-terms', 'update-extensions'],
-@@ -153,6 +156,7 @@ if (shouldSpawnCli) {
+@@ -150,6 +153,7 @@ if (shouldSpawnCli) {
  		}
  	});
  }
@@ -299,7 +281,7 @@ Index: code-server/lib/vscode/src/server-main.ts
  
  function sanitizeStringArg(val: any): string | undefined {
  	if (Array.isArray(val)) { // if an argument is passed multiple times, minimist creates an array
-@@ -286,3 +290,22 @@ function prompt(question: string): Promi
+@@ -283,3 +287,22 @@ function prompt(question: string): Promi
  		});
  	});
  }
@@ -310,7 +292,7 @@ Index: code-server/lib/vscode/src/server-main.ts
 +		osLocale: 'en',
 +		commit: product.commit,
 +		userDataPath: '',
-+		nlsMetadataPath: __dirname,
++		nlsMetadataPath: import.meta.dirname,
 +	});
 +	return loadCode(nlsConfiguration);
 +}
@@ -322,3 +304,21 @@ Index: code-server/lib/vscode/src/server-main.ts
 +if (!process.env.CODE_SERVER_PARENT_PID) {
 +	start();
 +}
+Index: code-server/lib/vscode/src/vs/platform/dialogs/browser/dialog.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/platform/dialogs/browser/dialog.ts
++++ code-server/lib/vscode/src/vs/platform/dialogs/browser/dialog.ts
+@@ -45,8 +45,11 @@ export function createWorkbenchDialogOpt
+ 
+ export function createBrowserAboutDialogDetails(productService: IProductService): { title: string; details: string; detailsToCopy: string } {
+ 	const detailString = (useAgo: boolean): string => {
+-		return localize('aboutDetail',
+-			"Version: {0}\nCommit: {1}\nDate: {2}\nBrowser: {3}",
++		return localize('aboutCodeServerDetail',
++			"code-server: {0}",
++			productService.codeServerVersion ? `v${productService.codeServerVersion}` : 'Unknown'
++		) + '\n' + localize('aboutDetail',
++			"Code: {0}\nCommit: {1}\nDate: {2}\nBrowser: {3}",
+ 			productService.version || 'Unknown',
+ 			productService.commit || 'Unknown',
+ 			productService.date ? `${productService.date}${useAgo ? ' (' + fromNow(new Date(productService.date), true) + ')' : ''}` : 'Unknown',

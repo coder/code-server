@@ -28,7 +28,7 @@ Index: code-server/lib/vscode/src/vs/server/node/serverServices.ts
  import { NullPolicyService } from '../../platform/policy/common/policy.js';
  import { OneDataSystemAppender } from '../../platform/telemetry/node/1dsAppender.js';
  import { LoggerService } from '../../platform/log/node/loggerService.js';
-@@ -164,11 +166,23 @@ export async function setupServerService
+@@ -166,11 +168,23 @@ export async function setupServerService
  	const requestService = new RequestService('remote', configurationService, environmentService, logService);
  	services.set(IRequestService, requestService);
  
@@ -147,7 +147,7 @@ Index: code-server/lib/vscode/src/vs/base/common/product.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/base/common/product.ts
 +++ code-server/lib/vscode/src/vs/base/common/product.ts
-@@ -65,6 +65,7 @@ export interface IProductConfiguration {
+@@ -73,6 +73,7 @@ export interface IProductConfiguration {
  		readonly path: string;
  		readonly scope: string;
  	}
