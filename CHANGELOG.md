@@ -22,6 +22,19 @@ Code v99.99.999
 
 ## Unreleased
 
+## [4.104.0](https://github.com/coder/code-server/releases/tag/v4.104.0) - 2025-09-15
+
+Code v1.104.0
+
+### Fixed
+
+- Fix "extension not found" errors from Open VSX when trying to install the
+  latest version of an extension.
+
+### Changed
+
+- Update to Code 1.104.0.
+
 ## [4.103.2](https://github.com/coder/code-server/releases/tag/v4.103.2) - 2025-08-25
 
 Code v1.103.2
