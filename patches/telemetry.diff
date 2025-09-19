@@ -159,7 +159,7 @@ Index: code-server/lib/vscode/src/vs/platform/product/common/product.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/platform/product/common/product.ts
 +++ code-server/lib/vscode/src/vs/platform/product/common/product.ts
-@@ -57,7 +57,8 @@ else if (globalThis._VSCODE_PRODUCT_JSON
+@@ -58,7 +58,8 @@ else if (globalThis._VSCODE_PRODUCT_JSON
  			resourceUrlTemplate: "https://open-vsx.org/vscode/asset/{publisher}/{name}/{version}/Microsoft.VisualStudio.Code.WebResources/{path}",
  			controlUrl: "",
  			recommendationsUrl: "",
