@@ -241,7 +241,7 @@ jobs:
             package-lock.json
             test/package-lock.json
       - run: SKIP_SUBMODULE_DEPS=1 npm ci
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         with:
           name: npm-package
       - run: tar -xzf package.tar.gz
@@ -275,7 +275,7 @@ jobs:
             package-lock.json
             test/package-lock.json
       - run: SKIP_SUBMODULE_DEPS=1 npm ci
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         with:
           name: npm-package
       - run: tar -xzf package.tar.gz
