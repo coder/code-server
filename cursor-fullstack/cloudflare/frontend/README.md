@@ -34,17 +34,12 @@ git push -u origin main
    - **Framework preset**: Vite
    - **Build command**: `npm run build`
    - **Build output directory**: `dist`
-   - **Root directory**: `/` (root)
 
 ### 3. إضافة متغيرات البيئة
-
-في Cloudflare Pages Dashboard، أضف:
 
 ```bash
 VITE_BACKEND_URL=https://cursor-backend.workers.dev
 VITE_WS_URL=wss://cursor-backend.workers.dev
-VITE_APP_NAME=Cursor Full Stack AI IDE
-VITE_APP_VERSION=1.0.0
 ```
 
 ## 🛠️ التطوير المحلي
