@@ -64,9 +64,31 @@ const mistralProvider: AIProvider = {
   }
 };
 
+const openrouterProvider: AIProvider = {
+  async chat(message: string, apiKey: string, model = 'meta-llama/llama-2-70b-chat') {
+    const openai = new OpenAI({
+      apiKey: apiKey,
+      baseURL: 'https://openrouter.ai/api/v1',
+      defaultHeaders: {
+        'HTTP-Referer': 'https://cursor-fullstack-ai-ide.com',
+        'X-Title': 'Cursor Full Stack AI IDE'
+      }
+    });
+    
+    const completion = await openai.chat.completions.create({
+      messages: [{ role: 'user', content: message }],
+      model: model,
+      stream: false
+    });
+
+    return completion.choices[0]?.message?.content || 'No response generated';
+  }
+};
+
 export const aiProviders: Record<string, AIProvider> = {
   openai: openaiProvider,
   anthropic: anthropicProvider,
   google: googleProvider,
-  mistral: mistralProvider
+  mistral: mistralProvider,
+  openrouter: openrouterProvider
 };

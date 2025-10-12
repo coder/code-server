@@ -7,7 +7,9 @@ import {
   FolderOpen,
   ChevronRight,
   ChevronDown,
-  Wrench
+  Wrench,
+  Code,
+  ExternalLink
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -17,6 +19,7 @@ interface SidebarProps {
   onShowChat: () => void;
   onShowProviderForm: () => void;
   onShowTools: () => void;
+  onOpenCodeServer: () => void;
   showChat: boolean;
   showTools: boolean;
 }
@@ -28,6 +31,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onShowChat,
   onShowProviderForm,
   onShowTools,
+  onOpenCodeServer,
   showChat,
   showTools
 }) => {
@@ -130,6 +134,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
         >
           <Wrench className="w-4 h-4 mr-2" />
           Tools
+        </button>
+        <button
+          onClick={onOpenCodeServer}
+          className="w-full flex items-center px-3 py-2 rounded text-sm transition-colors hover:bg-cursor-hover group"
+        >
+          <Code className="w-4 h-4 mr-2" />
+          <span className="flex-1 text-left">VS Code Server</span>
+          <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
         </button>
       </div>
 

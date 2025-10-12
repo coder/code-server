@@ -200,6 +200,7 @@ export const ChatAssistant: React.FC<ChatAssistantProps> = ({
             <option value="anthropic">Anthropic</option>
             <option value="google">Google Gemini</option>
             <option value="mistral">Mistral</option>
+            <option value="openrouter">OpenRouter</option>
           </select>
           <button
             onClick={clearChat}

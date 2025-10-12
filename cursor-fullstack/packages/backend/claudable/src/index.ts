@@ -29,6 +29,16 @@ const aiToolIntegration = new AIToolIntegration();
 app.use(cors());
 app.use(express.json());
 
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.json({ 
+    status: 'healthy', 
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    version: '1.0.0'
+  });
+});
+
 // Routes
 app.use('/api', sessionRoutes);
 
@@ -36,10 +46,11 @@ app.use('/api', sessionRoutes);
 app.get('/api/providers', (req, res) => {
   res.json({
     providers: [
-      { id: 'openai', name: 'OpenAI', models: ['gpt-4', 'gpt-3.5-turbo'] },
-      { id: 'anthropic', name: 'Anthropic', models: ['claude-3-sonnet', 'claude-3-haiku'] },
-      { id: 'google', name: 'Google Gemini', models: ['gemini-pro', 'gemini-pro-vision'] },
-      { id: 'mistral', name: 'Mistral', models: ['mistral-large', 'mistral-medium'] }
+      { id: 'openai', name: 'OpenAI', models: ['gpt-4', 'gpt-3.5-turbo', 'gpt-4-turbo'] },
+      { id: 'anthropic', name: 'Anthropic', models: ['claude-3-sonnet', 'claude-3-haiku', 'claude-3-opus'] },
+      { id: 'google', name: 'Google Gemini', models: ['gemini-pro', 'gemini-pro-vision', 'gemini-1.5-pro'] },
+      { id: 'mistral', name: 'Mistral', models: ['mistral-large', 'mistral-medium', 'mistral-small'] },
+      { id: 'openrouter', name: 'OpenRouter', models: ['meta-llama/llama-2-70b-chat', 'meta-llama/llama-2-13b-chat', 'microsoft/wizardlm-13b', 'openai/gpt-4', 'anthropic/claude-3-sonnet'] }
     ]
   });
 });
@@ -50,7 +61,17 @@ app.post('/api/chat', async (req, res) => {
     const { message, provider, apiKey, model, useTools = false, conversationHistory = [] } = req.body;
     
     if (!message || !provider || !apiKey) {
-      return res.status(400).json({ error: 'Missing required fields' });
+      return res.status(400).json({ 
+        error: 'Missing required fields',
+        details: 'Please provide message, provider, and apiKey'
+      });
+    }
+
+    if (!aiProviders[provider]) {
+      return res.status(400).json({ 
+        error: 'Invalid provider',
+        details: `Provider '${provider}' is not supported`
+      });
     }
 
     let response;
@@ -64,17 +85,48 @@ app.post('/api/chat', async (req, res) => {
       );
       response = result.response;
       if (result.toolResults) {
-        res.json({ response, toolResults: result.toolResults });
+        res.json({ 
+          response, 
+          toolResults: result.toolResults,
+          provider: provider,
+          model: model || 'default'
+        });
         return;
       }
     } else {
       response = await aiProviders[provider].chat(message, apiKey, model);
     }
     
-    res.json({ response });
+    res.json({ 
+      response,
+      provider: provider,
+      model: model || 'default'
+    });
   } catch (error) {
     console.error('Chat error:', error);
-    res.status(500).json({ error: 'Failed to process chat request' });
+    
+    // More specific error handling
+    if (error.message?.includes('API key')) {
+      res.status(401).json({ 
+        error: 'Invalid API key',
+        details: 'Please check your API key and try again'
+      });
+    } else if (error.message?.includes('rate limit')) {
+      res.status(429).json({ 
+        error: 'Rate limit exceeded',
+        details: 'Please wait before making another request'
+      });
+    } else if (error.message?.includes('quota')) {
+      res.status(402).json({ 
+        error: 'Quota exceeded',
+        details: 'You have exceeded your API quota'
+      });
+    } else {
+      res.status(500).json({ 
+        error: 'Failed to process chat request',
+        details: error.message || 'An unexpected error occurred'
+      });
+    }
   }
 });
 

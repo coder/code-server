@@ -4,6 +4,8 @@ import { EditorPanel } from './components/EditorPanel';
 import { ChatAssistant } from './components/ChatAssistant';
 import { ProviderForm } from './components/ProviderForm';
 import { ToolPanel } from './components/ToolPanel';
+import { StatusBar } from './components/StatusBar';
+import { NotificationContainer } from './components/Notification';
 import { io } from 'socket.io-client';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
@@ -18,6 +20,11 @@ function App() {
   const [socket, setSocket] = useState<any>(null);
   const [apiKeys, setApiKeys] = useState<Record<string, string>>({});
   const [selectedProvider, setSelectedProvider] = useState<string>('openai');
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [currentLine, setCurrentLine] = useState(1);
+  const [currentColumn, setCurrentColumn] = useState(1);
+  const [lineCount, setLineCount] = useState(0);
+  const [gitBranch, setGitBranch] = useState<string>('');
 
   useEffect(() => {
     // Initialize Socket.IO connection
@@ -51,6 +58,51 @@ function App() {
     setShowProviderForm(false);
   };
 
+  const handleOpenCodeServer = () => {
+    window.open('http://localhost:8081', '_blank');
+  };
+
+  const addNotification = (notification: any) => {
+    const id = Date.now().toString();
+    setNotifications(prev => [...prev, { ...notification, id }]);
+  };
+
+  const removeNotification = (id: string) => {
+    setNotifications(prev => prev.filter(n => n.id !== id));
+  };
+
+  const getLanguageFromExtension = (filename: string) => {
+    const ext = filename.split('.').pop()?.toLowerCase();
+    const languageMap: Record<string, string> = {
+      'js': 'javascript',
+      'jsx': 'javascript',
+      'ts': 'typescript',
+      'tsx': 'typescript',
+      'py': 'python',
+      'java': 'java',
+      'cpp': 'cpp',
+      'c': 'c',
+      'cs': 'csharp',
+      'go': 'go',
+      'rs': 'rust',
+      'php': 'php',
+      'rb': 'ruby',
+      'html': 'html',
+      'css': 'css',
+      'scss': 'scss',
+      'json': 'json',
+      'xml': 'xml',
+      'yaml': 'yaml',
+      'yml': 'yaml',
+      'md': 'markdown',
+      'sql': 'sql',
+      'sh': 'shell',
+      'bash': 'shell',
+      'dockerfile': 'dockerfile',
+    };
+    return languageMap[ext || ''] || 'plaintext';
+  };
+
   return (
     <div className="flex h-screen bg-cursor-bg text-cursor-text">
       {/* Sidebar */}
@@ -61,6 +113,7 @@ function App() {
         onShowChat={() => setShowChat(!showChat)}
         onShowProviderForm={() => setShowProviderForm(true)}
         onShowTools={() => setShowTools(!showTools)}
+        onOpenCodeServer={handleOpenCodeServer}
         showChat={showChat}
         showTools={showTools}
       />
@@ -97,6 +150,23 @@ function App() {
           />
         )}
       </div>
+
+      {/* Status Bar */}
+      <StatusBar
+        isConnected={socket?.connected || false}
+        selectedFile={selectedFile}
+        lineCount={lineCount}
+        currentLine={currentLine}
+        currentColumn={currentColumn}
+        language={selectedFile ? getLanguageFromExtension(selectedFile) : ''}
+        gitBranch={gitBranch}
+      />
+
+      {/* Notifications */}
+      <NotificationContainer
+        notifications={notifications}
+        onClose={removeNotification}
+      />
 
       {/* Provider Form Modal */}
       {showProviderForm && (

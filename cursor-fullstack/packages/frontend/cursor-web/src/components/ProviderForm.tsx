@@ -11,30 +11,37 @@ const providers = [
   {
     id: 'openai',
     name: 'OpenAI',
-    description: 'GPT-4, GPT-3.5 Turbo',
+    description: 'GPT-4, GPT-3.5 Turbo, GPT-4 Turbo',
     placeholder: 'sk-...',
     url: 'https://platform.openai.com/api-keys'
   },
   {
     id: 'anthropic',
     name: 'Anthropic',
-    description: 'Claude 3 Sonnet, Claude 3 Haiku',
+    description: 'Claude 3 Sonnet, Claude 3 Haiku, Claude 3 Opus',
     placeholder: 'sk-ant-...',
     url: 'https://console.anthropic.com/'
   },
   {
     id: 'google',
     name: 'Google Gemini',
-    description: 'Gemini Pro, Gemini Pro Vision',
+    description: 'Gemini Pro, Gemini Pro Vision, Gemini 1.5 Pro',
     placeholder: 'AIza...',
     url: 'https://makersuite.google.com/app/apikey'
   },
   {
     id: 'mistral',
     name: 'Mistral',
-    description: 'Mistral Large, Mistral Medium',
+    description: 'Mistral Large, Mistral Medium, Mistral Small',
     placeholder: 'mistral-...',
     url: 'https://console.mistral.ai/'
+  },
+  {
+    id: 'openrouter',
+    name: 'OpenRouter',
+    description: 'Llama 2, WizardLM, GPT-4, Claude 3, and more',
+    placeholder: 'sk-or-...',
+    url: 'https://openrouter.ai/keys'
   }
 ];
 
