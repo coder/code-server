@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Sidebar } from './components/Sidebar';
-import { EditorPanel } from './components/EditorPanel';
+import { MonacoEditor } from './components/MonacoEditor';
 import { ChatAssistant } from './components/ChatAssistant';
 import { ProviderForm } from './components/ProviderForm';
 import { ToolPanel } from './components/ToolPanel';
@@ -148,10 +148,55 @@ function App() {
       {/* Main Content */}
       <div className="flex-1 flex">
         <div className="flex-1 flex flex-col">
-          {/* Editor Panel */}
-          <EditorPanel
+          {/* Monaco Editor */}
+          <MonacoEditor
             selectedFile={selectedFile}
-            onFileChange={loadWorkspaceFiles}
+            onFileChange={(filePath, content) => {
+              // Handle file change
+              console.log('File changed:', filePath);
+            }}
+            onSave={async (filePath, content) => {
+              try {
+                const response = await fetch(`${BACKEND_URL}/api/workspace/file/${filePath}`, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify({ content }),
+                });
+                if (response.ok) {
+                  addNotification({
+                    type: 'success',
+                    title: 'File Saved',
+                    message: `${filePath} saved successfully`
+                  });
+                }
+              } catch (error) {
+                addNotification({
+                  type: 'error',
+                  title: 'Save Failed',
+                  message: `Failed to save ${filePath}`
+                });
+              }
+            }}
+            onRun={async (filePath, content) => {
+              try {
+                const response = await fetch(`${BACKEND_URL}/api/execute`, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify({
+                    code: content,
+                    language: getLanguageFromExtension(filePath)
+                  }),
+                });
+                const result = await response.json();
+                console.log('Code executed:', result);
+              } catch (error) {
+                console.error('Failed to run code:', error);
+              }
+            }}
             backendUrl={BACKEND_URL}
           />
 

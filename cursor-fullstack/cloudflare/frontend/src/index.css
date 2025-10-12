@@ -1,0 +1,340 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom Cursor IDE Theme */
+:root {
+  --cursor-bg: #1e1e1e;
+  --cursor-sidebar: #252526;
+  --cursor-border: #3c3c3c;
+  --cursor-text: #cccccc;
+  --cursor-accent: #007acc;
+  --cursor-hover: #2a2d2e;
+  --cursor-selection: #264f78;
+  --cursor-comment: #6a9955;
+  --cursor-keyword: #569cd6;
+  --cursor-string: #ce9178;
+  --cursor-number: #b5cea8;
+  --cursor-function: #dcdcaa;
+  --cursor-variable: #9cdcfe;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: var(--cursor-bg);
+  color: var(--cursor-text);
+  overflow: hidden;
+}
+
+#root {
+  height: 100vh;
+  width: 100vw;
+}
+
+/* Monaco Editor Custom Styles */
+.monaco-editor {
+  --vscode-editor-background: var(--cursor-bg);
+  --vscode-editor-foreground: var(--cursor-text);
+  --vscode-editor-selectionBackground: var(--cursor-selection);
+  --vscode-editor-lineHighlightBackground: var(--cursor-hover);
+  --vscode-editorCursor-foreground: var(--cursor-text);
+  --vscode-editorWhitespace-foreground: var(--cursor-border);
+  --vscode-editorIndentGuide-background: var(--cursor-border);
+  --vscode-editorIndentGuide-activeBackground: var(--cursor-text);
+  --vscode-editorLineNumber-foreground: var(--cursor-border);
+  --vscode-editorLineNumber-activeForeground: var(--cursor-text);
+  --vscode-editorBracketMatch-background: var(--cursor-selection);
+  --vscode-editorBracketMatch-border: var(--cursor-accent);
+  --vscode-editorGutter-background: var(--cursor-sidebar);
+  --vscode-editorLineHighlightBackground: var(--cursor-hover);
+  --vscode-editorLineHighlightBorder: var(--cursor-border);
+  --vscode-editorHoverWidget-background: var(--cursor-sidebar);
+  --vscode-editorHoverWidget-border: var(--cursor-border);
+  --vscode-editorSuggestWidget-background: var(--cursor-sidebar);
+  --vscode-editorSuggestWidget-border: var(--cursor-border);
+  --vscode-editorSuggestWidget-foreground: var(--cursor-text);
+  --vscode-editorSuggestWidget-highlightForeground: var(--cursor-accent);
+  --vscode-editorSuggestWidget-selectedBackground: var(--cursor-hover);
+  --vscode-editorWidget-background: var(--cursor-sidebar);
+  --vscode-editorWidget-border: var(--cursor-border);
+  --vscode-editorWidget-foreground: var(--cursor-text);
+  --vscode-editorWidget-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --vscode-editorWidget-resizeBorder: var(--cursor-accent);
+  --vscode-editorWidget-selectedBackground: var(--cursor-hover);
+  --vscode-editorWidget-selectedForeground: var(--cursor-text);
+  --vscode-editorWidget-selectedBorder: var(--cursor-accent);
+  --vscode-editorWidget-selectedShadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --vscode-editorWidget-selectedResizeBorder: var(--cursor-accent);
+  --vscode-editorWidget-selectedResizeBorderColor: var(--cursor-accent);
+  --vscode-editorWidget-selectedResizeBorderWidth: 1px;
+  --vscode-editorWidget-selectedResizeBorderStyle: solid;
+  --vscode-editorWidget-selectedResizeBorderRadius: 0;
+  --vscode-editorWidget-selectedResizeBorderTopLeftRadius: 0;
+  --vscode-editorWidget-selectedResizeBorderTopRightRadius: 0;
+  --vscode-editorWidget-selectedResizeBorderBottomLeftRadius: 0;
+  --vscode-editorWidget-selectedResizeBorderBottomRightRadius: 0;
+  --vscode-editorWidget-selectedResizeBorderTopWidth: 1px;
+  --vscode-editorWidget-selectedResizeBorderRightWidth: 1px;
+  --vscode-editorWidget-selectedResizeBorderBottomWidth: 1px;
+  --vscode-editorWidget-selectedResizeBorderLeftWidth: 1px;
+  --vscode-editorWidget-selectedResizeBorderTopStyle: solid;
+  --vscode-editorWidget-selectedResizeBorderRightStyle: solid;
+  --vscode-editorWidget-selectedResizeBorderBottomStyle: solid;
+  --vscode-editorWidget-selectedResizeBorderLeftStyle: solid;
+  --vscode-editorWidget-selectedResizeBorderTopColor: var(--cursor-accent);
+  --vscode-editorWidget-selectedResizeBorderRightColor: var(--cursor-accent);
+  --vscode-editorWidget-selectedResizeBorderBottomColor: var(--cursor-accent);
+  --vscode-editorWidget-selectedResizeBorderLeftColor: var(--cursor-accent);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--cursor-sidebar);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--cursor-border);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--cursor-text);
+}
+
+/* Custom Button Styles */
+.btn-primary {
+  @apply bg-cursor-accent text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors;
+}
+
+.btn-secondary {
+  @apply bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 transition-colors;
+}
+
+.btn-danger {
+  @apply bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition-colors;
+}
+
+/* Custom Input Styles */
+.input-primary {
+  @apply bg-cursor-bg border border-cursor-border rounded px-3 py-2 text-cursor-text focus:outline-none focus:border-cursor-accent;
+}
+
+/* Custom Card Styles */
+.card {
+  @apply bg-cursor-sidebar border border-cursor-border rounded-lg shadow-lg;
+}
+
+/* Custom Modal Styles */
+.modal-overlay {
+  @apply fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50;
+}
+
+.modal-content {
+  @apply bg-cursor-sidebar rounded-lg shadow-xl max-w-md w-full mx-4;
+}
+
+/* Custom Notification Styles */
+.notification {
+  @apply fixed top-4 right-4 z-50 max-w-sm w-full bg-white shadow-lg rounded-lg pointer-events-auto;
+}
+
+/* Custom Tooltip Styles */
+.tooltip {
+  @apply absolute z-50 px-2 py-1 text-xs text-white bg-gray-900 rounded shadow-lg;
+}
+
+/* Custom Loading Spinner */
+.spinner {
+  @apply animate-spin rounded-full border-2 border-gray-300 border-t-cursor-accent;
+}
+
+/* Custom Code Block Styles */
+.code-block {
+  @apply bg-cursor-sidebar border border-cursor-border rounded p-3 font-mono text-sm overflow-x-auto;
+}
+
+/* Custom Status Bar Styles */
+.status-bar {
+  @apply flex items-center justify-between px-3 py-1 bg-cursor-sidebar border-t border-cursor-border text-xs text-cursor-text;
+}
+
+/* Custom Sidebar Styles */
+.sidebar {
+  @apply w-64 bg-cursor-sidebar border-r border-cursor-border flex flex-col h-full;
+}
+
+/* Custom Editor Styles */
+.editor {
+  @apply flex-1 bg-cursor-bg;
+}
+
+/* Custom Chat Styles */
+.chat {
+  @apply h-80 border-t border-cursor-border bg-cursor-sidebar flex flex-col;
+}
+
+/* Custom Tool Panel Styles */
+.tool-panel {
+  @apply w-80 bg-cursor-sidebar border-l border-cursor-border flex flex-col h-full;
+}
+
+/* Custom File Tree Styles */
+.file-tree {
+  @apply flex-1 overflow-y-auto;
+}
+
+.file-item {
+  @apply flex items-center px-3 py-1 cursor-pointer hover:bg-cursor-hover;
+}
+
+.file-item.selected {
+  @apply bg-cursor-accent text-white;
+}
+
+/* Custom Terminal Styles */
+.terminal {
+  @apply bg-cursor-sidebar border-t border-cursor-border p-3 font-mono text-sm;
+}
+
+/* Custom Tab Styles */
+.tab {
+  @apply px-3 py-2 text-sm border-b-2 border-transparent hover:border-cursor-accent;
+}
+
+.tab.active {
+  @apply border-cursor-accent text-cursor-accent;
+}
+
+/* Custom Dropdown Styles */
+.dropdown {
+  @apply absolute z-50 mt-1 w-full bg-cursor-sidebar border border-cursor-border rounded shadow-lg;
+}
+
+.dropdown-item {
+  @apply px-3 py-2 text-sm text-cursor-text hover:bg-cursor-hover cursor-pointer;
+}
+
+/* Custom Progress Bar Styles */
+.progress-bar {
+  @apply w-full bg-cursor-border rounded-full h-2;
+}
+
+.progress-fill {
+  @apply bg-cursor-accent h-2 rounded-full transition-all duration-300;
+}
+
+/* Custom Badge Styles */
+.badge {
+  @apply inline-flex items-center px-2 py-1 rounded-full text-xs font-medium;
+}
+
+.badge-primary {
+  @apply bg-cursor-accent text-white;
+}
+
+.badge-success {
+  @apply bg-green-100 text-green-800;
+}
+
+.badge-warning {
+  @apply bg-yellow-100 text-yellow-800;
+}
+
+.badge-error {
+  @apply bg-red-100 text-red-800;
+}
+
+/* Custom Divider Styles */
+.divider {
+  @apply border-t border-cursor-border;
+}
+
+.divider-vertical {
+  @apply border-l border-cursor-border;
+}
+
+/* Custom Focus Styles */
+.focus-ring {
+  @apply focus:outline-none focus:ring-2 focus:ring-cursor-accent focus:ring-offset-2;
+}
+
+/* Custom Animation Styles */
+.fade-in {
+  @apply animate-in fade-in duration-200;
+}
+
+.slide-in {
+  @apply animate-in slide-in-from-right duration-200;
+}
+
+.zoom-in {
+  @apply animate-in zoom-in duration-200;
+}
+
+/* Custom Responsive Styles */
+@media (max-width: 768px) {
+  .sidebar {
+    @apply w-48;
+  }
+  
+  .tool-panel {
+    @apply w-64;
+  }
+  
+  .chat {
+    @apply h-64;
+  }
+}
+
+/* Custom Print Styles */
+@media print {
+  .no-print {
+    @apply hidden;
+  }
+}
+
+/* Custom Dark Mode Styles */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --cursor-bg: #0d1117;
+    --cursor-sidebar: #161b22;
+    --cursor-border: #30363d;
+    --cursor-text: #f0f6fc;
+    --cursor-accent: #58a6ff;
+    --cursor-hover: #21262d;
+    --cursor-selection: #264f78;
+  }
+}
+
+/* Custom High Contrast Styles */
+@media (prefers-contrast: high) {
+  :root {
+    --cursor-bg: #000000;
+    --cursor-sidebar: #1a1a1a;
+    --cursor-border: #ffffff;
+    --cursor-text: #ffffff;
+    --cursor-accent: #00ff00;
+    --cursor-hover: #333333;
+    --cursor-selection: #0000ff;
+  }
+}
+
+/* Custom Reduced Motion Styles */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
