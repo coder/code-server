@@ -1,38 +1,48 @@
 {
   "name": "cursor-fullstack-ai-ide",
   "version": "1.0.0",
-  "description": "Complete full-stack AI-powered IDE similar to Cursor Web",
+  "description": "A complete AI-powered development environment with Monaco Editor, real-time chat, and integrated tools",
   "main": "index.js",
   "scripts": {
-    "build": "docker compose up --build -d",
-    "start": "docker compose up -d",
-    "stop": "docker compose down",
-    "logs": "docker compose logs -f",
-    "test": "node test-system.js",
-    "test:complete": "node test-complete.js",
-    "dev:backend": "cd packages/backend/claudable && bun run dev",
-    "dev:frontend": "cd packages/frontend/cursor-web && bun run dev",
-    "clean": "docker compose down -v && docker system prune -f",
-    "deploy:prod": "docker compose -f docker-compose.prod.yml up --build -d"
+    "build": "cd cloudflare/frontend && npm install && npm run build",
+    "dev": "cd cloudflare/frontend && npm install && npm run dev",
+    "preview": "cd cloudflare/frontend && npm run preview",
+    "deploy": "cd cloudflare && ./auto-deploy.sh",
+    "deploy:quick": "cd cloudflare && ./one-click-deploy.sh",
+    "setup": "cd cloudflare && ./complete-setup.sh",
+    "workspace": "cd cloudflare && ./setup-workspace.sh"
   },
   "keywords": [
-    "ai",
-    "ide",
-    "cursor",
-    "fullstack",
-    "react",
-    "node",
-    "websocket",
+    "ai-ide",
     "monaco-editor",
-    "docker"
+    "code-editor",
+    "development",
+    "cloudflare",
+    "react",
+    "typescript",
+    "vite",
+    "tailwindcss"
   ],
   "author": "Cursor Full Stack AI IDE",
   "license": "MIT",
-  "devDependencies": {
-    "axios": "^1.6.0"
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/cursor-fullstack-ai-ide.git"
   },
+  "bugs": {
+    "url": "https://github.com/your-username/cursor-fullstack-ai-ide/issues"
+  },
+  "homepage": "https://cursor-ide.pages.dev",
   "engines": {
     "node": ">=18.0.0",
-    "docker": ">=20.0.0"
+    "npm": ">=8.0.0"
+  },
+  "workspaces": [
+    "cloudflare/frontend",
+    "cloudflare/backend"
+  ],
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "cross-env": "^7.0.3"
   }
 }

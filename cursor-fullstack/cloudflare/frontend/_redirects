@@ -1,0 +1,19 @@
+# Redirect rules for Cloudflare Pages
+
+# Redirect root to index.html
+/ /index.html 200
+
+# Redirect all other routes to index.html for SPA
+/* /index.html 200
+
+# API redirects to backend
+/api/* https://cursor-backend.workers.dev/api/:splat 200
+
+# WebSocket redirects to backend
+/ws/* wss://cursor-backend.workers.dev/ws/:splat 200
+
+# Health check redirect
+/health https://cursor-backend.workers.dev/health 200
+
+# Fallback for any other requests
+/* /index.html 404

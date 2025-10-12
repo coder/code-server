@@ -1,0 +1,11 @@
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": "cloudflare/frontend/dist",
+  "rootDirectory": "cloudflare/frontend",
+  "installCommand": "npm install",
+  "framework": "vite",
+  "nodeVersion": "18",
+  "environmentVariables": {
+    "NODE_ENV": "production"
+  }
+}
