@@ -1,0 +1,52 @@
+name = "cursor-fullstack-ai-ide"
+main = "src/index.js"
+compatibility_date = "2024-01-01"
+
+[env.production]
+name = "cursor-fullstack-ai-ide"
+
+[env.staging]
+name = "cursor-fullstack-ai-ide-staging"
+
+# Backend Worker
+[[workers]]
+name = "cursor-backend"
+main = "backend/index.js"
+compatibility_date = "2024-01-01"
+
+[workers.vars]
+NODE_ENV = "production"
+PORT = "3001"
+WS_PORT = "8080"
+
+# Frontend Pages
+[[pages]]
+name = "cursor-frontend"
+source = "frontend/dist"
+compatibility_date = "2024-01-01"
+
+[pages.vars]
+VITE_BACKEND_URL = "https://cursor-backend.YOUR_SUBDOMAIN.workers.dev"
+VITE_WS_URL = "wss://cursor-backend.YOUR_SUBDOMAIN.workers.dev"
+
+# Durable Objects for WebSocket
+[[durable_objects]]
+name = "WebSocketDO"
+class_name = "WebSocketDurableObject"
+
+# KV Storage for API keys and session data
+[[kv_namespaces]]
+binding = "API_KEYS"
+id = "your-kv-namespace-id"
+preview_id = "your-preview-kv-namespace-id"
+
+# R2 Storage for file storage
+[[r2_buckets]]
+binding = "FILE_STORAGE"
+bucket_name = "cursor-files"
+preview_bucket_name = "cursor-files-preview"
+
+# Environment variables
+[vars]
+ENVIRONMENT = "production"
+CORS_ORIGIN = "https://cursor-frontend.YOUR_SUBDOMAIN.pages.dev"
