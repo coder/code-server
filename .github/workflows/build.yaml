@@ -172,7 +172,6 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: true
-      - run: sudo apt update && sudo apt install -y libkrb5-dev
       - uses: awalsh128/cache-apt-pkgs-action@latest
         with:
           packages: quilt
