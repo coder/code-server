@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./packages/backend/claudable
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3001"
+      - "8080:8080"
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - WS_PORT=8080
+    volumes:
+      - ./workspace:/app/workspace
+    networks:
+      - cursor-network
+
+  frontend:
+    build:
+      context: ./packages/frontend/cursor-web
+      dockerfile: Dockerfile
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_BACKEND_URL=http://localhost:3001
+      - VITE_WS_URL=ws://localhost:8080
+    depends_on:
+      - backend
+    networks:
+      - cursor-network
+
+  code-server:
+    image: codercom/code-server:latest
+    ports:
+      - "8081:8080"
+    environment:
+      - PASSWORD=cursor123
+    volumes:
+      - ./workspace:/home/coder/workspace
+    command: --bind-addr 0.0.0.0:8080 --auth password --disable-telemetry
+    networks:
+      - cursor-network
+
+networks:
+  cursor-network:
+    driver: bridge
+
+volumes:
+  workspace:
