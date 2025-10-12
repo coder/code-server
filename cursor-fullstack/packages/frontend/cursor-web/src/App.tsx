@@ -3,6 +3,7 @@ import { Sidebar } from './components/Sidebar';
 import { EditorPanel } from './components/EditorPanel';
 import { ChatAssistant } from './components/ChatAssistant';
 import { ProviderForm } from './components/ProviderForm';
+import { ToolPanel } from './components/ToolPanel';
 import { io } from 'socket.io-client';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
@@ -13,6 +14,7 @@ function App() {
   const [files, setFiles] = useState<any[]>([]);
   const [showChat, setShowChat] = useState(false);
   const [showProviderForm, setShowProviderForm] = useState(false);
+  const [showTools, setShowTools] = useState(false);
   const [socket, setSocket] = useState<any>(null);
   const [apiKeys, setApiKeys] = useState<Record<string, string>>({});
   const [selectedProvider, setSelectedProvider] = useState<string>('openai');
@@ -58,24 +60,40 @@ function App() {
         onFileSelect={handleFileSelect}
         onShowChat={() => setShowChat(!showChat)}
         onShowProviderForm={() => setShowProviderForm(true)}
+        onShowTools={() => setShowTools(!showTools)}
         showChat={showChat}
+        showTools={showTools}
       />
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col">
-        {/* Editor Panel */}
-        <EditorPanel
-          selectedFile={selectedFile}
-          onFileChange={loadWorkspaceFiles}
-        />
+      <div className="flex-1 flex">
+        <div className="flex-1 flex flex-col">
+          {/* Editor Panel */}
+          <EditorPanel
+            selectedFile={selectedFile}
+            onFileChange={loadWorkspaceFiles}
+          />
 
-        {/* Chat Assistant */}
-        {showChat && (
-          <ChatAssistant
-            socket={socket}
-            apiKeys={apiKeys}
-            selectedProvider={selectedProvider}
-            onProviderChange={setSelectedProvider}
+          {/* Chat Assistant */}
+          {showChat && (
+            <ChatAssistant
+              socket={socket}
+              apiKeys={apiKeys}
+              selectedProvider={selectedProvider}
+              onProviderChange={setSelectedProvider}
+            />
+          )}
+        </div>
+
+        {/* Tool Panel */}
+        {showTools && (
+          <ToolPanel
+            onToolExecute={(toolName, params) => {
+              console.log('Executing tool:', toolName, params);
+            }}
+            onResult={(result) => {
+              console.log('Tool result:', result);
+            }}
           />
         )}
       </div>

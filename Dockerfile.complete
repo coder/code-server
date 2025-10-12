@@ -1,0 +1,32 @@
+FROM nginx:alpine
+
+# Copy built frontend
+COPY --from=cursor-frontend:latest /usr/share/nginx/html /usr/share/nginx/html
+
+# Copy nginx configuration
+COPY nginx.conf /etc/nginx/nginx.conf
+
+# Install Node.js and dependencies for backend
+RUN apk add --no-cache nodejs npm
+
+# Copy backend
+COPY --from=cursor-backend:latest /app /app/backend
+
+# Install backend dependencies
+WORKDIR /app/backend
+RUN npm install --production
+
+# Create startup script
+RUN cat > /start.sh << 'SCRIPT'
+#!/bin/sh
+# Start backend
+cd /app/backend && node dist/index.js &
+# Start nginx
+nginx -g "daemon off;"
+SCRIPT
+
+RUN chmod +x /start.sh
+
+EXPOSE 80 3001 8080
+
+CMD ["/start.sh"]

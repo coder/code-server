@@ -6,7 +6,8 @@ import {
   Folder, 
   FolderOpen,
   ChevronRight,
-  ChevronDown
+  ChevronDown,
+  Wrench
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -15,7 +16,9 @@ interface SidebarProps {
   onFileSelect: (filePath: string) => void;
   onShowChat: () => void;
   onShowProviderForm: () => void;
+  onShowTools: () => void;
   showChat: boolean;
+  showTools: boolean;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -24,7 +27,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onFileSelect,
   onShowChat,
   onShowProviderForm,
-  showChat
+  onShowTools,
+  showChat,
+  showTools
 }) => {
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
 
@@ -107,7 +112,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       </div>
 
       {/* Navigation */}
-      <div className="p-2 border-b border-cursor-border">
+      <div className="p-2 border-b border-cursor-border space-y-1">
         <button
           onClick={onShowChat}
           className={`w-full flex items-center px-3 py-2 rounded text-sm transition-colors ${
@@ -116,6 +121,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
         >
           <MessageSquare className="w-4 h-4 mr-2" />
           AI Chat
+        </button>
+        <button
+          onClick={onShowTools}
+          className={`w-full flex items-center px-3 py-2 rounded text-sm transition-colors ${
+            showTools ? 'bg-cursor-accent text-white' : 'hover:bg-cursor-hover'
+          }`}
+        >
+          <Wrench className="w-4 h-4 mr-2" />
+          Tools
         </button>
       </div>
 

@@ -1,0 +1,36 @@
+{
+  "name": "cursor-fullstack-ai-ide",
+  "version": "1.0.0",
+  "description": "Complete full-stack AI-powered IDE similar to Cursor Web",
+  "main": "index.js",
+  "scripts": {
+    "build": "docker compose up --build -d",
+    "start": "docker compose up -d",
+    "stop": "docker compose down",
+    "logs": "docker compose logs -f",
+    "test": "node test-system.js",
+    "dev:backend": "cd packages/backend/claudable && bun run dev",
+    "dev:frontend": "cd packages/frontend/cursor-web && bun run dev",
+    "clean": "docker compose down -v && docker system prune -f"
+  },
+  "keywords": [
+    "ai",
+    "ide",
+    "cursor",
+    "fullstack",
+    "react",
+    "node",
+    "websocket",
+    "monaco-editor",
+    "docker"
+  ],
+  "author": "Cursor Full Stack AI IDE",
+  "license": "MIT",
+  "devDependencies": {
+    "axios": "^1.6.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "docker": ">=20.0.0"
+  }
+}
