@@ -9,9 +9,11 @@
     "stop": "docker compose down",
     "logs": "docker compose logs -f",
     "test": "node test-system.js",
+    "test:complete": "node test-complete.js",
     "dev:backend": "cd packages/backend/claudable && bun run dev",
     "dev:frontend": "cd packages/frontend/cursor-web && bun run dev",
-    "clean": "docker compose down -v && docker system prune -f"
+    "clean": "docker compose down -v && docker system prune -f",
+    "deploy:prod": "docker compose -f docker-compose.prod.yml up --build -d"
   },
   "keywords": [
     "ai",
