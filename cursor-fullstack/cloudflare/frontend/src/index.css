@@ -271,15 +271,15 @@ body {
 
 /* Custom Animation Styles */
 .fade-in {
-  @apply animate-in fade-in duration-200;
+  @apply animate-fade-in duration-200;
 }
 
 .slide-in {
-  @apply animate-in slide-in-from-right duration-200;
+  @apply animate-slide-in duration-200;
 }
 
 .zoom-in {
-  @apply animate-in zoom-in duration-200;
+  @apply animate-zoom-in duration-200;
 }
 
 /* Custom Responsive Styles */

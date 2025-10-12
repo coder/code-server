@@ -1,0 +1,48 @@
+{
+  "name": "cursor-fullstack-ai-ide",
+  "version": "1.0.0",
+  "description": "A complete AI-powered development environment with Monaco Editor, real-time chat, and integrated tools",
+  "main": "index.js",
+  "scripts": {
+    "build": "cd cloudflare/frontend && npm install && npm run build",
+    "dev": "cd cloudflare/frontend && npm install && npm run dev",
+    "preview": "cd cloudflare/frontend && npm run preview",
+    "deploy": "cd cloudflare && ./auto-deploy.sh",
+    "deploy:quick": "cd cloudflare && ./one-click-deploy.sh",
+    "setup": "cd cloudflare && ./complete-setup.sh",
+    "workspace": "cd cloudflare && ./setup-workspace.sh"
+  },
+  "keywords": [
+    "ai-ide",
+    "monaco-editor",
+    "code-editor",
+    "development",
+    "cloudflare",
+    "react",
+    "typescript",
+    "vite",
+    "tailwindcss"
+  ],
+  "author": "Cursor Full Stack AI IDE",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/cursor-fullstack-ai-ide.git"
+  },
+  "bugs": {
+    "url": "https://github.com/your-username/cursor-fullstack-ai-ide/issues"
+  },
+  "homepage": "https://cursor-ide.pages.dev",
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
+  "workspaces": [
+    "cloudflare/frontend",
+    "cloudflare/backend"
+  ],
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "cross-env": "^7.0.3"
+  }
+}

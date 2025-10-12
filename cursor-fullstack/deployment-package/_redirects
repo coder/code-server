@@ -1,0 +1,5 @@
+# SPA fallback
+/*    /index.html   200
+
+# API proxy
+/api/*    https://cursor-backend.workers.dev/api/:splat    200

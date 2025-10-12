@@ -23,6 +23,7 @@
     "autoprefixer": "^10.4.16",
     "postcss": "^8.4.32",
     "tailwindcss": "^3.3.6",
+    "terser": "^5.44.0",
     "typescript": "^5.2.2",
     "vite": "^5.0.8",
     "wrangler": "^3.0.0"

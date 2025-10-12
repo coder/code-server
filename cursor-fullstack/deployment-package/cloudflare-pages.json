@@ -1,0 +1,15 @@
+{
+  "buildCommand": "echo 'Static deployment - no build needed'",
+  "outputDirectory": ".",
+  "rootDirectory": ".",
+  "installCommand": "echo 'Static deployment - no dependencies'",
+  "framework": "static",
+  "nodeVersion": "18",
+  "environmentVariables": {
+    "NODE_ENV": "production",
+    "VITE_BACKEND_URL": "https://cursor-backend.workers.dev",
+    "VITE_WS_URL": "wss://cursor-backend.workers.dev",
+    "VITE_APP_NAME": "Cursor Full Stack AI IDE",
+    "VITE_APP_VERSION": "1.0.0"
+  }
+}

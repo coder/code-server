@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cursor Full Stack AI IDE</title>
+    <meta name="description" content="A complete AI-powered development environment with Monaco Editor, real-time chat, and integrated tools." />
+    <meta name="keywords" content="AI IDE, Monaco Editor, Code Editor, Development, Cloudflare, React, TypeScript" />
+    <meta name="author" content="Cursor Full Stack AI IDE" />
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="Cursor Full Stack AI IDE" />
+    <meta property="og:description" content="A complete AI-powered development environment with Monaco Editor, real-time chat, and integrated tools." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://cursor-ide.pages.dev" />
+    <meta property="og:image" content="/og-image.png" />
+    
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Cursor Full Stack AI IDE" />
+    <meta name="twitter:description" content="A complete AI-powered development environment with Monaco Editor, real-time chat, and integrated tools." />
+    <meta name="twitter:image" content="/twitter-image.png" />
+    
+    <!-- Theme Color -->
+    <meta name="theme-color" content="#007acc" />
+    
+    <!-- Preload Critical Resources -->
+    <link rel="preload" href="/fonts/fira-code.woff2" as="font" type="font/woff2" crossorigin />
+    
+    <!-- Preconnect to External Domains -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    
+    <!-- Favicon -->
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    
+    <!-- Security Headers -->
+    <meta http-equiv="X-Content-Type-Options" content="nosniff" />
+    <meta http-equiv="X-Frame-Options" content="DENY" />
+    <meta http-equiv="X-XSS-Protection" content="1; mode=block" />
+    
+    <!-- Performance Hints -->
+    <meta http-equiv="Accept-CH" content="DPR, Viewport-Width, Width" />
+    
+    <!-- PWA Meta Tags -->
+    <meta name="application-name" content="Cursor AI IDE" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Cursor AI IDE" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="msapplication-config" content="/browserconfig.xml" />
+    <meta name="msapplication-TileColor" content="#007acc" />
+    <meta name="msapplication-tap-highlight" content="no" />
+    
+    <!-- Custom CSS Variables -->
+    <style>
+      :root {
+        --cursor-bg: #1e1e1e;
+        --cursor-sidebar: #252526;
+        --cursor-border: #3c3c3c;
+        --cursor-text: #cccccc;
+        --cursor-accent: #007acc;
+        --cursor-hover: #2a2d2e;
+        --cursor-selection: #264f78;
+      }
+      
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: 'Fira Code', 'Consolas', 'Monaco', monospace;
+        background-color: var(--cursor-bg);
+        color: var(--cursor-text);
+        overflow: hidden;
+      }
+      
+      #root {
+        height: 100vh;
+        width: 100vw;
+      }
+      
+      /* Loading Screen */
+      .loading-screen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: var(--cursor-bg);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+      }
+      
+      .loading-spinner {
+        width: 40px;
+        height: 40px;
+        border: 4px solid var(--cursor-border);
+        border-top: 4px solid var(--cursor-accent);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+      
+      .loading-text {
+        margin-top: 20px;
+        color: var(--cursor-text);
+        font-size: 16px;
+      }
+      
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+      
+      /* Hide loading screen when app loads */
+      .app-loaded .loading-screen {
+        display: none;
+      }
+    </style>
+    <script type="module" crossorigin src="/assets/index-DKdMICrq.js"></script>
+    <link rel="modulepreload" crossorigin href="/assets/vendor-CIE12tXq.js">
+    <link rel="modulepreload" crossorigin href="/assets/icons-BknwnP5E.js">
+    <link rel="modulepreload" crossorigin href="/assets/monaco-DIrTT30v.js">
+    <link rel="stylesheet" crossorigin href="/assets/index-Bof_whB7.css">
+  </head>
+  <body>
+    <!-- Loading Screen -->
+    <div class="loading-screen" id="loading-screen">
+      <div class="loading-spinner"></div>
+      <div class="loading-text">Loading Cursor AI IDE...</div>
+    </div>
+    
+    <!-- React App Root -->
+    <div id="root"></div>
+    
+    <!-- Vite Script -->
+    
+    <!-- Hide loading screen when app loads -->
+    <script>
+      window.addEventListener('load', function() {
+        setTimeout(function() {
+          document.body.classList.add('app-loaded');
+        }, 1000);
+      });
+    </script>
+  </body>
+</html>
