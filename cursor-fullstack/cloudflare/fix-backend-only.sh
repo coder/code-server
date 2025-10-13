@@ -1,3 +1,15 @@
+#!/bin/bash
+
+# إصلاح Backend فقط
+set -e
+
+API_TOKEN="avRH6WSd0ueXkJqbQpDdnseVo9fy-fUSIJ1pdrWC"
+ACCOUNT_ID="76f5b050419f112f1e9c5fbec1b3970d"
+
+echo "🔧 إصلاح Backend فقط..."
+
+# إنشاء Backend بسيط
+cat > simple-backend.js << 'EOF'
 addEventListener('fetch', event => {
   event.respondWith(handleRequest(event.request))
 })
@@ -213,3 +225,30 @@ async function handleAIChat(message, provider, apiKey, model) {
 
   return await providerHandler(message, apiKey, model)
 }
+EOF
+
+# رفع Backend
+echo "رفع Backend..."
+curl -X PUT "https://api.cloudflare.com/client/v4/accounts/$ACCOUNT_ID/workers/scripts/cursor-backend" \
+  -H "Authorization: Bearer $API_TOKEN" \
+  -H "Content-Type: application/javascript" \
+  --data-binary @simple-backend.js
+
+echo "✅ تم رفع Backend"
+
+# انتظار قليل
+sleep 5
+
+# اختبار Backend
+echo "اختبار Backend..."
+BACKEND_TEST=$(curl -s https://cursor-backend.workers.dev/health)
+echo "Backend Test: $BACKEND_TEST"
+
+if echo "$BACKEND_TEST" | grep -q '"status":"healthy"'; then
+    echo "✅ Backend يعمل!"
+else
+    echo "❌ Backend لا يعمل"
+fi
+
+echo ""
+echo "🌐 Backend URL: https://cursor-backend.workers.dev"
