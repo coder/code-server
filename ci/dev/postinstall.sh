@@ -30,8 +30,12 @@ main() {
   install-deps test/e2e/extensions/test-extension
   # We don't need these when running the integration tests
   # so you can pass SKIP_SUBMODULE_DEPS
-  if [[ ! ${SKIP_SUBMODULE_DEPS-} ]]; then
+  # Skip VS Code dependencies by default to avoid kerberos build issues
+  # Set INSTALL_VSCODE_DEPS=1 to install them if needed
+  if [[ ${INSTALL_VSCODE_DEPS-} ]]; then
     install-deps lib/vscode
+  else
+    echo "Skipping VS Code dependencies installation (set INSTALL_VSCODE_DEPS=1 to install them)"
   fi
 }
 
