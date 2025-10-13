@@ -1,9 +1,44 @@
+#!/bin/bash
+
+# نشر باستخدام التوكن الجديد
+set -e
+
+API_TOKEN="avRH6WSd0ueXkJqbQpDdnseVo9fy-fUSIJ1pdrWC"
+ACCOUNT_ID="76f5b050419f112f1e9c5fbec1b3970d"
+PROJECT_NAME="cursor-ide"
+
+echo "🚀 نشر باستخدام التوكن الجديد..."
+
+# 1. اختبار التوكن
+echo "1. اختبار التوكن..."
+TOKEN_TEST=$(curl -s -X GET "https://api.cloudflare.com/client/v4/user/tokens/verify" \
+  -H "Authorization: Bearer $API_TOKEN" \
+  -H "Content-Type: application/json")
+
+echo "Token Test: $TOKEN_TEST"
+
+if echo "$TOKEN_TEST" | grep -q '"success":true'; then
+    echo "✅ التوكن صحيح"
+else
+    echo "❌ التوكن غير صحيح"
+    exit 1
+fi
+
+# 2. إنشاء مجلد جديد
+echo "2. إنشاء مجلد جديد..."
+rm -rf deploy
+mkdir -p deploy
+cd deploy
+
+# 3. إنشاء ملف HTML جديد
+echo "3. إنشاء ملف HTML جديد..."
+cat > index.html << 'EOF'
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cursor AI IDE - بيئة التطوير الذكية (v1760363137)</title>
+    <title>Cursor AI IDE - بيئة التطوير الذكية</title>
     <style>
         * {
             margin: 0;
@@ -315,7 +350,7 @@
         <div class="loading">
             <div class="loading-spinner"></div>
             <div>جاري تحميل Cursor AI IDE...</div>
-            <div style="font-size: 12px; color: #888;">Loading Cursor AI IDE... (v1760363137)</div>
+            <div style="font-size: 12px; color: #888;">Loading Cursor AI IDE...</div>
         </div>
     </div>
 
@@ -441,7 +476,7 @@
                         </div>
                         
                         <div class="status-bar">
-                            <div>جاهز (v1760363137)</div>
+                            <div>جاهز</div>
                             <div>Cursor AI IDE v1.0.0</div>
                         </div>
                     </div>
@@ -602,3 +637,56 @@ export default example;`;
     </script>
 </body>
 </html>
+EOF
+
+# 4. إنشاء manifest.json
+echo "4. إنشاء manifest.json..."
+cat > manifest.json << 'EOF'
+{
+  "index.html": "index.html"
+}
+EOF
+
+# 5. ضغط الملفات
+echo "5. ضغط الملفات..."
+zip -r app.zip index.html manifest.json
+
+# 6. محاولة النشر بطريقة مختلفة
+echo "6. محاولة النشر..."
+
+# محاولة 1: رفع مباشر للملف
+echo "محاولة 1: رفع مباشر للملف..."
+curl -X PUT "https://api.cloudflare.com/client/v4/accounts/$ACCOUNT_ID/pages/projects/$PROJECT_NAME/assets/index.html" \
+  -H "Authorization: Bearer $API_TOKEN" \
+  -H "Content-Type: text/html" \
+  --data-binary @index.html
+
+echo ""
+
+# محاولة 2: رفع مع manifest
+echo "محاولة 2: رفع مع manifest..."
+curl -X POST "https://api.cloudflare.com/client/v4/accounts/$ACCOUNT_ID/pages/projects/$PROJECT_NAME/deployments" \
+  -H "Authorization: Bearer $API_TOKEN" \
+  -F "files=@app.zip" \
+  -F "manifest=@manifest.json"
+
+echo ""
+
+# 7. اختبار الموقع
+echo "7. اختبار الموقع..."
+sleep 5
+
+STATUS=$(curl -s -w "%{http_code}" https://cursor-ide.pages.dev -o /dev/null)
+echo "Frontend Status: $STATUS"
+
+if [ "$STATUS" = "200" ]; then
+    echo "✅ الموقع يعمل!"
+else
+    echo "❌ الموقع لا يعمل"
+fi
+
+echo ""
+echo "🌐 الرابط: https://cursor-ide.pages.dev"
+echo "🎉 تم الانتهاء من النشر!"
+
+cd ..

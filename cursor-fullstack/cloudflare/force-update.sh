@@ -1,9 +1,23 @@
+#!/bin/bash
+
+# إجبار تحديث الموقع
+set -e
+
+API_TOKEN="avRH6WSd0ueXkJqbQpDdnseVo9fy-fUSIJ1pdrWC"
+ACCOUNT_ID="76f5b050419f112f1e9c5fbec1b3970d"
+PROJECT_NAME="cursor-ide"
+
+echo "🔄 إجبار تحديث الموقع..."
+
+# إنشاء ملف HTML جديد مع timestamp
+TIMESTAMP=$(date +%s)
+cat > index.html << EOF
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cursor AI IDE - بيئة التطوير الذكية (v1760363137)</title>
+    <title>Cursor AI IDE - بيئة التطوير الذكية (v$TIMESTAMP)</title>
     <style>
         * {
             margin: 0;
@@ -315,7 +329,7 @@
         <div class="loading">
             <div class="loading-spinner"></div>
             <div>جاري تحميل Cursor AI IDE...</div>
-            <div style="font-size: 12px; color: #888;">Loading Cursor AI IDE... (v1760363137)</div>
+            <div style="font-size: 12px; color: #888;">Loading Cursor AI IDE... (v$TIMESTAMP)</div>
         </div>
     </div>
 
@@ -331,7 +345,7 @@
         async function initApp() {
             try {
                 // Test backend connection
-                const response = await fetch(`${BACKEND_URL}/health`);
+                const response = await fetch(\`\${BACKEND_URL}/health\`);
                 if (response.ok) {
                     const data = await response.json();
                     console.log('Backend connected:', data);
@@ -349,7 +363,7 @@
         
         async function loadFiles() {
             try {
-                const response = await fetch(`${BACKEND_URL}/api/workspace/files`);
+                const response = await fetch(\`\${BACKEND_URL}/api/workspace/files\`);
                 if (response.ok) {
                     const data = await response.json();
                     files = data.files || [];
@@ -360,19 +374,19 @@
         }
         
         function renderError(message) {
-            document.getElementById('app').innerHTML = `
+            document.getElementById('app').innerHTML = \`
                 <div class="loading">
                     <div style="text-align: center;">
                         <div style="color: #f44747; margin-bottom: 16px; font-size: 48px;">⚠️</div>
-                        <div style="margin-bottom: 16px;">${message}</div>
+                        <div style="margin-bottom: 16px;">\${message}</div>
                         <button class="btn" onclick="initApp()">إعادة المحاولة</button>
                     </div>
                 </div>
-            `;
+            \`;
         }
         
         function renderApp() {
-            document.getElementById('app').innerHTML = `
+            document.getElementById('app').innerHTML = \`
                 <div class="container">
                     <div class="sidebar">
                         <div class="logo">
@@ -380,19 +394,19 @@
                             <span>Cursor AI IDE</span>
                         </div>
                         <div class="connection-status">
-                            <div class="status-dot" style="background: ${isConnected ? '#4caf50' : '#f44747'}"></div>
-                            <span>${isConnected ? 'متصل' : 'غير متصل'}</span>
+                            <div class="status-dot" style="background: \${isConnected ? '#4caf50' : '#f44747'}"></div>
+                            <span>\${isConnected ? 'متصل' : 'غير متصل'}</span>
                         </div>
                         
                         <div class="file-list">
                             <div class="section-title">📁 الملفات</div>
-                            ${files.map(file => `
-                                <div class="file-item ${selectedFile === file.path ? 'active' : ''}" 
-                                     onclick="selectFile('${file.path}')">
+                            \${files.map(file => \`
+                                <div class="file-item \${selectedFile === file.path ? 'active' : ''}" 
+                                     onclick="selectFile('\${file.path}')">
                                     <span class="file-icon">📄</span>
-                                    <span>${file.name}</span>
+                                    <span>\${file.name}</span>
                                 </div>
-                            `).join('')}
+                            \`).join('')}
                         </div>
                         
                         <div style="margin-top: 20px;">
@@ -409,7 +423,7 @@
                     <div class="main">
                         <div class="header">
                             <div>
-                                <span>📄 ${selectedFile || 'لم يتم اختيار ملف'}</span>
+                                <span>📄 \${selectedFile || 'لم يتم اختيار ملف'}</span>
                             </div>
                             <div>
                                 <button class="btn" onclick="saveFile()">
@@ -422,9 +436,9 @@
                         </div>
                         
                         <div class="editor">
-                            ${selectedFile ? `
-                                <textarea class="editor-textarea" id="editor" placeholder="ابدأ البرمجة...">${getFileContent()}</textarea>
-                            ` : `
+                            \${selectedFile ? \`
+                                <textarea class="editor-textarea" id="editor" placeholder="ابدأ البرمجة...">\${getFileContent()}</textarea>
+                            \` : \`
                                 <div class="welcome-message">
                                     <div style="font-size: 48px; margin-bottom: 16px;">📁</div>
                                     <h3>مرحباً بك في Cursor AI IDE</h3>
@@ -437,11 +451,11 @@
                                         <li>أدوات متكاملة</li>
                                     </ul>
                                 </div>
-                            `}
+                            \`}
                         </div>
                         
                         <div class="status-bar">
-                            <div>جاهز (v1760363137)</div>
+                            <div>جاهز (v$TIMESTAMP)</div>
                             <div>Cursor AI IDE v1.0.0</div>
                         </div>
                     </div>
@@ -453,24 +467,24 @@
                             <button onclick="toggleChat()" style="margin-right: auto; background: none; border: none; color: #888; cursor: pointer;">×</button>
                         </div>
                         <div class="chat-messages" id="chatMessages">
-                            ${chatHistory.length === 0 ? `
+                            \${chatHistory.length === 0 ? \`
                                 <div style="text-align: center; color: #666; padding: 20px;">
                                     <div style="font-size: 48px; margin-bottom: 16px;">🤖</div>
                                     <p>ابدأ محادثة مع الذكاء الاصطناعي</p>
                                     <p style="font-size: 12px;">أضف مفتاح API من الإعدادات</p>
                                 </div>
-                            ` : chatHistory.map(msg => `
-                                <div class="message ${msg.type}">
-                                    <div>${msg.content}</div>
+                            \` : chatHistory.map(msg => \`
+                                <div class="message \${msg.type}">
+                                    <div>\${msg.content}</div>
                                     <div style="font-size: 11px; opacity: 0.7; margin-top: 4px;">
-                                        ${new Date(msg.timestamp).toLocaleTimeString()}
+                                        \${new Date(msg.timestamp).toLocaleTimeString()}
                                     </div>
                                 </div>
-                            `).join('')}
+                            \`).join('')}
                         </div>
                         <div class="chat-input">
-                            <input type="text" id="chatInput" placeholder="${apiKey ? 'اسألني أي شيء...' : 'أضف مفتاح API أولاً'}" 
-                                   onkeypress="handleChatKeyPress(event)" ${!apiKey ? 'disabled' : ''}>
+                            <input type="text" id="chatInput" placeholder="\${apiKey ? 'اسألني أي شيء...' : 'أضف مفتاح API أولاً'}" 
+                                   onkeypress="handleChatKeyPress(event)" \${!apiKey ? 'disabled' : ''}>
                         </div>
                     </div>
                 </div>
@@ -480,7 +494,7 @@
                         <h3 style="margin-bottom: 20px; color: #d4d4d4;">⚙️ الإعدادات</h3>
                         <div style="margin-bottom: 15px;">
                             <label style="display: block; margin-bottom: 5px; color: #d4d4d4;">مفتاح OpenAI API</label>
-                            <input type="password" id="apiKeyInput" value="${apiKey}" 
+                            <input type="password" id="apiKeyInput" value="\${apiKey}" 
                                    style="width: 100%; background: #1e1e1e; border: 1px solid #3c3c3c; color: #d4d4d4; padding: 10px; border-radius: 6px;">
                         </div>
                         <div style="text-align: left;">
@@ -489,7 +503,7 @@
                         </div>
                     </div>
                 </div>
-            `;
+            \`;
         }
         
         function selectFile(filePath) {
@@ -498,14 +512,14 @@
         }
         
         function getFileContent() {
-            return `// ${selectedFile}
-console.log('مرحباً من ${selectedFile}');
+            return \`// \${selectedFile}
+console.log('مرحباً من \${selectedFile}');
 
 function example() {
     return 'هذا ملف تجريبي';
 }
 
-export default example;`;
+export default example;\`;
         }
         
         function saveFile() {
@@ -563,7 +577,7 @@ export default example;`;
             renderApp();
             
             try {
-                const response = await fetch(`${BACKEND_URL}/api/chat`, {
+                const response = await fetch(\`\${BACKEND_URL}/api/chat\`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -602,3 +616,23 @@ export default example;`;
     </script>
 </body>
 </html>
+EOF
+
+# رفع الملف الجديد
+echo "رفع الملف الجديد..."
+curl -X PUT "https://api.cloudflare.com/client/v4/accounts/$ACCOUNT_ID/pages/projects/$PROJECT_NAME/assets/index.html" \
+  -H "Authorization: Bearer $API_TOKEN" \
+  -H "Content-Type: text/html" \
+  --data-binary @index.html
+
+echo ""
+echo "✅ تم رفع الملف الجديد!"
+echo "🌐 الرابط: https://cursor-ide.pages.dev"
+echo "🕐 Timestamp: $TIMESTAMP"
+
+# انتظار قليل
+sleep 10
+
+# اختبار الموقع
+echo "اختبار الموقع..."
+curl -s https://cursor-ide.pages.dev | grep -o "v[0-9]*" | head -1
