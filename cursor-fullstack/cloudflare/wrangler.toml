@@ -35,11 +35,11 @@ binding = "SESSIONS"
 id = "cfc6ab0d08e24421bb602b2d96f5b8ac"
 preview_id = "cfc6ab0d08e24421bb602b2d96f5b8ac"
 
-# R2 Storage for file storage
-[[r2_buckets]]
-binding = "FILE_STORAGE"
-bucket_name = "cursor-files"
-preview_bucket_name = "cursor-files-preview"
+# R2 Storage for file storage (commented out until R2 is enabled)
+# [[r2_buckets]]
+# binding = "FILE_STORAGE"
+# bucket_name = "cursor-files"
+# preview_bucket_name = "cursor-files-preview"
 
 # Environment variables
 [vars]
