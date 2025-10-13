@@ -1,16 +1,3 @@
-#!/bin/bash
-
-# نشر الواجهة النهائي
-set -e
-
-API_TOKEN="avRH6WSd0ueXkJqbQpDdnseVo9fy-fUSIJ1pdrWC"
-ACCOUNT_ID="76f5b050419f112f1e9c5fbec1b3970d"
-PROJECT_NAME="cursor-ide"
-
-echo "🚀 نشر الواجهة النهائي على Cloudflare Pages..."
-
-# إنشاء ملف HTML محسن
-cat > frontend-final.html << 'EOF'
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -616,14 +603,3 @@ export default example;`;
     </script>
 </body>
 </html>
-EOF
-
-# رفع الملف
-curl -X PUT "https://api.cloudflare.com/client/v4/accounts/$ACCOUNT_ID/pages/projects/$PROJECT_NAME/assets/index.html" \
-  -H "Authorization: Bearer $API_TOKEN" \
-  -H "Content-Type: text/html" \
-  --data-binary @frontend-final.html
-
-echo "✅ تم نشر الواجهة النهائية بنجاح!"
-echo "🌐 الرابط: https://cursor-ide.pages.dev"
-echo "🎉 الواجهة جاهزة للاستخدام!"
