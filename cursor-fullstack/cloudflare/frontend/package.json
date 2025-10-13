@@ -1,56 +1,24 @@
 {
-  "name": "cursor-fullstack-ai-ide-frontend",
+  "name": "cursor-ide-frontend",
+  "private": true,
   "version": "1.0.0",
-  "description": "A complete AI-powered development environment with Monaco Editor, real-time chat, and integrated tools",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "deploy": "npm run build && wrangler pages deploy dist --project-name cursor-ide"
+    "deploy": "npm run build"
   },
   "dependencies": {
-    "@monaco-editor/react": "^4.6.0",
-    "lucide-react": "^0.294.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "socket.io-client": "^4.7.4"
+    "@monaco-editor/react": "^4.6.0",
+    "lucide-react": "^0.263.1"
   },
   "devDependencies": {
-    "@types/react": "^18.2.43",
-    "@types/react-dom": "^18.2.17",
-    "@vitejs/plugin-react": "^4.2.1",
-    "autoprefixer": "^10.4.16",
-    "postcss": "^8.4.32",
-    "tailwindcss": "^3.3.6",
-    "terser": "^5.44.0",
-    "typescript": "^5.2.2",
-    "vite": "^5.0.8",
-    "wrangler": "^3.0.0"
-  },
-  "keywords": [
-    "ai-ide",
-    "monaco-editor",
-    "code-editor",
-    "development",
-    "cloudflare",
-    "react",
-    "typescript",
-    "vite",
-    "tailwindcss"
-  ],
-  "author": "Cursor Full Stack AI IDE",
-  "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/your-username/cursor-fullstack-ai-ide.git"
-  },
-  "bugs": {
-    "url": "https://github.com/your-username/cursor-fullstack-ai-ide/issues"
-  },
-  "homepage": "https://cursor-ide.pages.dev",
-  "engines": {
-    "node": ">=18.0.0",
-    "npm": ">=8.0.0"
+    "@types/react": "^18.2.15",
+    "@types/react-dom": "^18.2.7",
+    "@vitejs/plugin-react": "^4.0.3",
+    "vite": "^4.4.5"
   }
 }

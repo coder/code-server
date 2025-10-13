@@ -1,14 +1,35 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* Reset and base styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
 
-/* Custom Cursor IDE Theme */
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: #1e1e1e;
+  color: #d4d4d4;
+  overflow: hidden;
+}
+
+#root {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Cursor IDE Theme Colors */
 :root {
   --cursor-bg: #1e1e1e;
   --cursor-sidebar: #252526;
-  --cursor-border: #3c3c3c;
-  --cursor-text: #cccccc;
+  --cursor-text: #d4d4d4;
   --cursor-accent: #007acc;
+  --cursor-border: #3c3c3c;
   --cursor-hover: #2a2d2e;
   --cursor-selection: #264f78;
   --cursor-comment: #6a9955;
@@ -17,83 +38,14 @@
   --cursor-number: #b5cea8;
   --cursor-function: #dcdcaa;
   --cursor-variable: #9cdcfe;
+  --cursor-type: #4ec9b0;
+  --cursor-error: #f44747;
+  --cursor-warning: #ffcc02;
+  --cursor-info: #75beff;
+  --cursor-success: #4caf50;
 }
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background-color: var(--cursor-bg);
-  color: var(--cursor-text);
-  overflow: hidden;
-}
-
-#root {
-  height: 100vh;
-  width: 100vw;
-}
-
-/* Monaco Editor Custom Styles */
-.monaco-editor {
-  --vscode-editor-background: var(--cursor-bg);
-  --vscode-editor-foreground: var(--cursor-text);
-  --vscode-editor-selectionBackground: var(--cursor-selection);
-  --vscode-editor-lineHighlightBackground: var(--cursor-hover);
-  --vscode-editorCursor-foreground: var(--cursor-text);
-  --vscode-editorWhitespace-foreground: var(--cursor-border);
-  --vscode-editorIndentGuide-background: var(--cursor-border);
-  --vscode-editorIndentGuide-activeBackground: var(--cursor-text);
-  --vscode-editorLineNumber-foreground: var(--cursor-border);
-  --vscode-editorLineNumber-activeForeground: var(--cursor-text);
-  --vscode-editorBracketMatch-background: var(--cursor-selection);
-  --vscode-editorBracketMatch-border: var(--cursor-accent);
-  --vscode-editorGutter-background: var(--cursor-sidebar);
-  --vscode-editorLineHighlightBackground: var(--cursor-hover);
-  --vscode-editorLineHighlightBorder: var(--cursor-border);
-  --vscode-editorHoverWidget-background: var(--cursor-sidebar);
-  --vscode-editorHoverWidget-border: var(--cursor-border);
-  --vscode-editorSuggestWidget-background: var(--cursor-sidebar);
-  --vscode-editorSuggestWidget-border: var(--cursor-border);
-  --vscode-editorSuggestWidget-foreground: var(--cursor-text);
-  --vscode-editorSuggestWidget-highlightForeground: var(--cursor-accent);
-  --vscode-editorSuggestWidget-selectedBackground: var(--cursor-hover);
-  --vscode-editorWidget-background: var(--cursor-sidebar);
-  --vscode-editorWidget-border: var(--cursor-border);
-  --vscode-editorWidget-foreground: var(--cursor-text);
-  --vscode-editorWidget-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-  --vscode-editorWidget-resizeBorder: var(--cursor-accent);
-  --vscode-editorWidget-selectedBackground: var(--cursor-hover);
-  --vscode-editorWidget-selectedForeground: var(--cursor-text);
-  --vscode-editorWidget-selectedBorder: var(--cursor-accent);
-  --vscode-editorWidget-selectedShadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-  --vscode-editorWidget-selectedResizeBorder: var(--cursor-accent);
-  --vscode-editorWidget-selectedResizeBorderColor: var(--cursor-accent);
-  --vscode-editorWidget-selectedResizeBorderWidth: 1px;
-  --vscode-editorWidget-selectedResizeBorderStyle: solid;
-  --vscode-editorWidget-selectedResizeBorderRadius: 0;
-  --vscode-editorWidget-selectedResizeBorderTopLeftRadius: 0;
-  --vscode-editorWidget-selectedResizeBorderTopRightRadius: 0;
-  --vscode-editorWidget-selectedResizeBorderBottomLeftRadius: 0;
-  --vscode-editorWidget-selectedResizeBorderBottomRightRadius: 0;
-  --vscode-editorWidget-selectedResizeBorderTopWidth: 1px;
-  --vscode-editorWidget-selectedResizeBorderRightWidth: 1px;
-  --vscode-editorWidget-selectedResizeBorderBottomWidth: 1px;
-  --vscode-editorWidget-selectedResizeBorderLeftWidth: 1px;
-  --vscode-editorWidget-selectedResizeBorderTopStyle: solid;
-  --vscode-editorWidget-selectedResizeBorderRightStyle: solid;
-  --vscode-editorWidget-selectedResizeBorderBottomStyle: solid;
-  --vscode-editorWidget-selectedResizeBorderLeftStyle: solid;
-  --vscode-editorWidget-selectedResizeBorderTopColor: var(--cursor-accent);
-  --vscode-editorWidget-selectedResizeBorderRightColor: var(--cursor-accent);
-  --vscode-editorWidget-selectedResizeBorderBottomColor: var(--cursor-accent);
-  --vscode-editorWidget-selectedResizeBorderLeftColor: var(--cursor-accent);
-}
-
-/* Custom Scrollbar */
+/* Scrollbar styles */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -109,232 +61,233 @@ body {
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--cursor-text);
+  background: var(--cursor-hover);
 }
 
-/* Custom Button Styles */
+/* Loading animation */
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background: var(--cursor-bg);
+  color: var(--cursor-text);
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid var(--cursor-border);
+  border-top: 4px solid var(--cursor-accent);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-right: 16px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Button styles */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
 .btn-primary {
-  @apply bg-cursor-accent text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors;
+  background: var(--cursor-accent);
+  color: white;
+}
+
+.btn-primary:hover {
+  background: #005a9e;
 }
 
 .btn-secondary {
-  @apply bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 transition-colors;
+  background: var(--cursor-sidebar);
+  color: var(--cursor-text);
+  border: 1px solid var(--cursor-border);
+}
+
+.btn-secondary:hover {
+  background: var(--cursor-hover);
 }
 
 .btn-danger {
-  @apply bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition-colors;
+  background: var(--cursor-error);
+  color: white;
 }
 
-/* Custom Input Styles */
-.input-primary {
-  @apply bg-cursor-bg border border-cursor-border rounded px-3 py-2 text-cursor-text focus:outline-none focus:border-cursor-accent;
+.btn-danger:hover {
+  background: #d32f2f;
 }
 
-/* Custom Card Styles */
+/* Input styles */
+.input {
+  width: 100%;
+  padding: 8px 12px;
+  background: var(--cursor-bg);
+  border: 1px solid var(--cursor-border);
+  border-radius: 4px;
+  color: var(--cursor-text);
+  font-size: 14px;
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--cursor-accent);
+}
+
+.input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Card styles */
 .card {
-  @apply bg-cursor-sidebar border border-cursor-border rounded-lg shadow-lg;
+  background: var(--cursor-sidebar);
+  border: 1px solid var(--cursor-border);
+  border-radius: 8px;
+  padding: 16px;
 }
 
-/* Custom Modal Styles */
-.modal-overlay {
-  @apply fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50;
+/* Utility classes */
+.flex { display: flex; }
+.flex-col { flex-direction: column; }
+.flex-1 { flex: 1; }
+.items-center { align-items: center; }
+.justify-center { justify-content: center; }
+.justify-between { justify-content: space-between; }
+.space-x-2 > * + * { margin-left: 8px; }
+.space-x-4 > * + * { margin-left: 16px; }
+.p-2 { padding: 8px; }
+.p-3 { padding: 12px; }
+.p-4 { padding: 16px; }
+.px-3 { padding-left: 12px; padding-right: 12px; }
+.py-1 { padding-top: 4px; padding-bottom: 4px; }
+.py-2 { padding-top: 8px; padding-bottom: 8px; }
+.mb-2 { margin-bottom: 8px; }
+.mb-4 { margin-bottom: 16px; }
+.mt-2 { margin-top: 8px; }
+.mt-4 { margin-top: 16px; }
+.text-sm { font-size: 14px; }
+.text-lg { font-size: 18px; }
+.font-medium { font-weight: 500; }
+.font-semibold { font-weight: 600; }
+.text-center { text-align: center; }
+.rounded { border-radius: 4px; }
+.rounded-lg { border-radius: 8px; }
+.border { border: 1px solid var(--cursor-border); }
+.border-t { border-top: 1px solid var(--cursor-border); }
+.border-b { border-bottom: 1px solid var(--cursor-border); }
+.border-l { border-left: 1px solid var(--cursor-border); }
+.border-r { border-right: 1px solid var(--cursor-border); }
+.hover\:bg-cursor-hover:hover { background: var(--cursor-hover); }
+.disabled\:opacity-50:disabled { opacity: 0.5; }
+.disabled\:cursor-not-allowed:disabled { cursor: not-allowed; }
+.overflow-hidden { overflow: hidden; }
+.overflow-auto { overflow: auto; }
+.overflow-y-auto { overflow-y: auto; }
+.h-full { height: 100%; }
+.w-full { width: 100%; }
+.w-5 { width: 20px; }
+.h-5 { height: 20px; }
+.w-4 { width: 16px; }
+.h-4 { height: 16px; }
+.text-cursor-text { color: var(--cursor-text); }
+.text-cursor-accent { color: var(--cursor-accent); }
+.bg-cursor-bg { background: var(--cursor-bg); }
+.bg-cursor-sidebar { background: var(--cursor-sidebar); }
+.border-cursor-border { border-color: var(--cursor-border); }
+.animate-spin {
+  animation: spin 1s linear infinite;
 }
 
-.modal-content {
-  @apply bg-cursor-sidebar rounded-lg shadow-xl max-w-md w-full mx-4;
+/* Monaco Editor container */
+.monaco-editor-container {
+  width: 100%;
+  height: 100%;
+  min-height: 400px;
 }
 
-/* Custom Notification Styles */
+/* Chat styles */
+.chat-message {
+  margin-bottom: 16px;
+  padding: 12px;
+  border-radius: 8px;
+  max-width: 80%;
+}
+
+.chat-message.user {
+  background: var(--cursor-accent);
+  color: white;
+  margin-left: auto;
+}
+
+.chat-message.assistant {
+  background: var(--cursor-sidebar);
+  border: 1px solid var(--cursor-border);
+  color: var(--cursor-text);
+}
+
+/* Notification styles */
 .notification {
-  @apply fixed top-4 right-4 z-50 max-w-sm w-full bg-white shadow-lg rounded-lg pointer-events-auto;
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  color: white;
+  font-weight: 500;
+  z-index: 1000;
+  animation: slideIn 0.3s ease;
 }
 
-/* Custom Tooltip Styles */
-.tooltip {
-  @apply absolute z-50 px-2 py-1 text-xs text-white bg-gray-900 rounded shadow-lg;
+.notification.success {
+  background: var(--cursor-success);
 }
 
-/* Custom Loading Spinner */
-.spinner {
-  @apply animate-spin rounded-full border-2 border-gray-300 border-t-cursor-accent;
+.notification.error {
+  background: var(--cursor-error);
 }
 
-/* Custom Code Block Styles */
-.code-block {
-  @apply bg-cursor-sidebar border border-cursor-border rounded p-3 font-mono text-sm overflow-x-auto;
+.notification.warning {
+  background: var(--cursor-warning);
+  color: #000;
 }
 
-/* Custom Status Bar Styles */
-.status-bar {
-  @apply flex items-center justify-between px-3 py-1 bg-cursor-sidebar border-t border-cursor-border text-xs text-cursor-text;
+.notification.info {
+  background: var(--cursor-info);
 }
 
-/* Custom Sidebar Styles */
-.sidebar {
-  @apply w-64 bg-cursor-sidebar border-r border-cursor-border flex flex-col h-full;
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }
 
-/* Custom Editor Styles */
-.editor {
-  @apply flex-1 bg-cursor-bg;
-}
-
-/* Custom Chat Styles */
-.chat {
-  @apply h-80 border-t border-cursor-border bg-cursor-sidebar flex flex-col;
-}
-
-/* Custom Tool Panel Styles */
-.tool-panel {
-  @apply w-80 bg-cursor-sidebar border-l border-cursor-border flex flex-col h-full;
-}
-
-/* Custom File Tree Styles */
-.file-tree {
-  @apply flex-1 overflow-y-auto;
-}
-
-.file-item {
-  @apply flex items-center px-3 py-1 cursor-pointer hover:bg-cursor-hover;
-}
-
-.file-item.selected {
-  @apply bg-cursor-accent text-white;
-}
-
-/* Custom Terminal Styles */
-.terminal {
-  @apply bg-cursor-sidebar border-t border-cursor-border p-3 font-mono text-sm;
-}
-
-/* Custom Tab Styles */
-.tab {
-  @apply px-3 py-2 text-sm border-b-2 border-transparent hover:border-cursor-accent;
-}
-
-.tab.active {
-  @apply border-cursor-accent text-cursor-accent;
-}
-
-/* Custom Dropdown Styles */
-.dropdown {
-  @apply absolute z-50 mt-1 w-full bg-cursor-sidebar border border-cursor-border rounded shadow-lg;
-}
-
-.dropdown-item {
-  @apply px-3 py-2 text-sm text-cursor-text hover:bg-cursor-hover cursor-pointer;
-}
-
-/* Custom Progress Bar Styles */
-.progress-bar {
-  @apply w-full bg-cursor-border rounded-full h-2;
-}
-
-.progress-fill {
-  @apply bg-cursor-accent h-2 rounded-full transition-all duration-300;
-}
-
-/* Custom Badge Styles */
-.badge {
-  @apply inline-flex items-center px-2 py-1 rounded-full text-xs font-medium;
-}
-
-.badge-primary {
-  @apply bg-cursor-accent text-white;
-}
-
-.badge-success {
-  @apply bg-green-100 text-green-800;
-}
-
-.badge-warning {
-  @apply bg-yellow-100 text-yellow-800;
-}
-
-.badge-error {
-  @apply bg-red-100 text-red-800;
-}
-
-/* Custom Divider Styles */
-.divider {
-  @apply border-t border-cursor-border;
-}
-
-.divider-vertical {
-  @apply border-l border-cursor-border;
-}
-
-/* Custom Focus Styles */
-.focus-ring {
-  @apply focus:outline-none focus:ring-2 focus:ring-cursor-accent focus:ring-offset-2;
-}
-
-/* Custom Animation Styles */
-.fade-in {
-  @apply animate-fade-in duration-200;
-}
-
-.slide-in {
-  @apply animate-slide-in duration-200;
-}
-
-.zoom-in {
-  @apply animate-zoom-in duration-200;
-}
-
-/* Custom Responsive Styles */
+/* Responsive design */
 @media (max-width: 768px) {
-  .sidebar {
-    @apply w-48;
+  .flex-col-mobile {
+    flex-direction: column;
   }
   
-  .tool-panel {
-    @apply w-64;
-  }
-  
-  .chat {
-    @apply h-64;
-  }
-}
-
-/* Custom Print Styles */
-@media print {
-  .no-print {
-    @apply hidden;
-  }
-}
-
-/* Custom Dark Mode Styles */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --cursor-bg: #0d1117;
-    --cursor-sidebar: #161b22;
-    --cursor-border: #30363d;
-    --cursor-text: #f0f6fc;
-    --cursor-accent: #58a6ff;
-    --cursor-hover: #21262d;
-    --cursor-selection: #264f78;
-  }
-}
-
-/* Custom High Contrast Styles */
-@media (prefers-contrast: high) {
-  :root {
-    --cursor-bg: #000000;
-    --cursor-sidebar: #1a1a1a;
-    --cursor-border: #ffffff;
-    --cursor-text: #ffffff;
-    --cursor-accent: #00ff00;
-    --cursor-hover: #333333;
-    --cursor-selection: #0000ff;
-  }
-}
-
-/* Custom Reduced Motion Styles */
-@media (prefers-reduced-motion: reduce) {
-  * {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+  .w-full-mobile {
+    width: 100%;
   }
 }
