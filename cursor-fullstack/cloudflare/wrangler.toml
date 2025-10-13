@@ -22,18 +22,18 @@ new_classes = [ "WebSocketDurableObject" ]
 # KV Storage for API keys and session data
 [[kv_namespaces]]
 binding = "API_KEYS"
-id = "placeholder-api-keys-id"
-preview_id = "placeholder-api-keys-preview-id"
+id = "2a705b445979465ca3d65b117b90411a"
+preview_id = "2a705b445979465ca3d65b117b90411a"
 
 [[kv_namespaces]]
 binding = "FILE_STORAGE_KV"
-id = "placeholder-file-storage-kv-id"
-preview_id = "placeholder-file-storage-kv-preview-id"
+id = "cae71ccff3df4039996865e01758f53f"
+preview_id = "cae71ccff3df4039996865e01758f53f"
 
 [[kv_namespaces]]
 binding = "SESSIONS"
-id = "placeholder-sessions-id"
-preview_id = "placeholder-sessions-preview-id"
+id = "cfc6ab0d08e24421bb602b2d96f5b8ac"
+preview_id = "cfc6ab0d08e24421bb602b2d96f5b8ac"
 
 # R2 Storage for file storage
 [[r2_buckets]]
