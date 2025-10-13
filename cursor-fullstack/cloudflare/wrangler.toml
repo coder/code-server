@@ -45,3 +45,12 @@ preview_id = "cfc6ab0d08e24421bb602b2d96f5b8ac"
 [vars]
 ENVIRONMENT = "production"
 CORS_ORIGIN = "*"
+
+# Observability settings
+[observability]
+enabled = false
+
+[observability.logs]
+enabled = true
+head_sampling_rate = 1
+invocation_logs = true
