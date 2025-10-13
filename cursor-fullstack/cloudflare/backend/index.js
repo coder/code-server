@@ -1,6 +1,9 @@
 // Cloudflare Worker for Cursor Full Stack AI IDE Backend
 import { WebSocketDurableObject } from './websocket-do.js';
 
+// Export the Durable Object class
+export { WebSocketDurableObject };
+
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
@@ -281,19 +284,19 @@ async function executeTool(toolName, params, env) {
   const tools = {
     file_read: async (params) => {
       const { filePath } = params;
-      const file = await env.FILE_STORAGE.get(filePath);
+      const file = await env.FILE_STORAGE_KV.get(filePath);
       return { success: true, content: file || '', filePath };
     },
     
     file_write: async (params) => {
       const { filePath, content } = params;
-      await env.FILE_STORAGE.put(filePath, content);
+      await env.FILE_STORAGE_KV.put(filePath, content);
       return { success: true, filePath };
     },
     
     file_list: async (params) => {
       const { directory = '' } = params;
-      const files = await env.FILE_STORAGE.list({ prefix: directory });
+      const files = await env.FILE_STORAGE_KV.list({ prefix: directory });
       return { success: true, files: files.objects.map(obj => ({
         name: obj.key.split('/').pop(),
         path: obj.key,
@@ -304,11 +307,11 @@ async function executeTool(toolName, params, env) {
     
     search_code: async (params) => {
       const { query } = params;
-      const files = await env.FILE_STORAGE.list();
+      const files = await env.FILE_STORAGE_KV.list();
       const results = [];
       
       for (const file of files.objects) {
-        const content = await env.FILE_STORAGE.get(file.key);
+        const content = await env.FILE_STORAGE_KV.get(file.key);
         if (content && content.includes(query)) {
           results.push({
             filePath: file.key,
@@ -322,7 +325,7 @@ async function executeTool(toolName, params, env) {
     
     create_file: async (params) => {
       const { filePath, content } = params;
-      await env.FILE_STORAGE.put(filePath, content);
+      await env.FILE_STORAGE_KV.put(filePath, content);
       return { success: true, filePath };
     }
   };
@@ -345,7 +348,7 @@ async function handleFileOperations(request, env, corsHeaders) {
   const path = url.pathname.replace('/api/workspace/', '');
   
   if (request.method === 'GET' && path === 'files') {
-    const files = await env.FILE_STORAGE.list();
+    const files = await env.FILE_STORAGE_KV.list();
     return new Response(JSON.stringify({
       files: files.objects.map(obj => ({
         name: obj.key.split('/').pop(),
@@ -359,7 +362,7 @@ async function handleFileOperations(request, env, corsHeaders) {
   }
   
   if (request.method === 'GET' && path) {
-    const content = await env.FILE_STORAGE.get(path);
+    const content = await env.FILE_STORAGE_KV.get(path);
     if (!content) {
       return new Response('File not found', { 
         status: 404,
@@ -373,7 +376,7 @@ async function handleFileOperations(request, env, corsHeaders) {
   
   if (request.method === 'POST' && path) {
     const { content } = await request.json();
-    await env.FILE_STORAGE.put(path, content);
+    await env.FILE_STORAGE_KV.put(path, content);
     return new Response(JSON.stringify({ success: true }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
@@ -383,74 +386,4 @@ async function handleFileOperations(request, env, corsHeaders) {
     status: 404,
     headers: corsHeaders
   });
-}
-
-// WebSocket Durable Object
-export class WebSocketDurableObject {
-  constructor(state, env) {
-    this.state = state;
-    this.env = env;
-  }
-
-  async fetch(request) {
-    const url = new URL(request.url);
-    
-    if (request.headers.get('Upgrade') === 'websocket') {
-      const webSocketPair = new WebSocketPair();
-      const [client, server] = Object.values(webSocketPair);
-      
-      this.handleWebSocket(server);
-      
-      return new Response(null, {
-        status: 101,
-        webSocket: client,
-      });
-    }
-    
-    return new Response('Expected WebSocket', { status: 400 });
-  }
-
-  handleWebSocket(webSocket) {
-    webSocket.accept();
-    
-    webSocket.addEventListener('message', async (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        
-        if (data.type === 'chat') {
-          const { content, provider, apiKey, model } = data;
-          
-          // Send typing indicator
-          webSocket.send(JSON.stringify({ type: 'typing-start' }));
-          
-          try {
-            const response = await handleAIChat(content, provider, apiKey, model);
-            webSocket.send(JSON.stringify({ 
-              type: 'chat-response',
-              response,
-              provider,
-              model
-            }));
-          } catch (error) {
-            webSocket.send(JSON.stringify({ 
-              type: 'error',
-              error: error.message
-            }));
-          }
-          
-          // Stop typing indicator
-          webSocket.send(JSON.stringify({ type: 'typing-stop' }));
-        }
-      } catch (error) {
-        webSocket.send(JSON.stringify({ 
-          type: 'error',
-          error: 'Invalid message format'
-        }));
-      }
-    });
-    
-    webSocket.addEventListener('close', () => {
-      console.log('WebSocket connection closed');
-    });
-  }
 }

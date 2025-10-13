@@ -1,44 +1,39 @@
-name = "cursor-fullstack-ai-ide"
-main = "src/index.js"
-compatibility_date = "2024-01-01"
-
-[env.production]
-name = "cursor-fullstack-ai-ide"
-
-[env.staging]
-name = "cursor-fullstack-ai-ide-staging"
-
-# Backend Worker
-[[workers]]
 name = "cursor-backend"
 main = "backend/index.js"
 compatibility_date = "2024-01-01"
 
-[workers.vars]
-NODE_ENV = "production"
-PORT = "3001"
-WS_PORT = "8080"
+[env.production]
+name = "cursor-backend"
 
-# Frontend Pages
-[[pages]]
-name = "cursor-frontend"
-source = "frontend/dist"
-compatibility_date = "2024-01-01"
-
-[pages.vars]
-VITE_BACKEND_URL = "https://cursor-backend.YOUR_SUBDOMAIN.workers.dev"
-VITE_WS_URL = "wss://cursor-backend.YOUR_SUBDOMAIN.workers.dev"
+[env.staging]
+name = "cursor-backend-staging"
 
 # Durable Objects for WebSocket
-[[durable_objects]]
-name = "WebSocketDO"
-class_name = "WebSocketDurableObject"
+[durable_objects]
+bindings = [
+  { name = "WEBSOCKET_DO", class_name = "WebSocketDurableObject" }
+]
+
+# Migrations for Durable Objects
+[[migrations]]
+tag = "v1"
+new_classes = [ "WebSocketDurableObject" ]
 
 # KV Storage for API keys and session data
 [[kv_namespaces]]
 binding = "API_KEYS"
-id = "your-kv-namespace-id"
-preview_id = "your-preview-kv-namespace-id"
+id = "placeholder-api-keys-id"
+preview_id = "placeholder-api-keys-preview-id"
+
+[[kv_namespaces]]
+binding = "FILE_STORAGE_KV"
+id = "placeholder-file-storage-kv-id"
+preview_id = "placeholder-file-storage-kv-preview-id"
+
+[[kv_namespaces]]
+binding = "SESSIONS"
+id = "placeholder-sessions-id"
+preview_id = "placeholder-sessions-preview-id"
 
 # R2 Storage for file storage
 [[r2_buckets]]
@@ -49,4 +44,4 @@ preview_bucket_name = "cursor-files-preview"
 # Environment variables
 [vars]
 ENVIRONMENT = "production"
-CORS_ORIGIN = "https://cursor-frontend.YOUR_SUBDOMAIN.pages.dev"
+CORS_ORIGIN = "*"

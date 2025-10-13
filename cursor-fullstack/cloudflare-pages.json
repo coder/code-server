@@ -1,6 +1,6 @@
 {
   "buildCommand": "npm run build",
-  "outputDirectory": "cloudflare/frontend/dist",
+  "outputDirectory": "dist",
   "rootDirectory": "cloudflare/frontend",
   "installCommand": "npm install",
   "framework": "vite",

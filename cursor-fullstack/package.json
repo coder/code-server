@@ -9,6 +9,8 @@
     "preview": "cd cloudflare/frontend && npm run preview",
     "deploy": "cd cloudflare && ./auto-deploy.sh",
     "deploy:quick": "cd cloudflare && ./one-click-deploy.sh",
+    "deploy:frontend": "cd cloudflare/frontend && npm run build && wrangler pages deploy dist --project-name cursor-ide",
+    "deploy:backend": "cd cloudflare && wrangler deploy",
     "setup": "cd cloudflare && ./complete-setup.sh",
     "workspace": "cd cloudflare && ./setup-workspace.sh"
   },

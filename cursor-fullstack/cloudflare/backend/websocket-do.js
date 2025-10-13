@@ -257,19 +257,19 @@ export class WebSocketDurableObject {
     const tools = {
       file_read: async (params) => {
         const { filePath } = params;
-        const file = await this.env.FILE_STORAGE.get(filePath);
+        const file = await this.env.FILE_STORAGE_KV.get(filePath);
         return { success: true, content: file || '', filePath };
       },
       
       file_write: async (params) => {
         const { filePath, content } = params;
-        await this.env.FILE_STORAGE.put(filePath, content);
+        await this.env.FILE_STORAGE_KV.put(filePath, content);
         return { success: true, filePath };
       },
       
       file_list: async (params) => {
         const { directory = '' } = params;
-        const files = await this.env.FILE_STORAGE.list({ prefix: directory });
+        const files = await this.env.FILE_STORAGE_KV.list({ prefix: directory });
         return { success: true, files: files.objects.map(obj => ({
           name: obj.key.split('/').pop(),
           path: obj.key,
@@ -280,11 +280,11 @@ export class WebSocketDurableObject {
       
       search_code: async (params) => {
         const { query } = params;
-        const files = await this.env.FILE_STORAGE.list();
+        const files = await this.env.FILE_STORAGE_KV.list();
         const results = [];
         
         for (const file of files.objects) {
-          const content = await this.env.FILE_STORAGE.get(file.key);
+          const content = await this.env.FILE_STORAGE_KV.get(file.key);
           if (content && content.includes(query)) {
             results.push({
               filePath: file.key,
@@ -298,13 +298,13 @@ export class WebSocketDurableObject {
       
       create_file: async (params) => {
         const { filePath, content } = params;
-        await this.env.FILE_STORAGE.put(filePath, content);
+        await this.env.FILE_STORAGE_KV.put(filePath, content);
         return { success: true, filePath };
       },
       
       delete_file: async (params) => {
         const { filePath } = params;
-        await this.env.FILE_STORAGE.delete(filePath);
+        await this.env.FILE_STORAGE_KV.delete(filePath);
         return { success: true, filePath };
       }
     };
@@ -324,15 +324,15 @@ export class WebSocketDurableObject {
   async handleFileOperation(operation, filePath, content) {
     switch (operation) {
       case 'read':
-        const fileContent = await this.env.FILE_STORAGE.get(filePath);
+        const fileContent = await this.env.FILE_STORAGE_KV.get(filePath);
         return { success: true, content: fileContent || '', filePath };
       
       case 'write':
-        await this.env.FILE_STORAGE.put(filePath, content);
+        await this.env.FILE_STORAGE_KV.put(filePath, content);
         return { success: true, filePath };
       
       case 'list':
-        const files = await this.env.FILE_STORAGE.list({ prefix: filePath });
+        const files = await this.env.FILE_STORAGE_KV.list({ prefix: filePath });
         return { success: true, files: files.objects.map(obj => ({
           name: obj.key.split('/').pop(),
           path: obj.key,
@@ -341,7 +341,7 @@ export class WebSocketDurableObject {
         })) };
       
       case 'delete':
-        await this.env.FILE_STORAGE.delete(filePath);
+        await this.env.FILE_STORAGE_KV.delete(filePath);
         return { success: true, filePath };
       
       default:

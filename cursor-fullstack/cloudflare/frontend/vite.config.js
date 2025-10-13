@@ -23,7 +23,8 @@ export default defineConfig({
     minify: 'esbuild',
     esbuild: {
       drop: ['console', 'debugger']
-    }
+    },
+    chunkSizeWarningLimit: 1000
   },
   define: {
     'process.env': {}
