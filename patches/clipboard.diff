@@ -65,7 +65,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/terminal/browser/remoteTe
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/contrib/terminal/browser/remoteTerminalBackend.ts
 +++ code-server/lib/vscode/src/vs/workbench/contrib/terminal/browser/remoteTerminalBackend.ts
-@@ -97,7 +97,7 @@ class RemoteTerminalBackend extends Base
+@@ -98,7 +98,7 @@ class RemoteTerminalBackend extends Base
  			}
  		});
  
@@ -78,7 +78,7 @@ Index: code-server/lib/vscode/src/vs/platform/environment/common/argv.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/platform/environment/common/argv.ts
 +++ code-server/lib/vscode/src/vs/platform/environment/common/argv.ts
-@@ -135,6 +135,7 @@ export interface NativeParsedArgs {
+@@ -136,6 +136,7 @@ export interface NativeParsedArgs {
  	'disable-chromium-sandbox'?: boolean;
  	sandbox?: boolean;
  	'enable-coi'?: boolean;
@@ -90,7 +90,7 @@ Index: code-server/lib/vscode/src/vs/platform/environment/node/argv.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/platform/environment/node/argv.ts
 +++ code-server/lib/vscode/src/vs/platform/environment/node/argv.ts
-@@ -104,6 +104,7 @@ export const OPTIONS: OptionDescriptions
+@@ -105,6 +105,7 @@ export const OPTIONS: OptionDescriptions
  	'user-data-dir': { type: 'string', cat: 'o', args: 'dir', description: localize('userDataDir', "Specifies the directory that user data is kept in. Can be used to open multiple distinct instances of Code.") },
  	'profile': { type: 'string', 'cat': 'o', args: 'profileName', description: localize('profileName', "Opens the provided folder or workspace with the given profile and associates the profile with the workspace. If the profile does not exist, a new empty one is created.") },
  	'help': { type: 'boolean', cat: 'o', alias: 'h', description: localize('help', "Print usage.") },

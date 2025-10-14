@@ -105,8 +105,8 @@ Index: code-server/lib/vscode/src/vs/platform/remote/browser/browserSocketFactor
  			const webSocketSchema = (/^https:/.test(mainWindow.location.href) ? 'wss' : 'ws');
 +			path = (mainWindow.location.pathname + "/" + path).replace(/\/\/+/g, "/")
  			const socket = this._webSocketFactory.create(`${webSocketSchema}://${(/:/.test(host) && !/\[/.test(host)) ? `[${host}]` : host}:${port}${path}?${query}&skipWebSocketFrames=false`, debugLabel);
- 			const errorListener = socket.onError(reject);
- 			socket.onOpen(() => {
+ 			const disposables = new DisposableStore();
+ 			disposables.add(socket.onError(reject));
 Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
