@@ -1,20 +1,27 @@
 import { logger } from "@coder/logger"
 import { promises as fs } from "fs"
+import { wrapper } from "./wrapper"
 
 /**
  * Provides a heartbeat using a local file to indicate activity.
  */
 export class Heart {
   private heartbeatTimer?: NodeJS.Timeout
+  private idleShutdownTimer?: NodeJS.Timeout
   private heartbeatInterval = 60000
   public lastHeartbeat = 0
 
   public constructor(
     private readonly heartbeatPath: string,
+    private idleTimeoutSeconds: number | undefined,
     private readonly isActive: () => Promise<boolean>,
   ) {
     this.beat = this.beat.bind(this)
     this.alive = this.alive.bind(this)
+
+    if (this.idleTimeoutSeconds) {
+      this.idleShutdownTimer = setTimeout(() => this.exitIfIdle(), this.idleTimeoutSeconds * 1000)
+    }
   }
 
   public alive(): boolean {
@@ -36,7 +43,13 @@ export class Heart {
     if (typeof this.heartbeatTimer !== "undefined") {
       clearTimeout(this.heartbeatTimer)
     }
+    if (typeof this.idleShutdownTimer !== "undefined") {
+      clearInterval(this.idleShutdownTimer)
+    }
     this.heartbeatTimer = setTimeout(() => heartbeatTimer(this.isActive, this.beat), this.heartbeatInterval)
+    if (this.idleTimeoutSeconds) {
+      this.idleShutdownTimer = setTimeout(() => this.exitIfIdle(), this.idleTimeoutSeconds * 1000)
+    }
     try {
       return await fs.writeFile(this.heartbeatPath, "")
     } catch (error: any) {
@@ -51,6 +64,11 @@ export class Heart {
     if (typeof this.heartbeatTimer !== "undefined") {
       clearTimeout(this.heartbeatTimer)
     }
+  }
+
+  private exitIfIdle(): void {
+    logger.warn(`Idle timeout of ${this.idleTimeoutSeconds} seconds exceeded`)
+    wrapper.exit(0)
   }
 }
 

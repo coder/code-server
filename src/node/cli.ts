@@ -94,6 +94,7 @@ export interface UserProvidedArgs extends UserProvidedCodeArgs {
   "welcome-text"?: string
   "abs-proxy-base-path"?: string
   i18n?: string
+  "idle-timeout-seconds"?: number
   /* Positional arguments. */
   _?: string[]
 }
@@ -303,6 +304,10 @@ export const options: Options<Required<UserProvidedArgs>> = {
     path: true,
     description: "Path to JSON file with custom translations. Merges with default strings and supports all i18n keys.",
   },
+  "idle-timeout-seconds": {
+    type: "number",
+    description: "Timeout in seconds to wait before shutting down when idle.",
+  },
 }
 
 export const optionDescriptions = (opts: Partial<Options<Required<UserProvidedArgs>>> = options): string[] => {
@@ -394,6 +399,10 @@ export const parse = (
 
       if (key === "github-auth" && !opts?.configFile) {
         throw new Error("--github-auth can only be set in the config file or passed in via $GITHUB_TOKEN")
+      }
+
+      if (key === "idle-timeout-seconds" && Number(value) <= 60) {
+        throw new Error("--idle-timeout-seconds must be greater than 60 seconds.")
       }
 
       const option = options[key]
@@ -609,6 +618,16 @@ export async function setDefaults(cliArgs: UserProvidedArgs, configArgs?: Config
 
   if (process.env.GITHUB_TOKEN) {
     args["github-auth"] = process.env.GITHUB_TOKEN
+  }
+
+  if (process.env.IDLE_TIMEOUT_SECONDS) {
+    if (isNaN(Number(process.env.IDLE_TIMEOUT_SECONDS))) {
+      logger.info("IDLE_TIMEOUT_SECONDS must be a number")
+    }
+    if (Number(process.env.IDLE_TIMEOUT_SECONDS)) {
+      throw new Error("--idle-timeout-seconds must be greater than 60 seconds.")
+    }
+    args["idle-timeout-seconds"] = Number(process.env.IDLE_TIMEOUT_SECONDS)
   }
 
   // Ensure they're not readable by child processes.

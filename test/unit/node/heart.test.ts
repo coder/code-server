@@ -1,9 +1,20 @@
 import { logger } from "@coder/logger"
 import { readFile, writeFile, stat, utimes } from "fs/promises"
 import { Heart, heartbeatTimer } from "../../../src/node/heart"
+import { wrapper } from "../../../src/node/wrapper"
 import { clean, mockLogger, tmpdir } from "../../utils/helpers"
 
 const mockIsActive = (resolveTo: boolean) => jest.fn().mockResolvedValue(resolveTo)
+
+jest.mock("../../../src/node/wrapper", () => {
+  const original = jest.requireActual("../../../src/node/wrapper")
+  return {
+    ...original,
+    wrapper: {
+      exit: jest.fn(),
+    },
+  }
+})
 
 describe("Heart", () => {
   const testName = "heartTests"
@@ -16,7 +27,7 @@ describe("Heart", () => {
     testDir = await tmpdir(testName)
   })
   beforeEach(() => {
-    heart = new Heart(`${testDir}/shutdown.txt`, mockIsActive(true))
+    heart = new Heart(`${testDir}/shutdown.txt`, undefined, mockIsActive(true))
   })
   afterAll(() => {
     jest.restoreAllMocks()
@@ -42,7 +53,7 @@ describe("Heart", () => {
 
     expect(fileContents).toBe(text)
 
-    heart = new Heart(pathToFile, mockIsActive(true))
+    heart = new Heart(pathToFile, undefined, mockIsActive(true))
     await heart.beat()
     // Check that the heart wrote to the heartbeatFilePath and overwrote our text
     const fileContentsAfterBeat = await readFile(pathToFile, { encoding: "utf8" })
@@ -52,7 +63,7 @@ describe("Heart", () => {
     expect(fileStatusAfterEdit.mtimeMs).toBeGreaterThan(0)
   })
   it("should log a warning when given an invalid file path", async () => {
-    heart = new Heart(`fakeDir/fake.txt`, mockIsActive(false))
+    heart = new Heart(`fakeDir/fake.txt`, undefined, mockIsActive(false))
     await heart.beat()
     expect(logger.warn).toHaveBeenCalled()
   })
@@ -71,7 +82,7 @@ describe("Heart", () => {
   it("should beat twice without warnings", async () => {
     // Use fake timers so we can speed up setTimeout
     jest.useFakeTimers()
-    heart = new Heart(`${testDir}/hello.txt`, mockIsActive(true))
+    heart = new Heart(`${testDir}/hello.txt`, undefined, mockIsActive(true))
     await heart.beat()
     // we need to speed up clocks, timeouts
     // call heartbeat again (and it won't be alive I think)
@@ -108,5 +119,34 @@ describe("heartbeatTimer", () => {
     expect(mockIsActive).toHaveBeenCalled()
     expect(mockBeatFn).not.toHaveBeenCalled()
     expect(logger.warn).toHaveBeenCalledWith(errorMsg)
+  })
+})
+
+describe("idleTimeout", () => {
+  const testName = "idleHeartTests"
+  let testDir = ""
+  let heart: Heart
+  beforeAll(async () => {
+    await clean(testName)
+    testDir = await tmpdir(testName)
+    mockLogger()
+  })
+  afterAll(() => {
+    jest.restoreAllMocks()
+  })
+  afterEach(() => {
+    jest.resetAllMocks()
+    if (heart) {
+      heart.dispose()
+    }
+  })
+  it("should call beat when isActive resolves to true", async () => {
+    jest.useFakeTimers()
+    heart = new Heart(`${testDir}/shutdown.txt`, 60, mockIsActive(true))
+
+    jest.advanceTimersByTime(60 * 1000)
+    expect(wrapper.exit).toHaveBeenCalled()
+    jest.clearAllTimers()
+    jest.useRealTimers()
   })
 })

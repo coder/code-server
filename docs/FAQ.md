@@ -322,12 +322,8 @@ As long as there is an active browser connection, code-server touches
 `~/.local/share/code-server/heartbeat` once a minute.
 
 If you want to shutdown code-server if there hasn't been an active connection
-after a predetermined amount of time, you can do so by checking continuously for
-the last modified time on the heartbeat file. If it is older than X minutes (or
-whatever amount of time you'd like), you can kill code-server.
-
-Eventually, [#1636](https://github.com/coder/code-server/issues/1636) will make
-this process better.
+after a predetermined amount of time, you can use the --idle-timeout-seconds flag
+or set an `IDLE_TIMEOUT_SECONDS` environment variable.
 
 ## How do I change the password?
 
