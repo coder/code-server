@@ -1,26 +1,30 @@
 import { logger } from "@coder/logger"
 import { promises as fs } from "fs"
-import { wrapper } from "./wrapper"
+import { Emitter } from "../common/emitter"
 
 /**
  * Provides a heartbeat using a local file to indicate activity.
  */
 export class Heart {
   private heartbeatTimer?: NodeJS.Timeout
-  private idleShutdownTimer?: NodeJS.Timeout
   private heartbeatInterval = 60000
   public lastHeartbeat = 0
+  private readonly _onChange = new Emitter<"alive" | "idle" | "unknown">()
+  readonly onChange = this._onChange.event
+  private state: "alive" | "idle" | "unknown" = "idle"
 
   public constructor(
     private readonly heartbeatPath: string,
-    private idleTimeoutSeconds: number | undefined,
     private readonly isActive: () => Promise<boolean>,
   ) {
     this.beat = this.beat.bind(this)
     this.alive = this.alive.bind(this)
+  }
 
-    if (this.idleTimeoutSeconds) {
-      this.idleShutdownTimer = setTimeout(() => this.exitIfIdle(), this.idleTimeoutSeconds * 1000)
+  private setState(state: typeof this.state) {
+    if (this.state !== state) {
+      this.state = state
+      this._onChange.emit(this.state)
     }
   }
 
@@ -35,6 +39,7 @@ export class Heart {
    */
   public async beat(): Promise<void> {
     if (this.alive()) {
+      this.setState("alive")
       return
     }
 
@@ -43,13 +48,22 @@ export class Heart {
     if (typeof this.heartbeatTimer !== "undefined") {
       clearTimeout(this.heartbeatTimer)
     }
-    if (typeof this.idleShutdownTimer !== "undefined") {
-      clearInterval(this.idleShutdownTimer)
-    }
-    this.heartbeatTimer = setTimeout(() => heartbeatTimer(this.isActive, this.beat), this.heartbeatInterval)
-    if (this.idleTimeoutSeconds) {
-      this.idleShutdownTimer = setTimeout(() => this.exitIfIdle(), this.idleTimeoutSeconds * 1000)
-    }
+
+    this.heartbeatTimer = setTimeout(async () => {
+      try {
+        if (await this.isActive()) {
+          this.beat()
+        } else {
+          this.setState("idle")
+        }
+      } catch (error: unknown) {
+        logger.warn((error as Error).message)
+        this.setState("unknown")
+      }
+    }, this.heartbeatInterval)
+
+    this.setState("alive")
+
     try {
       return await fs.writeFile(this.heartbeatPath, "")
     } catch (error: any) {
@@ -64,27 +78,5 @@ export class Heart {
     if (typeof this.heartbeatTimer !== "undefined") {
       clearTimeout(this.heartbeatTimer)
     }
-  }
-
-  private exitIfIdle(): void {
-    logger.warn(`Idle timeout of ${this.idleTimeoutSeconds} seconds exceeded`)
-    wrapper.exit(0)
-  }
-}
-
-/**
- * Helper function for the heartbeatTimer.
- *
- * If heartbeat is active, call beat. Otherwise do nothing.
- *
- * Extracted to make it easier to test.
- */
-export async function heartbeatTimer(isActive: Heart["isActive"], beat: Heart["beat"]) {
-  try {
-    if (await isActive()) {
-      beat()
-    }
-  } catch (error: unknown) {
-    logger.warn((error as Error).message)
   }
 }

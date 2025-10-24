@@ -28,8 +28,11 @@ import * as vscode from "./vscode"
 /**
  * Register all routes and middleware.
  */
-export const register = async (app: App, args: DefaultedArgs): Promise<Disposable["dispose"]> => {
-  const heart = new Heart(path.join(paths.data, "heartbeat"), args["idle-timeout-seconds"], async () => {
+export const register = async (
+  app: App,
+  args: DefaultedArgs,
+): Promise<{ disposeRoutes: Disposable["dispose"]; heart: Heart }> => {
+  const heart = new Heart(path.join(paths.data, "heartbeat"), async () => {
     return new Promise((resolve, reject) => {
       // getConnections appears to not call the callback when there are no more
       // connections.  Feels like it must be a bug?  For now add a timer to make
@@ -173,8 +176,11 @@ export const register = async (app: App, args: DefaultedArgs): Promise<Disposabl
   app.router.use(errorHandler)
   app.wsRouter.use(wsErrorHandler)
 
-  return () => {
-    heart.dispose()
-    vscode.dispose()
+  return {
+    disposeRoutes: () => {
+      heart.dispose()
+      vscode.dispose()
+    },
+    heart,
   }
 }
