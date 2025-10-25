@@ -620,14 +620,14 @@ export async function setDefaults(cliArgs: UserProvidedArgs, configArgs?: Config
     args["github-auth"] = process.env.GITHUB_TOKEN
   }
 
-  if (process.env.IDLE_TIMEOUT_SECONDS) {
-    if (isNaN(Number(process.env.IDLE_TIMEOUT_SECONDS))) {
-      logger.info("IDLE_TIMEOUT_SECONDS must be a number")
+  if (process.env.CODE_SERVER_IDLE_TIMEOUT_SECONDS) {
+    if (isNaN(Number(process.env.CODE_SERVER_IDLE_TIMEOUT_SECONDS))) {
+      logger.info("CODE_SERVER_IDLE_TIMEOUT_SECONDS must be a number")
     }
-    if (Number(process.env.IDLE_TIMEOUT_SECONDS)) {
+    if (Number(process.env.CODE_SERVER_IDLE_TIMEOUT_SECONDS) <= 60) {
       throw new Error("--idle-timeout-seconds must be greater than 60 seconds.")
     }
-    args["idle-timeout-seconds"] = Number(process.env.IDLE_TIMEOUT_SECONDS)
+    args["idle-timeout-seconds"] = Number(process.env.CODE_SERVER_IDLE_TIMEOUT_SECONDS)
   }
 
   // Ensure they're not readable by child processes.

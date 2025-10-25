@@ -323,7 +323,7 @@ As long as there is an active browser connection, code-server touches
 
 If you want to shutdown code-server if there hasn't been an active connection
 after a predetermined amount of time, you can use the --idle-timeout-seconds flag
-or set an `IDLE_TIMEOUT_SECONDS` environment variable.
+or set an `CODE_SERVER_IDLE_TIMEOUT_SECONDS` environment variable.
 
 ## How do I change the password?
 
