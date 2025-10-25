@@ -16,6 +16,7 @@ jest.mock("@coder/logger", () => ({
     debug: jest.fn(),
     warn: jest.fn(),
     error: jest.fn(),
+    named: jest.fn(),
     level: 0,
   },
   field: jest.fn(),
@@ -94,7 +95,7 @@ describe("main", () => {
 
       // Mock routes module
       jest.doMock("../../../src/node/routes", () => ({
-        register: jest.fn().mockResolvedValue(jest.fn()),
+        register: jest.fn().mockResolvedValue({ disposeRoutes: jest.fn() }),
       }))
 
       // Mock loadCustomStrings to succeed
@@ -131,7 +132,7 @@ describe("main", () => {
 
       // Mock routes module
       jest.doMock("../../../src/node/routes", () => ({
-        register: jest.fn().mockResolvedValue(jest.fn()),
+        register: jest.fn().mockResolvedValue({ disposeRoutes: jest.fn() }),
       }))
 
       // Import runCodeServer after mocking
