@@ -147,7 +147,7 @@ describe("stateChange", () => {
 
     expect(mockOnChange.mock.calls[0][0]).toBe("alive")
   })
-  it.only("should change to idle when not active", async () => {
+  it.only("should change to expired when not active", async () => {
     jest.useFakeTimers()
     heart = new Heart(`${testDir}/shutdown.txt`, () => new Promise((resolve) => resolve(false)))
     const mockOnChange = jest.fn()
@@ -155,7 +155,7 @@ describe("stateChange", () => {
     await heart.beat()
 
     await jest.advanceTimersByTime(60 * 1000)
-    expect(mockOnChange.mock.calls[1][0]).toBe("idle")
+    expect(mockOnChange.mock.calls[1][0]).toBe("expired")
     jest.clearAllTimers()
     jest.useRealTimers()
   })

@@ -182,7 +182,7 @@ export const runCodeServer = async (
 
     heart.onChange((state) => {
       clearTimeout(idleShutdownTimer)
-      if (state === "idle") {
+      if (state === "expired") {
         startIdleShutdownTimer()
       }
     })

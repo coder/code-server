@@ -9,9 +9,9 @@ export class Heart {
   private heartbeatTimer?: NodeJS.Timeout
   private heartbeatInterval = 60000
   public lastHeartbeat = 0
-  private readonly _onChange = new Emitter<"alive" | "idle" | "unknown">()
+  private readonly _onChange = new Emitter<"alive" | "expired" | "unknown">()
   readonly onChange = this._onChange.event
-  private state: "alive" | "idle" | "unknown" = "idle"
+  private state: "alive" | "expired" | "unknown" = "expired"
 
   public constructor(
     private readonly heartbeatPath: string,
@@ -54,7 +54,7 @@ export class Heart {
         if (await this.isActive()) {
           this.beat()
         } else {
-          this.setState("idle")
+          this.setState("expired")
         }
       } catch (error: unknown) {
         logger.warn((error as Error).message)
