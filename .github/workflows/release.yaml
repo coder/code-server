@@ -94,7 +94,7 @@ jobs:
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
       - name: Download npm package
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: npm-release-package
 
@@ -160,7 +160,7 @@ jobs:
       - run: brew install python-setuptools
 
       - name: Download npm package
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: npm-release-package
 
@@ -221,7 +221,7 @@ jobs:
       - run: brew install python-setuptools
 
       - name: Download npm package
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: npm-release-package
 
@@ -253,7 +253,7 @@ jobs:
     needs: npm-version
     steps:
       - name: Download npm package
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: npm-release-package
 
