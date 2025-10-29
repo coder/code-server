@@ -11,6 +11,7 @@ import { loadCustomStrings } from "./i18n"
 import { register } from "./routes"
 import { VSCodeModule } from "./routes/vscode"
 import { isDirectory, open } from "./util"
+import { wrapper } from "./wrapper"
 
 /**
  * Return true if the user passed an extension-related VS Code flag.
@@ -141,7 +142,7 @@ export const runCodeServer = async (
   const app = await createApp(args)
   const protocol = args.cert ? "https" : "http"
   const serverAddress = ensureAddress(app.server, protocol)
-  const disposeRoutes = await register(app, args)
+  const { disposeRoutes, heart } = await register(app, args)
 
   logger.info(`Using config file ${args.config}`)
   logger.info(`${protocol.toUpperCase()} server listening on ${serverAddress.toString()}`)
@@ -164,6 +165,27 @@ export const runCodeServer = async (
     logger.info(`  - Using certificate for HTTPS: ${args.cert.value}`)
   } else {
     logger.info("  - Not serving HTTPS")
+  }
+
+  if (args["idle-timeout-seconds"]) {
+    logger.info(`  - Idle timeout set to ${args["idle-timeout-seconds"]} seconds`)
+
+    let idleShutdownTimer: NodeJS.Timeout | undefined
+    const startIdleShutdownTimer = () => {
+      idleShutdownTimer = setTimeout(() => {
+        logger.warn(`Idle timeout of ${args["idle-timeout-seconds"]} seconds exceeded`)
+        wrapper.exit(0)
+      }, args["idle-timeout-seconds"]! * 1000)
+    }
+
+    startIdleShutdownTimer()
+
+    heart.onChange((state) => {
+      clearTimeout(idleShutdownTimer)
+      if (state === "expired") {
+        startIdleShutdownTimer()
+      }
+    })
   }
 
   if (args["disable-proxy"]) {

@@ -28,7 +28,10 @@ import * as vscode from "./vscode"
 /**
  * Register all routes and middleware.
  */
-export const register = async (app: App, args: DefaultedArgs): Promise<Disposable["dispose"]> => {
+export const register = async (
+  app: App,
+  args: DefaultedArgs,
+): Promise<{ disposeRoutes: Disposable["dispose"]; heart: Heart }> => {
   const heart = new Heart(path.join(paths.data, "heartbeat"), async () => {
     return new Promise((resolve, reject) => {
       // getConnections appears to not call the callback when there are no more
@@ -173,8 +176,11 @@ export const register = async (app: App, args: DefaultedArgs): Promise<Disposabl
   app.router.use(errorHandler)
   app.wsRouter.use(wsErrorHandler)
 
-  return () => {
-    heart.dispose()
-    vscode.dispose()
+  return {
+    disposeRoutes: () => {
+      heart.dispose()
+      vscode.dispose()
+    },
+    heart,
   }
 }
