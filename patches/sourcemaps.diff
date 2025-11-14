@@ -6,33 +6,33 @@ not host our source maps there and want them to be self-hosted even if we could.
 
 To test try debugging/browsing the source of a build in a browser.
 
-Index: code-server/lib/vscode/build/gulpfile.reh.js
+Index: code-server/lib/vscode/build/gulpfile.reh.mjs
 ===================================================================
---- code-server.orig/lib/vscode/build/gulpfile.reh.js
-+++ code-server/lib/vscode/build/gulpfile.reh.js
-@@ -257,8 +257,7 @@ function packageTask(type, platform, arc
- 
+--- code-server.orig/lib/vscode/build/gulpfile.reh.mjs
++++ code-server/lib/vscode/build/gulpfile.reh.mjs
+@@ -265,8 +265,7 @@ function packageTask(type, platform, arc
+
  		const src = gulp.src(sourceFolderName + '/**', { base: '.' })
  			.pipe(rename(function (path) { path.dirname = path.dirname.replace(new RegExp('^' + sourceFolderName), 'out'); }))
 -			.pipe(util.setExecutableBit(['**/*.sh']))
 -			.pipe(filter(['**', '!**/*.{js,css}.map']));
 +			.pipe(util.setExecutableBit(['**/*.sh']));
- 
+
  		const workspaceExtensionPoints = ['debuggers', 'jsonValidation'];
  		const isUIExtension = (manifest) => {
-@@ -297,9 +296,9 @@ function packageTask(type, platform, arc
+@@ -305,9 +304,9 @@ function packageTask(type, platform, arc
  			.map(name => `.build/extensions/${name}/**`);
- 
+
  		const extensions = gulp.src(extensionPaths, { base: '.build', dot: true });
 -		const extensionsCommonDependencies = gulp.src('.build/extensions/node_modules/**', { base: '.build', dot: true });
 -		const sources = es.merge(src, extensions, extensionsCommonDependencies)
 +		const extensionsCommonDependencies = gulp.src('.build/extensions/node_modules/**', { base: '.build', dot: true })
  			.pipe(filter(['**', '!**/*.{js,css}.map'], { dot: true }));
 +		const sources = es.merge(src, extensions, extensionsCommonDependencies);
- 
+
  		let version = packageJson.version;
  		const quality = product.quality;
-@@ -452,7 +451,7 @@ function tweakProductForServerWeb(produc
+@@ -460,7 +459,7 @@ function tweakProductForServerWeb(produc
  	const minifyTask = task.define(`minify-vscode-${type}`, task.series(
  		bundleTask,
  		util.rimraf(`out-vscode-${type}-min`),
@@ -40,4 +40,3 @@ Index: code-server/lib/vscode/build/gulpfile.reh.js
 +		optimize.minifyTask(`out-vscode-${type}`, ``)
  	));
  	gulp.task(minifyTask);
- 
