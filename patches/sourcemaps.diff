@@ -11,25 +11,25 @@ Index: code-server/lib/vscode/build/gulpfile.reh.mjs
 --- code-server.orig/lib/vscode/build/gulpfile.reh.mjs
 +++ code-server/lib/vscode/build/gulpfile.reh.mjs
 @@ -265,8 +265,7 @@ function packageTask(type, platform, arc
-
+ 
  		const src = gulp.src(sourceFolderName + '/**', { base: '.' })
  			.pipe(rename(function (path) { path.dirname = path.dirname.replace(new RegExp('^' + sourceFolderName), 'out'); }))
 -			.pipe(util.setExecutableBit(['**/*.sh']))
 -			.pipe(filter(['**', '!**/*.{js,css}.map']));
 +			.pipe(util.setExecutableBit(['**/*.sh']));
-
+ 
  		const workspaceExtensionPoints = ['debuggers', 'jsonValidation'];
  		const isUIExtension = (manifest) => {
 @@ -305,9 +304,9 @@ function packageTask(type, platform, arc
  			.map(name => `.build/extensions/${name}/**`);
-
+ 
  		const extensions = gulp.src(extensionPaths, { base: '.build', dot: true });
 -		const extensionsCommonDependencies = gulp.src('.build/extensions/node_modules/**', { base: '.build', dot: true });
 -		const sources = es.merge(src, extensions, extensionsCommonDependencies)
 +		const extensionsCommonDependencies = gulp.src('.build/extensions/node_modules/**', { base: '.build', dot: true })
  			.pipe(filter(['**', '!**/*.{js,css}.map'], { dot: true }));
 +		const sources = es.merge(src, extensions, extensionsCommonDependencies);
-
+ 
  		let version = packageJson.version;
  		const quality = product.quality;
 @@ -460,7 +459,7 @@ function tweakProductForServerWeb(produc
