@@ -265,7 +265,7 @@ Index: code-server/lib/vscode/src/server-main.ts
 +++ code-server/lib/vscode/src/server-main.ts
 @@ -22,6 +22,9 @@ import { IServerAPI } from './vs/server/
  perf.mark('code/server/start');
- (globalThis as any).vscodeServerStartTime = performance.now();
+ (globalThis as { vscodeServerStartTime?: number }).vscodeServerStartTime = performance.now();
  
 +// This is not indented to make the diff less noisy.  We need to move this out
 +// of the top-level so it will not run immediately and we can control the start.
@@ -279,7 +279,7 @@ Index: code-server/lib/vscode/src/server-main.ts
  }
 +}
  
- function sanitizeStringArg(val: any): string | undefined {
+ function sanitizeStringArg(val: unknown): string | undefined {
  	if (Array.isArray(val)) { // if an argument is passed multiple times, minimist creates an array
 @@ -283,3 +287,22 @@ function prompt(question: string): Promi
  		});
