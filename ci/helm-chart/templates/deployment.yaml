@@ -7,8 +7,11 @@ metadata:
     helm.sh/chart: {{ include "code-server.chart" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
+  {{- if .Values.annotations }}
+  annotations: {{- toYaml .Values.annotations | nindent 4 }}
+  {{- end }}
 spec:
-  replicas: 1
+  replicas: {{ .Values.replicaCount | default 1 }}
   strategy:
     type: Recreate
   selector:
@@ -35,8 +38,9 @@ spec:
       securityContext:
         fsGroup: {{ .Values.securityContext.fsGroup }}
       {{- end }}
-      {{- if and .Values.volumePermissions.enabled .Values.persistence.enabled }}
+      {{- if or (and .Values.volumePermissions.enabled .Values.persistence.enabled) .Values.extraInitContainers }}
       initContainers:
+      {{- if and .Values.volumePermissions.enabled .Values.persistence.enabled }}
       - name: init-chmod-data
         image: busybox:latest
         imagePullPolicy: IfNotPresent
@@ -50,6 +54,7 @@ spec:
         volumeMounts:
         - name: data
           mountPath: /home/coder
+      {{- end }}
 {{- if .Values.extraInitContainers }}
 {{ tpl .Values.extraInitContainers . | indent 6}}
 {{- end }}
@@ -177,9 +182,12 @@ spec:
         {{- if .existingClaim }}
         persistentVolumeClaim:
           claimName: {{ .existingClaim }}
-        {{- else }}
+        {{- else if .hostPath }}
         hostPath:
           path: {{ .hostPath }}
           type: Directory
+        {{- else }}
+        emptyDir:
+          {{- toYaml .emptyDir | nindent 10 }}
         {{- end }}
       {{- end }}

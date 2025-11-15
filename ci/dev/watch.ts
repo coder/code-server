@@ -45,9 +45,11 @@ class Watcher {
 
   private readonly compilers: DevelopmentCompilers = {
     codeServer: spawn("tsc", ["--watch", "--pretty", "--preserveWatchOutput"], { cwd: this.rootPath }),
-    vscode: spawn("yarn", ["watch"], { cwd: this.paths.vscodeDir }),
-    vscodeWebExtensions: spawn("yarn", ["watch-web"], { cwd: this.paths.vscodeDir }),
-    plugins: this.paths.pluginDir ? spawn("yarn", ["build", "--watch"], { cwd: this.paths.pluginDir }) : undefined,
+    vscode: spawn("npm", ["run", "watch"], { cwd: this.paths.vscodeDir }),
+    vscodeWebExtensions: spawn("npm", ["run", "watch-web"], { cwd: this.paths.vscodeDir }),
+    plugins: this.paths.pluginDir
+      ? spawn("npm", ["run", "build", "--watch"], { cwd: this.paths.pluginDir })
+      : undefined,
   }
 
   public async initialize(): Promise<void> {

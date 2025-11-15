@@ -22,6 +22,505 @@ Code v99.99.999
 
 ## Unreleased
 
+## [4.104.2](https://github.com/coder/code-server/releases/tag/v4.104.2) - 2025-09-26
+
+Code v1.104.2
+
+### Changed
+
+- Update to Code 1.104.2.
+
+## [4.104.1](https://github.com/coder/code-server/releases/tag/v4.104.1) - 2025-09-19
+
+Code v1.104.1
+
+### Changed
+
+- Update to Code 1.104.1.
+
+## [4.104.0](https://github.com/coder/code-server/releases/tag/v4.104.0) - 2025-09-15
+
+Code v1.104.0
+
+### Fixed
+
+- Fix "extension not found" errors from Open VSX when trying to install the
+  latest version of an extension.
+
+### Changed
+
+- Update to Code 1.104.0.
+
+## [4.103.2](https://github.com/coder/code-server/releases/tag/v4.103.2) - 2025-08-25
+
+Code v1.103.2
+
+### Changed
+
+- Update to Code 1.103.2.
+
+## [4.103.1](https://github.com/coder/code-server/releases/tag/v4.103.1) - 2025-08-15
+
+Code v1.103.1
+
+### Changed
+
+- Update to Code 1.103.1.
+
+## [4.103.0](https://github.com/coder/code-server/releases/tag/v4.103.0) - 2025-08-12
+
+Code v1.103.0
+
+### Changed
+
+- Update to Code 1.103.0.
+
+## [4.102.2](https://github.com/coder/code-server/releases/tag/v4.102.2) - 2025-07-24
+
+Code v1.102.2
+
+### Changed
+
+- Update to Code 1.102.2.
+
+## [4.102.1](https://github.com/coder/code-server/releases/tag/v4.102.1) - 2025-07-17
+
+Code v1.102.1
+
+### Changed
+
+- Update to Code 1.102.1.
+
+## [4.102.0](https://github.com/coder/code-server/releases/tag/v4.102.0) - 2025-07-16
+
+Code v1.102.0
+
+### Changed
+
+- Update to Code 1.102.0.
+
+### Added
+
+- Custom strings can be configured using the `--i18n` flag set to a JSON
+  file. This can be used for either translation (and can be used alongside
+  `--locale`) or for customizing the strings. See
+  [./src/node/i18n/locales/en.json](./src/node/i18n/locales/en.json) for the
+  available keys.
+
+## [4.101.2](https://github.com/coder/code-server/releases/tag/v4.101.2) - 2025-06-25
+
+Code v1.101.2
+
+### Changed
+
+- Update to Code 1.101.2.
+
+### Fixed
+
+- Fix web views not loading due to 401 when requesting the service worker.
+
+## [4.101.1](https://github.com/coder/code-server/releases/tag/v4.101.1) - 2025-06-20
+
+Code v1.101.1
+
+### Changed
+
+- Update to Code 1.101.1.
+
+## [4.101.0](https://github.com/coder/code-server/releases/tag/v4.101.0) - 2025-06-20
+
+Code v1.101.0
+
+### Changed
+
+- Update to Code 1.101.0.
+
+## [4.100.3](https://github.com/coder/code-server/releases/tag/v4.100.3) - 2025-06-03
+
+Code v1.100.3
+
+### Changed
+
+- Update to Code 1.100.3.
+
+## [4.100.2](https://github.com/coder/code-server/releases/tag/v4.100.2) - 2025-05-15
+
+Code v1.100.2
+
+### Changed
+
+- Update to Code 1.100.2.
+
+## [4.100.1](https://github.com/coder/code-server/releases/tag/v4.100.1) - 2025-05-13
+
+Code v1.100.1
+
+### Changed
+
+- Update to Code 1.100.1.
+
+## [4.100.0](https://github.com/coder/code-server/releases/tag/v4.100.0) - 2025-05-12
+
+Code v1.100.0
+
+### Added
+
+- Trusted domains for links can now be set at run-time by configuring
+  `linkProtectionTrustedDomains` in the `lib/vscode/product.json` file or via
+  the `--link-protection-trusted-domains` flag.
+
+### Changed
+
+- Update to Code 1.100.0.
+- Disable extension signature verification, which previously was skipped by
+  default (the package used for verification is not available to OSS builds of
+  VS Code) but now reportedly throws hard errors making it impossible to install
+  extensions.
+
+### Fixed
+
+- Flags with repeatable options now work via the config file.
+
+## [4.99.4](https://github.com/coder/code-server/releases/tag/v4.99.4) - 2025-05-02
+
+Code v1.99.3
+
+### Security
+
+- Validate that ports in the path proxy are numbers, to prevent proxying to
+  arbitrary domains.
+
+## [4.99.3](https://github.com/coder/code-server/releases/tag/v4.99.3) - 2025-04-17
+
+Code v1.99.3
+
+### Added
+
+- Added `--skip-auth-preflight` flag to let preflight requests through the
+  proxy.
+
+### Changed
+
+- Update to Code 1.99.3.
+
+## [4.99.2](https://github.com/coder/code-server/releases/tag/v4.99.2) - 2025-04-10
+
+Code v1.99.2
+
+### Changed
+
+- Update to Code 1.99.2.
+
+## [4.99.1](https://github.com/coder/code-server/releases/tag/v4.99.1) - 2025-04-08
+
+Code v1.99.1
+
+### Changed
+
+- Update to Code 1.99.1.
+
+## [4.99.0](https://github.com/coder/code-server/releases/tag/v4.99.0) - 2025-04-07
+
+Code v1.99.0
+
+### Changed
+
+- Update to Code 1.99.0.
+
+## [4.98.0](https://github.com/coder/code-server/releases/tag/v4.98.0) - 2025-03-07
+
+Code v1.98.0
+
+### Changed
+
+- Update to Code 1.98.0.
+
+## [4.97.2](https://github.com/coder/code-server/releases/tag/v4.96.4) - 2025-02-18
+
+Code v1.97.2
+
+### Added
+
+- Added back macOS amd64 builds.
+
+### Changed
+
+- Update to Code 1.97.2.
+- Softened dark mode login page colors.
+
+## [4.96.4](https://github.com/coder/code-server/releases/tag/v4.96.4) - 2025-01-20
+
+Code v1.96.4
+
+### Changed
+
+- Update to Code 1.96.4.
+
+## [4.96.2](https://github.com/coder/code-server/releases/tag/v4.96.2) - 2024-12-20
+
+Code v1.96.2
+
+### Changed
+
+- Update to Code 1.96.2.
+
+## [4.96.1](https://github.com/coder/code-server/releases/tag/v4.96.1) - 2024-12-18
+
+Code v1.96.1
+
+### Added
+
+- Dark color scheme for login and error pages.
+
+### Changed
+
+- Update to Code 1.96.1.
+
+## [4.95.3](https://github.com/coder/code-server/releases/tag/v4.95.3) - 2024-11-18
+
+Code v1.95.3
+
+### Changed
+
+- Update to Code 1.95.3.
+
+## [4.95.2](https://github.com/coder/code-server/releases/tag/v4.95.2) - 2024-11-12
+
+Code v1.95.2
+
+### Changed
+
+- Update to Code 1.95.2.
+
+## [4.95.1](https://github.com/coder/code-server/releases/tag/v4.95.1) - 2024-11-06
+
+Code v1.95.1
+
+### Changed
+
+- Update to Code 1.95.1.
+
+## [4.93.1](https://github.com/coder/code-server/releases/tag/v4.93.1) - 2024-09-23
+
+Code v1.93.1
+
+### Changed
+
+- Updated to Code 1.93.1.
+
+### Added
+
+- Added `--abs-proxy-base-path` flag for when code-server is not at the root.
+
+## [4.92.2](https://github.com/coder/code-server/releases/tag/v4.92.2) - 2024-08-19
+
+Code v1.92.2
+
+### Breaking changes
+
+- Dropped a patch that changed the compile target from es2022 to es2020 because
+  it no longer works with the way VS Code uses static properties. This may break
+  older browsers, so those browsers will either have to be updated or use an
+  older version of code-server.
+
+### Changed
+
+- Updated to Code 1.92.2.
+
+## [4.91.0](https://github.com/coder/code-server/releases/tag/v4.91.0) - 2024-07-10
+
+Code v1.91.0
+
+### Changed
+
+- Updated to Code 1.91.0.
+
+## [4.90.3](https://github.com/coder/code-server/releases/tag/v4.90.3) - 2024-06-21
+
+Code v1.90.2
+
+### Changed
+
+- Updated to Code 1.90.2.
+
+### Fixed
+
+- When the log gets rotated it will no longer incorrectly be moved to a new
+  directory created in the current working directory named with a date.
+  Instead, the file itself is prepended with the date and kept in the same
+  directory, as originally intended.
+
+## [4.90.2](https://github.com/coder/code-server/releases/tag/v4.90.2) - 2024-06-14
+
+Code v1.90.1
+
+### Changed
+
+- Updated to Code 1.90.1.
+
+## [4.90.1](https://github.com/coder/code-server/releases/tag/v4.90.1) - 2024-06-12
+
+Code v1.90.0
+
+### Fixed
+
+- Cache a call to get CPU information used in telemetry that could result in a
+  lack responsiveness if it was particularly slow.
+
+## [4.90.0](https://github.com/coder/code-server/releases/tag/v4.90.0) - 2024-06-11
+
+Code v1.90.0
+
+### Changed
+
+- Updated to Code 1.90.0.
+- Updated Node to 20.11.1.
+
+### Added
+
+- Send contents to the clipboard in the integrated terminal by piping to
+  `code-server --stdin-to-clipboard` or `code-server -c`.
+
+  You may want to make this an alias:
+
+  ```
+  alias xclip="code-server --stdin-to-clipboard"
+  echo -n "hello world" | xclip
+  ```
+
+## [4.89.1](https://github.com/coder/code-server/releases/tag/v4.89.1) - 2024-04-14
+
+Code v1.89.1
+
+### Changed
+
+- Updated to Code 1.89.1.
+
+## [4.89.0](https://github.com/coder/code-server/releases/tag/v4.89.0) - 2024-04-08
+
+Code v1.89.0
+
+### Changed
+
+- Updated to Code 1.89.0.
+
+## [4.23.1](https://github.com/coder/code-server/releases/tag/v4.23.1) - 2024-04-15
+
+Code v1.88.1
+
+### Changed
+
+- Updated to Code 1.88.1.
+
+## [4.23.0](https://github.com/coder/code-server/releases/tag/v4.23.0) - 2024-04-08
+
+Code v1.88.0
+
+### Changed
+
+- Updated to Code 1.88.0.
+- Updated Node to 18.18.2.
+
+### Fixed
+
+- Fix masking the exit code when failing to install extensions on the command
+  line outside the integrated terminal. Installing extensions inside the
+  integrated terminal still masks the exit code and is an upstream bug.
+
+## [4.22.1](https://github.com/coder/code-server/releases/tag/v4.22.1) - 2024-03-14
+
+Code v1.87.2
+
+### Changed
+
+- Updated to Code 1.87.2.
+- Enable keep-alive for proxy agent.
+
+## [4.22.0](https://github.com/coder/code-server/releases/tag/v4.22.0) - 2024-03-03
+
+Code v1.87.0
+
+### Changed
+
+- Updated to Code 1.87.0.
+
+## [4.21.2](https://github.com/coder/code-server/releases/tag/v4.21.2) - 2024-02-28
+
+Code v1.86.2
+
+### Changed
+
+- Updated to Code 1.86.2.
+
+## [4.21.1](https://github.com/coder/code-server/releases/tag/v4.21.1) - 2024-02-09
+
+Code v1.86.1
+
+### Changed
+
+- Updated to Code 1.86.1.
+- Updated to Node 18.17.1.
+
+### Added
+
+- Docker images for Fedora and openSUSE.
+
+## [4.21.0](https://github.com/coder/code-server/releases/tag/v4.21.0) - 2024-02-05
+
+Code v1.86.0
+
+### Changed
+
+- Updated to Code 1.86.0.
+
+## [4.20.1](https://github.com/coder/code-server/releases/tag/v4.20.1) - 2024-01-22
+
+Code v1.85.2
+
+### Changed
+
+- Updated to Code 1.85.2.
+
+### Fixed
+
+- Query variables are no longer double-encoded when going over the path proxy.
+
+## [4.20.0](https://github.com/coder/code-server/releases/tag/v4.20.0) - 2023-12-21
+
+Code v1.85.1
+
+### Added
+
+- New flag `--disable-file-uploads` to disable uploading files to the remote by
+  drag and drop and to disable opening local files via the "show local" button
+  in the file open prompt. Note that you can still open local files by drag and
+  dropping the file onto the editor pane.
+- Added `wget` to the release image.
+
+### Changed
+
+- Updated to Code 1.85.1.
+- The `--disable-file-downloads` flag will now disable the "show local" button
+  in the file save prompt as well.
+- Debian release image updated to use Bookworm.
+
+## [4.19.1](https://github.com/coder/code-server/releases/tag/v4.19.1) - 2023-11-29
+
+Code v1.84.2
+
+### Fixed
+
+- Fixed an issue where parts of the editor would not load (like the file
+  explorer, source control, etc) when using a workspace file.
+
+## [4.19.0](https://github.com/coder/code-server/releases/tag/v4.19.0) - 2023-11-18
+
+Code v1.84.2
+
+### Changed
+
+- Updated to Code 1.84.2.
+
 ## [4.18.0](https://github.com/coder/code-server/releases/tag/v4.18.0) - 2023-10-20
 
 Code v1.83.1
@@ -364,7 +863,6 @@ Code v1.68.1
   would be accessible at `my.domain/proxy/8000/` without any authentication.
 
   If all of the following apply to you please update as soon as possible:
-
   - You run code-server with the built-in password authentication.
   - You run unprotected HTTP services on ports accessible by code-server.
 

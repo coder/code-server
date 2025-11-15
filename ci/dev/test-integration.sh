@@ -2,9 +2,9 @@
 set -euo pipefail
 
 help() {
-  echo >&2 "  You can build the standalone release with 'yarn release:standalone'"
+  echo >&2 "  You can build the standalone release with 'npm run release:standalone'"
   echo >&2 "  Or you can pass in a custom path."
-  echo >&2 "  CODE_SERVER_PATH='/var/tmp/coder/code-server/bin/code-server' yarn test:integration"
+  echo >&2 "  CODE_SERVER_PATH='/var/tmp/coder/code-server/bin/code-server' npm run test:integration"
 }
 
 # Make sure a code-server release works. You can pass in the path otherwise it
@@ -33,7 +33,7 @@ main() {
     exit 1
   fi
 
-  CODE_SERVER_PATH="$path" CS_DISABLE_PLUGINS=true ./test/node_modules/.bin/jest "$@" --coverage=false --testRegex "./test/integration" --testPathIgnorePatterns "./test/integration/fixtures"
+  CODE_SERVER_PATH="$path" ./test/node_modules/.bin/jest "$@" --coverage=false --testRegex "./test/integration" --testPathIgnorePatterns "./test/integration/fixtures"
 }
 
 main "$@"

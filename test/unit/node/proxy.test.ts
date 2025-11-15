@@ -199,7 +199,7 @@ describe("proxy", () => {
   })
 
   it("should proxy non-ASCII", async () => {
-    e.get("*", (req, res) => {
+    e.get(/.*/, (req, res) => {
       res.json("ほげ")
     })
     codeServer = await integration.setup(["--auth=none"], "")
@@ -207,6 +207,81 @@ describe("proxy", () => {
     expect(resp.status).toBe(200)
     const json = await resp.json()
     expect(json).toBe("ほげ")
+  })
+
+  it("should not double-encode query variables", async () => {
+    const spy = jest.fn()
+    e.get(/.*/, (req, res) => {
+      spy([req.originalUrl, req.query])
+      res.end()
+    })
+    codeServer = await integration.setup(["--auth=none"], "")
+    for (const test of [
+      {
+        endpoint: proxyPath,
+        query: { foo: "bar with spaces" },
+        expected: "/wsup?foo=bar+with+spaces",
+      },
+      {
+        endpoint: absProxyPath,
+        query: { foo: "bar with spaces" },
+        expected: absProxyPath + "?foo=bar+with+spaces",
+      },
+      {
+        endpoint: proxyPath,
+        query: { foo: "with-&-ampersand" },
+        expected: "/wsup?foo=with-%26-ampersand",
+      },
+      {
+        endpoint: absProxyPath,
+        query: { foo: "with-&-ampersand" },
+        expected: absProxyPath + "?foo=with-%26-ampersand",
+      },
+      {
+        endpoint: absProxyPath,
+        query: { foo: "ほげ ほげ" },
+        expected: absProxyPath + "?foo=%E3%81%BB%E3%81%92+%E3%81%BB%E3%81%92",
+      },
+      {
+        endpoint: proxyPath,
+        query: { foo: "ほげ ほげ" },
+        expected: "/wsup?foo=%E3%81%BB%E3%81%92+%E3%81%BB%E3%81%92",
+      },
+    ]) {
+      spy.mockClear()
+      const resp = await codeServer.fetch(test.endpoint, undefined, test.query)
+      expect(resp.status).toBe(200)
+      await resp.text()
+      expect(spy).toHaveBeenCalledTimes(1)
+      expect(spy).toHaveBeenCalledWith([test.expected, test.query])
+    }
+  })
+
+  it("should allow specifying an absproxy path", async () => {
+    const prefixedPath = `/codeserver/app1${absProxyPath}`
+    e.get(prefixedPath, (req, res) => {
+      res.send("app being served behind a prefixed path")
+    })
+    codeServer = await integration.setup(["--auth=none", "--abs-proxy-base-path=/codeserver/app1"], "")
+    const resp = await codeServer.fetch(absProxyPath)
+    expect(resp.status).toBe(200)
+    const text = await resp.text()
+    expect(text).toBe("app being served behind a prefixed path")
+  })
+
+  it("should not allow OPTIONS without authentication by default", async () => {
+    process.env.PASSWORD = "test"
+    codeServer = await integration.setup(["--auth=password"])
+    const resp = await codeServer.fetch(proxyPath, { method: "OPTIONS" })
+    expect(resp.status).toBe(401)
+  })
+
+  it("should allow OPTIONS with `skip-auth-preflight` flag", async () => {
+    process.env.PASSWORD = "test"
+    codeServer = await integration.setup(["--auth=password", "--skip-auth-preflight"])
+    e.post("/wsup", (req, res) => {})
+    const resp = await codeServer.fetch(proxyPath, { method: "OPTIONS" })
+    expect(resp.status).toBe(200)
   })
 })
 

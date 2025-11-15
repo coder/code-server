@@ -19,7 +19,7 @@ Index: code-server/lib/vscode/src/vs/platform/product/common/product.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/platform/product/common/product.ts
 +++ code-server/lib/vscode/src/vs/platform/product/common/product.ts
-@@ -47,6 +47,16 @@ else if (globalThis._VSCODE_PRODUCT_JSON
+@@ -49,6 +49,17 @@ else if (globalThis._VSCODE_PRODUCT_JSON
  			version: pkg.version
  		});
  	}
@@ -28,6 +28,7 @@ Index: code-server/lib/vscode/src/vs/platform/product/common/product.ts
 +		extensionsGallery: env.EXTENSIONS_GALLERY ? JSON.parse(env.EXTENSIONS_GALLERY) : (product.extensionsGallery || {
 +			serviceUrl: "https://open-vsx.org/vscode/gallery",
 +			itemUrl: "https://open-vsx.org/vscode/item",
++			extensionUrlTemplate: "https://open-vsx.org/vscode/gallery/{publisher}/{name}/latest",
 +			resourceUrlTemplate: "https://open-vsx.org/vscode/asset/{publisher}/{name}/{version}/Microsoft.VisualStudio.Code.WebResources/{path}",
 +			controlUrl: "",
 +			recommendationsUrl: "",
@@ -40,49 +41,52 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -113,7 +113,7 @@ export class WebClientServer {
- 		const serverRootPath = getRemoteServerRootPath(_productService);
- 		this._staticRoute = `${serverRootPath}/static`;
- 		this._callbackRoute = `${serverRootPath}/callback`;
--		this._webExtensionRoute = `${serverRootPath}/web-extension-resource`;
-+		this._webExtensionRoute = `/web-extension-resource`;
- 	}
+@@ -326,7 +326,6 @@ export class WebClientServer {
  
- 	/**
-@@ -311,14 +311,7 @@ export class WebClientServer {
+ 		const staticRoute = posix.join(basePath, this._productPath, STATIC_PATH);
+ 		const callbackRoute = posix.join(basePath, this._productPath, CALLBACK_PATH);
+-		const webExtensionRoute = posix.join(basePath, this._productPath, WEB_EXTENSION_PATH);
+ 
+ 		const resolveWorkspaceURI = (defaultLocation?: string) => defaultLocation && URI.file(resolve(defaultLocation)).with({ scheme: Schemas.vscodeRemote, authority: remoteAuthority });
+ 
+@@ -342,14 +341,7 @@ export class WebClientServer {
  			codeServerVersion: this._productService.codeServerVersion,
- 			rootEndpoint: base,
+ 			rootEndpoint: rootBase,
  			embedderIdentifier: 'server-distro',
--			extensionsGallery: this._webExtensionResourceUrlTemplate ? {
+-			extensionsGallery: this._webExtensionResourceUrlTemplate && this._productService.extensionsGallery ? {
 -				...this._productService.extensionsGallery,
--				'resourceUrlTemplate': this._webExtensionResourceUrlTemplate.with({
+-				resourceUrlTemplate: this._webExtensionResourceUrlTemplate.with({
 -					scheme: 'http',
 -					authority: remoteAuthority,
--					path: `${this._webExtensionRoute}/${this._webExtensionResourceUrlTemplate.authority}${this._webExtensionResourceUrlTemplate.path}`
+-					path: `${webExtensionRoute}/${this._webExtensionResourceUrlTemplate.authority}${this._webExtensionResourceUrlTemplate.path}`
 -				}).toString(true)
 -			} : undefined
 +			extensionsGallery: this._productService.extensionsGallery,
  		};
  
- 		if (!this._environmentService.isBuilt) {
+ 		const proposedApi = this._environmentService.args['enable-proposed-api'];
 Index: code-server/lib/vscode/src/vs/platform/extensionResourceLoader/common/extensionResourceLoader.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/platform/extensionResourceLoader/common/extensionResourceLoader.ts
 +++ code-server/lib/vscode/src/vs/platform/extensionResourceLoader/common/extensionResourceLoader.ts
-@@ -16,7 +16,6 @@ import { getServiceMachineId } from 'vs/
- import { IStorageService } from 'vs/platform/storage/common/storage';
- import { TelemetryLevel } from 'vs/platform/telemetry/common/telemetry';
- import { getTelemetryLevel, supportsTelemetry } from 'vs/platform/telemetry/common/telemetryUtils';
--import { getRemoteServerRootPath } from 'vs/platform/remote/common/remoteHosts';
- import { TargetPlatform } from 'vs/platform/extensions/common/extensions';
+@@ -15,7 +15,6 @@ import { getServiceMachineId } from '../
+ import { IStorageService } from '../../storage/common/storage.js';
+ import { TelemetryLevel } from '../../telemetry/common/telemetry.js';
+ import { getTelemetryLevel, supportsTelemetry } from '../../telemetry/common/telemetryUtils.js';
+-import { RemoteAuthorities } from '../../../base/common/network.js';
+ import { TargetPlatform } from '../../extensions/common/extensions.js';
+ import { ExtensionGalleryResourceType, getExtensionGalleryManifestResourceUri, IExtensionGalleryManifest, IExtensionGalleryManifestService } from '../../extensionManagement/common/extensionGalleryManifest.js';
+ import { ILogService } from '../../log/common/log.js';
+@@ -163,9 +162,9 @@ export abstract class AbstractExtensionR
+ 	}
  
- const WEB_EXTENSION_RESOURCE_END_POINT = 'web-extension-resource';
-@@ -77,7 +76,7 @@ export abstract class AbstractExtensionR
- 		private readonly _environmentService: IEnvironmentService,
- 		private readonly _configurationService: IConfigurationService,
- 	) {
--		this._webExtensionResourceEndPoint = `${getRemoteServerRootPath(_productService)}/${WEB_EXTENSION_RESOURCE_END_POINT}/`;
-+		this._webExtensionResourceEndPoint = `/${WEB_EXTENSION_RESOURCE_END_POINT}/`;
- 		if (_productService.extensionsGallery) {
- 			this._extensionGalleryResourceUrlTemplate = _productService.extensionsGallery.resourceUrlTemplate;
- 			this._extensionGalleryAuthority = this._extensionGalleryResourceUrlTemplate ? this._getExtensionGalleryAuthority(URI.parse(this._extensionGalleryResourceUrlTemplate)) : undefined;
+ 	protected _isWebExtensionResourceEndPoint(uri: URI): boolean {
+-		const uriPath = uri.path, serverRootPath = RemoteAuthorities.getServerRootPath();
+-		// test if the path starts with the server root path followed by the web extension resource end point segment
+-		return uriPath.startsWith(serverRootPath) && uriPath.startsWith(WEB_EXTENSION_RESOURCE_END_POINT_SEGMENT, serverRootPath.length);
++		const uriPath = uri.path;
++		// test if the path starts with the web extension resource end point segment
++		return uriPath.startsWith(WEB_EXTENSION_RESOURCE_END_POINT_SEGMENT);
+ 	}
+ 
+ }

@@ -3,11 +3,10 @@
   "#": "We must put jest in a sub-directory otherwise VS Code somehow picks up the types and generates conflicts with mocha.",
   "devDependencies": {
     "@jest-mock/express": "^1.4.5",
-    "@playwright/test": "^1.16.3",
+    "@playwright/test": "^1.56.1",
     "@types/jest": "^27.0.2",
     "@types/jsdom": "^16.2.13",
     "@types/node-fetch": "^2.5.8",
-    "@types/supertest": "^2.0.11",
     "@types/wtfnode": "^0.7.0",
     "argon2": "^0.28.0",
     "extract-zip": "^2.0.1",
@@ -15,8 +14,7 @@
     "jest-fetch-mock": "^3.0.3",
     "jsdom": "^16.4.0",
     "node-fetch": "^2.6.7",
-    "playwright": "^1.16.3",
-    "supertest": "^6.1.6",
+    "playwright": "^1.56.1",
     "ts-jest": "^27.0.7",
     "wtfnode": "^0.9.1"
   },

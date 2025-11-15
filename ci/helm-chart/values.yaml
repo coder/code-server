@@ -6,7 +6,7 @@ replicaCount: 1
 
 image:
   repository: codercom/code-server
-  tag: '4.18.0'
+  tag: '4.104.2'
   pullPolicy: Always
 
 # Specifies one or more secrets to be used when pulling images from a
@@ -19,6 +19,9 @@ nameOverride: ""
 fullnameOverride: ""
 hostnameOverride: ""
 
+# The existing secret to use for code-server authentication in the frontend. the password is stored in the secret under the key `password`
+# existingSecret: ""
+
 serviceAccount:
   # Specifies whether a service account should be created
   create: true
@@ -27,6 +30,9 @@ serviceAccount:
   # The name of the service account to use.
   # If not set and create is true, a name is generated using the fullname template
   name: ""
+
+# Specifies annotations for deployment
+annotations: {}
 
 podAnnotations: {}
 
@@ -71,9 +77,10 @@ extraArgs: []
 # Optional additional environment variables
 extraVars: []
 #  - name: DISABLE_TELEMETRY
-#    value: true
+#    value: "true"
+# if dind is desired:
 #  - name: DOCKER_HOST
-#    value: "tcp://localhost:2375"
+#    value: "tcp://localhost:2376"
 
 ##
 ## Init containers parameters:
@@ -136,25 +143,39 @@ lifecycle:
   #      - -c
   #      - curl -s -L SOME_SCRIPT | bash
 
+  # for dind, the following may be helpful
+  # postStart:
+  #   exec:
+  #     command:
+  #       - /bin/sh
+  #       - -c
+  #       - |
+  #         sudo apt-get update \
+  #           && sudo apt-get install -y docker.io
+
 ## Enable an Specify container in extraContainers.
 ## This is meant to allow adding code-server dependencies, like docker-dind.
 extraContainers: |
 # If docker-dind is used, DOCKER_HOST env is mandatory to set in "extraVars"
-#- name: docker-dind
-#  image: docker:19.03-dind
-#  imagePullPolicy: IfNotPresent
-#  resources:
-#    requests:
-#      cpu: 250m
-#      memory: 256M
-#  securityContext:
-#    privileged: true
-#    procMount: Default
-#  env:
-#  - name: DOCKER_TLS_CERTDIR
-#    value: ""
-#  - name: DOCKER_DRIVER
-#    value: "overlay2"
+# - name: docker-dind
+#   image: docker:28.3.2-dind
+#   imagePullPolicy: IfNotPresent
+#   resources:
+#     requests:
+#       cpu: 1
+#       ephemeral-storage: "50Gi"
+#       memory: 10Gi
+#   securityContext:
+#     privileged: true
+#     procMount: Default
+#   env:
+#     - name: DOCKER_TLS_CERTDIR
+#       value: "" # disable TLS setup
+#   command:
+#     - dockerd
+#     - --host=unix:///var/run/docker.sock
+#     - --host=tcp://0.0.0.0:2376
+
 
 extraInitContainers: |
 # - name: customization
@@ -190,6 +211,7 @@ extraVolumeMounts: []
   #   readOnly: true
   #   existingClaim: volume-claim
   #   hostPath: ""
+  #   emptyDir: {}
 
 extraConfigmapMounts: []
   # - name: certs-configmap

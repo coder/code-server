@@ -1,29 +1,27 @@
 Make storage local to the remote server
 
-This solves two problems:
-  1. Extensions running in the browser (like Vim) might use these paths
-     directly instead of using the file service and most likely can't write
-     to `/User` on disk.
-  2. Settings will be stored in the file system instead of in browser
-     storage. Using browser storage makes sharing or seeding settings
-     between browsers difficult. We may want to revisit this once/if we get
-     settings sync.
+This makes user settings will be stored in the file system instead of in browser
+storage. Using browser storage makes sharing or seeding settings between
+browsers difficult and remote settings is not a sufficient replacement because
+some settings are only allowed to be set on the user level.
 
 Unfortunately this does not affect state which uses a separate method with
 IndexedDB and does not appear nearly as easy to redirect to disk.
 
-To test install the Vim extension and make sure something that uses file storage
-works (history recall for example) and change settings from the UI and on disk
-while making sure they appear on the other side.
+To test change settings from the UI and on disk while making sure they appear on
+the other side.
+
+This patch also resolves a bug where a global value for workspace initialization
+is used in a non async-safe way.
 
 Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -327,6 +327,7 @@ export class WebClientServer {
- 		const workbenchWebConfiguration = {
+@@ -364,6 +364,7 @@ export class WebClientServer {
  			remoteAuthority,
- 			webviewEndpoint: vscodeBase + this._staticRoute + '/out/vs/workbench/contrib/webview/browser/pre',
+ 			serverBasePath: basePath,
+ 			webviewEndpoint: staticRoute + '/out/vs/workbench/contrib/webview/browser/pre',
 +			userDataPath: this._environmentService.userDataPath,
  			_wrapWebWorkerExtHostInIframe,
  			developmentOptions: { enableSmokeTestDriver: this._environmentService.args['enable-smoke-test-driver'] ? true : undefined, logLevel: this._logService.getLevel() },
@@ -32,7 +30,7 @@ Index: code-server/lib/vscode/src/vs/workbench/browser/web.api.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/browser/web.api.ts
 +++ code-server/lib/vscode/src/vs/workbench/browser/web.api.ts
-@@ -276,6 +276,11 @@ export interface IWorkbenchConstructionO
+@@ -298,6 +298,11 @@ export interface IWorkbenchConstructionO
  	 */
  	readonly configurationDefaults?: Record<string, any>;
  
@@ -64,3 +62,33 @@ Index: code-server/lib/vscode/src/vs/workbench/services/environment/browser/envi
  
  	@memoize
  	get argvResource(): URI { return joinPath(this.userRoamingDataHome, 'argv.json'); }
+Index: code-server/lib/vscode/src/vs/workbench/services/configuration/browser/configurationService.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/workbench/services/configuration/browser/configurationService.ts
++++ code-server/lib/vscode/src/vs/workbench/services/configuration/browser/configurationService.ts
+@@ -147,8 +147,10 @@ export class WorkspaceService extends Di
+ 		this.workspaceConfiguration = this._register(new WorkspaceConfiguration(configurationCache, fileService, uriIdentityService, logService));
+ 		this._register(this.workspaceConfiguration.onDidUpdateConfiguration(fromCache => {
+ 			this.onWorkspaceConfigurationChanged(fromCache).then(() => {
+-				this.workspace.initialized = this.workspaceConfiguration.initialized;
+-				this.checkAndMarkWorkspaceComplete(fromCache);
++				if (this.workspace) { // The workspace may not have been created yet.
++					this.workspace.initialized = this.workspaceConfiguration.initialized;
++					this.checkAndMarkWorkspaceComplete(fromCache);
++				}
+ 			});
+ 		}));
+ 
+@@ -555,6 +557,12 @@ export class WorkspaceService extends Di
+ 			previousFolders = this.workspace.folders;
+ 			this.workspace.update(workspace);
+ 		} else {
++			// It is possible for the configuration to become initialized in between
++			// when the workspace was created and this function was called, so check
++			// the configuration again now.
++			if (!workspace.initialized && this.workspaceConfiguration.initialized) {
++				workspace.initialized = true;
++			}
+ 			this.workspace = workspace;
+ 		}
+ 

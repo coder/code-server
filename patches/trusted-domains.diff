@@ -1,0 +1,49 @@
+Allow configuring trusted domains via product.json or flag.
+
+Index: code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
++++ code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
+@@ -22,6 +22,7 @@ export const serverOptions: OptionDescri
+ 	'disable-file-uploads': { type: 'boolean' },
+ 	'disable-getting-started-override': { type: 'boolean' },
+ 	'locale': { type: 'string' },
++	'link-protection-trusted-domains': { type: 'string[]' },
+ 
+ 	/* ----- server setup ----- */
+ 
+@@ -112,6 +113,7 @@ export interface ServerParsedArgs {
+ 	'disable-file-uploads'?: boolean;
+ 	'disable-getting-started-override'?: boolean,
+ 	'locale'?: string
++	'link-protection-trusted-domains'?: string[],
+ 
+ 	/* ----- server setup ----- */
+ 
+Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
++++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
+@@ -338,6 +338,14 @@ export class WebClientServer {
+ 			scopes: [['user:email'], ['repo']]
+ 		} : undefined;
+ 
++		const linkProtectionTrustedDomains: string[] = [];
++		if (this._environmentService.args['link-protection-trusted-domains']) {
++			linkProtectionTrustedDomains.push(...this._environmentService.args['link-protection-trusted-domains']);
++		}
++		if (this._productService.linkProtectionTrustedDomains) {
++			linkProtectionTrustedDomains.push(...this._productService.linkProtectionTrustedDomains);
++		}
++
+ 		const productConfiguration: Partial<Mutable<IProductConfiguration>> = {
+ 			codeServerVersion: this._productService.codeServerVersion,
+ 			rootEndpoint: rootBase,
+@@ -352,6 +360,7 @@ export class WebClientServer {
+ 			telemetryEndpoint: this._productService.telemetryEndpoint,
+ 			embedderIdentifier: 'server-distro',
+ 			extensionsGallery: this._productService.extensionsGallery,
++			linkProtectionTrustedDomains,
+ 		};
+ 
+ 		const proposedApi = this._environmentService.args['enable-proposed-api'];

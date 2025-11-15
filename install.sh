@@ -424,7 +424,7 @@ install_standalone() {
 }
 
 install_npm() {
-  echoh "Installing latest from npm."
+  echoh "Installing v$VERSION from npm."
   echoh
 
   NPM_PATH="${YARN_PATH-npm}"
@@ -436,12 +436,12 @@ install_npm() {
     fi
     echoh "Installing with npm."
     echoh
-    "$sh_c" "$NPM_PATH" install -g code-server --unsafe-perm
+    "$sh_c" "$NPM_PATH" install -g "code-server@$VERSION" --unsafe-perm
     NPM_BIN_DIR="\$($NPM_PATH bin -g)" echo_npm_postinstall
     return
   fi
   echoerr "Please install npm to install code-server!"
-  echoerr "You will need at least node v18 and a few C dependencies."
+  echoerr "You will need at least node v20 and a few C dependencies."
   echoerr "See the docs https://coder.com/docs/code-server/latest/install#npm"
 
   exit 1
@@ -461,9 +461,9 @@ npm_fallback() {
 # Determine if we have standalone releases on GitHub for the system's arch.
 has_standalone() {
   case $ARCH in
-    amd64) return 0 ;;
-    # We only have amd64 for macOS.
-    arm64)
+    arm64) return 0 ;;
+    # We only have arm64 for macOS.
+    amd64)
       [ "$(distro)" != macos ]
       return
       ;;

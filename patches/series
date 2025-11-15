@@ -13,9 +13,12 @@ unique-db.diff
 local-storage.diff
 service-worker.diff
 sourcemaps.diff
-disable-downloads.diff
+external-file-actions.diff
 telemetry.diff
-display-language.diff
 cli-window-open.diff
 getting-started.diff
-safari.diff
+keepalive.diff
+clipboard.diff
+display-language.diff
+trusted-domains.diff
+signature-verification.diff

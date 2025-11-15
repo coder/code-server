@@ -21,37 +21,32 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
-  # NOTE: this job requires curl, jq and yarn
-  # All of them are included in ubuntu-latest.
   npm:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code-server
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
-      - name: Install Node.js v18
-        uses: actions/setup-node@v3
+      - name: Install Node.js
+        uses: actions/setup-node@v4
         with:
-          node-version: "18"
-          cache: "yarn"
+          node-version-file: .node-version
 
       - name: Download npm package from release artifacts
-        uses: robinraju/release-downloader@v1.8
+        uses: robinraju/release-downloader@v1.12
         with:
           repository: "coder/code-server"
           tag: ${{ github.event.inputs.version || github.ref_name }}
           fileName: "package.tar.gz"
           out-file-path: "release-npm-package"
 
-      # NOTE@jsjoeio - we do this so we can strip out the v
-      # i.e. v4.9.1 -> 4.9.1
+      # Strip out the v (v4.9.1 -> 4.9.1).
       - name: Get and set VERSION
         run: |
           TAG="${{ github.event.inputs.version || github.ref_name }}"
           echo "VERSION=${TAG#v}" >> $GITHUB_ENV
 
-      - name: Publish npm package and tag with "latest"
-        run: yarn publish:npm
+      - run: npm run publish:npm
         env:
           VERSION: ${{ env.VERSION }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -70,15 +65,14 @@ jobs:
         uses: Homebrew/actions/setup-homebrew@master
 
       - name: Checkout code-server
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Configure git
         run: |
           git config --global user.name cdrci
           git config --global user.email opensource@coder.com
 
-      # NOTE@jsjoeio - we do this so we can strip out the v
-      # i.e. v4.9.1 -> 4.9.1
+      # Strip out the v (v4.9.1 -> 4.9.1).
       - name: Get and set VERSION
         run: |
           TAG="${{ github.event.inputs.version || github.ref_name }}"
@@ -92,7 +86,6 @@ jobs:
         run: ./ci/steps/brew-bump.sh
 
   aur:
-    needs: npm
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
@@ -101,13 +94,13 @@ jobs:
     steps:
       # We need to checkout code-server so we can get the version
       - name: Checkout code-server
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
           path: "./code-server"
 
       - name: Checkout code-server-aur repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: "cdrci/code-server-aur"
           token: ${{ secrets.HOMEBREW_GITHUB_API_TOKEN }}
@@ -124,15 +117,14 @@ jobs:
           git config --global user.name cdrci
           git config --global user.email opensource@coder.com
 
-      # NOTE@jsjoeio - we do this so we can strip out the v
-      # i.e. v4.9.1 -> 4.9.1
+      # Strip out the v (v4.9.1 -> 4.9.1).
       - name: Get and set VERSION
         run: |
           TAG="${{ github.event.inputs.version || github.ref_name }}"
           echo "VERSION=${TAG#v}" >> $GITHUB_ENV
 
       - name: Validate package
-        uses: hapakaien/archlinux-package-action@v2
+        uses: heyhusen/archlinux-package-action@v2.4.0
         env:
           VERSION: ${{ env.VERSION }}
         with:
@@ -151,44 +143,52 @@ jobs:
           git commit -m "chore: updating version to ${{ env.VERSION }}"
           git push -u origin $(git branch --show)
           gh pr create --repo coder/code-server-aur --title "chore: bump version to ${{ env.VERSION }}" --body "PR opened by @$GITHUB_ACTOR" --assignee $GITHUB_ACTOR
+
   docker:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout code-server
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
+        uses: docker/setup-qemu-action@v3
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
       - name: Login to Docker Hub
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Login to GHCR
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # NOTE@jsjoeio - we do this so we can strip out the v
-      # i.e. v4.9.1 -> 4.9.1
+      # Strip out the v (v4.9.1 -> 4.9.1).
       - name: Get and set VERSION
         run: |
           TAG="${{ github.event.inputs.version || github.ref_name }}"
           echo "VERSION=${TAG#v}" >> $GITHUB_ENV
 
-      - name: Download release artifacts
-        uses: robinraju/release-downloader@v1.8
+      - name: Download deb artifacts
+        uses: robinraju/release-downloader@v1.12
         with:
           repository: "coder/code-server"
           tag: v${{ env.VERSION }}
           fileName: "*.deb"
+          out-file-path: "release-packages"
+
+      - name: Download rpm artifacts
+        uses: robinraju/release-downloader@v1.12
+        with:
+          repository: "coder/code-server"
+          tag: v${{ env.VERSION }}
+          fileName: "*.rpm"
           out-file-path: "release-packages"
 
       - name: Publish to Docker

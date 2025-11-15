@@ -37,6 +37,7 @@
 - [How do I hide the coder/coder promotion in Help: Getting Started?](#how-do-i-hide-the-codercoder-promotion-in-help-getting-started)
 - [How do I disable the proxy?](#how-do-i-disable-the-proxy)
 - [How do I disable file download?](#how-do-i-disable-file-download)
+- [Why do web views not work?](#why-do-web-views-not-work)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 <!-- prettier-ignore-end -->
@@ -321,12 +322,8 @@ As long as there is an active browser connection, code-server touches
 `~/.local/share/code-server/heartbeat` once a minute.
 
 If you want to shutdown code-server if there hasn't been an active connection
-after a predetermined amount of time, you can do so by checking continuously for
-the last modified time on the heartbeat file. If it is older than X minutes (or
-whatever amount of time you'd like), you can kill code-server.
-
-Eventually, [#1636](https://github.com/coder/code-server/issues/1636) will make
-this process better.
+after a predetermined amount of time, you can use the --idle-timeout-seconds flag
+or set an `CODE_SERVER_IDLE_TIMEOUT_SECONDS` environment variable.
 
 ## How do I change the password?
 
@@ -356,6 +353,12 @@ hashed-password: "$argon2i$v=19$m=4096,t=3,p=1$wST5QhBgk2lu1ih4DMuxvg$LS1alrVdIW
 
 The `hashed-password` field takes precedence over `password`.
 
+If you're using Docker Compose file, in order to make this work, you need to change all the single $ to $$. For example:
+
+```yaml
+- HASHED_PASSWORD=$$argon2i$$v=19$$m=4096,t=3,p=1$$wST5QhBgk2lu1ih4DMuxvg$$LS1alrVdIWtvZHwnzCM1DUGg+5DTO3Dt1d5v9XtLws4
+```
+
 ## Is multi-tenancy possible?
 
 If you want to run multiple code-servers on shared infrastructure, we recommend
@@ -375,6 +378,9 @@ You can even make volume mounts work. Let's say you want to run a container and
 mount into `/home/coder/myproject` from inside the `code-server` container. You
 need to make sure the Docker daemon's `/home/coder/myproject` is the same as the
 one mounted inside the `code-server` container, and the mount will work.
+
+If you want Docker enabled when deploying on Kubernetes, look at the `values.yaml`
+file for the 3 fields: `extraVars`, `lifecycle.postStart`, and `extraContainers`.
 
 ## How do I disable telemetry?
 
@@ -481,3 +487,22 @@ when using the option.
 ## How do I disable file download?
 
 You can pass the flag `--disable-file-downloads` to `code-server`
+
+## Why do web views not work?
+
+Web views rely on service workers, and service workers are only available in a
+secure context, so most likely the answer is that you are using an insecure
+context (for example an IP address).
+
+If this happens, in the browser log you will see something like:
+
+> Error loading webview: Error: Could not register service workers: SecurityError: Failed to register a ServiceWorker for scope with script: An SSL certificate error occurred when fetching the script..
+
+To fix this, you must either:
+
+- Access over localhost/127.0.0.1 which is always considered secure.
+- Use a domain with a real certificate (for example with Let's Encrypt).
+- Use a trusted self-signed certificate with [mkcert](https://mkcert.dev) (or
+  create and trust a certificate manually).
+- Disable security if your browser allows it. For example, in Chromium see
+  `chrome://flags/#unsafely-treat-insecure-origin-as-secure`

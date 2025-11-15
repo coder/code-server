@@ -30,7 +30,7 @@ Index: code-server/lib/vscode/src/vs/base/common/product.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/base/common/product.ts
 +++ code-server/lib/vscode/src/vs/base/common/product.ts
-@@ -59,6 +59,7 @@ export interface IProductConfiguration {
+@@ -68,6 +68,7 @@ export interface IProductConfiguration {
  	readonly rootEndpoint?: string
  	readonly updateEndpoint?: string
  	readonly logoutEndpoint?: string
@@ -42,25 +42,25 @@ Index: code-server/lib/vscode/src/vs/platform/remote/browser/remoteAuthorityReso
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/platform/remote/browser/remoteAuthorityResolverService.ts
 +++ code-server/lib/vscode/src/vs/platform/remote/browser/remoteAuthorityResolverService.ts
-@@ -33,7 +33,7 @@ export class RemoteAuthorityResolverServ
- 		isWorkbenchOptionsBasedResolution: boolean,
+@@ -35,7 +35,7 @@ export class RemoteAuthorityResolverServ
  		connectionToken: Promise<string> | string | undefined,
  		resourceUriProvider: ((uri: URI) => URI) | undefined,
+ 		serverBasePath: string | undefined,
 -		@IProductService productService: IProductService,
 +		@IProductService private readonly productService: IProductService,
  		@ILogService private readonly _logService: ILogService,
  	) {
  		super();
-@@ -84,9 +84,14 @@ export class RemoteAuthorityResolverServ
+@@ -86,9 +86,14 @@ export class RemoteAuthorityResolverServ
  		const connectionToken = await Promise.resolve(this._connectionTokens.get(authority) || this._connectionToken);
  		performance.mark(`code/didResolveConnectionToken/${authorityPrefix}`);
  		this._logService.info(`Resolved connection token (${authorityPrefix}) after ${sw.elapsed()} ms`);
 +		let options: ResolvedOptions | undefined;
 +		if (this.productService.proxyEndpointTemplate) {
-+			const proxyUrl = new URL(this.productService.proxyEndpointTemplate, window.location.href);
++			const proxyUrl = new URL(this.productService.proxyEndpointTemplate, mainWindow.location.href);
 +			options = { extensionHostEnv: { VSCODE_PROXY_URI: decodeURIComponent(proxyUrl.toString()) }}
 +		}
- 		const defaultPort = (/^https:/.test(window.location.href) ? 443 : 80);
+ 		const defaultPort = (/^https:/.test(mainWindow.location.href) ? 443 : 80);
  		const { host, port } = parseAuthorityWithOptionalPort(authority, defaultPort);
 -		const result: ResolverResult = { authority: { authority, connectTo: new WebSocketRemoteConnection(host, port), connectionToken } };
 +		const result: ResolverResult = { authority: { authority, connectTo: new WebSocketRemoteConnection(host, port), connectionToken }, options };
@@ -71,11 +71,11 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -312,6 +312,7 @@ export class WebClientServer {
- 			rootEndpoint: base,
- 			updateEndpoint: !this._environmentService.args['disable-update-check'] ? base + '/update/check' : undefined,
- 			logoutEndpoint: this._environmentService.args['auth'] && this._environmentService.args['auth'] !== "none" ? base + '/logout' : undefined,
-+			proxyEndpointTemplate: process.env.VSCODE_PROXY_URI ?? base + '/proxy/{{port}}/',
+@@ -342,6 +342,7 @@ export class WebClientServer {
+ 			rootEndpoint: rootBase,
+ 			updateEndpoint: !this._environmentService.args['disable-update-check'] ? rootBase + '/update/check' : undefined,
+ 			logoutEndpoint: this._environmentService.args['auth'] && this._environmentService.args['auth'] !== "none" ? rootBase + '/logout' : undefined,
++			proxyEndpointTemplate: process.env.VSCODE_PROXY_URI ?? rootBase + '/proxy/{{port}}/',
  			embedderIdentifier: 'server-distro',
  			extensionsGallery: this._productService.extensionsGallery,
  		};
@@ -83,7 +83,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/terminal/common/terminalE
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/contrib/terminal/common/terminalEnvironment.ts
 +++ code-server/lib/vscode/src/vs/workbench/contrib/terminal/common/terminalEnvironment.ts
-@@ -271,7 +271,7 @@ export async function createTerminalEnvi
+@@ -291,7 +291,7 @@ export async function createTerminalEnvi
  
  		// Sanitize the environment, removing any undesirable VS Code and Electron environment
  		// variables
@@ -96,15 +96,15 @@ Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/code/browser/workbench/workbench.ts
 +++ code-server/lib/vscode/src/vs/code/browser/workbench/workbench.ts
-@@ -19,6 +19,7 @@ import { isFolderToOpen, isWorkspaceToOp
- import type { IWorkbenchConstructionOptions } from 'vs/workbench/browser/web.api';
- import { AuthenticationSessionInfo } from 'vs/workbench/services/authentication/browser/authenticationService';
- import type { IWorkspace, IWorkspaceProvider } from 'vs/workbench/services/host/browser/browserHostService';
-+import { extractLocalHostUriMetaDataForPortMapping, TunnelOptions, TunnelCreationOptions } from 'vs/platform/tunnel/common/tunnel';
- import type { IURLCallbackProvider } from 'vs/workbench/services/url/browser/urlService';
- import { create } from 'vs/workbench/workbench.web.main';
+@@ -20,6 +20,7 @@ import { ISecretStorageProvider } from '
+ import { isFolderToOpen, isWorkspaceToOpen } from '../../../platform/window/common/window.js';
+ import type { IWorkbenchConstructionOptions, IWorkspace, IWorkspaceProvider } from '../../../workbench/browser/web.api.js';
+ import { AuthenticationSessionInfo } from '../../../workbench/services/authentication/browser/authenticationService.js';
++import { extractLocalHostUriMetaDataForPortMapping, TunnelOptions, TunnelCreationOptions } from '../../../platform/tunnel/common/tunnel.js';
+ import type { IURLCallbackProvider } from '../../../workbench/services/url/browser/urlService.js';
+ import { create } from '../../../workbench/workbench.web.main.internal.js';
  
-@@ -571,6 +572,39 @@ class WorkspaceProvider implements IWork
+@@ -604,6 +605,39 @@ class WorkspaceProvider implements IWork
  		settingsSyncOptions: config.settingsSyncOptions ? { enabled: config.settingsSyncOptions.enabled, } : undefined,
  		workspaceProvider: WorkspaceProvider.create(config),
  		urlCallbackProvider: new LocalStorageURLCallbackProvider(config.callbackRoute),
@@ -148,12 +148,14 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/remote/browser/remoteExpl
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/contrib/remote/browser/remoteExplorer.ts
 +++ code-server/lib/vscode/src/vs/workbench/contrib/remote/browser/remoteExplorer.ts
-@@ -76,7 +76,7 @@ export class ForwardedPortsView extends
- 			this.contextKeyListener = undefined;
- 		}
+@@ -83,8 +83,8 @@ export class ForwardedPortsView extends
+ 	private async enableForwardedPortsFeatures() {
+ 		this.contextKeyListener.clear();
  
+-		const featuresEnabled: boolean = !!forwardedPortsFeaturesEnabled.getValue(this.contextKeyService);
 -		const viewEnabled: boolean = !!forwardedPortsViewEnabled.getValue(this.contextKeyService);
++		const featuresEnabled: boolean = true;
 +		const viewEnabled: boolean = true;
  
- 		if (viewEnabled) {
- 			const viewContainer = await this.getViewContainer();
+ 		if (featuresEnabled || viewEnabled) {
+ 			// Also enable the view if it isn't already.

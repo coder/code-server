@@ -20,9 +20,11 @@
   - [Proxying to a Vue app](#proxying-to-a-vue-app)
   - [Proxying to an Angular app](#proxying-to-an-angular-app)
   - [Proxying to a Svelte app](#proxying-to-a-svelte-app)
-- [SSH into code-server on VS Code](#ssh-into-code-server-on-vs-code)
-  - [Option 1: cloudflared tunnel](#option-1-cloudflared-tunnel)
-  - [Option 2: ngrok tunnel](#option-2-ngrok-tunnel)
+  - [Prefixing `/absproxy/<port>` with a path](#prefixing-absproxyport-with-a-path)
+  - [Preflight requests](#preflight-requests)
+- [Internationalization and customization](#internationalization-and-customization)
+  - [Available keys and placeholders](#available-keys-and-placeholders)
+  - [Legacy flag](#legacy-flag)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 <!-- prettier-ignore-end -->
@@ -121,22 +123,22 @@ access code-server on an iPad or do not want to use SSH port forwarding.
 
 1. This option requires that the remote machine be exposed to the internet. Make sure that your instance allows HTTP/HTTPS traffic.
 
-1. You'll need a domain name (if you don't have one, you can purchase one from
+2. You'll need a domain name (if you don't have one, you can purchase one from
    [Google Domains](https://domains.google.com) or the domain service of your
-   choice)). Once you have a domain name, add an A record to your domain that contains your
+   choice). Once you have a domain name, add an A record to your domain that contains your
    instance's IP address.
 
-1. Install [Caddy](https://caddyserver.com/docs/download#debian-ubuntu-raspbian):
+3. Install [Caddy](https://caddyserver.com/docs/download#debian-ubuntu-raspbian):
 
-```console
-sudo apt install -y debian-keyring debian-archive-keyring apt-transport-https
-curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | sudo gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
-curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | sudo tee /etc/apt/sources.list.d/caddy-stable.list
-sudo apt update
-sudo apt install caddy
-```
+   ```console
+   sudo apt install -y debian-keyring debian-archive-keyring apt-transport-https
+   curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | sudo gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
+   curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | sudo tee /etc/apt/sources.list.d/caddy-stable.list
+   sudo apt update
+   sudo apt install caddy
+   ```
 
-1. Replace `/etc/caddy/Caddyfile` using `sudo` so that the file looks like this:
+4. Replace `/etc/caddy/Caddyfile` using `sudo` so that the file looks like this:
 
    ```text
    mydomain.com {
@@ -155,7 +157,7 @@ sudo apt install caddy
 
    Remember to replace `mydomain.com` with your domain name!
 
-1. Reload Caddy:
+5. Reload Caddy:
 
    ```console
    sudo systemctl reload caddy
@@ -166,21 +168,22 @@ At this point, you should be able to access code-server via
 
 ### Using Let's Encrypt with NGINX
 
-1. This option requires that the remote machine be exposed to the internet. Make sure that your instance allows HTTP/HTTPS traffic.
+1. This option requires that the remote machine be exposed to the internet. Make
+   sure that your instance allows HTTP/HTTPS traffic.
 
-1. You'll need a domain name (if you don't have one, you can purchase one from
+2. You'll need a domain name (if you don't have one, you can purchase one from
    [Google Domains](https://domains.google.com) or the domain service of your
-   choice)). Once you have a domain name, add an A record to your domain that contains your
+   choice). Once you have a domain name, add an A record to your domain that contains your
    instance's IP address.
 
-1. Install NGINX:
+3. Install NGINX:
 
    ```bash
    sudo apt update
    sudo apt install -y nginx certbot python3-certbot-nginx
    ```
 
-1. Update `/etc/nginx/sites-available/code-server` using sudo with the following
+4. Update `/etc/nginx/sites-available/code-server` using sudo with the following
    configuration:
 
    ```text
@@ -201,13 +204,11 @@ At this point, you should be able to access code-server via
 
    Be sure to replace `mydomain.com` with your domain name!
 
-1. Enable the config:
-
+5. Enable the config:
    ```console
    sudo ln -s ../sites-available/code-server /etc/nginx/sites-enabled/code-server
    sudo certbot --non-interactive --redirect --agree-tos --nginx -d mydomain.com -m me@example.com
    ```
-
    Be sure to replace `me@example.com` with your actual email.
 
 At this point, you should be able to access code-server via
@@ -273,9 +274,9 @@ should see OSSStatus: 9836 in the browser console.
 If you want to use external authentication mechanism (e.g., Sign in with
 Google), you can do this with a reverse proxy such as:
 
-- [Pomerium](https://www.pomerium.io/guides/code-server.html)
-- [oauth2_proxy](https://github.com/pusher/oauth2_proxy)
-- [Cloudflare Access](https://teams.cloudflare.com/access)
+- [Pomerium](https://www.pomerium.com/docs/guides/code-server.html)
+- [oauth2-proxy](https://oauth2-proxy.github.io/oauth2-proxy/)
+- [Cloudflare Access](https://www.cloudflare.com/zero-trust/products/access/)
 
 ## HTTPS and self-signed certificates
 
@@ -294,7 +295,9 @@ redirect all HTTP requests to HTTPS.
 > You can use [Let's Encrypt](https://letsencrypt.org/) to get a TLS certificate
 > for free.
 
-Note: if you set `proxy_set_header Host $host;` in your reverse proxy config, it will change the address displayed in the green section of code-server in the bottom left to show the correct address.
+Note: if you set `proxy_set_header Host $host;` in your reverse proxy config, it
+will change the address displayed in the green section of code-server in the
+bottom left to show the correct address.
 
 ## Accessing web services
 
@@ -380,14 +383,16 @@ PUBLIC_URL=/absproxy/3000 \
   BROWSER=none yarn start
 ```
 
-You should then be able to visit `https://my-code-server-address.io/absproxy/3000` to see your app exposed through
-code-server!
+You should then be able to visit
+`https://my-code-server-address.io/absproxy/3000` to see your app exposed
+through code-server.
 
 > We highly recommend using the subdomain approach instead to avoid this class of issue.
 
 ### Proxying to a Vue app
 
-Similar to the situation with React apps, you have to make a few modifications to proxy a Vue app.
+Similar to the situation with React apps, you have to make a few modifications
+to proxy a Vue app.
 
 1. add `vue.config.js`
 2. update the values to match this (you can use any free port):
@@ -408,7 +413,8 @@ Read more about `publicPath` in the [Vue.js docs](https://cli.vuejs.org/config/#
 
 ### Proxying to an Angular app
 
-In order to use code-server's built-in proxy with Angular, you need to make the following changes in your app:
+In order to use code-server's built-in proxy with Angular, you need to make the
+following changes in your app:
 
 1. use `<base href="./.">` in `src/index.html`
 2. add `--serve-path /absproxy/4200` to `ng serve` in your `package.json`
@@ -417,7 +423,8 @@ For additional context, see [this GitHub Discussion](https://github.com/coder/co
 
 ### Proxying to a Svelte app
 
-In order to use code-server's built-in proxy with Svelte, you need to make the following changes in your app:
+In order to use code-server's built-in proxy with Svelte, you need to make the
+following changes in your app:
 
 1. Add `svelte.config.js` if you don't already have one
 2. Update the values to match this (you can use any free port):
@@ -436,92 +443,70 @@ const config = {
 
 For additional context, see [this Github Issue](https://github.com/sveltejs/kit/issues/2958)
 
-## SSH into code-server on VS Code
+### Prefixing `/absproxy/<port>` with a path
 
-[![SSH](https://img.shields.io/badge/SSH-363636?style=for-the-badge&logo=GNU+Bash&logoColor=ffffff)](https://ohmyz.sh/) [![Terminal](https://img.shields.io/badge/Terminal-2E2E2E?style=for-the-badge&logo=Windows+Terminal&logoColor=ffffff)](https://img.shields.io/badge/Terminal-2E2E2E?style=for-the-badge&logo=Windows+Terminal&logoColor=ffffff) [![Visual Studio Code](https://img.shields.io/badge/Visual_Studio_Code-007ACC?style=for-the-badge&logo=Visual+Studio+Code&logoColor=ffffff)](vscode:extension/ms-vscode-remote.remote-ssh)
+This is a case where you need to serve an application via `absproxy` as
+explained above while serving code-server itself from a path other than the root
+in your domain.
 
-Follow these steps where code-server is running:
+For example: `http://my-code-server.com/user/123/workspace/my-app`. To achieve
+this result:
 
-1. Install `openssh-server`, `wget`, and `unzip`.
+1. Start code-server with the switch `--abs-proxy-base-path=/user/123/workspace`
+2. Follow one of the instructions above for your framework.
 
-```bash
-# example for Debian and Ubuntu operating systems
-sudo apt update
-sudo apt install wget unzip openssh-server
+### Preflight requests
+
+By default, if you have auth enabled, code-server will authenticate all proxied
+requests including preflight requests. This can cause issues because preflight
+requests do not typically include credentials. To allow all preflight requests
+through the proxy without authentication, use `--skip-auth-preflight`.
+
+## Internationalization and customization
+
+code-server allows you to provide a JSON file to configure certain strings. This
+can be used for both internationalization and customization.
+
+Create a JSON file with your custom strings:
+
+```json
+{
+  "WELCOME": "Welcome to {{app}}",
+  "LOGIN_TITLE": "{{app}} Access Portal",
+  "LOGIN_BELOW": "Please log in to continue",
+  "PASSWORD_PLACEHOLDER": "Enter Password"
+}
 ```
 
-2. Start the SSH server and set the password for your user, if you haven't already. If you use [deploy-code-server](https://github.com/coder/deploy-code-server),
-
-```bash
-sudo service ssh start
-sudo passwd {user} # replace user with your code-server user
-```
-
-### Option 1: cloudflared tunnel
-
-[![Cloudflared](https://img.shields.io/badge/Cloudflared-E4863B?style=for-the-badge&logo=cloudflare&logoColor=ffffff)](https://github.com/cloudflare/cloudflared)
-
-1.  Install [cloudflared](https://github.com/cloudflare/cloudflared#installing-cloudflared) on your local computer and remote server
-2.  Then go to `~/.ssh/config` and add the following on your local computer:
+Then reference the file:
 
 ```shell
-Host *.trycloudflare.com
-HostName %h
-User user
-Port 22
-ProxyCommand "cloudflared location" access ssh --hostname %h
+code-server --i18n /path/to/custom-strings.json
 ```
 
-3. Run `cloudflared tunnel --url ssh://localhost:22` on the remote server
+Or this can be done in the config file:
 
-4. Finally on VS Code or any IDE that supports SSH, run `ssh user@https://your-link.trycloudflare.com` or `ssh user@your-link.trycloudflare.com`
-
-### Option 2: ngrok tunnel
-
-[![Ngrok](https://img.shields.io/badge/Ngrok-1F1E37?style=for-the-badge&logo=ngrok&logoColor=ffffff)](https://ngrok.com/)
-
-1.  Make a new account for ngrok [here](https://dashboard.ngrok.com/login)
-
-2.  Now, get the ngrok binary with `wget` and unzip it with `unzip`:
-
-```bash
-wget "https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-linux-amd64.zip"
-unzip "ngrok-stable-linux-amd64.zip"
+```yaml
+i18n: /path/to/custom-strings.json
 ```
 
-5.  Then, go to [dashboard.ngrok.com](https://dashboard.ngrok.com) and go to the `Your Authtoken` section.
-6.  Copy the Authtoken shown there.
-7.  Now, go to the folder where you unzipped ngrok and store the Authtoken from the ngrok Dashboard.
+You can combine this with the `--locale` flag to configure language support for
+both code-server and VS Code in cases where code-server has no support but VS
+Code does. If you are using this for internationalization, please consider
+sending us a pull request to contribute it to `src/node/i18n/locales`.
 
-```bash
-./ngrok authtoken YOUR_AUTHTOKEN # replace YOUR_AUTHTOKEN with the ngrok authtoken.
-```
+### Available keys and placeholders
 
-8.  Now, forward port 22, which is the SSH port with this command:
+Refer to [../src/node/i18n/locales/en.json](../src/node/i18n/locales/en.json)
+for a full list of the available keys for translations. Note that the only
+placeholders supported for each key are the ones used in the default string.
 
-```bash
-./ngrok tcp 22
-```
+The `--app-name` flag controls the `{{app}}` placeholder in templates. If you
+want to change the name, you can either:
 
-Now, you get a screen in the terminal like this:
+1. Set `--app-name` (potentially alongside `--i18n`)
+2. Use `--i18n` and hardcode the name in your strings
 
-```console
-ngrok by @inconshreveable(Ctrl+C to quit)
+### Legacy flag
 
-Session Status                online
-Account                       {Your name} (Plan: Free)
-Version                       2.3.40
-Region                        United States (us)
-Web Interface                 http://127.0.0.1:4040
-Forwarding                    tcp://0.tcp.ngrok.io:19028 -> localhost:22
-```
-
-In this case, copy the forwarded link `0.tcp.ngrok.io` and remember the port number `19028`. Type this on your local Visual Studio Code:
-
-```bash
-ssh user@0.tcp.ngrok.io -p 19028
-```
-
-The port redirects you to the default SSH port 22, and you can then successfully connect to code-server by entering the password you set for the user.
-
-Note: the port and the url provided by ngrok will change each time you run it so modify as needed.
+The `--welcome-text` flag is now deprecated. Use the `WELCOME` key instead.

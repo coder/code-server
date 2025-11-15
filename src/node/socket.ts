@@ -47,7 +47,7 @@ export class SocketProxyProvider {
       proxy.once("connect", () => proxy.write(id))
 
       const timeout = setTimeout(() => {
-        listener.dispose() // eslint-disable-line @typescript-eslint/no-use-before-define
+        listener.dispose()
         socket.destroy()
         proxy.destroy()
         reject(new Error("TLS socket proxy timed out"))

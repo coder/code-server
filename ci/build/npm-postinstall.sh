@@ -51,6 +51,18 @@ symlink_bin_script() {
   cd "$oldpwd"
 }
 
+command_exists() {
+  if [ ! "$1" ]; then return 1; fi
+  command -v "$@" > /dev/null
+}
+
+is_root() {
+  if command_exists id && [ "$(id -u)" = 0 ]; then
+    return 0
+  fi
+  return 1
+}
+
 OS="$(os)"
 
 main() {
@@ -64,8 +76,8 @@ main() {
     echo "USE AT YOUR OWN RISK!"
   fi
 
-  if [ "$major_node_version" -ne "${FORCE_NODE_VERSION:-18}" ]; then
-    echo "ERROR: code-server currently requires node v18."
+  if [ "$major_node_version" -ne "${FORCE_NODE_VERSION:-22}" ]; then
+    echo "ERROR: code-server currently requires node v22."
     if [ -n "$FORCE_NODE_VERSION" ]; then
       echo "However, you have overrided the version check to use v$FORCE_NODE_VERSION."
     fi
@@ -75,17 +87,20 @@ main() {
     exit 1
   fi
 
-  case "${npm_config_user_agent-}" in npm*)
-    # We are running under npm.
-    if [ "${npm_config_unsafe_perm-}" != "true" ]; then
-      echo "Please pass --unsafe-perm to npm to install code-server"
-      echo "Otherwise the postinstall script does not have permissions to run"
-      echo "See https://docs.npmjs.com/misc/config#unsafe-perm"
-      echo "See https://stackoverflow.com/questions/49084929/npm-sudo-global-installation-unsafe-perm"
-      exit 1
-    fi
-    ;;
-  esac
+  # Under npm, if we are running as root, we need --unsafe-perm otherwise
+  # post-install scripts will not have sufficient permissions to do their thing.
+  if is_root; then
+    case "${npm_config_user_agent-}" in npm*)
+      if [ "${npm_config_unsafe_perm-}" != "true" ]; then
+        echo "Please pass --unsafe-perm to npm to install code-server"
+        echo "Otherwise post-install scripts will not have permissions to run"
+        echo "See https://docs.npmjs.com/misc/config#unsafe-perm"
+        echo "See https://stackoverflow.com/questions/49084929/npm-sudo-global-installation-unsafe-perm"
+        exit 1
+      fi
+      ;;
+    esac
+  fi
 
   if ! vscode_install; then
     echo "You may not have the required dependencies to build the native modules."
@@ -102,14 +117,11 @@ main() {
 
 install_with_yarn_or_npm() {
   echo "User agent: ${npm_config_user_agent-none}"
-  # NOTE@edvincent: We want to keep using the package manager that the end-user was using to install the package.
-  # This also ensures that when *we* run `yarn` in the development process, the yarn.lock file is used.
+  # For development we enforce npm, but for installing the package as an
+  # end-user we want to keep using whatever package manager is in use.
   case "${npm_config_user_agent-}" in
     npm*)
-      # HACK: NPM's use of semver doesn't like resolving some peerDependencies that vscode (upstream) brings in the form of pre-releases.
-      # The legacy behavior doesn't complain about pre-releases being used, falling back to that for now.
-      # See https://github.com//pull/5071
-      if ! npm install --unsafe-perm --legacy-peer-deps --omit=dev; then
+      if ! npm install --unsafe-perm --omit=dev; then
         return 1
       fi
       ;;

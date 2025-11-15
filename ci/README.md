@@ -16,20 +16,18 @@ This directory contains scripts used for the development of code-server.
 
 - [./ci/dev/image](./dev/image)
   - See [./docs/CONTRIBUTING.md](../docs/CONTRIBUTING.md) for docs on the development container.
-- [./ci/dev/fmt.sh](./dev/fmt.sh) (`yarn fmt`)
+- [./ci/dev/fmt.sh](./dev/fmt.sh) (`npm run fmt`)
   - Runs formatters.
-- [./ci/dev/lint.sh](./dev/lint.sh) (`yarn lint`)
+- [./ci/dev/lint.sh](./dev/lint.sh) (`npm run lint`)
   - Runs linters.
-- [./ci/dev/test-unit.sh](./dev/test-unit.sh) (`yarn test:unit`)
+- [./ci/dev/test-unit.sh](./dev/test-unit.sh) (`npm run test:unit`)
   - Runs unit tests.
-- [./ci/dev/test-e2e.sh](./dev/test-e2e.sh) (`yarn test:e2e`)
+- [./ci/dev/test-e2e.sh](./dev/test-e2e.sh) (`npm run test:e2e`)
   - Runs end-to-end tests.
-- [./ci/dev/ci.sh](./dev/ci.sh) (`yarn ci`)
-  - Runs `yarn fmt`, `yarn lint` and `yarn test`.
-- [./ci/dev/watch.ts](./dev/watch.ts) (`yarn watch`)
+- [./ci/dev/watch.ts](./dev/watch.ts) (`npm run watch`)
   - Starts a process to build and launch code-server and restart on any code changes.
   - Example usage in [./docs/CONTRIBUTING.md](../docs/CONTRIBUTING.md).
-- [./ci/dev/gen_icons.sh](./dev/gen_icons.sh) (`yarn icons`)
+- [./ci/dev/gen_icons.sh](./dev/gen_icons.sh) (`npm run icons`)
   - Generates the various icons from a single `.svg` favicon in
     `src/browser/media/favicon.svg`.
   - Requires [imagemagick](https://imagemagick.org/index.php)
@@ -39,20 +37,20 @@ This directory contains scripts used for the development of code-server.
 This directory contains the scripts used to build and release code-server.
 You can disable minification by setting `MINIFY=`.
 
-- [./ci/build/build-code-server.sh](./build/build-code-server.sh) (`yarn build`)
+- [./ci/build/build-code-server.sh](./build/build-code-server.sh) (`npm run build`)
   - Builds code-server into `./out` and bundles the frontend into `./dist`.
-- [./ci/build/build-vscode.sh](./build/build-vscode.sh) (`yarn build:vscode`)
+- [./ci/build/build-vscode.sh](./build/build-vscode.sh) (`npm run build:vscode`)
   - Builds vscode into `./lib/vscode/out-vscode`.
-- [./ci/build/build-release.sh](./build/build-release.sh) (`yarn release`)
+- [./ci/build/build-release.sh](./build/build-release.sh) (`npm run release`)
   - Bundles the output of the above two scripts into a single node module at `./release`.
-- [./ci/build/clean.sh](./build/clean.sh) (`yarn clean`)
+- [./ci/build/clean.sh](./build/clean.sh) (`npm run clean`)
   - Removes all build artifacts.
   - Useful to do a clean build.
 - [./ci/build/code-server.sh](./build/code-server.sh)
   - Copied into standalone releases to run code-server with the bundled node binary.
-- [./ci/build/test-standalone-release.sh](./build/test-standalone-release.sh) (`yarn test:standalone-release`)
+- [./ci/build/test-standalone-release.sh](./build/test-standalone-release.sh) (`npm run test:standalone-release`)
   - Ensures code-server in the `./release-standalone` directory works by installing an extension.
-- [./ci/build/build-packages.sh](./build/build-packages.sh) (`yarn package`)
+- [./ci/build/build-packages.sh](./build/build-packages.sh) (`npm run package`)
   - Packages `./release-standalone` into a `.tar.gz` archive in `./release-packages`.
   - If on linux, [nfpm](https://github.com/goreleaser/nfpm) is used to generate `.deb` and `.rpm`.
 - [./ci/build/nfpm.yaml](./build/nfpm.yaml)
@@ -61,15 +59,15 @@ You can disable minification by setting `MINIFY=`.
   - Entrypoint script for code-server for `.deb` and `.rpm`.
 - [./ci/build/code-server.service](./build/code-server.service)
   - systemd user service packaged into the `.deb` and `.rpm`.
-- [./ci/build/release-github-draft.sh](./build/release-github-draft.sh) (`yarn release:github-draft`)
+- [./ci/build/release-github-draft.sh](./build/release-github-draft.sh) (`npm run release:github-draft`)
   - Uses [gh](https://github.com/cli/cli) to create a draft release with a template description.
-- [./ci/build/release-github-assets.sh](./build/release-github-assets.sh) (`yarn release:github-assets`)
+- [./ci/build/release-github-assets.sh](./build/release-github-assets.sh) (`npm run release:github-assets`)
   - Downloads the release-package artifacts for the current commit from CI.
   - Uses [gh](https://github.com/cli/cli) to upload the artifacts to the release
     specified in `package.json`.
 - [./ci/build/npm-postinstall.sh](./build/npm-postinstall.sh)
   - Post install script for the npm package.
-  - Bundled by`yarn release`.
+  - Bundled by`npm run release`.
 
 ## release-image
 
@@ -89,15 +87,15 @@ This directory contains the scripts used in CI.
 Helps avoid clobbering the CI configuration.
 
 - [./steps/fmt.sh](./steps/fmt.sh)
-  - Runs `yarn fmt`.
+  - Runs `npm run fmt`.
 - [./steps/lint.sh](./steps/lint.sh)
-  - Runs `yarn lint`.
+  - Runs `npm run lint`.
 - [./steps/test-unit.sh](./steps/test-unit.sh)
-  - Runs `yarn test:unit`.
+  - Runs `npm run test:unit`.
 - [./steps/test-integration.sh](./steps/test-integration.sh)
-  - Runs `yarn test:integration`.
+  - Runs `npm run test:integration`.
 - [./steps/test-e2e.sh](./steps/test-e2e.sh)
-  - Runs `yarn test:e2e`.
+  - Runs `npm run test:e2e`.
 - [./steps/release.sh](./steps/release.sh)
   - Runs the release process.
   - Generates the npm package at `./release`.

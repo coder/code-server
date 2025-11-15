@@ -11,6 +11,7 @@
 
 .error-display > .body {
   color: #444;
+  color: light-dark(#444, #ccc);
   font-size: 1.2rem;
 }
 

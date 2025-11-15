@@ -16,8 +16,11 @@ variable "GITHUB_REGISTRY" {
 
 group "default" {
     targets = [
-        "code-server-debian-11", 
+        "code-server-debian-12",
         "code-server-ubuntu-focal",
+        "code-server-ubuntu-noble",
+        "code-server-fedora-39",
+        "code-server-opensuse-tumbleweed",
     ]
 }
 
@@ -45,12 +48,12 @@ function "gen_tags_for_docker_and_ghcr" {
     )
 }
 
-target "code-server-debian-11" {
+target "code-server-debian-12" {
     dockerfile = "ci/release-image/Dockerfile"
     tags = concat(
         gen_tags_for_docker_and_ghcr(""),
         gen_tags_for_docker_and_ghcr("debian"),
-        gen_tags_for_docker_and_ghcr("bullseye"),
+        gen_tags_for_docker_and_ghcr("bookworm"),
     )
     platforms = ["linux/amd64", "linux/arm64"]
 }
@@ -63,6 +66,41 @@ target "code-server-ubuntu-focal" {
     )
     args = {
         BASE = "ubuntu:focal"
+    }
+    platforms = ["linux/amd64", "linux/arm64"]
+}
+
+target "code-server-ubuntu-noble" {
+    dockerfile = "ci/release-image/Dockerfile"
+    tags = concat(
+        gen_tags_for_docker_and_ghcr("noble"),
+    )
+    args = {
+        BASE = "ubuntu:noble"
+    }
+    platforms = ["linux/amd64", "linux/arm64"]
+}
+
+target "code-server-fedora-39" {
+    dockerfile = "ci/release-image/Dockerfile.fedora"
+    tags = concat(
+        gen_tags_for_docker_and_ghcr("fedora"),
+        gen_tags_for_docker_and_ghcr("39"),
+    )
+    args = {
+        BASE = "fedora:39"
+    }
+    platforms = ["linux/amd64", "linux/arm64"]
+}
+
+target "code-server-opensuse-tumbleweed" {
+    dockerfile = "ci/release-image/Dockerfile.opensuse"
+    tags = concat(
+        gen_tags_for_docker_and_ghcr("opensuse"),
+        gen_tags_for_docker_and_ghcr("tumbleweed"),
+    )
+    args = {
+        BASE = "opensuse/tumbleweed"
     }
     platforms = ["linux/amd64", "linux/arm64"]
 }

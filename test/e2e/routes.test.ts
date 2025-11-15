@@ -1,7 +1,26 @@
 import { clean, getMaybeProxiedPathname } from "../utils/helpers"
 import { describe, test, expect } from "./baseFixture"
 
-const routes = ["/", "/vscode", "/vscode/"]
+const routes = {
+  "/": [
+    /\.\/manifest.json/,
+    /\.\/_static\//,
+    /[a-z]+-[0-9a-z]+\/static\//,
+    /http:\/\/localhost:[0-9]+\/[a-z]+-[0-9a-z]+\/static\//,
+  ],
+  "/vscode": [
+    /\.\/vscode\/manifest.json/,
+    /\.\/_static\//,
+    /vscode\/[a-z]+-[0-9a-z]+\/static\//,
+    /http:\/\/localhost:[0-9]+\/vscode\/[a-z]+-[0-9a-z]+\/static\//,
+  ],
+  "/vscode/": [
+    /\.\/manifest.json/,
+    /\.\/\.\.\/_static\//,
+    /[a-z]+-[0-9a-z]+\/static\//,
+    /http:\/\/localhost:[0-9]+\/vscode\/[a-z]+-[0-9a-z]+\/static\//,
+  ],
+}
 
 describe("VS Code Routes", ["--disable-workspace-trust"], {}, async () => {
   const testName = "vscode-routes-default"
@@ -10,7 +29,7 @@ describe("VS Code Routes", ["--disable-workspace-trust"], {}, async () => {
   })
 
   test("should load all route variations", async ({ codeServerPage }) => {
-    for (const route of routes) {
+    for (const [route, matchers] of Object.entries(routes)) {
       await codeServerPage.navigate(route)
 
       // Check there were no redirections
@@ -18,21 +37,16 @@ describe("VS Code Routes", ["--disable-workspace-trust"], {}, async () => {
       const pathname = getMaybeProxiedPathname(url)
       expect(pathname).toBe(route)
 
-      // TODO@jsjoeio
-      // now that we are in a proper browser instead of scraping the HTML we
-      // could possibly intercept requests to make sure assets are loading from
-      // the right spot.
-      //
-      // Check that page loaded from correct route
-      const html = await codeServerPage.page.innerHTML("html")
-      switch (route) {
-        case "/":
-        case "/vscode/":
-          expect(html).toMatch(/src="\.\/[a-z]+-[0-9a-z]+\/static\//)
-          break
-        case "/vscode":
-          expect(html).toMatch(/src="\.\/vscode\/[a-z]+-[0-9a-z]+\/static\//)
-          break
+      // Check that assets are pointing to the right spot.  Some will be
+      // relative, without a leading dot (VS Code's assets).  Some will be
+      // relative with a leading dot (our assets).  Others will have been
+      // resolved against the origin.
+      const elements = await codeServerPage.page.locator("[src]").all()
+      for (const element of elements) {
+        const src = await element.getAttribute("src")
+        if (src && !matchers.some((m) => m.test(src))) {
+          throw new Error(`${src} did not match any validators for route ${route}`)
+        }
       }
     }
   })
@@ -85,7 +99,7 @@ describe("VS Code Routes with no workspace or folder", ["--disable-workspace-tru
 
     // If you visit again without query parameters it will re-attach them by
     // redirecting.  It should always redirect to the same route.
-    for (const route of routes) {
+    for (const route of Object.keys(routes)) {
       await codeServerPage.navigate(route)
       const url = new URL(codeServerPage.page.url())
       const pathname = getMaybeProxiedPathname(url)

@@ -26,14 +26,14 @@ function should-fallback-npm() {
   [ "$status" -eq 0 ]
   [ "${lines[1]}" = "No standalone releases for $2." ]
   [ "${lines[2]}" = "Falling back to installation from npm." ]
-  [ "${lines[3]}" = "Installing latest from npm." ]
+  [ "${lines[3]}" = "Installing v$VERSION from npm." ]
   [ "${lines[-6]}" = "npm package has been installed." ]
 }
 
 function should-use-npm() {
   YARN_PATH=true DISTRO=$1 ARCH=$2 OS=linux run "$SCRIPT" --dry-run
   [ "$status" -eq 0 ]
-  [ "${lines[1]}" = "Installing latest from npm." ]
+  [ "${lines[1]}" = "Installing v$VERSION from npm." ]
   [ "${lines[-6]}" = "npm package has been installed." ]
 }
 
@@ -51,7 +51,7 @@ function should-fallback-npm-brew() {
   [ "${lines[2]}" = "Falling back to standalone installation." ]
   [ "${lines[3]}" = "No standalone releases for $1." ]
   [ "${lines[4]}" = "Falling back to installation from npm." ]
-  [ "${lines[5]}" = "Installing latest from npm." ]
+  [ "${lines[5]}" = "Installing v$VERSION from npm." ]
   [ "${lines[-6]}" = "npm package has been installed." ]
 }
 
@@ -132,15 +132,15 @@ function should-use-standalone() {
 
 # macOS use homebrew but falls back to standalone when brew is unavailable then
 # to npm for unsupported architectures.
-@test "$SCRIPT_NAME: macos arm64 (no brew)" {
-  should-fallback-npm-brew "arm64"
-}
 @test "$SCRIPT_NAME: macos amd64 (no brew)" {
-  BREW_PATH= OS=macos ARCH=amd64 run "$SCRIPT" --dry-run
+  should-fallback-npm-brew "amd64"
+}
+@test "$SCRIPT_NAME: macos arm64 (no brew)" {
+  BREW_PATH= OS=macos ARCH=arm64 run "$SCRIPT" --dry-run
   [ "$status" -eq 0 ]
   [ "${lines[1]}" = "Homebrew not installed." ]
   [ "${lines[2]}" = "Falling back to standalone installation." ]
-  [ "${lines[3]}" = "Installing v$VERSION of the amd64 release from GitHub." ]
+  [ "${lines[3]}" = "Installing v$VERSION of the arm64 release from GitHub." ]
   [[ "${lines[-6]}" = "Standalone release has been installed"* ]]
 }
 @test "$SCRIPT_NAME: macos i386 (no brew)" {

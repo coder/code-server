@@ -1,18 +1,30 @@
 {
   description = "code-server";
 
-  inputs.flake-utils.url = "github:numtide/flake-utils";
+  inputs = {
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable-small";
+    flake-utils.url = "github:numtide/flake-utils";
+  };
 
   outputs = { self, nixpkgs, flake-utils }:
     flake-utils.lib.eachDefaultSystem
       (system:
         let pkgs = nixpkgs.legacyPackages.${system};
-            nodejs = pkgs.nodejs-18_x;
-            yarn' = pkgs.yarn.override { inherit nodejs; };
+            nodejs = pkgs.nodejs_22;
         in {
           devShells.default = pkgs.mkShell {
             nativeBuildInputs = with pkgs; [
-              nodejs yarn' python3 pkg-config git rsync jq moreutils quilt bats openssl
+              imagemagick
+              nodejs
+              python3
+              pkg-config
+              git
+              rsync
+              jq
+              moreutils
+              quilt
+              bats
+              openssl
             ];
             buildInputs = with pkgs; (lib.optionals (!stdenv.isDarwin) [ libsecret libkrb5 ]
                           ++ (with xorg; [ libX11 libxkbfile ])

@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Packages code-server for the current OS and architecture into ./release-packages.
-# This script assumes that a standalone release is built already into ./release-standalone
+# Given a platform-specific release found in ./release-standalone, generate an
+# compressed archives and bundles (as appropriate for the platform) named after
+# the platform's architecture and OS and place them in ./release-packages and
+# ./release-gcp.
 
 main() {
   cd "$(dirname "${0}")/../.."
@@ -49,11 +51,6 @@ release_nfpm() {
   local nfpm_config
 
   export NFPM_ARCH
-
-  # Code deletes some files from the extension node_modules directory which
-  # leaves broken symlinks in the corresponding .bin directory.  nfpm will fail
-  # on these broken symlinks so clean them up.
-  rm -fr "./release-standalone/lib/vscode/extensions/node_modules/.bin"
 
   PKG_FORMAT="deb"
   NFPM_ARCH="$(get_nfpm_arch $PKG_FORMAT "$ARCH")"

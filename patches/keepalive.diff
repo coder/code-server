@@ -1,0 +1,15 @@
+This can be removed after upgrading to Node >= 19 as keepAlive is defaulted to
+true after 19.
+
+Index: code-server/lib/vscode/src/vs/platform/request/node/proxy.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/platform/request/node/proxy.ts
++++ code-server/lib/vscode/src/vs/platform/request/node/proxy.ts
+@@ -42,6 +42,7 @@ export async function getProxyAgent(rawR
+ 		port: (proxyEndpoint.port ? +proxyEndpoint.port : 0) || (proxyEndpoint.protocol === 'https' ? 443 : 80),
+ 		auth: proxyEndpoint.auth,
+ 		rejectUnauthorized: isBoolean(options.strictSSL) ? options.strictSSL : true,
++		keepAlive: true,
+ 	};
+ 
+ 	if (requestURL.protocol === 'http:') {

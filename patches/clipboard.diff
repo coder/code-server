@@ -1,0 +1,135 @@
+Index: code-server/lib/vscode/src/vs/workbench/api/browser/mainThreadCLICommands.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/workbench/api/browser/mainThreadCLICommands.ts
++++ code-server/lib/vscode/src/vs/workbench/api/browser/mainThreadCLICommands.ts
+@@ -8,6 +8,7 @@ import { isWeb } from '../../../base/com
+ import { isString } from '../../../base/common/types.js';
+ import { URI, UriComponents } from '../../../base/common/uri.js';
+ import { localize } from '../../../nls.js';
++import { IClipboardService } from '../../../platform/clipboard/common/clipboardService.js';
+ import { CommandsRegistry, ICommandService } from '../../../platform/commands/common/commands.js';
+ import { IExtensionGalleryService, IExtensionManagementService } from '../../../platform/extensionManagement/common/extensionManagement.js';
+ import { ExtensionManagementCLI } from '../../../platform/extensionManagement/common/extensionManagementCLI.js';
+@@ -95,6 +96,11 @@ CommandsRegistry.registerCommand('_remot
+ 
+ });
+ 
++CommandsRegistry.registerCommand('_remoteCLI.setClipboard', function (accessor: ServicesAccessor, content: string) {
++	const clipboardService = accessor.get(IClipboardService);
++	clipboardService.writeText(content);
++})
++
+ class RemoteExtensionManagementCLI extends ExtensionManagementCLI {
+ 
+ 	private _location: string | undefined;
+Index: code-server/lib/vscode/src/vs/workbench/api/node/extHostCLIServer.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/workbench/api/node/extHostCLIServer.ts
++++ code-server/lib/vscode/src/vs/workbench/api/node/extHostCLIServer.ts
+@@ -44,7 +44,12 @@ export interface ExtensionManagementPipe
+ 	force?: boolean;
+ }
+ 
+-export type PipeCommand = OpenCommandPipeArgs | StatusPipeArgs | OpenExternalCommandPipeArgs | ExtensionManagementPipeArgs;
++export interface ClipboardPipeArgs {
++	type: 'clipboard';
++	content: string;
++}
++
++export type PipeCommand = OpenCommandPipeArgs | StatusPipeArgs | OpenExternalCommandPipeArgs | ExtensionManagementPipeArgs | ClipboardPipeArgs;
+ 
+ export interface ICommandsExecuter {
+ 	executeCommand<T>(id: string, ...args: any[]): Promise<T>;
+@@ -106,6 +111,9 @@ export class CLIServerBase {
+ 					case 'extensionManagement':
+ 						returnObj = await this.manageExtensions(data);
+ 						break;
++					case 'clipboard':
++						returnObj = await this.clipboard(data);
++						break;
+ 					default:
+ 						sendResponse(404, `Unknown message type: ${data.type}`);
+ 						break;
+@@ -173,6 +181,10 @@ export class CLIServerBase {
+ 		return await this._commands.executeCommand<string | undefined>('_remoteCLI.getSystemStatus');
+ 	}
+ 
++	private async clipboard(data: ClipboardPipeArgs): Promise<undefined> {
++		return await this._commands.executeCommand('_remoteCLI.setClipboard', data.content);
++	}
++
+ 	dispose(): void {
+ 		this._server.close();
+ 
+Index: code-server/lib/vscode/src/vs/workbench/contrib/terminal/browser/remoteTerminalBackend.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/workbench/contrib/terminal/browser/remoteTerminalBackend.ts
++++ code-server/lib/vscode/src/vs/workbench/contrib/terminal/browser/remoteTerminalBackend.ts
+@@ -98,7 +98,7 @@ class RemoteTerminalBackend extends Base
+ 			}
+ 		});
+ 
+-		const allowedCommands = ['_remoteCLI.openExternal', '_remoteCLI.windowOpen', '_remoteCLI.getSystemStatus', '_remoteCLI.manageExtensions'];
++		const allowedCommands = ['_remoteCLI.openExternal', '_remoteCLI.windowOpen', '_remoteCLI.getSystemStatus', '_remoteCLI.manageExtensions', '_remoteCLI.setClipboard'];
+ 		this._remoteTerminalChannel.onExecuteCommand(async e => {
+ 			// Ensure this request for for this window
+ 			const pty = this._ptys.get(e.persistentProcessId);
+Index: code-server/lib/vscode/src/vs/platform/environment/common/argv.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/platform/environment/common/argv.ts
++++ code-server/lib/vscode/src/vs/platform/environment/common/argv.ts
+@@ -136,6 +136,7 @@ export interface NativeParsedArgs {
+ 	'disable-chromium-sandbox'?: boolean;
+ 	sandbox?: boolean;
+ 	'enable-coi'?: boolean;
++	'stdin-to-clipboard'?: boolean;
+ 	'unresponsive-sample-interval'?: string;
+ 	'unresponsive-sample-period'?: string;
+ 	'enable-rdp-display-tracking'?: boolean;
+Index: code-server/lib/vscode/src/vs/platform/environment/node/argv.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/platform/environment/node/argv.ts
++++ code-server/lib/vscode/src/vs/platform/environment/node/argv.ts
+@@ -105,6 +105,7 @@ export const OPTIONS: OptionDescriptions
+ 	'user-data-dir': { type: 'string', cat: 'o', args: 'dir', description: localize('userDataDir', "Specifies the directory that user data is kept in. Can be used to open multiple distinct instances of Code.") },
+ 	'profile': { type: 'string', 'cat': 'o', args: 'profileName', description: localize('profileName', "Opens the provided folder or workspace with the given profile and associates the profile with the workspace. If the profile does not exist, a new empty one is created.") },
+ 	'help': { type: 'boolean', cat: 'o', alias: 'h', description: localize('help', "Print usage.") },
++	'stdin-to-clipboard': { type: 'boolean', cat: 'o', alias: 'c', description: localize('clipboard', "copies the STDIN to the clipboard") },
+ 
+ 	'extensions-dir': { type: 'string', deprecates: ['extensionHomePath'], cat: 'e', args: 'dir', description: localize('extensionHomePath', "Set the root path for extensions.") },
+ 	'extensions-download-dir': { type: 'string' },
+Index: code-server/lib/vscode/src/vs/server/node/server.cli.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/server/node/server.cli.ts
++++ code-server/lib/vscode/src/vs/server/node/server.cli.ts
+@@ -77,6 +77,7 @@ const isSupportedForPipe = (optionId: ke
+ 		case 'verbose':
+ 		case 'remote':
+ 		case 'locate-shell-integration-path':
++		case 'stdin-to-clipboard':
+ 			return true;
+ 		default:
+ 			return false;
+@@ -295,6 +296,22 @@ export async function main(desc: Product
+ 			}
+ 		}
+ 	} else {
++		if (parsedArgs['stdin-to-clipboard']) {
++			if(!hasStdinWithoutTty()) {
++				console.error("stdin has a tty.");
++				return;
++			}
++			const stdinBuffer = fs.readFileSync(0); // STDIN_FILENO = 0
++			const clipboardContent = stdinBuffer.toString();
++			sendToPipe({
++				type: 'clipboard',
++				content: clipboardContent
++			}, verbose).catch(e => {
++				console.error('Error when requesting status:', e);
++			});
++			return;
++		}
++
+ 		if (parsedArgs.status) {
+ 			await sendToPipe({
+ 				type: 'status'

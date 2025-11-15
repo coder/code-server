@@ -32,6 +32,8 @@ const getRoot = async (req: Request, error?: Error): Promise<string> => {
   i18n.changeLanguage(locale)
   const appName = req.args["app-name"] || "code-server"
   const welcomeText = req.args["welcome-text"] || (i18n.t("WELCOME", { app: appName }) as string)
+
+  // Determine password message using i18n
   let passwordMsg = i18n.t("LOGIN_PASSWORD", { configFile: req.args.config })
   if (req.args.usingEnvPassword) {
     passwordMsg = i18n.t("LOGIN_USING_ENV_PASSWORD")
@@ -68,8 +70,8 @@ router.get("/", async (req, res) => {
   res.send(await getRoot(req))
 })
 
-router.post<{}, string, { password: string; base?: string }, { to?: string }>("/", async (req, res) => {
-  const password = sanitizeString(req.body.password)
+router.post<{}, string, { password?: string; base?: string } | undefined, { to?: string }>("/", async (req, res) => {
+  const password = sanitizeString(req.body?.password)
   const hashedPasswordFromArgs = req.args["hashed-password"]
 
   try {

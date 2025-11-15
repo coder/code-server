@@ -105,6 +105,7 @@ export class UpdateProvider {
         logger.debug("Making request", field("uri", uri))
         const isHttps = uri.startsWith("https")
         const agent = new ProxyAgent({
+          keepAlive: true,
           getProxyForUrl: () => httpProxyUri || "",
         })
         const httpx = isHttps ? https : http

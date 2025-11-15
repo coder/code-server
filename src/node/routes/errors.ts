@@ -2,11 +2,11 @@ import { logger } from "@coder/logger"
 import express from "express"
 import { promises as fs } from "fs"
 import path from "path"
-import { WebsocketRequest } from "../../../typings/pluginapi"
 import { HttpCode } from "../../common/http"
 import { rootPath } from "../constants"
 import { replaceTemplates } from "../http"
 import { escapeHtml, getMediaMime } from "../util"
+import type { WebsocketRequest } from "../wsRouter"
 
 interface ErrorWithStatusCode {
   statusCode: number

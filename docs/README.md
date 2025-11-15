@@ -1,6 +1,6 @@
 # code-server
 
-[!["GitHub Discussions"](https://img.shields.io/badge/%20GitHub-%20Discussions-gray.svg?longCache=true&logo=github&colorB=purple)](https://github.com/coder/code-server/discussions) [!["Join us on Slack"](https://img.shields.io/badge/join-us%20on%20slack-gray.svg?longCache=true&logo=slack&colorB=brightgreen)](https://coder.com/community) [![Twitter Follow](https://img.shields.io/twitter/follow/CoderHQ?label=%40CoderHQ&style=social)](https://twitter.com/coderhq) [![codecov](https://codecov.io/gh/coder/code-server/branch/main/graph/badge.svg?token=5iM9farjnC)](https://codecov.io/gh/coder/code-server) [![See latest](https://img.shields.io/static/v1?label=Docs&message=see%20latest&color=blue)](https://coder.com/docs/code-server/latest)
+[!["GitHub Discussions"](https://img.shields.io/badge/%20GitHub-%20Discussions-gray.svg?longCache=true&logo=github&colorB=purple)](https://github.com/coder/code-server/discussions) [!["Join us on Slack"](https://img.shields.io/badge/join-us%20on%20slack-gray.svg?longCache=true&logo=slack&colorB=brightgreen)](https://coder.com/community) [![Twitter Follow](https://img.shields.io/twitter/follow/CoderHQ?label=%40CoderHQ&style=social)](https://twitter.com/coderhq) [![Discord](https://img.shields.io/discord/747933592273027093)](https://discord.com/invite/coder) [![codecov](https://codecov.io/gh/coder/code-server/branch/main/graph/badge.svg?token=5iM9farjnC)](https://codecov.io/gh/coder/code-server) [![See latest](https://img.shields.io/static/v1?label=Docs&message=see%20latest&color=blue)](https://coder.com/docs/code-server/latest)
 
 Run [VS Code](https://github.com/Microsoft/vscode) on any machine anywhere and
 access it in the browser.
@@ -24,7 +24,7 @@ on how to set up a Google VM on which you can install code-server.
 
 ## Getting started
 
-There are four ways to get started:
+There are five ways to get started:
 
 1. Using the [install
    script](https://github.com/coder/code-server/blob/main/install.sh), which
@@ -35,6 +35,9 @@ There are four ways to get started:
 3. Deploy code-server to your team with [coder/coder](https://cdr.co/coder-github)
 4. Using our one-click buttons and guides to [deploy code-server to a cloud
    provider](https://github.com/coder/deploy-code-server) ⚡
+5. Using the [code-server feature for
+   devcontainers](https://github.com/coder/devcontainer-features/blob/main/src/code-server/README.md),
+   if you already use devcontainers in your project.
 
 If you use the install script, you can preview what occurs during the install
 process:
@@ -73,7 +76,7 @@ details.
 Interested in [working at Coder](https://coder.com/careers)? Check out [our open
 positions](https://coder.com/careers#openings)!
 
-## For Organizations
+## For Teams
 
-Want remote development for your organization or enterprise? Visit [our
-website](https://coder.com) to learn more about Coder.
+We develop [coder/coder](https://cdr.co/coder-github) to help teams to
+adopt remote development.

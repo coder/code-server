@@ -30,7 +30,7 @@ export enum LogLevel {
 export class OptionalString extends Optional<string> {}
 
 /**
- * Code flags provided by the user.
+ * (VS) Code flags provided by the user.
  */
 export interface UserProvidedCodeArgs {
   "disable-telemetry"?: boolean
@@ -48,10 +48,14 @@ export interface UserProvidedCodeArgs {
   "github-auth"?: string
   "disable-update-check"?: boolean
   "disable-file-downloads"?: boolean
+  "disable-file-uploads"?: boolean
   "disable-workspace-trust"?: boolean
   "disable-getting-started-override"?: boolean
   "disable-proxy"?: boolean
   "session-socket"?: string
+  "link-protection-trusted-domains"?: string[]
+  // locale is used by both VS Code and code-server.
+  locale?: string
 }
 
 /**
@@ -71,7 +75,6 @@ export interface UserProvidedArgs extends UserProvidedCodeArgs {
   enable?: string[]
   help?: boolean
   host?: string
-  locale?: string
   port?: number
   json?: boolean
   log?: LogLevel
@@ -82,12 +85,16 @@ export interface UserProvidedArgs extends UserProvidedCodeArgs {
   "trusted-origins"?: string[]
   version?: boolean
   "proxy-domain"?: string[]
+  "skip-auth-preflight"?: boolean
   "reuse-window"?: boolean
   "new-window"?: boolean
   "ignore-last-opened"?: boolean
   verbose?: boolean
   "app-name"?: string
   "welcome-text"?: string
+  "abs-proxy-base-path"?: string
+  i18n?: string
+  "idle-timeout-seconds"?: number
   /* Positional arguments. */
   _?: string[]
 }
@@ -116,18 +123,18 @@ interface Option<T> {
 type OptionType<T> = T extends boolean
   ? "boolean"
   : T extends OptionalString
-  ? typeof OptionalString
-  : T extends LogLevel
-  ? typeof LogLevel
-  : T extends AuthType
-  ? typeof AuthType
-  : T extends number
-  ? "number"
-  : T extends string
-  ? "string"
-  : T extends string[]
-  ? "string[]"
-  : "unknown"
+    ? typeof OptionalString
+    : T extends LogLevel
+      ? typeof LogLevel
+      : T extends AuthType
+        ? typeof AuthType
+        : T extends number
+          ? "number"
+          : T extends string
+            ? "string"
+            : T extends string[]
+              ? "string[]"
+              : "unknown"
 
 export type Options<T> = {
   [P in keyof T]: Option<OptionType<T[P]>>
@@ -170,6 +177,10 @@ export const options: Options<Required<UserProvidedArgs>> = {
     description:
       "Disable file downloads from Code. This can also be set with CS_DISABLE_FILE_DOWNLOADS set to 'true' or '1'.",
   },
+  "disable-file-uploads": {
+    type: "boolean",
+    description: "Disable file uploads.",
+  },
   "disable-workspace-trust": {
     type: "boolean",
     description: "Disable Workspace Trust feature. This switch only affects the current session.",
@@ -187,6 +198,10 @@ export const options: Options<Required<UserProvidedArgs>> = {
   enable: { type: "string[]" },
   help: { type: "boolean", short: "h", description: "Show this output." },
   json: { type: "boolean" },
+  "link-protection-trusted-domains": {
+    type: "string[]",
+    description: "Links matching a trusted domain can be opened without link protection.",
+  },
   locale: {
     // The preferred way to set the locale is via the UI.
     type: "string",
@@ -246,6 +261,10 @@ export const options: Options<Required<UserProvidedArgs>> = {
     description: "GitHub authentication token (can only be passed in via $GITHUB_TOKEN or the config file).",
   },
   "proxy-domain": { type: "string[]", description: "Domain used for proxying ports." },
+  "skip-auth-preflight": {
+    type: "boolean",
+    description: "Allows preflight requests through proxy without authentication.",
+  },
   "ignore-last-opened": {
     type: "boolean",
     short: "e",
@@ -267,12 +286,27 @@ export const options: Options<Required<UserProvidedArgs>> = {
   "app-name": {
     type: "string",
     short: "an",
-    description: "The name to use in branding. Will be shown in titlebar and welcome message",
+    description:
+      "Will replace the {{app}} placeholder in any strings, which by default includes the title bar and welcome message",
   },
   "welcome-text": {
     type: "string",
     short: "w",
     description: "Text to show on login page",
+    deprecated: true,
+  },
+  "abs-proxy-base-path": {
+    type: "string",
+    description: "The base path to prefix to all absproxy requests",
+  },
+  i18n: {
+    type: "string",
+    path: true,
+    description: "Path to JSON file with custom translations. Merges with default strings and supports all i18n keys.",
+  },
+  "idle-timeout-seconds": {
+    type: "number",
+    description: "Timeout in seconds to wait before shutting down when idle.",
   },
 }
 
@@ -365,6 +399,10 @@ export const parse = (
 
       if (key === "github-auth" && !opts?.configFile) {
         throw new Error("--github-auth can only be set in the config file or passed in via $GITHUB_TOKEN")
+      }
+
+      if (key === "idle-timeout-seconds" && Number(value) <= 60) {
+        throw new Error("--idle-timeout-seconds must be greater than 60 seconds.")
       }
 
       const option = options[key]
@@ -582,6 +620,16 @@ export async function setDefaults(cliArgs: UserProvidedArgs, configArgs?: Config
     args["github-auth"] = process.env.GITHUB_TOKEN
   }
 
+  if (process.env.CODE_SERVER_IDLE_TIMEOUT_SECONDS) {
+    if (isNaN(Number(process.env.CODE_SERVER_IDLE_TIMEOUT_SECONDS))) {
+      logger.info("CODE_SERVER_IDLE_TIMEOUT_SECONDS must be a number")
+    }
+    if (Number(process.env.CODE_SERVER_IDLE_TIMEOUT_SECONDS) <= 60) {
+      throw new Error("--idle-timeout-seconds must be greater than 60 seconds.")
+    }
+    args["idle-timeout-seconds"] = Number(process.env.CODE_SERVER_IDLE_TIMEOUT_SECONDS)
+  }
+
   // Ensure they're not readable by child processes.
   delete process.env.PASSWORD
   delete process.env.HASHED_PASSWORD
@@ -692,12 +740,16 @@ export function parseConfigFile(configFile: string, configPath: string): ConfigA
 
   // We convert the config file into a set of flags.
   // This is a temporary measure until we add a proper CLI library.
-  const configFileArgv = Object.entries(config).map(([optName, opt]) => {
-    if (opt === true) {
-      return `--${optName}`
-    }
-    return `--${optName}=${opt}`
-  })
+  const configFileArgv = Object.entries(config)
+    .map(([optName, opt]) => {
+      if (opt === true) {
+        return `--${optName}`
+      } else if (Array.isArray(opt)) {
+        return opt.map((o) => `--${optName}=${o}`)
+      }
+      return `--${optName}=${opt}`
+    })
+    .flat()
   const args = parse(configFileArgv, {
     configFile: configPath,
   })
@@ -828,25 +880,17 @@ export interface CodeArgs extends UserProvidedCodeArgs {
   version: boolean
   "without-connection-token"?: boolean
   "without-browser-env-var"?: boolean
-  compatibility: string
-  log: string[] | undefined
+  compatibility?: string
+  log?: string[]
 }
 
 /**
- * Types for ../../lib/vscode/src/vs/server/node/server.main.ts:65.
- */
-export type SpawnCodeCli = (args: CodeArgs) => Promise<void>
-
-/**
- * Convert our arguments to VS Code server arguments.
+ * Convert our arguments to equivalent VS Code server arguments.
+ * Does not add any extra arguments.
  */
 export const toCodeArgs = async (args: DefaultedArgs): Promise<CodeArgs> => {
   return {
     ...args,
-    "accept-server-license-terms": true,
-    // This seems to be used to make the connection token flags optional (when
-    // set to 1.63) but we have always included them.
-    compatibility: "1.64",
     /** Type casting. */
     help: !!args.help,
     version: !!args.version,

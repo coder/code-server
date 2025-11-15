@@ -68,13 +68,10 @@ describe("login", () => {
       }
     })
 
-    it("should return HTML with 'Missing password' message", async () => {
+    it("should return 'Missing password' without body", async () => {
       const resp = await codeServer().fetch("/login", { method: "POST" })
-
-      expect(resp.status).toBe(200)
-
       const htmlContent = await resp.text()
-
+      expect(resp.status).toBe(200)
       expect(htmlContent).toContain("Missing password")
     })
 
