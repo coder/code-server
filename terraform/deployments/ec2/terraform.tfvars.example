@@ -1,0 +1,47 @@
+# Example Terraform Variables for EC2 Deployment
+# Copy this file to terraform.tfvars and fill in your values
+
+aws_region   = "us-east-1"
+project_name = "code-server"
+environment  = "dev"
+
+# VPC Configuration
+vpc_cidr             = "10.0.0.0/16"
+public_subnet_cidrs  = ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"]
+private_subnet_cidrs = ["10.0.11.0/24", "10.0.12.0/24", "10.0.13.0/24"]
+single_nat_gateway   = false  # Set to true for cost optimization (single NAT gateway)
+
+# Security Configuration
+allowed_cidr_blocks     = ["10.0.0.0/8"]  # Restrict to private network
+ssh_allowed_cidr_blocks = []              # No SSH access (use SSM instead)
+
+# EC2 Configuration
+instance_type      = "t3.medium"
+ebs_volume_size    = 50
+min_instances      = 1
+max_instances      = 3
+desired_instances  = 1
+code_server_version = "latest"
+enable_autoscaling = true
+
+# Load Balancer Configuration
+# Get certificate ARN from ACM or leave empty for HTTP
+certificate_arn = ""  # Example: "arn:aws:acm:us-east-1:123456789012:certificate/xxxxx"
+internal_alb    = true  # Set to false for internet-facing ALB
+
+# OAuth2 / SAML Configuration
+# Configure these values based on your IdP (Okta, Azure AD, etc.)
+oauth2_client_id     = "your-client-id-from-idp"
+oauth2_client_secret = "your-client-secret-from-idp"
+oauth2_issuer_url    = "https://your-idp.com/.well-known/openid-configuration"
+oauth2_redirect_url  = "https://code-server.example.com/oauth2/callback"
+
+# Generate cookie secret with:
+# python -c 'import os,base64; print(base64.urlsafe_b64encode(os.urandom(32)).decode())'
+oauth2_cookie_secret = "generate-random-secret-here"
+
+# Allowed email addresses (leave empty to allow all authenticated users)
+oauth2_allowed_emails = [
+  # "user1@example.com",
+  # "user2@example.com"
+]

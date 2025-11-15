@@ -1,0 +1,144 @@
+# Helm values for Code-Server deployment on EKS
+# This file should be customized before deployment
+
+replicaCount: 1
+
+image:
+  repository: codercom/code-server
+  tag: "4.18.0"
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+
+nameOverride: ""
+fullnameOverride: "code-server"
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: "code-server"
+
+podAnnotations: {}
+
+podSecurityContext:
+  fsGroup: 1000
+  runAsUser: 1000
+  runAsNonRoot: true
+
+securityContext:
+  enabled: true
+  fsGroup: 1000
+  runAsUser: 1000
+  runAsNonRoot: true
+  capabilities:
+    drop:
+    - ALL
+  readOnlyRootFilesystem: false
+  allowPrivilegeEscalation: false
+
+service:
+  type: ClusterIP
+  port: 8080
+
+# Ingress configuration with AWS Load Balancer Controller
+ingress:
+  enabled: true
+  ingressClassName: "alb"
+  annotations:
+    alb.ingress.kubernetes.io/scheme: internal
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
+    alb.ingress.kubernetes.io/ssl-redirect: '443'
+    alb.ingress.kubernetes.io/healthcheck-path: /healthz
+    alb.ingress.kubernetes.io/healthcheck-protocol: HTTP
+    alb.ingress.kubernetes.io/healthcheck-interval-seconds: '30'
+    alb.ingress.kubernetes.io/healthcheck-timeout-seconds: '5'
+    alb.ingress.kubernetes.io/healthy-threshold-count: '2'
+    alb.ingress.kubernetes.io/unhealthy-threshold-count: '2'
+    # Uncomment and set your certificate ARN
+    # alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:region:account:certificate/xxxxx
+    # Uncomment to set custom subnets
+    # alb.ingress.kubernetes.io/subnets: subnet-xxxxx,subnet-yyyyy
+    # Uncomment to set custom security groups
+    # alb.ingress.kubernetes.io/security-groups: sg-xxxxx
+  hosts:
+    - host: code-server.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+resources:
+  limits:
+    cpu: 2000m
+    memory: 4Gi
+  requests:
+    cpu: 500m
+    memory: 1Gi
+
+# Persistent storage configuration
+persistence:
+  enabled: true
+  storageClass: "gp3"
+  accessMode: ReadWriteOnce
+  size: 20Gi
+  annotations: {}
+
+# Volume permissions init container
+volumePermissions:
+  enabled: true
+  securityContext:
+    runAsUser: 0
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+# Extra environment variables
+extraVars:
+  - name: DISABLE_TELEMETRY
+    value: "true"
+
+# Extra arguments for code-server
+extraArgs: []
+
+# Lifecycle hooks
+lifecycle:
+  enabled: false
+
+# Extra init containers (e.g., for installing extensions)
+extraInitContainers: |
+  # - name: install-extensions
+  #   image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+  #   imagePullPolicy: IfNotPresent
+  #   env:
+  #     - name: SERVICE_URL
+  #       value: https://open-vsx.org/vscode/gallery
+  #     - name: ITEM_URL
+  #       value: https://open-vsx.org/vscode/item
+  #   command:
+  #     - sh
+  #     - -c
+  #     - |
+  #       code-server --install-extension ms-python.python
+  #       code-server --install-extension golang.Go
+  #   volumeMounts:
+  #     - name: data
+  #       mountPath: /home/coder
+
+# Extra containers (e.g., OAuth2 Proxy sidecar)
+extraContainers: ""
+
+# Extra secret mounts
+extraSecretMounts: []
+
+# Extra volume mounts
+extraVolumeMounts: []
+
+# Extra configmap mounts
+extraConfigmapMounts: []
+
+# Extra ports
+extraPorts: []

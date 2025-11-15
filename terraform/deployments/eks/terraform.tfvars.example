@@ -1,0 +1,38 @@
+# Example Terraform Variables for EKS Deployment
+# Copy this file to terraform.tfvars and fill in your values
+
+aws_region   = "us-east-1"
+project_name = "code-server"
+environment  = "dev"
+
+# VPC Configuration
+vpc_cidr             = "10.0.0.0/16"
+public_subnet_cidrs  = ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"]
+private_subnet_cidrs = ["10.0.11.0/24", "10.0.12.0/24", "10.0.13.0/24"]
+single_nat_gateway   = false  # Set to true for cost optimization
+
+# Security Configuration
+allowed_cidr_blocks     = ["10.0.0.0/8"]  # Restrict to private network
+ssh_allowed_cidr_blocks = []              # No SSH access (use SSM instead)
+
+# EKS Configuration
+kubernetes_version     = "1.28"
+endpoint_public_access = false  # Set to true if you need public API access
+public_access_cidrs    = ["0.0.0.0/0"]  # Restrict this if endpoint_public_access is true
+
+# Node Group Configuration
+node_instance_types = ["t3.medium"]
+capacity_type       = "ON_DEMAND"  # or "SPOT" for cost optimization
+node_disk_size      = 50
+min_nodes           = 1
+max_nodes           = 3
+desired_nodes       = 2
+
+# OAuth2 / SAML Configuration
+deploy_oauth2_proxy  = true
+oauth2_client_id     = "your-client-id-from-idp"
+oauth2_client_secret = "your-client-secret-from-idp"
+
+# Generate cookie secret with:
+# python -c 'import os,base64; print(base64.urlsafe_b64encode(os.urandom(32)).decode())'
+oauth2_cookie_secret = "generate-random-secret-here"
