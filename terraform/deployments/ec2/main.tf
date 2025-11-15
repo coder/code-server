@@ -115,3 +115,26 @@ module "code_server_ec2" {
 
   tags = local.common_tags
 }
+
+# VPN Module (Optional)
+module "vpn" {
+  count  = var.enable_vpn ? 1 : 0
+  source = "../../modules/vpn"
+
+  name_prefix                = local.name_prefix
+  vpc_id                     = module.vpc.vpc_id
+  vpc_cidr                   = module.vpc.vpc_cidr
+  subnet_ids                 = module.vpc.private_subnet_ids
+  server_certificate_arn     = var.vpn_server_certificate_arn
+  client_certificate_arn     = var.vpn_client_certificate_arn
+  client_cidr_block          = var.vpn_client_cidr_block
+  split_tunnel               = var.vpn_split_tunnel
+  authentication_type        = var.vpn_authentication_type
+  dns_servers                = var.vpn_dns_servers
+  transport_protocol         = var.vpn_transport_protocol
+  vpn_port                   = var.vpn_port
+  session_timeout_hours      = var.vpn_session_timeout_hours
+  client_login_banner        = var.vpn_client_login_banner
+
+  tags = local.common_tags
+}

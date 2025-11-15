@@ -40,6 +40,21 @@ output "kms_key_arn" {
   value       = module.security.kms_key_arn
 }
 
+output "vpn_endpoint_id" {
+  description = "ID of the VPN endpoint (if enabled)"
+  value       = var.enable_vpn ? module.vpn[0].vpn_endpoint_id : null
+}
+
+output "vpn_endpoint_dns_name" {
+  description = "DNS name of the VPN endpoint (if enabled)"
+  value       = var.enable_vpn ? module.vpn[0].vpn_endpoint_dns_name : null
+}
+
+output "vpn_client_cidr_block" {
+  description = "CIDR block for VPN clients (if enabled)"
+  value       = var.enable_vpn ? var.vpn_client_cidr_block : null
+}
+
 output "next_steps" {
   description = "Next steps to complete the setup"
   value = <<-EOT
@@ -73,5 +88,6 @@ output "next_steps" {
     - ALB is ${var.internal_alb ? "internal (private network only)" : "public"}
     - Data is encrypted at rest using KMS
     - VPC Flow Logs are enabled for monitoring
+    ${var.enable_vpn ? "\n    VPN Configuration:\n    - VPN Endpoint: ${module.vpn[0].vpn_endpoint_dns_name}\n    - To export VPN configuration: ../../scripts/export-vpn-config.sh ${module.vpn[0].vpn_endpoint_id} ${var.aws_region}\n    - VPN clients will receive IPs from: ${var.vpn_client_cidr_block}" : ""}
   EOT
 }

@@ -145,3 +145,70 @@ variable "oauth2_allowed_emails" {
   type        = list(string)
   default     = []
 }
+
+# VPN Configuration
+variable "enable_vpn" {
+  description = "Enable AWS Client VPN for secure access"
+  type        = bool
+  default     = false
+}
+
+variable "vpn_server_certificate_arn" {
+  description = "ARN of server certificate in ACM for VPN"
+  type        = string
+  default     = ""
+}
+
+variable "vpn_client_certificate_arn" {
+  description = "ARN of client root certificate in ACM for VPN"
+  type        = string
+  default     = ""
+}
+
+variable "vpn_client_cidr_block" {
+  description = "CIDR block for VPN clients (must not overlap with VPC)"
+  type        = string
+  default     = "172.16.0.0/22"
+}
+
+variable "vpn_split_tunnel" {
+  description = "Enable split tunnel (only route VPC traffic through VPN)"
+  type        = bool
+  default     = true
+}
+
+variable "vpn_authentication_type" {
+  description = "VPN authentication type (certificate-authentication recommended)"
+  type        = string
+  default     = "certificate-authentication"
+}
+
+variable "vpn_dns_servers" {
+  description = "DNS servers for VPN clients (leave empty to use VPC DNS)"
+  type        = list(string)
+  default     = []
+}
+
+variable "vpn_transport_protocol" {
+  description = "VPN transport protocol (udp recommended for better performance)"
+  type        = string
+  default     = "udp"
+}
+
+variable "vpn_port" {
+  description = "VPN port (443 or 1194)"
+  type        = number
+  default     = 443
+}
+
+variable "vpn_session_timeout_hours" {
+  description = "VPN session timeout in hours (8-24)"
+  type        = number
+  default     = 24
+}
+
+variable "vpn_client_login_banner" {
+  description = "Banner text to display on VPN client login"
+  type        = string
+  default     = "Welcome to Code-Server VPN. Authorized access only."
+}

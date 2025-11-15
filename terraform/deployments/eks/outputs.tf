@@ -40,6 +40,21 @@ output "kms_key_arn" {
   value       = module.security.kms_key_arn
 }
 
+output "vpn_endpoint_id" {
+  description = "ID of the VPN endpoint (if enabled)"
+  value       = var.enable_vpn ? module.vpn[0].vpn_endpoint_id : null
+}
+
+output "vpn_endpoint_dns_name" {
+  description = "DNS name of the VPN endpoint (if enabled)"
+  value       = var.enable_vpn ? module.vpn[0].vpn_endpoint_dns_name : null
+}
+
+output "vpn_client_cidr_block" {
+  description = "CIDR block for VPN clients (if enabled)"
+  value       = var.enable_vpn ? var.vpn_client_cidr_block : null
+}
+
 output "configure_kubectl" {
   description = "Command to configure kubectl"
   value       = "aws eks update-kubeconfig --region ${var.aws_region} --name ${module.eks.cluster_id}"
@@ -101,6 +116,7 @@ output "next_steps" {
     - Data is encrypted at rest using KMS
     - VPC Flow Logs are enabled for monitoring
     - IRSA (IAM Roles for Service Accounts) is enabled
+    ${var.enable_vpn ? "\n    VPN Configuration:\n    - VPN Endpoint: ${module.vpn[0].vpn_endpoint_dns_name}\n    - To export VPN configuration: ../../scripts/export-vpn-config.sh ${module.vpn[0].vpn_endpoint_id} ${var.aws_region}\n    - VPN clients will receive IPs from: ${var.vpn_client_cidr_block}" : ""}
 
     Useful Commands:
     - Scale nodes: kubectl scale deployment code-server -n code-server --replicas=3

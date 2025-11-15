@@ -36,3 +36,16 @@ oauth2_client_secret = "your-client-secret-from-idp"
 # Generate cookie secret with:
 # python -c 'import os,base64; print(base64.urlsafe_b64encode(os.urandom(32)).decode())'
 oauth2_cookie_secret = "generate-random-secret-here"
+
+# VPN Configuration (Optional - for enhanced security)
+# First run: ../../scripts/generate-vpn-certificates.sh
+enable_vpn                     = false  # Set to true to enable VPN
+vpn_server_certificate_arn     = ""     # ARN from generate-vpn-certificates.sh
+vpn_client_certificate_arn     = ""     # ARN from generate-vpn-certificates.sh
+vpn_client_cidr_block          = "172.16.0.0/22"  # Must not overlap with VPC
+vpn_split_tunnel               = true   # Only route VPC traffic through VPN
+vpn_authentication_type        = "certificate-authentication"
+vpn_transport_protocol         = "udp"  # udp (faster) or tcp (more reliable)
+vpn_port                       = 443    # 443 or 1194
+vpn_session_timeout_hours      = 24     # 8-24 hours
+vpn_client_login_banner        = "Welcome to Code-Server VPN. Authorized access only."
