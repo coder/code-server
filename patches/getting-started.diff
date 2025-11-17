@@ -19,7 +19,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/welcomeGettingStarted/bro
  import { renderFormattedText } from '../../../../base/browser/formattedTextRenderer.js';
  import { StandardKeyboardEvent } from '../../../../base/browser/keyboardEvent.js';
  import { Button } from '../../../../base/browser/ui/button/button.js';
-@@ -54,7 +54,7 @@ import { IRecentFolder, IRecentWorkspace
+@@ -53,7 +53,7 @@ import { IRecentFolder, IRecentWorkspace
  import { OpenRecentAction } from '../../../browser/actions/windowActions.js';
  import { OpenFileFolderAction, OpenFolderAction, OpenFolderViaWorkspaceAction } from '../../../browser/actions/workspaceActions.js';
  import { EditorPane } from '../../../browser/parts/editor/editorPane.js';
@@ -28,7 +28,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/welcomeGettingStarted/bro
  import { IEditorOpenContext, IEditorSerializer } from '../../../common/editor.js';
  import { IWebviewElement, IWebviewService } from '../../webview/browser/webview.js';
  import './gettingStartedColors.js';
-@@ -872,6 +872,72 @@ export class GettingStartedPage extends
+@@ -902,6 +902,72 @@ export class GettingStartedPage extends
  			$('p.subtitle.description', {}, localize({ key: 'gettingStarted.editingEvolved', comment: ['Shown as subtitle on the Welcome page.'] }, "Editing evolved"))
  		);
  
@@ -101,7 +101,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/welcomeGettingStarted/bro
  		const leftColumn = $('.categories-column.categories-column-left', {},);
  		const rightColumn = $('.categories-column.categories-column-right', {},);
  
-@@ -907,6 +973,9 @@ export class GettingStartedPage extends
+@@ -937,6 +1003,9 @@ export class GettingStartedPage extends
  				recentList.setLimit(5);
  				reset(leftColumn, startList.getDomElement(), recentList.getDomElement());
  			}

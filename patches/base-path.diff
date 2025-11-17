@@ -10,7 +10,7 @@ Index: code-server/lib/vscode/src/vs/base/common/network.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/base/common/network.ts
 +++ code-server/lib/vscode/src/vs/base/common/network.ts
-@@ -232,7 +232,9 @@ class RemoteAuthoritiesImpl {
+@@ -237,7 +237,9 @@ class RemoteAuthoritiesImpl {
  		return URI.from({
  			scheme: platform.isWeb ? this._preferredWebSchema : Schemas.vscodeRemoteResource,
  			authority: `${host}:${port}`,
@@ -99,7 +99,7 @@ Index: code-server/lib/vscode/src/vs/platform/remote/browser/browserSocketFactor
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/platform/remote/browser/browserSocketFactory.ts
 +++ code-server/lib/vscode/src/vs/platform/remote/browser/browserSocketFactory.ts
-@@ -281,6 +281,7 @@ export class BrowserSocketFactory implem
+@@ -282,6 +282,7 @@ export class BrowserSocketFactory implem
  	connect({ host, port }: WebSocketRemoteConnection, path: string, query: string, debugLabel: string): Promise<ISocket> {
  		return new Promise<ISocket>((resolve, reject) => {
  			const webSocketSchema = (/^https:/.test(mainWindow.location.href) ? 'wss' : 'ws');
@@ -253,7 +253,7 @@ Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/code/browser/workbench/workbench.ts
 +++ code-server/lib/vscode/src/vs/code/browser/workbench/workbench.ts
-@@ -338,7 +338,8 @@ class LocalStorageURLCallbackProvider ex
+@@ -339,7 +339,8 @@ class LocalStorageURLCallbackProvider ex
  			this.startListening();
  		}
  
@@ -263,7 +263,7 @@ Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench.ts
  	}
  
  	private startListening(): void {
-@@ -583,17 +584,6 @@ class WorkspaceProvider implements IWork
+@@ -584,17 +585,6 @@ class WorkspaceProvider implements IWork
  	}
  }
  
@@ -281,7 +281,7 @@ Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench.ts
  (function () {
  
  	// Find config by checking for DOM
-@@ -602,8 +592,8 @@ function readCookie(name: string): strin
+@@ -604,8 +594,8 @@ function readCookie(name: string): strin
  	if (!configElement || !configElementAttribute) {
  		throw new Error('Missing web configuration element');
  	}

@@ -83,7 +83,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/terminal/common/terminalE
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/contrib/terminal/common/terminalEnvironment.ts
 +++ code-server/lib/vscode/src/vs/workbench/contrib/terminal/common/terminalEnvironment.ts
-@@ -291,7 +291,7 @@ export async function createTerminalEnvi
+@@ -292,7 +292,7 @@ export async function createTerminalEnvi
  
  		// Sanitize the environment, removing any undesirable VS Code and Electron environment
  		// variables
@@ -104,7 +104,7 @@ Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench.ts
  import type { IURLCallbackProvider } from '../../../workbench/services/url/browser/urlService.js';
  import { create } from '../../../workbench/workbench.web.main.internal.js';
  
-@@ -604,6 +605,39 @@ class WorkspaceProvider implements IWork
+@@ -606,6 +607,39 @@ class WorkspaceProvider implements IWork
  		settingsSyncOptions: config.settingsSyncOptions ? { enabled: config.settingsSyncOptions.enabled, } : undefined,
  		workspaceProvider: WorkspaceProvider.create(config),
  		urlCallbackProvider: new LocalStorageURLCallbackProvider(config.callbackRoute),

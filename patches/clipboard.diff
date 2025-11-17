@@ -78,7 +78,7 @@ Index: code-server/lib/vscode/src/vs/platform/environment/common/argv.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/platform/environment/common/argv.ts
 +++ code-server/lib/vscode/src/vs/platform/environment/common/argv.ts
-@@ -136,6 +136,7 @@ export interface NativeParsedArgs {
+@@ -137,6 +137,7 @@ export interface NativeParsedArgs {
  	'disable-chromium-sandbox'?: boolean;
  	sandbox?: boolean;
  	'enable-coi'?: boolean;
