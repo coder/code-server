@@ -126,7 +126,7 @@ jobs:
 
   package-macos-amd64:
     name: x86-64 macOS build
-    runs-on: macos-13
+    runs-on: macos-15-intel
     timeout-minutes: 15
     needs: npm-version
     env:
