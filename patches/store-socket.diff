@@ -96,7 +96,7 @@ Index: code-server/lib/vscode/src/vs/workbench/api/node/extensionHostProcess.ts
  import minimist from 'minimist';
  import * as nativeWatchdog from 'native-watchdog';
  import * as net from 'net';
-@@ -449,7 +450,28 @@ async function startExtensionHostProcess
+@@ -451,7 +452,28 @@ async function startExtensionHostProcess
  	);
  
  	// rewrite onTerminate-function to be a proper shutdown
