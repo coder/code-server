@@ -164,7 +164,7 @@ jobs:
   build:
     name: Build code-server
     runs-on: ubuntu-22.04
-    timeout-minutes: 60
+    timeout-minutes: 70
     env:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       DISABLE_V8_COMPILE_CACHE: 1
