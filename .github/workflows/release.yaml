@@ -303,7 +303,7 @@ jobs:
       - run: tar -czf package.tar.gz release
 
       - name: Upload npm package artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: npm-release-package
           path: ./package.tar.gz
