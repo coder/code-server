@@ -135,8 +135,8 @@ jobs:
         uses: actions/checkout@v6
       - name: Check workflow files
         run: |
-          bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash) 1.7.1
-          ./actionlint -color -shellcheck= -ignore "set-output"
+          bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash) 1.7.9
+          ./actionlint -color -shellcheck= -ignore "softprops/action-gh-release"
         shell: bash
 
   test-unit:
