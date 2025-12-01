@@ -88,6 +88,18 @@ body:
 
   - type: dropdown
     attributes:
+      label: Does this bug reproduce in VS Code web?
+      description: If the bug reproduces in VS Code web, submit the issue upstream instead (https://github.com/microsoft/vscode). You can run VS Code web with `code serve-web`.
+      options:
+        - Yes, this is also broken in VS Code web
+        - No, this works as expected in VS Code web
+        - This cannot be tested in VS Code web
+        - I did not test VS Code web
+    validations:
+      required: true
+
+  - type: dropdown
+    attributes:
       label: Does this bug reproduce in GitHub Codespaces?
       description: If the bug reproduces in GitHub Codespaces, submit the issue upstream instead (https://github.com/microsoft/vscode).
       options:
