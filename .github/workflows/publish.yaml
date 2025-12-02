@@ -53,38 +53,6 @@ jobs:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           NPM_ENVIRONMENT: "production"
 
-  homebrew:
-    needs: npm
-    runs-on: ubuntu-latest
-    steps:
-      # Ensure things are up to date
-      # Suggested by homebrew maintainers
-      # https://github.com/Homebrew/discussions/discussions/1532#discussioncomment-782633
-      - name: Set up Homebrew
-        id: set-up-homebrew
-        uses: Homebrew/actions/setup-homebrew@master
-
-      - name: Checkout code-server
-        uses: actions/checkout@v6
-
-      - name: Configure git
-        run: |
-          git config --global user.name cdrci
-          git config --global user.email opensource@coder.com
-
-      # Strip out the v (v4.9.1 -> 4.9.1).
-      - name: Get and set VERSION
-        run: |
-          TAG="${{ github.event.inputs.version || github.ref_name }}"
-          echo "VERSION=${TAG#v}" >> $GITHUB_ENV
-
-      - name: Bump code-server homebrew version
-        env:
-          VERSION: ${{ env.VERSION }}
-          HOMEBREW_GITHUB_API_TOKEN: ${{secrets.HOMEBREW_GITHUB_API_TOKEN}}
-
-        run: ./ci/steps/brew-bump.sh
-
   aur:
     runs-on: ubuntu-latest
     timeout-minutes: 10
