@@ -53,6 +53,7 @@ export interface UserProvidedCodeArgs {
   "disable-getting-started-override"?: boolean
   "disable-proxy"?: boolean
   "session-socket"?: string
+  "cookie-suffix"?: string
   "link-protection-trusted-domains"?: string[]
   // locale is used by both VS Code and code-server.
   locale?: string
@@ -171,6 +172,12 @@ export const options: Options<Required<UserProvidedArgs>> = {
   },
   "session-socket": {
     type: "string",
+  },
+  "cookie-suffix": {
+    type: "string",
+    description:
+      "Adds a suffix to the cookie. This can prevent a collision of cookies for subdomains, making them explixit. \n" +
+      "Without this flag, no suffix is used. This can also be set with COOKIE_SUFFIX set to any string.",
   },
   "disable-file-downloads": {
     type: "boolean",
@@ -614,6 +621,10 @@ export async function setDefaults(cliArgs: UserProvidedArgs, configArgs?: Config
   if (process.env.HASHED_PASSWORD) {
     args["hashed-password"] = process.env.HASHED_PASSWORD
     usingEnvPassword = false
+  }
+
+  if (process.env.COOKIE_SUFFIX) {
+    args["cookie-suffix"] = process.env.COOKIE_SUFFIX
   }
 
   if (process.env.GITHUB_TOKEN) {
