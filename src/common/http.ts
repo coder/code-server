@@ -24,6 +24,6 @@ export class HttpError extends Error {
   }
 }
 
-export enum CookieKeys {
-  Session = "code-server-session",
+export const CookieKeys = {
+  Session: `code-server-session${process.env?.CODE_SERVER_COOKIE_SUFFIX ? "-" + process.env?.CODE_SERVER_COOKIE_SUFFIX : ""}`,
 }
