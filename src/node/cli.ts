@@ -177,7 +177,7 @@ export const options: Options<Required<UserProvidedArgs>> = {
     type: "string",
     description:
       "Adds a suffix to the cookie. This can prevent a collision of cookies for subdomains, making them explixit. \n" +
-      "Without this flag, no suffix is used. This can also be set with COOKIE_SUFFIX set to any string.",
+      "Without this flag, no suffix is used. This can also be set with CODE_SERVER_COOKIE_SUFFIX set to any string.",
   },
   "disable-file-downloads": {
     type: "boolean",
@@ -623,8 +623,8 @@ export async function setDefaults(cliArgs: UserProvidedArgs, configArgs?: Config
     usingEnvPassword = false
   }
 
-  if (process.env.COOKIE_SUFFIX) {
-    args["cookie-suffix"] = process.env.COOKIE_SUFFIX
+  if (process.env.CODE_SERVER_COOKIE_SUFFIX) {
+    args["cookie-suffix"] = process.env.CODE_SERVER_COOKIE_SUFFIX
   }
 
   if (process.env.GITHUB_TOKEN) {

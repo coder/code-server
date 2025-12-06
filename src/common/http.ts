@@ -25,5 +25,5 @@ export class HttpError extends Error {
 }
 
 export const CookieKeys = {
-  Session: `code-server-session${process.env?.COOKIE_SUFFIX ? "-" + process.env?.COOKIE_SUFFIX : ""}`,
+  Session: `code-server-session${process.env?.CODE_SERVER_COOKIE_SUFFIX ? "-" + process.env?.CODE_SERVER_COOKIE_SUFFIX : ""}`,
 }
