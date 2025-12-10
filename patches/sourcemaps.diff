@@ -6,21 +6,21 @@ not host our source maps there and want them to be self-hosted even if we could.
 
 To test try debugging/browsing the source of a build in a browser.
 
-Index: code-server/lib/vscode/build/gulpfile.reh.js
+Index: code-server/lib/vscode/build/gulpfile.reh.ts
 ===================================================================
---- code-server.orig/lib/vscode/build/gulpfile.reh.js
-+++ code-server/lib/vscode/build/gulpfile.reh.js
-@@ -257,8 +257,7 @@ function packageTask(type, platform, arc
- 
+--- code-server.orig/lib/vscode/build/gulpfile.reh.ts
++++ code-server/lib/vscode/build/gulpfile.reh.ts
+@@ -257,8 +257,7 @@ function packageTask(type: string, platf
+ 	return () => {
  		const src = gulp.src(sourceFolderName + '/**', { base: '.' })
- 			.pipe(rename(function (path) { path.dirname = path.dirname.replace(new RegExp('^' + sourceFolderName), 'out'); }))
+ 			.pipe(rename(function (path) { path.dirname = path.dirname!.replace(new RegExp('^' + sourceFolderName), 'out'); }))
 -			.pipe(util.setExecutableBit(['**/*.sh']))
 -			.pipe(filter(['**', '!**/*.{js,css}.map']));
 +			.pipe(util.setExecutableBit(['**/*.sh']));
  
  		const workspaceExtensionPoints = ['debuggers', 'jsonValidation'];
- 		const isUIExtension = (manifest) => {
-@@ -297,9 +296,9 @@ function packageTask(type, platform, arc
+ 		const isUIExtension = (manifest: { extensionKind?: string; main?: string; contributes?: Record<string, unknown> }) => {
+@@ -298,9 +297,9 @@ function packageTask(type: string, platf
  			.map(name => `.build/extensions/${name}/**`);
  
  		const extensions = gulp.src(extensionPaths, { base: '.build', dot: true });
@@ -31,8 +31,8 @@ Index: code-server/lib/vscode/build/gulpfile.reh.js
 +		const sources = es.merge(src, extensions, extensionsCommonDependencies);
  
  		let version = packageJson.version;
- 		const quality = product.quality;
-@@ -452,7 +451,7 @@ function tweakProductForServerWeb(produc
+ 		const quality = (product as typeof product & { quality?: string }).quality;
+@@ -453,7 +452,7 @@ function tweakProductForServerWeb(produc
  	const minifyTask = task.define(`minify-vscode-${type}`, task.series(
  		bundleTask,
  		util.rimraf(`out-vscode-${type}-min`),
