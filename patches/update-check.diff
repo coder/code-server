@@ -101,6 +101,14 @@ Index: code-server/lib/vscode/src/vs/base/common/product.ts
  
  	readonly version: string;
  	readonly date?: string;
+@@ -112,6 +113,7 @@ export interface IProductConfiguration {
+ 		readonly resourceUrlTemplate: string;
+ 		readonly nlsBaseUrl: string;
+ 		readonly accessSKUs?: string[];
++		readonly authorizationHeaderToken?: string;
+ 	};
+ 
+ 	readonly mcpGallery?: {
 Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts

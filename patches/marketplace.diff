@@ -90,3 +90,18 @@ Index: code-server/lib/vscode/src/vs/platform/extensionResourceLoader/common/ext
  	}
  
  }
+Index: code-server/lib/vscode/src/vs/platform/externalServices/common/marketplace.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/platform/externalServices/common/marketplace.ts
++++ code-server/lib/vscode/src/vs/platform/externalServices/common/marketplace.ts
+@@ -26,6 +26,10 @@ export async function resolveMarketplace
+ 		'User-Agent': `VSCode ${version} (${productService.nameShort})`
+ 	};
+ 
++	if (productService.extensionsGallery?.authorizationHeaderToken) {
++		headers['Authorization'] = `Bearer ${productService.extensionsGallery.authorizationHeaderToken}`;
++	}
++
+ 	if (supportsTelemetry(productService, environmentService) && getTelemetryLevel(configurationService) === TelemetryLevel.USAGE) {
+ 		const serviceMachineId = await getServiceMachineId(environmentService, fileService, storageService);
+ 		headers['X-Market-User-Id'] = serviceMachineId;
