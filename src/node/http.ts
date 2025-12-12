@@ -4,7 +4,7 @@ import * as http from "http"
 import * as net from "net"
 import qs from "qs"
 import { Disposable } from "../common/emitter"
-import { CookieKeys, HttpCode, HttpError } from "../common/http"
+import { HttpCode, HttpError } from "../common/http"
 import { normalize } from "../common/util"
 import { AuthType, DefaultedArgs } from "./cli"
 import { version as codeServerVersion } from "./constants"
@@ -40,6 +40,7 @@ declare global {
       heart: Heart
       settings: SettingsProvider<CoderSettings>
       updater: UpdateProvider
+      cookieSessionName: string
     }
   }
 }
@@ -124,7 +125,7 @@ export const authenticated = async (req: express.Request): Promise<boolean> => {
       const passwordMethod = getPasswordMethod(hashedPasswordFromArgs)
       const isCookieValidArgs: IsCookieValidArgs = {
         passwordMethod,
-        cookieKey: sanitizeString(req.cookies[CookieKeys.Session]),
+        cookieKey: sanitizeString(req.cookies[req.cookieSessionName]),
         passwordFromArgs: req.args.password || "",
         hashedPasswordFromArgs: req.args["hashed-password"],
       }

@@ -5,7 +5,7 @@ import { promises as fs } from "fs"
 import * as path from "path"
 import * as tls from "tls"
 import { Disposable } from "../../common/emitter"
-import { HttpCode, HttpError } from "../../common/http"
+import { getCookieSessionName, HttpCode, HttpError } from "../../common/http"
 import { plural } from "../../common/util"
 import { App } from "../app"
 import { AuthType, DefaultedArgs } from "../cli"
@@ -61,6 +61,8 @@ export const register = async (
   const settings = new SettingsProvider<CoderSettings>(path.join(args["user-data-dir"], "coder.json"))
   const updater = new UpdateProvider("https://api.github.com/repos/coder/code-server/releases/latest", settings)
 
+  const cookieSessionName = getCookieSessionName(args["cookie-suffix"])
+
   const common: express.RequestHandler = (req, _, next) => {
     // /healthz|/healthz/ needs to be excluded otherwise health checks will make
     // it look like code-server is always in use.
@@ -75,6 +77,7 @@ export const register = async (
     req.heart = heart
     req.settings = settings
     req.updater = updater
+    req.cookieSessionName = cookieSessionName
 
     next()
   }

@@ -24,6 +24,6 @@ export class HttpError extends Error {
   }
 }
 
-export enum CookieKeys {
-  Session = "code-server-session",
+export function getCookieSessionName(suffix?: string): string {
+  return suffix ? `code-server-session-${suffix.replace(/[^a-zA-Z0-9-]/g, "-")}` : "code-server-session"
 }

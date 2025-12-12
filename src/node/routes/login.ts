@@ -2,7 +2,6 @@ import { Router, Request } from "express"
 import { promises as fs } from "fs"
 import { RateLimiter as Limiter } from "limiter"
 import * as path from "path"
-import { CookieKeys } from "../../common/http"
 import { rootPath } from "../constants"
 import { authenticated, getCookieOptions, redirect, replaceTemplates } from "../http"
 import i18n from "../i18n"
@@ -95,7 +94,7 @@ router.post<{}, string, { password?: string; base?: string } | undefined, { to?:
     if (isPasswordValid) {
       // The hash does not add any actual security but we do it for
       // obfuscation purposes (and as a side effect it handles escaping).
-      res.cookie(CookieKeys.Session, hashedPassword, getCookieOptions(req))
+      res.cookie(req.cookieSessionName, hashedPassword, getCookieOptions(req))
 
       const to = (typeof req.query.to === "string" && req.query.to) || "/"
       return redirect(req, res, to, { to: undefined })
