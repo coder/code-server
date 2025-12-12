@@ -22,6 +22,69 @@ Code v99.99.999
 
 ## Unreleased
 
+Code v1.107.0
+
+### Changed
+
+- Update to Code 1.107.0
+
+### Added
+
+- New `--cookie-suffix` flag that can be used to add a suffix to the cookie when
+  using the built-in password authentication. You can use this to avoid
+  collisions with other instances of code-server.
+- Support a new property `authorizationHeaderToken` on the extension gallery
+  configuration. This will be added to marketplace requests as a bearer token
+  using the `Authorization` header.
+
+## [4.106.3](https://github.com/coder/code-server/releases/tag/v4.106.3) - 2025-12-01
+
+Code v1.106.3
+
+### Changed
+
+- Update to Code 1.106.3
+
+## [4.106.2](https://github.com/coder/code-server/releases/tag/v4.106.2) - 2025-11-19
+
+Code v1.106.2
+
+### Changed
+
+- Update to Code 1.106.2
+
+## [4.106.0](https://github.com/coder/code-server/releases/tag/v4.106.0) - 2025-11-19
+
+Code v1.106.0
+
+### Changed
+
+- Update to Code 1.106.0
+
+## [4.105.1](https://github.com/coder/code-server/releases/tag/v4.105.1) - 2025-10-20
+
+Code v1.105.1
+
+### Changed
+
+- Update to Code 1.105.1
+
+## [4.105.0](https://github.com/coder/code-server/releases/tag/v4.105.0) - 2025-10-17
+
+Code v1.105.0
+
+### Changed
+
+- Update to Code 1.105.0
+
+## [4.104.3](https://github.com/coder/code-server/releases/tag/v4.104.3) - 2025-10-07
+
+Code v1.104.3
+
+### Changed
+
+- Update to Code 1.104.3.
+
 ## [4.104.2](https://github.com/coder/code-server/releases/tag/v4.104.2) - 2025-09-26
 
 Code v1.104.2
