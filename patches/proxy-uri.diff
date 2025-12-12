@@ -30,7 +30,7 @@ Index: code-server/lib/vscode/src/vs/base/common/product.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/base/common/product.ts
 +++ code-server/lib/vscode/src/vs/base/common/product.ts
-@@ -68,6 +68,7 @@ export interface IProductConfiguration {
+@@ -69,6 +69,7 @@ export interface IProductConfiguration {
  	readonly rootEndpoint?: string
  	readonly updateEndpoint?: string
  	readonly logoutEndpoint?: string

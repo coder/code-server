@@ -28,7 +28,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/welcomeGettingStarted/bro
  import { IEditorOpenContext, IEditorSerializer } from '../../../common/editor.js';
  import { IWebviewElement, IWebviewService } from '../../webview/browser/webview.js';
  import './gettingStartedColors.js';
-@@ -902,6 +902,72 @@ export class GettingStartedPage extends
+@@ -916,6 +916,72 @@ export class GettingStartedPage extends
  			$('p.subtitle.description', {}, localize({ key: 'gettingStarted.editingEvolved', comment: ['Shown as subtitle on the Welcome page.'] }, "Editing evolved"))
  		);
  
@@ -101,7 +101,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/welcomeGettingStarted/bro
  		const leftColumn = $('.categories-column.categories-column-left', {},);
  		const rightColumn = $('.categories-column.categories-column-right', {},);
  
-@@ -937,6 +1003,9 @@ export class GettingStartedPage extends
+@@ -951,6 +1017,9 @@ export class GettingStartedPage extends
  				recentList.setLimit(5);
  				reset(leftColumn, startList.getDomElement(), recentList.getDomElement());
  			}
@@ -181,7 +181,7 @@ Index: code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
 +++ code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
-@@ -20,6 +20,7 @@ export const serverOptions: OptionDescri
+@@ -21,6 +21,7 @@ export const serverOptions: OptionDescri
  	'auth': { type: 'string' },
  	'disable-file-downloads': { type: 'boolean' },
  	'disable-file-uploads': { type: 'boolean' },
@@ -189,7 +189,7 @@ Index: code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
  
  	/* ----- server setup ----- */
  
-@@ -108,6 +109,7 @@ export interface ServerParsedArgs {
+@@ -111,6 +112,7 @@ export interface ServerParsedArgs {
  	'auth'?: string;
  	'disable-file-downloads'?: boolean;
  	'disable-file-uploads'?: boolean;

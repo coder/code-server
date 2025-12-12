@@ -90,7 +90,7 @@ Index: code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
 +++ code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
-@@ -18,6 +18,8 @@ export const serverOptions: OptionDescri
+@@ -19,6 +19,8 @@ export const serverOptions: OptionDescri
  	/* ----- code-server ----- */
  	'disable-update-check': { type: 'boolean' },
  	'auth': { type: 'string' },
@@ -99,7 +99,7 @@ Index: code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
  
  	/* ----- server setup ----- */
  
-@@ -104,6 +106,8 @@ export interface ServerParsedArgs {
+@@ -107,6 +109,8 @@ export interface ServerParsedArgs {
  	/* ----- code-server ----- */
  	'disable-update-check'?: boolean;
  	'auth'?: string;

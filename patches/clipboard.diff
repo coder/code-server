@@ -110,7 +110,7 @@ Index: code-server/lib/vscode/src/vs/server/node/server.cli.ts
  			return true;
  		default:
  			return false;
-@@ -295,6 +296,22 @@ export async function main(desc: Product
+@@ -300,6 +301,22 @@ export async function main(desc: Product
  			}
  		}
  	} else {
