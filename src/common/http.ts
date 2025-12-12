@@ -25,5 +25,5 @@ export class HttpError extends Error {
 }
 
 export function getCookieSessionName(suffix?: string): string {
-  return suffix ? `code-server-session-${suffix.replace(/[^a-zA-Z0-9\-]/g, "-")}` : "code-server-session"
+  return suffix ? `code-server-session-${suffix.replace(/[^a-zA-Z0-9-]/g, "-")}` : "code-server-session"
 }
