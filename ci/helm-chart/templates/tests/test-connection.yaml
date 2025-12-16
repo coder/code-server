@@ -3,16 +3,13 @@ kind: Pod
 metadata:
   name: "{{ include "code-server.fullname" . }}-test-connection"
   labels:
-    app.kubernetes.io/name: {{ include "code-server.name" . }}
-    helm.sh/chart: {{ include "code-server.chart" . }}
-    app.kubernetes.io/instance: {{ .Release.Name }}
-    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    {{- include "code-server.labels" . | nindent 4 }}
   annotations:
-    "helm.sh/hook": test-success
+    "helm.sh/hook": test
 spec:
   containers:
     - name: wget
       image: busybox
       command: ['wget']
-      args:  ['{{ include "code-server.fullname" . }}:{{ .Values.service.port }}']
+      args:  ['{{ include "code-server.fullname" . }}:{{ .Values.service.port }}/healthz']
   restartPolicy: Never
