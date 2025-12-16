@@ -3,10 +3,7 @@ kind: Deployment
 metadata:
   name: {{ include "code-server.fullname" . }}
   labels:
-    app.kubernetes.io/name: {{ include "code-server.name" . }}
-    helm.sh/chart: {{ include "code-server.chart" . }}
-    app.kubernetes.io/instance: {{ .Release.Name }}
-    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    {{- include "code-server.labels" . | nindent 4 }}
   {{- if .Values.annotations }}
   annotations: {{- toYaml .Values.annotations | nindent 4 }}
   {{- end }}
@@ -16,13 +13,11 @@ spec:
     type: Recreate
   selector:
     matchLabels:
-      app.kubernetes.io/name: {{ include "code-server.name" . }}
-      app.kubernetes.io/instance: {{ .Release.Name }}
+      {{- include "code-server.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: {{ include "code-server.name" . }}
-        app.kubernetes.io/instance: {{ .Release.Name }}
+        {{- include "code-server.selectorLabels" . | nindent 8 }}
       {{- if .Values.podAnnotations }}
       annotations: {{- toYaml .Values.podAnnotations | nindent 8 }}
       {{- end }}
@@ -130,11 +125,11 @@ spec:
           {{- end }}
           livenessProbe:
             httpGet:
-              path: /
+              path: /healthz
               port: http
           readinessProbe:
             httpGet:
-              path: /
+              path: /healthz
               port: http
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
