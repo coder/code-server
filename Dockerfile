@@ -1,7 +1,8 @@
-FROM coder/code-server:latest
+FROM coder/code-server:4.96.2
 
-COPY health-server.js /health-server.js
+ENV PORT=8080
+EXPOSE 8080
 
-EXPOSE 8080 3000
-
-CMD sh -c "node /health-server.js & code-server --bind-addr 0.0.0.0:8080 --auth password"
+CMD ["code-server", \
+     "--bind-addr", "0.0.0.0:8080", \
+     "--auth", "none"]
