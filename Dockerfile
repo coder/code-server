@@ -1,8 +1,6 @@
-FROM coder/code-server:4.96.2
+FROM coder/code-server:latest
 
 ENV PORT=8080
 EXPOSE 8080
 
-CMD ["code-server", \
-     "--bind-addr", "0.0.0.0:8080", \
-     "--auth", "none"]
+CMD ["code-server", "--bind-addr", "0.0.0.0:8080", "--auth", "none"]
