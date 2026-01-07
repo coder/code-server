@@ -1,6 +1,8 @@
 FROM coder/code-server:latest
 
-ENV PORT=8080
 EXPOSE 8080
 
-CMD ["code-server", "--bind-addr", "0.0.0.0:8080", "--auth", "none"]
+HEALTHCHECK --interval=10s --timeout=5s --start-period=30s --retries=5 \
+  CMD curl -f http://localhost:8080/ || exit 1
+
+CMD ["code-server", "--bind-addr", "0.0.0.0:8080", "--auth", "password"]
