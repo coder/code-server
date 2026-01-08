@@ -9,10 +9,7 @@ metadata:
 {{ toYaml . | indent 4 }}
 {{- end }}
   labels:
-    app.kubernetes.io/name: {{ include "code-server.name" . }}
-    helm.sh/chart: {{ include "code-server.chart" . }}
-    app.kubernetes.io/instance: {{ .Release.Name }}
-    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    {{- include "code-server.labels" . | nindent 4 }}
 spec:
   accessModes:
     - {{ .Values.persistence.accessMode | quote }}
