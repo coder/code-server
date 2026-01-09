@@ -239,13 +239,14 @@ Index: code-server/lib/vscode/src/vs/workbench/services/dialogs/browser/simpleFi
  		@IRemoteAgentService private readonly remoteAgentService: IRemoteAgentService,
  		@IPathService protected readonly pathService: IPathService,
  		@IKeybindingService private readonly keybindingService: IKeybindingService,
-@@ -311,20 +311,22 @@ export class SimpleFileDialog extends Di
+@@ -311,21 +311,23 @@ export class SimpleFileDialog extends Di
  			this.filePickBox.placeholder = nls.localize('remoteFileDialog.placeholder', "Folder path");
  			this.filePickBox.ok = true;
  			this.filePickBox.okLabel = typeof this.options.openLabel === 'string' ? this.options.openLabel : this.options.openLabel?.withoutMnemonic;
 -			if ((this.scheme !== Schemas.file) && this.options && this.options.availableFileSystems && (this.options.availableFileSystems.length > 1) && (this.options.availableFileSystems.indexOf(Schemas.file) > -1)) {
 -				this.filePickBox.customButton = true;
 -				this.filePickBox.customLabel = nls.localize('remoteFileDialog.local', 'Show Local');
+-				this.filePickBox.customButtonSecondary = true;
 -				let action;
 -				if (isSave) {
 -					action = SaveLocalFileCommand;
@@ -261,6 +262,7 @@ Index: code-server/lib/vscode/src/vs/workbench/services/dialogs/browser/simpleFi
 +				if ((this.scheme !== Schemas.file) && this.options && this.options.availableFileSystems && (this.options.availableFileSystems.length > 1) && (this.options.availableFileSystems.indexOf(Schemas.file) > -1)) {
 +					this.filePickBox.customButton = true;
 +					this.filePickBox.customLabel = nls.localize('remoteFileDialog.local', 'Show Local');
++					this.filePickBox.customButtonSecondary = true;
 +					let action;
 +					if (isSave) {
 +						action = SaveLocalFileCommand;
@@ -288,7 +290,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/files/browser/views/explo
  import { WorkbenchCompressibleAsyncDataTree } from '../../../../../platform/list/browser/listService.js';
  import { ISearchService, QueryType, getExcludes, ISearchConfiguration, ISearchComplete, IFileQuery } from '../../../../services/search/common/search.js';
  import { CancellationToken } from '../../../../../base/common/cancellation.js';
-@@ -1594,7 +1595,8 @@ export class FileDragAndDrop implements
+@@ -1597,7 +1598,8 @@ export class FileDragAndDrop implements
  		@IConfigurationService private configurationService: IConfigurationService,
  		@IInstantiationService private instantiationService: IInstantiationService,
  		@IWorkspaceEditingService private workspaceEditingService: IWorkspaceEditingService,
@@ -298,7 +300,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/files/browser/views/explo
  	) {
  		const updateDropEnablement = (e: IConfigurationChangeEvent | undefined) => {
  			if (!e || e.affectsConfiguration('explorer.enableDragAndDrop')) {
-@@ -1819,15 +1821,17 @@ export class FileDragAndDrop implements
+@@ -1822,15 +1824,17 @@ export class FileDragAndDrop implements
  
  			// External file DND (Import/Upload file)
  			if (data instanceof NativeDragAndDropData) {
