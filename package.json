@@ -69,7 +69,7 @@
   },
   "dependencies": {
     "@coder/logger": "^3.0.1",
-    "argon2": "^0.31.1",
+    "argon2": "^0.44.0",
     "compression": "^1.7.4",
     "cookie-parser": "^1.4.6",
     "env-paths": "^2.2.1",
