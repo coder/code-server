@@ -219,7 +219,7 @@ jobs:
         if: success()
       # https://github.com/actions/upload-artifact/issues/38
       - run: tar -czf package.tar.gz release
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: npm-package
           path: ./package.tar.gz
@@ -251,7 +251,7 @@ jobs:
           ./test/node_modules/.bin/playwright install-deps
           ./test/node_modules/.bin/playwright install
       - run: CODE_SERVER_TEST_ENTRY=./release npm run test:e2e
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         if: always()
         with:
           name: failed-test-videos
@@ -304,7 +304,7 @@ jobs:
       - run: ~/.cache/caddy/caddy stop --config ./ci/Caddyfile
         if: always()
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         if: always()
         with:
           name: failed-test-videos-proxy
