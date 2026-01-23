@@ -8,7 +8,7 @@
     "@types/jsdom": "^16.2.13",
     "@types/node-fetch": "^2.5.8",
     "@types/wtfnode": "^0.7.0",
-    "argon2": "^0.28.0",
+    "argon2": "^0.44.0",
     "extract-zip": "^2.0.1",
     "jest": "^27.3.1",
     "jest-fetch-mock": "^3.0.3",
