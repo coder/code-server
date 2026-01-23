@@ -43,7 +43,7 @@
     "@schemastore/package": "^0.0.10",
     "@types/compression": "^1.7.3",
     "@types/cookie-parser": "^1.4.4",
-    "@types/eslint__js": "^8.42.3",
+    "@types/eslint__js": "^9.14.0",
     "@types/express": "^5.0.0",
     "@types/http-proxy": "1.17.7",
     "@types/js-yaml": "^4.0.6",
