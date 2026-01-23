@@ -20,7 +20,6 @@
   },
   "resolutions": {
     "ansi-regex": "^5.0.1",
-    "argon2/@mapbox/node-pre-gyp/tar": "^6.1.9",
     "set-value": "^4.0.1",
     "tmpl": "^1.0.5",
     "path-parse": "^1.0.7",
