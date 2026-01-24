@@ -73,5 +73,8 @@ export const wsErrorHandler: express.ErrorRequestHandler = async (err, req, res,
   } else {
     logger.debug(`${err.message} ${err.stack}`)
   }
+  // Close the WebSocket connection with the appropriate HTTP status code.
+  // We don't call next() here because the error has been fully handled:
+  // the connection is closed and the error has been logged.
   ;(req as WebsocketRequest).ws.end(`HTTP/1.1 ${statusCode} ${err.message}\r\n\r\n`)
 }
