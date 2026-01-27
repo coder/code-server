@@ -1,3 +1,7 @@
+# Ignore everything by default
 **
-!release-packages
-!ci
+
+# Include only what's needed for the Railway build
+!Dockerfile
+!railway-entrypoint.sh
+!railway.json
