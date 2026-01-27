@@ -28,6 +28,12 @@ export const errorHasCode = (error: any): error is ErrorWithCode => {
 
 const notFoundCodes = [404, "ENOENT", "EISDIR"]
 
+/**
+ * Final HTTP error handler.
+ *
+ * Note: This handler intentionally does not call `next()` even though it
+ * accepts it as an argument; it is expected to be mounted last.
+ */
 export const errorHandler: express.ErrorRequestHandler = async (err, req, res, next) => {
   let statusCode = 500
 
@@ -61,6 +67,12 @@ export const errorHandler: express.ErrorRequestHandler = async (err, req, res, n
   }
 }
 
+/**
+ * Final WebSocket error handler.
+ *
+ * Note: This handler intentionally does not call `next()` even though it
+ * accepts it as an argument; it is expected to be mounted last.
+ */
 export const wsErrorHandler: express.ErrorRequestHandler = async (err, req, res, next) => {
   let statusCode = 500
   if (errorHasStatusCode(err)) {
@@ -73,8 +85,5 @@ export const wsErrorHandler: express.ErrorRequestHandler = async (err, req, res,
   } else {
     logger.debug(`${err.message} ${err.stack}`)
   }
-  // Close the WebSocket connection with the appropriate HTTP status code.
-  // We don't call next() here because the error has been fully handled:
-  // the connection is closed and the error has been logged.
   ;(req as WebsocketRequest).ws.end(`HTTP/1.1 ${statusCode} ${err.message}\r\n\r\n`)
 }
