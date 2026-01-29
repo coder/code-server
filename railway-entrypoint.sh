@@ -170,8 +170,8 @@ You'll need to authenticate with your Anthropic API key on first use.
 
 Set these environment variables in Railway:
 
-- `RUN_AS_USER=coder` - Run as non-root user (recommended for Claude)
-- `RUN_AS_USER=root` - Stay as root (default)
+- `RUN_AS_USER=clauder` - Run as non-root user (recommended for Claude)
+- `RUN_AS_USER=root` - Stay as root
 
 Happy coding! 🚀
 WELCOME
@@ -239,10 +239,18 @@ fi
 # START CODE-SERVER
 # ============================================================================
 
+# Branding customization
+APP_NAME="${APP_NAME:-Claude Code Server}"
+WELCOME_TEXT="${WELCOME_TEXT:-Welcome to Claude Code Server}"
+
 echo ""
 echo "════════════════════════════════════════════════════════════════════════"
-echo "Starting code-server as $(whoami)..."
+echo "Starting $APP_NAME as $(whoami)..."
 echo "════════════════════════════════════════════════════════════════════════"
 echo ""
 
-exec dumb-init /usr/bin/code-server --bind-addr 0.0.0.0:8080 /home/coder/workspace
+exec dumb-init /usr/bin/code-server \
+    --bind-addr 0.0.0.0:8080 \
+    --app-name "$APP_NAME" \
+    --welcome-text "$WELCOME_TEXT" \
+    "$CLAUDER_HOME/workspace"

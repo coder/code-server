@@ -1,106 +1,82 @@
-# VSCode Cloud IDE
+# Deploy and Host Claude Code Server on Railway
 
-**Browser-based VSCode with Claude Code & Node.js**
+<p align="center">
+  <img src="https://raw.githubusercontent.com/sphinxcode/claude-code-server/main/public/claude-code-server-logo.svg" alt="Claude Code Server Logo" width="120" height="120">
+</p>
 
-[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/deploy/pHwM6f?referralCode=1uw5HI&utm_medium=integration&utm_source=template&utm_campaign=generic)
+<p align="center">
+  <strong>Browser-based VS Code with Claude Code pre-installed. YOLO mode ready.</strong>
+</p>
 
-Cloud IDE with persistent extensions, settings, and tools. Runs as non-root user.
+<p align="center">
+  <a href="https://railway.com/deploy/pHwM6f?referralCode=1uw5HI&utm_medium=integration&utm_source=template&utm_campaign=generic">
+    <img src="https://railway.com/button.svg" alt="Deploy on Railway">
+  </a>
+</p>
 
 ---
 
-## Features
+Claude Code Server is a cloud-based VS Code environment with Claude Code CLI pre-installed. Deploy in 60 seconds and start AI-assisted coding directly in your browser. Runs as non-root `clauder` user with persistent storage for extensions, authentication, and workspace files.
 
-- **Claude Code** & **Node.js 20** pre-installed
-- **Non-root execution** - runs as `clauder` user (UID 1000)
-- Extensions persist across redeployments  
-- Volume permissions auto-fixed on startup
+## About Hosting Claude Code Server
 
----
+Hosting Claude Code Server on Railway provides a fully configured development environment accessible from any browser. The template handles user permissions, volume persistence, and Claude Code installation automatically. On first deploy, set your `PASSWORD` environment variable and attach a volume to `/home/clauder`. The entrypoint script manages permission fixes, user switching via `gosu`, and shell configuration. Your Claude authentication tokens, VS Code extensions, and workspace files persist across redeploys via the mounted volume.
 
-## Quick Start
+## Common Use Cases
+
+- **Remote AI-assisted development** – Code with Claude from any device with a browser
+- **Ephemeral dev environments** – Spin up isolated workspaces for experiments or client projects
+- **Team onboarding** – Pre-configured environments for new developers with tools ready to go
+- **CI/CD integration** – Use as a hosted development server for automated workflows
+
+## Dependencies for Claude Code Server Hosting
+
+- **Railway account** – Free tier available
+- **Anthropic API access** – For Claude Code authentication
+
+### Deployment Dependencies
+
+- [code-server](https://github.com/coder/code-server) – VS Code in the browser by Coder
+- [Claude Code](https://docs.anthropic.com/en/docs/claude-code) – AI coding assistant by Anthropic
+- [Node.js 20 LTS](https://nodejs.org/) – JavaScript runtime
+
+### Implementation Details
 
 ```bash
-# Claude Code with auto-accept (for automation)
+# YOLO mode - skip permission prompts
 claude --dangerously-skip-permissions
+
+# Or use the alias
+claude-auto
 
 # Interactive mode
 claude
-
-# Node.js ready
-node --version
-npm --version
 ```
-
----
 
 ## Environment Variables
 
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
-| `PASSWORD` | Yes | - | Login password |
-| `CLAUDER_HOME` | **Yes** | `/home/clauder` | Volume mount path (REQUIRED) |
+| `PASSWORD` | Yes | - | Login password for code-server |
+| `CLAUDER_HOME` | Yes | `/home/clauder` | Volume mount path |
 | `CLAUDER_UID` | No | `1000` | User ID |
 | `CLAUDER_GID` | No | `1000` | Group ID |
-| `RUN_AS_USER` | No | `clauder` | Set to `root` for root access |
+| `RUN_AS_USER` | No | `clauder` | Set to `root` if needed |
 
----
+## Volume Configuration
 
-## How It Works
+> ⚠️ **CRITICAL**: Without a volume, ALL data is lost on every redeploy!
 
-1. **Starts as root** - fixes volume permissions
-2. **Switches to clauder** - uses `gosu` for clean handoff
-3. **Runs code-server** - as non-root user
+| Setting | Value |
+|---------|-------|
+| **Mount Path** | `/home/clauder` |
+| **Size** | 5GB+ recommended |
 
-This means:
-- ✅ No root permission warnings in code-server
-- ✅ Existing volumes with root-owned files work fine
-- ✅ Claude `--dangerously-skip-permissions` works
+## Why Deploy Claude Code Server on Railway?
 
----
+Railway is a singular platform to deploy your infrastructure stack. Railway will host your infrastructure so you don't have to deal with configuration, while allowing you to vertically and horizontally scale it.
 
-## Claude Code Authentication
-
-After running `claude` for the first time:
-
-1. Follow the authentication prompts
-2. Your credentials are stored in `~/.claude/`
-3. They persist across redeployments (on volume)
-
----
-
-## Custom Startup Scripts
-
-Add to `$CLAUDER_HOME/entrypoint.d/`:
-
-```bash
-#!/bin/bash
-git config --global user.name "Your Name"
-```
-
-Make executable: `chmod +x script.sh`
-
----
-
-## Update Behavior
-
-| Component | Behavior |
-|-----------|----------|
-| **Volume tools** | You control - install to `~/.local/node/` or `~/.claude/local/` |
-| **Image tools** | Auto-update on redeploy (fallback) |
-| **Extensions** | Persist on volume |
-| **Claude auth** | Persists on volume |
-
-Logs show `[volume]` or `[image]` next to each tool.
-
----
-
-## Troubleshooting
-
-| Issue | Solution |
-|-------|----------|
-| Permission denied | Check `CLAUDER_UID` matches your volume owner |
-| Claude not found | Run `which claude` to check PATH |
-| Extensions missing | Verify volume mounted at `CLAUDER_HOME` |
+By deploying Claude Code Server on Railway, you are one step closer to supporting a complete full-stack application with minimal burden. Host your servers, databases, AI agents, and more on Railway.
 
 ---
 

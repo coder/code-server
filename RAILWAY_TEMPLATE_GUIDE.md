@@ -29,7 +29,7 @@ Step-by-step guide to configure the Claude Code Server Railway template.
 | Variable | Type | Description |
 |----------|------|-------------|
 | `PASSWORD` | **Secret** | Login password for code-server |
-| `CLAUDER_HOME` | **Path** | Volume mount path — use `/home/coder` for existing deployments |
+| `CLAUDER_HOME` | **Path** | Volume mount path (default: `/home/clauder`) |
 
 > ⚠️ **CRITICAL**: `CLAUDER_HOME` MUST match your volume mount path!
 
@@ -40,25 +40,6 @@ Step-by-step guide to configure the Claude Code Server Railway template.
 | `CLAUDER_UID` | `1000` | User ID |
 | `CLAUDER_GID` | `1000` | Group ID |
 | `RUN_AS_USER` | `clauder` | Set to `root` if you need root access |
-
-### Pre-Install AI CLIs (default: 0)
-
-| Variable | Description |
-|----------|-------------|
-| `INSTALL_OPENCODE` | Install OpenCode |
-| `INSTALL_GEMINI` | Install Gemini CLI |
-| `INSTALL_KILOCODE` | Install KiloCode CLI |
-| `INSTALL_CONTINUE` | Install Continue CLI |
-| `INSTALL_CODEX` | Install Codex CLI |
-
-### Pre-Install Dev Frameworks (default: 0)
-
-| Variable | Description |
-|----------|-------------|
-| `INSTALL_BMAD` | Install BMAD Method |
-| `INSTALL_OPENSPEC` | Install OpenSpec |
-| `INSTALL_SPECKIT` | Install Spec-Kit |
-
 ---
 
 ## Step 3: Volume Configuration (REQUIRED)
@@ -128,7 +109,7 @@ These are pre-configured in `railway.toml`:
 > - ⚡ **Instant Setup** – Deploy in 60 seconds
 > - 💾 **Persistent** – Extensions & auth survive redeploys
 > - 🛡️ **Non-root** – Runs as `clauder` user for security
-> - 🧠 **AI-Ready** – Optional: Gemini, OpenCode, Continue, Codex
+> - 🧠 **Claude Code** – AI coding assistant built-in
 >
 > Perfect for vibe coding, weekend hacks, and shipping fast.
 
@@ -138,8 +119,7 @@ These are pre-configured in `railway.toml`:
 
 | Old (code-server) | New (Claude Code Server) |
 |-------------------|--------------------------|
-| Generic VS Code | Claude Code + AI CLIs |
+| Generic VS Code | VS Code + Claude Code |
 | `coder` user | `clauder` user |
-| No AI tools | 5 optional AI CLIs |
-| No frameworks | BMAD, OpenSpec, Spec-Kit |
+| No AI tools | Claude Code pre-installed |
 | Basic docs | Auth + region guidance |
