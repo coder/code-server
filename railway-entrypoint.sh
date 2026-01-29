@@ -25,8 +25,8 @@ export XDG_CONFIG_HOME="$CODER_HOME/.config"
 export XDG_CACHE_HOME="$CODER_HOME/.cache"
 export XDG_STATE_HOME="$CODER_HOME/.local/state"
 
-# PATH: Volume paths FIRST (user installs), image paths LAST (fallbacks)
-export PATH="$CODER_HOME/.local/node/bin:$CODER_HOME/.claude/local:$CODER_HOME/.local/bin:$CODER_HOME/node_modules/.bin:/usr/local/bin:/usr/bin:/usr/lib/code-server/lib/vscode/bin/remote-cli:$PATH"
+# PATH: Include ~/.local/bin where Claude installs by default
+export PATH="$CODER_HOME/.local/bin:$CODER_HOME/.local/node/bin:$CODER_HOME/.claude/local:$CODER_HOME/node_modules/.bin:/usr/local/bin:/usr/bin:/usr/lib/code-server/lib/vscode/bin/remote-cli:$PATH"
 
 # ============================================================================
 # PERMISSION FIX (runs as root, then switches to coder)
@@ -47,6 +47,40 @@ if [ "$(id -u)" = "0" ]; then
              "$HOME/workspace" \
              "$XDG_DATA_HOME/code-server/extensions" \
              "$XDG_CONFIG_HOME/code-server" 2>/dev/null || true
+    
+    # ========================================================================
+    # SHELL PROFILE SETUP
+    # Ensure PATH includes ~/.local/bin for Claude and other user tools
+    # ========================================================================
+    
+    PROFILE_FILE="$HOME/.bashrc"
+    PATH_EXPORT='export PATH="$HOME/.local/bin:$HOME/.local/node/bin:$PATH"'
+    
+    if [ ! -f "$PROFILE_FILE" ] || ! grep -q '.local/bin' "$PROFILE_FILE" 2>/dev/null; then
+        echo "→ Setting up shell profile..."
+        cat >> "$PROFILE_FILE" << 'PROFILE'
+
+# ============================================================================
+# VSCode Cloud IDE - PATH Configuration
+# ============================================================================
+export PATH="$HOME/.local/bin:$HOME/.local/node/bin:$HOME/.claude/local:$PATH"
+
+# Claude Code alias with --dangerously-skip-permissions
+alias claude-auto='claude --dangerously-skip-permissions'
+PROFILE
+        echo "  ✓ Shell profile configured"
+    fi
+    
+    # Also set up .profile for login shells
+    if [ ! -f "$HOME/.profile" ] || ! grep -q '.local/bin' "$HOME/.profile" 2>/dev/null; then
+        cat >> "$HOME/.profile" << 'PROFILE'
+
+# Load .bashrc for interactive shells
+if [ -f "$HOME/.bashrc" ]; then
+    . "$HOME/.bashrc"
+fi
+PROFILE
+    fi
     
     # Fix ownership on the entire home directory
     echo "→ Fixing permissions for coder user (UID: $CODER_UID)..."
@@ -95,7 +129,10 @@ Your cloud development environment is ready!
 # Start Claude Code (with auto-accept for automation)
 claude --dangerously-skip-permissions
 
-# Or interactive mode
+# Or use the alias
+claude-auto
+
+# Interactive mode
 claude
 ```
 
@@ -134,9 +171,11 @@ echo "  → npm: $(npm --version 2>/dev/null || echo 'not found')"
 # git
 echo "  → git: $(git --version 2>/dev/null | cut -d' ' -f3 || echo 'not found')"
 
-# Claude Code - show source
-if [ -x "$CODER_HOME/.claude/local/claude" ]; then
-    echo "  → claude: $(claude --version 2>/dev/null || echo 'installed') [volume]"
+# Claude Code - show source (check ~/.local/bin first, then ~/.claude/local, then /usr/local/bin)
+if [ -x "$CODER_HOME/.local/bin/claude" ]; then
+    echo "  → claude: $(claude --version 2>/dev/null || echo 'installed') [volume ~/.local/bin]"
+elif [ -x "$CODER_HOME/.claude/local/claude" ]; then
+    echo "  → claude: $(claude --version 2>/dev/null || echo 'installed') [volume ~/.claude/local]"
 elif command -v claude &>/dev/null; then
     echo "  → claude: $(claude --version 2>/dev/null || echo 'installed') [image]"
 else
