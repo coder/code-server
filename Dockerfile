@@ -56,13 +56,17 @@ ENV ENTRYPOINTD=/home/clauder/entrypoint.d
 
 # ============================================================================
 # USER SETUP
-# Create clauder user (UID 1000 to match base image's coder user)
+# Create clauder user (UID 1000) with passwordless sudo
+# - Stays non-root for Claude YOLO mode compatibility
+# - Can use sudo for package installs (apt, npm -g, pip, etc.)
 # ============================================================================
 
 RUN groupadd -g 1000 clauder 2>/dev/null || true \
     && useradd -m -s /bin/bash -u 1000 -g 1000 clauder 2>/dev/null || true \
     && usermod -l clauder coder 2>/dev/null || true \
-    && groupmod -n clauder coder 2>/dev/null || true
+    && groupmod -n clauder coder 2>/dev/null || true \
+    && echo "clauder ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/clauder \
+    && chmod 0440 /etc/sudoers.d/clauder
 
 # ============================================================================
 # DIRECTORY SETUP
