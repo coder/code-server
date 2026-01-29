@@ -28,8 +28,12 @@ export XDG_CONFIG_HOME="$CLAUDER_HOME/.config"
 export XDG_CACHE_HOME="$CLAUDER_HOME/.cache"
 export XDG_STATE_HOME="$CLAUDER_HOME/.local/state"
 
-# PATH: Include ~/.local/bin where Claude installs by default
-export PATH="$CLAUDER_HOME/.local/bin:$CLAUDER_HOME/.local/node/bin:$CLAUDER_HOME/.claude/local:$CLAUDER_HOME/node_modules/.bin:/usr/local/bin:/usr/bin:/usr/lib/code-server/lib/vscode/bin/remote-cli:$PATH"
+# PATH: Include all possible locations for installed tools
+# - ~/.local/bin: pip user installs, pipx, local scripts
+# - ~/.npm-global/bin: npm global installs (non-root)
+# - /usr/local/bin: system-wide installs
+# - /usr/lib/node_modules/.bin: npm global installs (root/sudo)
+export PATH="$CLAUDER_HOME/.local/bin:$CLAUDER_HOME/.npm-global/bin:$CLAUDER_HOME/.local/node/bin:$CLAUDER_HOME/.claude/local:$CLAUDER_HOME/node_modules/.bin:/usr/local/bin:/usr/bin:/usr/lib/node_modules/.bin:/usr/lib/code-server/lib/vscode/bin/remote-cli:$PATH"
 
 echo "→ Initial user: $(whoami) (UID: $(id -u))"
 echo "→ RUN_AS_USER: $RUN_AS_USER"
@@ -62,18 +66,25 @@ if [ "$(id -u)" = "0" ]; then
     
     PROFILE_FILE="$HOME/.bashrc"
     
-    if [ ! -f "$PROFILE_FILE" ] || ! grep -q '.local/bin' "$PROFILE_FILE" 2>/dev/null; then
+    if [ ! -f "$PROFILE_FILE" ] || ! grep -q '.npm-global' "$PROFILE_FILE" 2>/dev/null; then
         echo "→ Setting up shell profile..."
         cat >> "$PROFILE_FILE" << 'PROFILE'
 
 # ============================================================================
 # VSCode Cloud IDE - PATH Configuration
 # ============================================================================
-export PATH="$HOME/.local/bin:$HOME/.local/node/bin:$HOME/.claude/local:$PATH"
+export PATH="$HOME/.local/bin:$HOME/.npm-global/bin:$HOME/.local/node/bin:$HOME/.claude/local:$PATH"
+
+# npm global prefix for non-root installs
+export NPM_CONFIG_PREFIX="$HOME/.npm-global"
 
 # Claude Code alias with --dangerously-skip-permissions
 alias claude-auto='claude --dangerously-skip-permissions'
 PROFILE
+        
+        # Create npm global directory
+        mkdir -p "$HOME/.npm-global/bin" 2>/dev/null || true
+        
         echo "  ✓ Shell profile configured"
     fi
     
