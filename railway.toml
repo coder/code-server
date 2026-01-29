@@ -1,5 +1,6 @@
 # ============================================================================
-# VSCode Cloud IDE - Railway Configuration
+# Claude Code Server - Railway Configuration
+# https://github.com/sphinxcode/claude-code-server
 # ============================================================================
 
 [build]
