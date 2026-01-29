@@ -87,15 +87,19 @@ RUN chmod +x /usr/bin/railway-entrypoint.sh
 # ============================================================================
 # FALLBACK CLAUDE CODE CLI INSTALLATION
 # Installed to /usr/local/bin as fallback - volume version takes priority
-# Claude Code is ALWAYS installed (cannot be disabled)
+# Claude installer puts binary in ~/.local/bin/claude
 # ============================================================================
 
 RUN curl -fsSL https://claude.ai/install.sh | bash \
-    && if [ -f /root/.claude/local/claude ]; then \
-         mv /root/.claude/local/claude /usr/local/bin/claude; \
+    && if [ -f /root/.local/bin/claude ]; then \
+         cp /root/.local/bin/claude /usr/local/bin/claude; \
          chmod +x /usr/local/bin/claude; \
-       fi \
-    && rm -rf /root/.claude
+         echo "Claude CLI installed to /usr/local/bin/claude"; \
+       else \
+         echo "WARNING: Claude CLI not found at expected path"; \
+         ls -la /root/.local/bin/ 2>/dev/null || echo "~/.local/bin does not exist"; \
+         ls -la /root/.claude/ 2>/dev/null || echo "~/.claude does not exist"; \
+       fi
 
 # ============================================================================
 # RUNTIME
