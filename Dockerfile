@@ -3,7 +3,7 @@
 # https://github.com/sphinxcode/claude-code-server
 # ============================================================================
 
-FROM codercom/code-server:latest
+FROM codercom/code-server:4.108.0
 
 USER root
 
