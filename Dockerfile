@@ -85,21 +85,12 @@ COPY railway-entrypoint.sh /usr/bin/railway-entrypoint.sh
 RUN chmod +x /usr/bin/railway-entrypoint.sh
 
 # ============================================================================
-# FALLBACK CLAUDE CODE CLI INSTALLATION
-# Installed to /usr/local/bin as fallback - volume version takes priority
-# Claude installer puts binary in ~/.local/bin/claude
+# CLAUDE CODE CLI INSTALLATION
+# Install globally via npm - this is the official package
 # ============================================================================
 
-RUN curl -fsSL https://claude.ai/install.sh | bash \
-    && if [ -f /root/.local/bin/claude ]; then \
-         cp /root/.local/bin/claude /usr/local/bin/claude; \
-         chmod +x /usr/local/bin/claude; \
-         echo "Claude CLI installed to /usr/local/bin/claude"; \
-       else \
-         echo "WARNING: Claude CLI not found at expected path"; \
-         ls -la /root/.local/bin/ 2>/dev/null || echo "~/.local/bin does not exist"; \
-         ls -la /root/.claude/ 2>/dev/null || echo "~/.claude does not exist"; \
-       fi
+RUN npm install -g @anthropic-ai/claude-code \
+    && echo "Claude CLI installed: $(claude --version 2>/dev/null || echo 'checking...')"
 
 # ============================================================================
 # RUNTIME
