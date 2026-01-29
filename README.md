@@ -1,88 +1,84 @@
-# Deploy and Host Claude Code Server on Railway
+# code-server
 
-<p align="center">
-  <img src="https://raw.githubusercontent.com/sphinxcode/claude-code-server/main/public/claude-code-server-logo.svg" alt="Claude Code Server Logo" width="120" height="120">
-</p>
+[!["GitHub Discussions"](https://img.shields.io/badge/%20GitHub-%20Discussions-gray.svg?longCache=true&logo=github&colorB=purple)](https://github.com/coder/code-server/discussions) [!["Join us on Slack"](https://img.shields.io/badge/join-us%20on%20slack-gray.svg?longCache=true&logo=slack&colorB=brightgreen)](https://coder.com/community) [![Twitter Follow](https://img.shields.io/twitter/follow/CoderHQ?label=%40CoderHQ&style=social)](https://twitter.com/coderhq) [![Discord](https://img.shields.io/discord/747933592273027093)](https://discord.com/invite/coder) [![codecov](https://codecov.io/gh/coder/code-server/branch/main/graph/badge.svg?token=5iM9farjnC)](https://codecov.io/gh/coder/code-server) [![See latest](https://img.shields.io/static/v1?label=Docs&message=see%20latest&color=blue)](https://coder.com/docs/code-server/latest)
 
-<p align="center">
-  <strong>Browser-based VS Code with Claude Code pre-installed. YOLO mode ready.</strong>
-</p>
+![Mobile Mockup](https://raw.githubusercontent.com/sphinxcode/claude-code-server/refs/heads/main/public/iphone_mockup.png)
 
-<p align="center">
-  <a href="https://railway.com/deploy/pHwM6f?referralCode=1uw5HI&utm_medium=integration&utm_source=template&utm_campaign=generic">
-    <img src="https://railway.com/button.svg" alt="Deploy on Railway">
-  </a>
-</p>
+Run [VS Code](https://github.com/Microsoft/vscode) on any machine anywhere and
+access it in the browser.
 
----
+![Screenshot](./assets/screenshot-1.png)
+![Screenshot](./assets/screenshot-2.png)
 
-Claude Code Server is a cloud-based VS Code environment with Claude Code CLI pre-installed. Deploy in 60 seconds and start AI-assisted coding directly in your browser. Runs as non-root `clauder` user with persistent storage for extensions, authentication, and workspace files.
+## Highlights
 
-## About Hosting Claude Code Server
+- Code on any device with a consistent development environment
+- Use cloud servers to speed up tests, compilations, downloads, and more
+- Preserve battery life when you're on the go; all intensive tasks run on your
+  server
 
-Hosting Claude Code Server on Railway provides a fully configured development environment accessible from any browser. The template handles user permissions, volume persistence, and Claude Code installation automatically. On first deploy, set your `PASSWORD` environment variable and attach a volume to `/home/clauder`. The entrypoint script manages permission fixes, user switching via `gosu`, and shell configuration. Your Claude authentication tokens, VS Code extensions, and workspace files persist across redeploys via the mounted volume.
+## Requirements
 
-## Common Use Cases
+See [requirements](https://coder.com/docs/code-server/latest/requirements) for minimum specs, as well as instructions
+on how to set up a Google VM on which you can install code-server.
 
-- **Remote AI-assisted development** – Code with Claude from any device with a browser
-- **Ephemeral dev environments** – Spin up isolated workspaces for experiments or client projects
-- **Team onboarding** – Pre-configured environments for new developers with tools ready to go
-- **CI/CD integration** – Use as a hosted development server for automated workflows
+**TL;DR:** Linux machine with WebSockets enabled, 1 GB RAM, and 2 vCPUs
 
-## Dependencies for Claude Code Server Hosting
+## Getting started
 
-- **Railway account** – Free tier available
-- **Anthropic API access** – For Claude Code authentication
+There are five ways to get started:
 
-### Deployment Dependencies
+1. Using the [install
+   script](https://github.com/coder/code-server/blob/main/install.sh), which
+   automates most of the process. The script uses the system package manager if
+   possible.
+2. Manually [installing
+   code-server](https://coder.com/docs/code-server/latest/install)
+3. Deploy code-server to your team with [coder/coder](https://cdr.co/coder-github)
+4. Using our one-click buttons and guides to [deploy code-server to a cloud
+   provider](https://github.com/coder/deploy-code-server) ⚡
+5. Using the [code-server feature for
+   devcontainers](https://github.com/coder/devcontainer-features/blob/main/src/code-server/README.md),
+   if you already use devcontainers in your project.
 
-- [code-server](https://github.com/coder/code-server) – VS Code in the browser by Coder
-- [Claude Code](https://docs.anthropic.com/en/docs/claude-code) – AI coding assistant by Anthropic
-- [Node.js 20 LTS](https://nodejs.org/) – JavaScript runtime
-
-### Implementation Details
+If you use the install script, you can preview what occurs during the install
+process:
 
 ```bash
-# YOLO mode - skip permission prompts
-claude --dangerously-skip-permissions
-
-# Or use the alias
-claude-auto
-
-# Interactive mode
-claude
+curl -fsSL https://code-server.dev/install.sh | sh -s -- --dry-run
 ```
 
-## Environment Variables
+To install, run:
 
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `PASSWORD` | Yes | - | Login password for code-server |
-| `CLAUDER_HOME` | Yes | `/home/clauder` | Volume mount path |
-| `CLAUDER_UID` | No | `1000` | User ID |
-| `CLAUDER_GID` | No | `1000` | Group ID |
-| `RUN_AS_USER` | No | `clauder` | Set to `root` if needed |
+```bash
+curl -fsSL https://code-server.dev/install.sh | sh
+```
 
-## Volume Configuration
+When done, the install script prints out instructions for running and starting
+code-server.
 
-> ⚠️ **CRITICAL**: Without a volume, ALL data is lost on every redeploy!
+> **Note**
+> To manage code-server for a team on your infrastructure, see: [coder/coder](https://cdr.co/coder-github)
 
-| Setting | Value |
-|---------|-------|
-| **Mount Path** | `/home/clauder` |
-| **Size** | 5GB+ recommended |
+We also have an in-depth [setup and
+configuration](https://coder.com/docs/code-server/latest/guide) guide.
 
-## Why Deploy Claude Code Server on Railway?
+## Questions?
 
-Railway is a singular platform to deploy your infrastructure stack. Railway will host your infrastructure so you don't have to deal with configuration, while allowing you to vertically and horizontally scale it.
+See answers to [frequently asked
+questions](https://coder.com/docs/code-server/latest/FAQ).
 
-By deploying Claude Code Server on Railway, you are one step closer to supporting a complete full-stack application with minimal burden. Host your servers, databases, AI agents, and more on Railway.
+## Want to help?
 
----
+See [Contributing](https://coder.com/docs/code-server/latest/CONTRIBUTING) for
+details.
 
-## Credits
+## Hiring
 
-- [code-server](https://github.com/coder/code-server) by Coder
-- [Claude Code](https://github.com/anthropics/claude-code) by Anthropic
+Interested in [working at Coder](https://coder.com/careers)? Check out [our open
+positions](https://coder.com/careers#openings)!
 
-**License:** MIT
+## For Teams
+
+We develop [coder/coder](https://cdr.co/coder-github) to help teams to
+adopt remote development.
