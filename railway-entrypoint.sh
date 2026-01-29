@@ -3,7 +3,7 @@ set -e
 
 # ============================================================================
 # VSCode Cloud IDE - Railway Entrypoint
-# Robust entrypoint with volume-first tool priority
+# Handles permission fix and user switching for non-root execution
 # ============================================================================
 
 echo "╔══════════════════════════════════════════════════════════════════════╗"
@@ -13,10 +13,11 @@ echo ""
 
 # ============================================================================
 # CONFIGURABLE PATHS
-# Users can override CODER_HOME to change the volume mount point
 # ============================================================================
 
 CODER_HOME="${CODER_HOME:-/home/coder}"
+CODER_UID="${CODER_UID:-1000}"
+CODER_GID="${CODER_GID:-1000}"
 
 export HOME="$CODER_HOME"
 export XDG_DATA_HOME="$CODER_HOME/.local/share"
@@ -27,14 +28,14 @@ export XDG_STATE_HOME="$CODER_HOME/.local/state"
 # PATH: Volume paths FIRST (user installs), image paths LAST (fallbacks)
 export PATH="$CODER_HOME/.local/node/bin:$CODER_HOME/.claude/local:$CODER_HOME/.local/bin:$CODER_HOME/node_modules/.bin:/usr/local/bin:/usr/bin:/usr/lib/code-server/lib/vscode/bin/remote-cli:$PATH"
 
-echo "→ User: $(whoami) (UID: $(id -u))"
-echo "→ HOME: $HOME"
-
 # ============================================================================
-# DIRECTORY CREATION
+# PERMISSION FIX (runs as root, then switches to coder)
 # ============================================================================
 
-create_dirs() {
+if [ "$(id -u)" = "0" ]; then
+    echo "→ Running initial setup as root..."
+    
+    # Create directories if they don't exist
     mkdir -p "$XDG_DATA_HOME" \
              "$XDG_CONFIG_HOME" \
              "$XDG_CACHE_HOME" \
@@ -46,32 +47,25 @@ create_dirs() {
              "$HOME/workspace" \
              "$XDG_DATA_HOME/code-server/extensions" \
              "$XDG_CONFIG_HOME/code-server" 2>/dev/null || true
-}
-create_dirs
-
-# ============================================================================
-# ROOT USER SYMLINKS
-# When running as root, symlink /root directories to the volume
-# ============================================================================
-
-if [ "$(id -u)" = "0" ]; then
-    echo "→ Running as root - creating persistence symlinks..."
-
-    mkdir -p /root/.local 2>/dev/null || true
-
-    for dir in ".local/share" ".local/node" ".config" ".cache" ".claude"; do
-        target="$CODER_HOME/$dir"
-        link="/root/$dir"
-
-        if [ -d "$target" ] && [ ! -L "$link" ]; then
-            rm -rf "$link" 2>/dev/null || true
-            mkdir -p "$(dirname "$link")" 2>/dev/null || true
-            ln -sf "$target" "$link" 2>/dev/null || true
-        fi
-    done
-
-    echo "  ✓ Root directories symlinked to $CODER_HOME"
+    
+    # Fix ownership on the entire home directory
+    echo "→ Fixing permissions for coder user (UID: $CODER_UID)..."
+    chown -R "$CODER_UID:$CODER_GID" "$CODER_HOME" 2>/dev/null || true
+    
+    echo "  ✓ Permissions fixed"
+    echo ""
+    
+    # Re-exec this script as coder user using gosu
+    echo "→ Switching to coder user..."
+    exec gosu "$CODER_UID:$CODER_GID" "$0" "$@"
 fi
+
+# ============================================================================
+# RUNNING AS CODER USER FROM HERE
+# ============================================================================
+
+echo "→ User: $(whoami) (UID: $(id -u))"
+echo "→ HOME: $HOME"
 
 # ============================================================================
 # FIRST RUN SETUP
@@ -82,10 +76,8 @@ FIRST_RUN_MARKER="$XDG_DATA_HOME/.vscode-cloud-initialized"
 if [ ! -f "$FIRST_RUN_MARKER" ]; then
     echo "→ First run detected - initializing..."
 
-    mkdir -p "$XDG_CONFIG_HOME/code-server" 2>/dev/null || true
-
     if [ ! -f "$HOME/workspace/README.md" ]; then
-        cat > "$HOME/workspace/README.md" << 'WELCOME' 2>/dev/null || true
+        cat > "$HOME/workspace/README.md" << 'WELCOME'
 # Welcome to VSCode Cloud IDE
 
 Your cloud development environment is ready!
@@ -99,17 +91,20 @@ Your cloud development environment is ready!
 
 ## Quick Start
 
-1. Open the Extensions panel (Ctrl+Shift+X)
-2. Install your favorite extensions (they persist!)
-3. Start coding in this workspace
-
-## Using Claude Code
-
 ```bash
+# Start Claude Code (with auto-accept for automation)
+claude --dangerously-skip-permissions
+
+# Or interactive mode
 claude
 ```
 
 You'll need to authenticate with your Anthropic API key on first use.
+
+## Persist Claude Authentication
+
+Your Claude config at `~/.claude/` persists across redeployments.
+After authenticating once, you won't need to re-authenticate.
 
 Happy coding! 🚀
 WELCOME
@@ -121,7 +116,6 @@ fi
 
 # ============================================================================
 # ENVIRONMENT VERIFICATION
-# Shows which version is being used (volume vs image)
 # ============================================================================
 
 echo ""
@@ -178,7 +172,7 @@ fi
 
 echo ""
 echo "════════════════════════════════════════════════════════════════════════"
-echo "Starting code-server..."
+echo "Starting code-server as $(whoami)..."
 echo "════════════════════════════════════════════════════════════════════════"
 echo ""
 

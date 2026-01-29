@@ -4,41 +4,32 @@
 
 [![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/template/TEMPLATE_ID)
 
-Cloud IDE with persistent extensions, settings, and tools. Zero configuration.
+Cloud IDE with persistent extensions, settings, and tools. Runs as non-root user.
 
 ---
 
 ## Features
 
 - **Claude Code** & **Node.js 20** pre-installed
+- **Non-root execution** - runs as `coder` user (UID 1000)
 - Extensions persist across redeployments  
-- Volume-installed tools take priority (update when YOU want)
-- Custom startup scripts supported
+- Volume permissions auto-fixed on startup
 
 ---
 
 ## Quick Start
 
 ```bash
-# Claude Code ready to use
+# Claude Code with auto-accept (for automation)
+claude --dangerously-skip-permissions
+
+# Interactive mode
 claude
 
-# Node.js ready to use  
+# Node.js ready
 node --version
 npm --version
 ```
-
----
-
-## How Updates Work
-
-| Component | Behavior |
-|-----------|----------|
-| **Volume tools** | YOU control updates. Install to `~/.local/node/` or `~/.claude/local/` |
-| **Image tools** | Auto-update on redeploy (fallback if no volume version) |
-| **Extensions** | Never reset (persisted on volume) |
-
-The startup logs show `[volume]` or `[image]` next to each tool.
 
 ---
 
@@ -48,18 +39,31 @@ The startup logs show `[volume]` or `[image]` next to each tool.
 |----------|----------|---------|-------------|
 | `PASSWORD` | Yes | - | Login password |
 | `CODER_HOME` | No | `/home/coder` | Volume mount path |
+| `CODER_UID` | No | `1000` | User ID for coder |
+| `CODER_GID` | No | `1000` | Group ID for coder |
 
 ---
 
-## Custom Volume Path
+## How It Works
 
-If you change the volume mount location:
+1. **Starts as root** - fixes volume permissions
+2. **Switches to coder** - uses `gosu` for clean handoff
+3. **Runs code-server** - as non-root user
 
-```
-CODER_HOME=/your/volume/path
-```
+This means:
+- ✅ No root permission warnings in code-server
+- ✅ Existing volumes with root-owned files work fine
+- ✅ Claude `--dangerously-skip-permissions` works
 
-Everything adapts automatically.
+---
+
+## Claude Code Authentication
+
+After running `claude` for the first time:
+
+1. Follow the authentication prompts
+2. Your credentials are stored in `~/.claude/`
+3. They persist across redeployments (on volume)
 
 ---
 
@@ -76,13 +80,26 @@ Make executable: `chmod +x script.sh`
 
 ---
 
+## Update Behavior
+
+| Component | Behavior |
+|-----------|----------|
+| **Volume tools** | You control - install to `~/.local/node/` or `~/.claude/local/` |
+| **Image tools** | Auto-update on redeploy (fallback) |
+| **Extensions** | Persist on volume |
+| **Claude auth** | Persists on volume |
+
+Logs show `[volume]` or `[image]` next to each tool.
+
+---
+
 ## Troubleshooting
 
-| Issue | Check |
-|-------|-------|
-| Wrong Node version | Look for `[volume]` vs `[image]` in logs |
-| Extensions missing | Verify volume at `CODER_HOME` |
-| Claude not found | Run `which claude` to verify PATH |
+| Issue | Solution |
+|-------|----------|
+| Permission denied | Check `CODER_UID` matches your volume owner |
+| Claude not found | Run `which claude` to check PATH |
+| Extensions missing | Verify volume mounted at `CODER_HOME` |
 
 ---
 
