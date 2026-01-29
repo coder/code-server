@@ -15,12 +15,12 @@ echo ""
 # CONFIGURABLE PATHS AND USER
 # ============================================================================
 
-CLAUDER_HOME="${CLAUDER_HOME:-/home/coder}"
+CLAUDER_HOME="${CLAUDER_HOME:-/home/clauder}"
 CLAUDER_UID="${CLAUDER_UID:-1000}"
 CLAUDER_GID="${CLAUDER_GID:-1000}"
 
-# RUN_AS_USER: Set to "coder" to run as non-root, or "root" (default) to stay as root
-RUN_AS_USER="${RUN_AS_USER:-root}"
+# RUN_AS_USER: Defaults to "clauder" for non-root. Set to "root" if needed.
+RUN_AS_USER="${RUN_AS_USER:-clauder}"
 
 export HOME="$CLAUDER_HOME"
 export XDG_DATA_HOME="$CLAUDER_HOME/.local/share"

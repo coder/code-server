@@ -2,7 +2,7 @@
 
 **Browser-based VSCode with Claude Code & Node.js**
 
-[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/template/TEMPLATE_ID)
+[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/deploy/pHwM6f?referralCode=1uw5HI&utm_medium=integration&utm_source=template&utm_campaign=generic)
 
 Cloud IDE with persistent extensions, settings, and tools. Runs as non-root user.
 
@@ -41,6 +41,7 @@ npm --version
 | `CLAUDER_HOME` | **Yes** | `/home/clauder` | Volume mount path (REQUIRED) |
 | `CLAUDER_UID` | No | `1000` | User ID |
 | `CLAUDER_GID` | No | `1000` | Group ID |
+| `RUN_AS_USER` | No | `clauder` | Set to `root` for root access |
 
 ---
 
