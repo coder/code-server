@@ -2,13 +2,12 @@
 set -e
 
 # ============================================================================
-# Claude Code Server - Railway Entrypoint
-# Handles permission fix, optional user switching, and CLI installations
-# https://github.com/sphinxcode/claude-code-server
+# VSCode Cloud IDE - Railway Entrypoint
+# Handles permission fix and optional user switching
 # ============================================================================
 
 echo "╔══════════════════════════════════════════════════════════════════════╗"
-echo "║        Claude Code Server - AI Coding Assistants Ready              ║"
+echo "║           VSCode Cloud IDE - Claude Code & Node.js Ready            ║"
 echo "╚══════════════════════════════════════════════════════════════════════╝"
 echo ""
 
@@ -16,11 +15,11 @@ echo ""
 # CONFIGURABLE PATHS AND USER
 # ============================================================================
 
-CLAUDER_HOME="${CLAUDER_HOME:-/home/clauder}"
+CLAUDER_HOME="${CLAUDER_HOME:-/home/coder}"
 CLAUDER_UID="${CLAUDER_UID:-1000}"
 CLAUDER_GID="${CLAUDER_GID:-1000}"
 
-# RUN_AS_USER: Set to "clauder" to run as non-root, or "root" (default) to stay as root
+# RUN_AS_USER: Set to "coder" to run as non-root, or "root" (default) to stay as root
 RUN_AS_USER="${RUN_AS_USER:-root}"
 
 export HOME="$CLAUDER_HOME"
@@ -58,94 +57,6 @@ if [ "$(id -u)" = "0" ]; then
              "$XDG_CONFIG_HOME/code-server" 2>/dev/null || true
     
     # ========================================================================
-    # OPTIONAL CLI INSTALLATIONS
-    # Install CLIs based on environment variables (only if not already present)
-    # ========================================================================
-    
-    echo ""
-    echo "→ Checking optional CLI installations..."
-    
-    # OpenCode
-    if [ "${INSTALL_OPENCODE:-0}" = "1" ]; then
-        if ! command -v opencode &>/dev/null; then
-            echo "  → Installing OpenCode..."
-            curl -fsSL https://raw.githubusercontent.com/opencode-ai/opencode/refs/heads/main/install | bash || echo "  ⚠ OpenCode install failed"
-        else
-            echo "  ✓ OpenCode already installed"
-        fi
-    fi
-    
-    # Gemini CLI
-    if [ "${INSTALL_GEMINI:-0}" = "1" ]; then
-        if ! command -v gemini &>/dev/null; then
-            echo "  → Installing Gemini CLI..."
-            npm install -g @google/gemini-cli || echo "  ⚠ Gemini CLI install failed"
-        else
-            echo "  ✓ Gemini CLI already installed"
-        fi
-    fi
-    
-    # KiloCode CLI
-    if [ "${INSTALL_KILOCODE:-0}" = "1" ]; then
-        if ! command -v kilocode &>/dev/null; then
-            echo "  → Installing KiloCode CLI..."
-            npm install -g @kilocode/cli || echo "  ⚠ KiloCode CLI install failed"
-        else
-            echo "  ✓ KiloCode CLI already installed"
-        fi
-    fi
-    
-    # Continue CLI
-    if [ "${INSTALL_CONTINUE:-0}" = "1" ]; then
-        if ! command -v continue &>/dev/null; then
-            echo "  → Installing Continue CLI..."
-            npm install -g @continuedev/cli || echo "  ⚠ Continue CLI install failed"
-        else
-            echo "  ✓ Continue CLI already installed"
-        fi
-    fi
-    
-    # Codex CLI
-    if [ "${INSTALL_CODEX:-0}" = "1" ]; then
-        if ! command -v codex &>/dev/null; then
-            echo "  → Installing Codex CLI..."
-            npm install -g @openai/codex || echo "  ⚠ Codex CLI install failed"
-        else
-            echo "  ✓ Codex CLI already installed"
-        fi
-    fi
-    
-    # ========================================================================
-    # OPTIONAL DEVELOPMENT FRAMEWORK INSTALLATIONS
-    # ========================================================================
-    
-    # BMAD Method
-    if [ "${INSTALL_BMAD:-0}" = "1" ]; then
-        echo "  → Installing BMAD Method..."
-        npx bmad-method install || echo "  ⚠ BMAD install failed"
-    fi
-    
-    # OpenSpec
-    if [ "${INSTALL_OPENSPEC:-0}" = "1" ]; then
-        if ! command -v openspec &>/dev/null; then
-            echo "  → Installing OpenSpec..."
-            npm install -g @fission-ai/openspec@latest || echo "  ⚠ OpenSpec install failed"
-        else
-            echo "  ✓ OpenSpec already installed"
-        fi
-    fi
-    
-    # Spec-Kit
-    if [ "${INSTALL_SPECKIT:-0}" = "1" ]; then
-        if ! command -v specify &>/dev/null; then
-            echo "  → Installing Spec-Kit..."
-            uv tool install specify-cli --from git+https://github.com/github/spec-kit.git || echo "  ⚠ Spec-Kit install failed"
-        else
-            echo "  ✓ Spec-Kit already installed"
-        fi
-    fi
-    
-    # ========================================================================
     # SHELL PROFILE SETUP
     # ========================================================================
     
@@ -156,7 +67,7 @@ if [ "$(id -u)" = "0" ]; then
         cat >> "$PROFILE_FILE" << 'PROFILE'
 
 # ============================================================================
-# Claude Code Server - PATH Configuration
+# VSCode Cloud IDE - PATH Configuration
 # ============================================================================
 export PATH="$HOME/.local/bin:$HOME/.local/node/bin:$HOME/.claude/local:$PATH"
 
@@ -222,14 +133,14 @@ echo "→ Running as: $(whoami) (UID: $(id -u))"
 # FIRST RUN SETUP
 # ============================================================================
 
-FIRST_RUN_MARKER="$XDG_DATA_HOME/.claude-code-server-initialized"
+FIRST_RUN_MARKER="$XDG_DATA_HOME/.vscode-cloud-initialized"
 
 if [ ! -f "$FIRST_RUN_MARKER" ]; then
     echo "→ First run detected - initializing..."
 
     if [ ! -f "$HOME/workspace/README.md" ]; then
         cat > "$HOME/workspace/README.md" << 'WELCOME'
-# Welcome to Claude Code Server
+# Welcome to VSCode Cloud IDE
 
 Your cloud development environment is ready!
 
@@ -253,21 +164,13 @@ claude-auto
 claude
 ```
 
-## Claude Code Authentication
-
-⚠️ **Important**: When authenticating Claude Code:
-1. Copy the authentication URL
-2. Open it in a **different browser** (not this code-server browser)
-3. Complete the login there
-4. Copy the code and paste it back into the CLI
-
-Your credentials persist across redeployments.
+You'll need to authenticate with your Anthropic API key on first use.
 
 ## Configuration
 
 Set these environment variables in Railway:
 
-- `RUN_AS_USER=clauder` - Run as non-root user (recommended)
+- `RUN_AS_USER=coder` - Run as non-root user (recommended for Claude)
 - `RUN_AS_USER=root` - Stay as root (default)
 
 Happy coding! 🚀
@@ -298,7 +201,7 @@ echo "  → npm: $(npm --version 2>/dev/null || echo 'not found')"
 # git
 echo "  → git: $(git --version 2>/dev/null | cut -d' ' -f3 || echo 'not found')"
 
-# Claude Code - show source (always installed)
+# Claude Code - show source
 if [ -x "$CLAUDER_HOME/.local/bin/claude" ]; then
     echo "  → claude: $(claude --version 2>/dev/null || echo 'installed') [volume ~/.local/bin]"
 elif [ -x "$CLAUDER_HOME/.claude/local/claude" ]; then
@@ -308,13 +211,6 @@ elif command -v claude &>/dev/null; then
 else
     echo "  → claude: not installed"
 fi
-
-# Show optional CLIs if installed
-command -v opencode &>/dev/null && echo "  → opencode: installed"
-command -v gemini &>/dev/null && echo "  → gemini: installed"
-command -v kilocode &>/dev/null && echo "  → kilocode: installed"
-command -v continue &>/dev/null && echo "  → continue: installed"
-command -v codex &>/dev/null && echo "  → codex: installed"
 
 # Extensions count
 if [ -d "$XDG_DATA_HOME/code-server/extensions" ]; then
@@ -349,4 +245,4 @@ echo "Starting code-server as $(whoami)..."
 echo "════════════════════════════════════════════════════════════════════════"
 echo ""
 
-exec dumb-init /usr/bin/code-server --bind-addr 0.0.0.0:8080 "$HOME/workspace"
+exec dumb-init /usr/bin/code-server --bind-addr 0.0.0.0:8080 /home/coder/workspace

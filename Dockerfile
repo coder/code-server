@@ -36,48 +36,47 @@ RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
 
 # ============================================================================
 # PERSISTENCE CONFIGURATION
+# BACKWARD COMPATIBLE: Defaults to /home/coder for existing volumes
 # ============================================================================
 
-ENV HOME=/home/clauder
-ENV USER=clauder
+ENV HOME=/home/coder
+ENV USER=coder
 
 # XDG Base Directory Specification
-ENV XDG_DATA_HOME=/home/clauder/.local/share
-ENV XDG_CONFIG_HOME=/home/clauder/.config
-ENV XDG_CACHE_HOME=/home/clauder/.cache
-ENV XDG_STATE_HOME=/home/clauder/.local/state
+ENV XDG_DATA_HOME=/home/coder/.local/share
+ENV XDG_CONFIG_HOME=/home/coder/.config
+ENV XDG_CACHE_HOME=/home/coder/.cache
+ENV XDG_STATE_HOME=/home/coder/.local/state
 
 # PATH: Volume paths FIRST (user installs), image paths LAST (fallbacks)
-ENV PATH="/home/clauder/.local/bin:/home/clauder/.local/node/bin:/home/clauder/.claude/local:/home/clauder/node_modules/.bin:/usr/local/bin:/usr/bin:/usr/lib/code-server/lib/vscode/bin/remote-cli:${PATH}"
+ENV PATH="/home/coder/.local/bin:/home/coder/.local/node/bin:/home/coder/.claude/local:/home/coder/node_modules/.bin:/usr/local/bin:/usr/bin:/usr/lib/code-server/lib/vscode/bin/remote-cli:${PATH}"
 
 # Custom startup scripts directory
-ENV ENTRYPOINTD=/home/clauder/entrypoint.d
+ENV ENTRYPOINTD=/home/coder/entrypoint.d
 
 # ============================================================================
 # USER SETUP
-# Create clauder user with same UID as coder for compatibility
+# The base image already has coder user with UID 1000
 # ============================================================================
 
-RUN groupadd -g 1000 clauder 2>/dev/null || true \
-    && useradd -m -s /bin/bash -u 1000 -g 1000 clauder 2>/dev/null || true \
-    && usermod -l clauder coder 2>/dev/null || true \
-    && groupmod -n clauder coder 2>/dev/null || true
+# Ensure coder user exists with correct UID/GID
+RUN id -u coder &>/dev/null || useradd -m -s /bin/bash -u 1000 -g 1000 coder 2>/dev/null || true
 
 # ============================================================================
 # DIRECTORY SETUP
 # ============================================================================
 
 RUN mkdir -p \
-    /home/clauder/.local/share \
-    /home/clauder/.config \
-    /home/clauder/.cache \
-    /home/clauder/.local/state \
-    /home/clauder/.local/bin \
-    /home/clauder/.local/node \
-    /home/clauder/.claude \
-    /home/clauder/entrypoint.d \
-    /home/clauder/workspace \
-    && chown -R 1000:1000 /home/clauder
+    /home/coder/.local/share \
+    /home/coder/.config \
+    /home/coder/.cache \
+    /home/coder/.local/state \
+    /home/coder/.local/bin \
+    /home/coder/.local/node \
+    /home/coder/.claude \
+    /home/coder/entrypoint.d \
+    /home/coder/workspace \
+    && chown -R 1000:1000 /home/coder
 
 # Copy our custom entrypoint (replaces base image's entrypoint)
 COPY railway-entrypoint.sh /usr/bin/railway-entrypoint.sh
@@ -101,8 +100,9 @@ RUN curl -fsSL https://claude.ai/install.sh | bash \
 # Stay as root - entrypoint handles user switching based on RUN_AS_USER
 # ============================================================================
 
-WORKDIR /home/clauder/workspace
+WORKDIR /home/coder/workspace
 EXPOSE 8080
 
 # Use our entrypoint which calls code-server directly
 ENTRYPOINT ["/usr/bin/railway-entrypoint.sh"]
+
