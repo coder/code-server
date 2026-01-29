@@ -63,12 +63,16 @@ ENV ENTRYPOINTD=/home/clauder/entrypoint.d
 # - Can use sudo for package installs (apt, npm -g, pip, etc.)
 # ============================================================================
 
-RUN groupadd -g 1000 clauder 2>/dev/null || true \
-    && useradd -m -s /bin/bash -u 1000 -g 1000 clauder 2>/dev/null || true \
-    && usermod -l clauder coder 2>/dev/null || true \
-    && groupmod -n clauder coder 2>/dev/null || true \
-    && echo "clauder ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/clauder \
-    && chmod 0440 /etc/sudoers.d/clauder
+# Install sudo if not present, then configure user
+RUN apt-get update && apt-get install -y sudo \
+    && rm -rf /var/lib/apt/lists/* \
+    && (groupadd -g 1000 clauder 2>/dev/null || true) \
+    && (useradd -m -s /bin/bash -u 1000 -g 1000 clauder 2>/dev/null || usermod -l clauder -d /home/clauder -m coder 2>/dev/null || true) \
+    && (groupmod -n clauder coder 2>/dev/null || true) \
+    && mkdir -p /etc/sudoers.d \
+    && echo "clauder ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/clauder \
+    && chmod 0440 /etc/sudoers.d/clauder \
+    && chown root:root /etc/sudoers.d/clauder
 
 # ============================================================================
 # DIRECTORY SETUP
