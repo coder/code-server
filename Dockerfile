@@ -3,17 +3,17 @@
 # https://github.com/sphinxcode/claude-code-server
 # ============================================================================
 
-FROM codercom/code-server:4.108.0
+FROM codercom/code-server:latest
 
 USER root
 
 # ============================================================================
 # SYSTEM DEPENDENCIES
-# Install gosu, Node.js 20, Python/uv, and essential tools
-# Cache bust: 2026-01-29-v5
+# Install gosu, Node.js 22, Python/uv, and essential tools
+# Cache bust: 2026-01-30-v6
 # ============================================================================
 
-RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
     && apt-get update \
     && apt-get install -y --no-install-recommends \
         gosu \
