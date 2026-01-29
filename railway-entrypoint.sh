@@ -245,4 +245,4 @@ echo "Starting code-server as $(whoami)..."
 echo "════════════════════════════════════════════════════════════════════════"
 echo ""
 
-exec dumb-init /usr/bin/code-server "$@"
+exec dumb-init /usr/bin/code-server --bind-addr 0.0.0.0:8080 /home/coder/workspace

@@ -9,7 +9,7 @@ FROM codercom/code-server:latest
 USER root
 
 # Install gosu for proper user switching, Node.js, and essential tools
-# Cache bust: 2026-01-29-v2
+# Cache bust: 2026-01-29-v3
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
     && apt-get update \
     && apt-get install -y --no-install-recommends \
@@ -42,7 +42,7 @@ ENV XDG_CACHE_HOME=/home/coder/.cache
 ENV XDG_STATE_HOME=/home/coder/.local/state
 
 # PATH: Volume paths FIRST (user installs), image paths LAST (fallbacks)
-ENV PATH="/home/coder/.local/node/bin:/home/coder/.claude/local:/home/coder/.local/bin:/home/coder/node_modules/.bin:/usr/local/bin:/usr/bin:/usr/lib/code-server/lib/vscode/bin/remote-cli:${PATH}"
+ENV PATH="/home/coder/.local/bin:/home/coder/.local/node/bin:/home/coder/.claude/local:/home/coder/node_modules/.bin:/usr/local/bin:/usr/bin:/usr/lib/code-server/lib/vscode/bin/remote-cli:${PATH}"
 
 # Custom startup scripts directory
 ENV ENTRYPOINTD=/home/coder/entrypoint.d
@@ -63,7 +63,7 @@ RUN mkdir -p \
     /home/coder/workspace \
     && chown -R 1000:1000 /home/coder
 
-# Copy custom entrypoint
+# Copy our custom entrypoint (replaces base image's entrypoint)
 COPY railway-entrypoint.sh /usr/bin/railway-entrypoint.sh
 RUN chmod +x /usr/bin/railway-entrypoint.sh
 
@@ -81,11 +81,11 @@ RUN curl -fsSL https://claude.ai/install.sh | bash \
 
 # ============================================================================
 # RUNTIME
-# Entrypoint handles permission fix and user switching via gosu
+# Stay as root - entrypoint handles user switching based on RUN_AS_USER
 # ============================================================================
 
 WORKDIR /home/coder/workspace
 EXPOSE 8080
 
+# Use our entrypoint which calls code-server directly
 ENTRYPOINT ["/usr/bin/railway-entrypoint.sh"]
-CMD ["--bind-addr", "0.0.0.0:8080", "/home/coder/workspace"]
