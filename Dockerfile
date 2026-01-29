@@ -9,6 +9,7 @@ FROM codercom/code-server:latest
 USER root
 
 # Install gosu for proper user switching, Node.js, and essential tools
+# Cache bust: 2026-01-29-v2
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
     && apt-get update \
     && apt-get install -y --no-install-recommends \
