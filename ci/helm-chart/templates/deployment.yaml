@@ -123,14 +123,18 @@ spec:
               containerPort: {{ .port }}
               protocol: {{ .protocol }}
           {{- end }}
+          {{- if ne .Values.livenessProbe.enabled false }}
           livenessProbe:
             httpGet:
               path: /healthz
               port: http
+          {{- end }}
+          {{- if ne .Values.readinessProbe.enabled false }}
           readinessProbe:
             httpGet:
               path: /healthz
               port: http
+          {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       {{- with .Values.nodeSelector }}

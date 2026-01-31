@@ -111,6 +111,12 @@ resources: {}
   #  cpu: 100m
   #  memory: 1000Mi
 
+livenessProbe:
+  enabled: true
+
+readinessProbe:
+  enabled: true
+
 nodeSelector: {}
 
 tolerations: []
