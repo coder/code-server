@@ -335,10 +335,10 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/extensions/browser/extens
  	}
  
  	override async run(): Promise<any> {
-Index: code-server/lib/vscode/src/vs/workbench/workbench.web.main.internal.ts
+Index: code-server/lib/vscode/src/vs/workbench/workbench.web.main.ts
 ===================================================================
---- code-server.orig/lib/vscode/src/vs/workbench/workbench.web.main.internal.ts
-+++ code-server/lib/vscode/src/vs/workbench/workbench.web.main.internal.ts
+--- code-server.orig/lib/vscode/src/vs/workbench/workbench.web.main.ts
++++ code-server/lib/vscode/src/vs/workbench/workbench.web.main.ts
 @@ -54,7 +54,7 @@ import './services/dialogs/browser/fileD
  import './services/host/browser/browserHostService.js';
  import './services/lifecycle/browser/lifecycleService.js';

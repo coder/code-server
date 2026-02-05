@@ -101,7 +101,7 @@ Index: code-server/lib/vscode/src/vs/base/common/product.ts
  
  	readonly version: string;
  	readonly date?: string;
-@@ -113,6 +114,7 @@ export interface IProductConfiguration {
+@@ -114,6 +115,7 @@ export interface IProductConfiguration {
  		readonly resourceUrlTemplate: string;
  		readonly nlsBaseUrl: string;
  		readonly accessSKUs?: string[];
