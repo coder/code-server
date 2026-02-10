@@ -10,7 +10,7 @@ Index: code-server/lib/vscode/src/vs/workbench/api/browser/mainThreadCLICommands
  import { CommandsRegistry, ICommandService } from '../../../platform/commands/common/commands.js';
  import { IExtensionGalleryService, IExtensionManagementService } from '../../../platform/extensionManagement/common/extensionManagement.js';
  import { ExtensionManagementCLI } from '../../../platform/extensionManagement/common/extensionManagementCLI.js';
-@@ -95,6 +96,11 @@ CommandsRegistry.registerCommand('_remot
+@@ -96,6 +97,11 @@ CommandsRegistry.registerCommand('_remot
  
  });
  
@@ -50,7 +50,7 @@ Index: code-server/lib/vscode/src/vs/workbench/api/node/extHostCLIServer.ts
  					default:
  						sendResponse(404, `Unknown message type: ${data.type}`);
  						break;
-@@ -173,6 +181,10 @@ export class CLIServerBase {
+@@ -176,6 +184,10 @@ export class CLIServerBase {
  		return await this._commands.executeCommand<string | undefined>('_remoteCLI.getSystemStatus');
  	}
  

@@ -94,7 +94,7 @@ Index: code-server/lib/vscode/src/vs/workbench/api/node/extensionHostProcess.ts
  
 +import * as _http from 'http';
  import minimist from 'minimist';
- import * as nativeWatchdog from 'native-watchdog';
+ import * as nativeWatchdog from '@vscode/native-watchdog';
  import * as net from 'net';
 @@ -469,7 +470,28 @@ async function startExtensionHostProcess
  	);
