@@ -1,0 +1,18 @@
+# ============================================================================
+# Claude Code Server - Railway Configuration
+# https://github.com/sphinxcode/claude-code-server
+# ============================================================================
+
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile"
+
+[deploy]
+healthcheckPath = "/healthz"
+healthcheckTimeout = 300
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10
+
+# Auto-generate a Railway domain on deployment
+[[services.networking.external]]
+port = 8080

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+        <linearGradient id="orangeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#ff7b5c"/>
+            <stop offset="100%" stop-color="#e05a3a"/>
+        </linearGradient>
+        <linearGradient id="blueGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#5b9fff"/>
+            <stop offset="100%" stop-color="#3d7ed8"/>
+        </linearGradient>
+    </defs>
+    
+    <!-- Outer C shape -->
+    <path d="M380 120 C320 60 200 60 140 120 C80 180 80 332 140 392 C200 452 320 452 380 392 L340 352 C300 392 212 392 172 352 C132 312 132 200 172 160 C212 120 300 120 340 160 Z" fill="url(#orangeGrad)"/>
+    
+    <!-- Inner code bracket < -->
+    <path d="M320 180 L220 256 L320 332 L280 372 L140 256 L280 140 Z" fill="url(#blueGrad)"/>
+</svg>
