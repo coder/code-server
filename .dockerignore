@@ -1,3 +1,5 @@
 **
 !release-packages
 !ci
+!Dockerfile
+!requirements.txt
