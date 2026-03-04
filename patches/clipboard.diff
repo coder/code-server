@@ -40,7 +40,7 @@ Index: code-server/lib/vscode/src/vs/workbench/api/node/extHostCLIServer.ts
  
  export interface ICommandsExecuter {
  	executeCommand<T>(id: string, ...args: any[]): Promise<T>;
-@@ -106,6 +111,9 @@ export class CLIServerBase {
+@@ -110,6 +115,9 @@ export class CLIServerBase {
  					case 'extensionManagement':
  						returnObj = await this.manageExtensions(data);
  						break;
@@ -50,7 +50,7 @@ Index: code-server/lib/vscode/src/vs/workbench/api/node/extHostCLIServer.ts
  					default:
  						sendResponse(404, `Unknown message type: ${data.type}`);
  						break;
-@@ -176,6 +184,10 @@ export class CLIServerBase {
+@@ -180,6 +188,10 @@ export class CLIServerBase {
  		return await this._commands.executeCommand<string | undefined>('_remoteCLI.getSystemStatus');
  	}
  
@@ -59,26 +59,26 @@ Index: code-server/lib/vscode/src/vs/workbench/api/node/extHostCLIServer.ts
 +	}
 +
  	dispose(): void {
- 		this._server.close();
- 
+ 		this._disposed = true;
+ 		this._server?.close();
 Index: code-server/lib/vscode/src/vs/workbench/contrib/terminal/browser/remoteTerminalBackend.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/contrib/terminal/browser/remoteTerminalBackend.ts
 +++ code-server/lib/vscode/src/vs/workbench/contrib/terminal/browser/remoteTerminalBackend.ts
-@@ -98,7 +98,7 @@ class RemoteTerminalBackend extends Base
+@@ -99,7 +99,7 @@ class RemoteTerminalBackend extends Base
  			}
- 		});
+ 		}));
  
 -		const allowedCommands = ['_remoteCLI.openExternal', '_remoteCLI.windowOpen', '_remoteCLI.getSystemStatus', '_remoteCLI.manageExtensions'];
 +		const allowedCommands = ['_remoteCLI.openExternal', '_remoteCLI.windowOpen', '_remoteCLI.getSystemStatus', '_remoteCLI.manageExtensions', '_remoteCLI.setClipboard'];
- 		this._remoteTerminalChannel.onExecuteCommand(async e => {
+ 		this._register(this._remoteTerminalChannel.onExecuteCommand(async e => {
  			// Ensure this request for for this window
  			const pty = this._ptys.get(e.persistentProcessId);
 Index: code-server/lib/vscode/src/vs/platform/environment/common/argv.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/platform/environment/common/argv.ts
 +++ code-server/lib/vscode/src/vs/platform/environment/common/argv.ts
-@@ -137,6 +137,7 @@ export interface NativeParsedArgs {
+@@ -138,6 +138,7 @@ export interface NativeParsedArgs {
  	'disable-chromium-sandbox'?: boolean;
  	sandbox?: boolean;
  	'enable-coi'?: boolean;
@@ -90,7 +90,7 @@ Index: code-server/lib/vscode/src/vs/platform/environment/node/argv.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/platform/environment/node/argv.ts
 +++ code-server/lib/vscode/src/vs/platform/environment/node/argv.ts
-@@ -105,6 +105,7 @@ export const OPTIONS: OptionDescriptions
+@@ -106,6 +106,7 @@ export const OPTIONS: OptionDescriptions
  	'user-data-dir': { type: 'string', cat: 'o', args: 'dir', description: localize('userDataDir', "Specifies the directory that user data is kept in. Can be used to open multiple distinct instances of Code.") },
  	'profile': { type: 'string', 'cat': 'o', args: 'profileName', description: localize('profileName', "Opens the provided folder or workspace with the given profile and associates the profile with the workspace. If the profile does not exist, a new empty one is created.") },
  	'help': { type: 'boolean', cat: 'o', alias: 'h', description: localize('help', "Print usage.") },
