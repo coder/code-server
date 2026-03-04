@@ -1,0 +1,22 @@
+Fix protected field error
+
+The mangler is reporting this error:
+
+WARN: 'setEditorVisible' from lib/vscode/src/vs/workbench/browser/parts/editor/editorPane.ts:160 became PUBLIC because of: lib/vscode/src/vs/workbench/contrib/chat/browser/chatDebug/chatDebugEditor.ts:304
+ERROR: Protected fields have been made PUBLIC. This hurts minification and is therefore not allowed. Review the WARN messages further above
+
+No idea how VS Code is dealing with this in their own builds.
+
+Index: code-server/lib/vscode/src/vs/workbench/contrib/chat/browser/chatDebug/chatDebugEditor.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/workbench/contrib/chat/browser/chatDebug/chatDebugEditor.ts
++++ code-server/lib/vscode/src/vs/workbench/contrib/chat/browser/chatDebug/chatDebugEditor.ts
+@@ -301,7 +301,7 @@ export class ChatDebugEditor extends Edi
+ 		}
+ 	}
+ 
+-	override setEditorVisible(visible: boolean): void {
++	protected override setEditorVisible(visible: boolean): void {
+ 		super.setEditorVisible(visible);
+ 		if (visible) {
+ 			this.telemetryService.publicLog2<{}, ChatDebugPanelOpenedClassification>('chatDebugPanelOpened');
