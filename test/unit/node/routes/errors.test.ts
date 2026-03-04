@@ -20,9 +20,45 @@ describe("error page is rendered for text/html requests", () => {
     expect(res.status).toHaveBeenCalledWith(404)
     expect(res.send).toHaveBeenCalledWith(expect.not.stringContaining("<script>"))
   })
+
+  it("should use custom app-name in error page title", async () => {
+    const err = {
+      statusCode: 404,
+      message: "Not found",
+    }
+    const req = createRequest({ "app-name": "MyCodeServer" })
+    const res = {
+      status: jest.fn().mockReturnValue(this),
+      send: jest.fn().mockReturnValue(this),
+      set: jest.fn().mockReturnValue(this),
+    } as unknown as express.Response
+
+    await errorHandler(err, req, res, jest.fn())
+    expect(res.send).toHaveBeenCalledWith(
+      expect.stringContaining("<title>404 - MyCodeServer</title>"),
+    )
+  })
+
+  it("should use default 'code-server' when app-name is not set", async () => {
+    const err = {
+      statusCode: 500,
+      message: "Internal error",
+    }
+    const req = createRequest()
+    const res = {
+      status: jest.fn().mockReturnValue(this),
+      send: jest.fn().mockReturnValue(this),
+      set: jest.fn().mockReturnValue(this),
+    } as unknown as express.Response
+
+    await errorHandler(err, req, res, jest.fn())
+    expect(res.send).toHaveBeenCalledWith(
+      expect.stringContaining("<title>500 - code-server</title>"),
+    )
+  })
 })
 
-function createRequest(): express.Request {
+function createRequest(args?: Record<string, string>): express.Request {
   return {
     headers: {
       accept: ["text/html"],
@@ -31,5 +67,6 @@ function createRequest(): express.Request {
     query: {
       to: "test",
     },
+    args: args,
   } as unknown as express.Request
 }
