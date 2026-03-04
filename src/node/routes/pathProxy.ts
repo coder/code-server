@@ -13,7 +13,8 @@ const getProxyTarget = (
 ): string => {
   // If there is a base path, strip it out.
   const base = (req as any).base || ""
-  const port = parseInt(req.params.port, 10)
+  // Cast since we only have one port param.
+  const port = parseInt(req.params.port as string, 10)
   if (isNaN(port)) {
     throw new HttpError("Invalid port", HttpCode.BadRequest)
   }
