@@ -47,6 +47,7 @@ describe("parser", () => {
     delete process.env.PASSWORD
     delete process.env.CS_DISABLE_FILE_DOWNLOADS
     delete process.env.CS_DISABLE_GETTING_STARTED_OVERRIDE
+    delete process.env.CS_RECONNECTION_GRACE_TIME
     delete process.env.VSCODE_PROXY_URI
     delete process.env.CS_DISABLE_PROXY
     console.log = jest.fn()
@@ -114,6 +115,8 @@ describe("parser", () => {
 
           ["--session-socket", "/tmp/override-code-server-ipc-socket"],
 
+          ["--reconnection-grace-time", "86400"],
+
           ["--host", "0.0.0.0"],
           "4",
           "--",
@@ -150,6 +153,7 @@ describe("parser", () => {
       version: true,
       "bind-addr": "192.169.0.1:8080",
       "session-socket": "/tmp/override-code-server-ipc-socket",
+      "reconnection-grace-time": "86400",
       "abs-proxy-base-path": "/codeserver/app1",
       "skip-auth-preflight": true,
     })
@@ -454,6 +458,19 @@ describe("parser", () => {
       ...defaults,
       "disable-proxy": true,
     })
+  })
+
+  it("should use env var CS_RECONNECTION_GRACE_TIME", async () => {
+    process.env.CS_RECONNECTION_GRACE_TIME = "86400"
+    const args = parse([])
+    expect(args).toEqual({})
+
+    const defaultArgs = await setDefaults(args)
+    expect(defaultArgs).toEqual({
+      ...defaults,
+      "reconnection-grace-time": "86400",
+    })
+    delete process.env.CS_RECONNECTION_GRACE_TIME
   })
 
   it("should error if password passed in", () => {
