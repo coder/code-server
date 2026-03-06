@@ -62,7 +62,6 @@ jobs:
   prettier:
     name: Run prettier check
     runs-on: ubuntu-22.04
-    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
@@ -78,7 +77,6 @@ jobs:
   doctoc:
     name: Doctoc markdown files
     runs-on: ubuntu-22.04
-    timeout-minutes: 5
     needs: changes
     if: needs.changes.outputs.docs == 'true'
     steps:
@@ -96,7 +94,6 @@ jobs:
   lint-helm:
     name: Lint Helm chart
     runs-on: ubuntu-22.04
-    timeout-minutes: 5
     needs: changes
     if: needs.changes.outputs.helm == 'true'
     steps:
@@ -110,7 +107,6 @@ jobs:
   lint-ts:
     name: Lint TypeScript files
     runs-on: ubuntu-22.04
-    timeout-minutes: 5
     needs: changes
     if: needs.changes.outputs.code == 'true'
     steps:
@@ -142,7 +138,6 @@ jobs:
   test-unit:
     name: Run unit tests
     runs-on: ubuntu-22.04
-    timeout-minutes: 5
     needs: changes
     if: needs.changes.outputs.code == 'true'
     steps:
@@ -164,7 +159,6 @@ jobs:
   build:
     name: Build code-server
     runs-on: ubuntu-22.04
-    timeout-minutes: 70
     env:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       DISABLE_V8_COMPILE_CACHE: 1
@@ -227,7 +221,6 @@ jobs:
   test-e2e:
     name: Run e2e tests
     runs-on: ubuntu-22.04
-    timeout-minutes: 25
     needs: [changes, build]
     if: needs.changes.outputs.code == 'true' || needs.changes.outputs.deps == 'true'
     steps:
@@ -261,7 +254,6 @@ jobs:
   test-e2e-proxy:
     name: Run e2e tests behind proxy
     runs-on: ubuntu-22.04
-    timeout-minutes: 25
     needs: [changes, build]
     if: needs.changes.outputs.code == 'true' || needs.changes.outputs.deps == 'true'
     steps:

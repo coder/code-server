@@ -172,7 +172,7 @@ Index: code-server/lib/vscode/src/vs/workbench/browser/web.main.ts
  import { IProgressService } from '../../platform/progress/common/progress.js';
  import { DelayedLogChannel } from '../services/output/common/delayedLogChannel.js';
  import { dirname, joinPath } from '../../base/common/resources.js';
-@@ -135,6 +136,9 @@ export class BrowserMain extends Disposa
+@@ -133,6 +134,9 @@ export class BrowserMain extends Disposa
  		// Startup
  		const instantiationService = workbench.startup();
  
@@ -304,11 +304,11 @@ Index: code-server/lib/vscode/src/server-main.ts
 +if (!process.env.CODE_SERVER_PARENT_PID) {
 +	start();
 +}
-Index: code-server/lib/vscode/src/vs/platform/dialogs/browser/dialog.ts
+Index: code-server/lib/vscode/src/vs/workbench/browser/parts/dialogs/dialog.ts
 ===================================================================
---- code-server.orig/lib/vscode/src/vs/platform/dialogs/browser/dialog.ts
-+++ code-server/lib/vscode/src/vs/platform/dialogs/browser/dialog.ts
-@@ -45,8 +45,11 @@ export function createWorkbenchDialogOpt
+--- code-server.orig/lib/vscode/src/vs/workbench/browser/parts/dialogs/dialog.ts
++++ code-server/lib/vscode/src/vs/workbench/browser/parts/dialogs/dialog.ts
+@@ -47,8 +47,11 @@ export function createWorkbenchDialogOpt
  
  export function createBrowserAboutDialogDetails(productService: IProductService): { title: string; details: string; detailsToCopy: string } {
  	const detailString = (useAgo: boolean): string => {
