@@ -57,7 +57,8 @@ export const errorHandler: express.ErrorRequestHandler = async (err, req, res, n
       replaceTemplates(req, content)
         .replace(/{{ERROR_TITLE}}/g, statusCode.toString())
         .replace(/{{ERROR_HEADER}}/g, statusCode.toString())
-        .replace(/{{ERROR_BODY}}/g, escapeHtml(err.message)),
+        .replace(/{{ERROR_BODY}}/g, escapeHtml(err.message))
+        .replace(/{{APP_NAME}}/g, (req.args && req.args["app-name"]) || "code-server"),
     )
   } else {
     res.json({
