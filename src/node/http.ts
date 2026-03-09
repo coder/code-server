@@ -352,6 +352,33 @@ export function ensureOrigin(req: express.Request, _?: express.Response, next?: 
 }
 
 /**
+ * Return true if the origin matches any trusted origin.  Entries are matched
+ * as exact strings, the special wildcard `"*"`, or regex literals in the form
+ * `/pattern/flags` (e.g. `/^.*\.example\.com$/i`).
+ */
+export function isTrustedOrigin(origin: string, trustedOrigins: string[]): boolean {
+  return trustedOrigins.some((trusted) => {
+    if (trusted === "*" || trusted === origin) {
+      return true
+    }
+    // Regex literal: /pattern/ or /pattern/flags
+    if (trusted.startsWith("/")) {
+      const closingSlash = trusted.lastIndexOf("/")
+      if (closingSlash > 0) {
+        const pattern = trusted.slice(1, closingSlash)
+        const flags = trusted.slice(closingSlash + 1)
+        try {
+          return new RegExp(pattern, flags).test(origin)
+        } catch {
+          return false
+        }
+      }
+    }
+    return false
+  })
+}
+
+/**
  * Authenticate the request origin against the host.  Throw if invalid.
  */
 export function authenticateOrigin(req: express.Request): void {
@@ -370,7 +397,7 @@ export function authenticateOrigin(req: express.Request): void {
   }
 
   const trustedOrigins = req.args["trusted-origins"] || []
-  if (trustedOrigins.includes(origin) || trustedOrigins.includes("*")) {
+  if (isTrustedOrigin(origin, trustedOrigins)) {
     return
   }
 
