@@ -34,9 +34,7 @@ describe("error page is rendered for text/html requests", () => {
     } as unknown as express.Response
 
     await errorHandler(err, req, res, jest.fn())
-    expect(res.send).toHaveBeenCalledWith(
-      expect.stringContaining("<title>404 - MyCodeServer</title>"),
-    )
+    expect(res.send).toHaveBeenCalledWith(expect.stringContaining("<title>404 - MyCodeServer</title>"))
   })
 
   it("should use default 'code-server' when app-name is not set", async () => {
@@ -52,9 +50,7 @@ describe("error page is rendered for text/html requests", () => {
     } as unknown as express.Response
 
     await errorHandler(err, req, res, jest.fn())
-    expect(res.send).toHaveBeenCalledWith(
-      expect.stringContaining("<title>500 - code-server</title>"),
-    )
+    expect(res.send).toHaveBeenCalledWith(expect.stringContaining("<title>500 - code-server</title>"))
   })
 })
 
