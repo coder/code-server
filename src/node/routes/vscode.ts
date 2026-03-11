@@ -172,7 +172,6 @@ router.get("/", ensureVSCodeLoaded, async (req, res, next) => {
 })
 
 router.get("/manifest.json", async (req, res) => {
-  const appName = req.args["app-name"] || "code-server"
   res.writeHead(200, { "Content-Type": "application/manifest+json" })
 
   res.end(
@@ -180,8 +179,8 @@ router.get("/manifest.json", async (req, res) => {
       req,
       JSON.stringify(
         {
-          name: appName,
-          short_name: appName,
+          name: req.args["app-name"],
+          short_name: req.args["app-name"],
           start_url: ".",
           display: "fullscreen",
           display_override: ["window-controls-overlay"],

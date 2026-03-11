@@ -29,8 +29,7 @@ const getRoot = async (req: Request, error?: Error): Promise<string> => {
   const content = await fs.readFile(path.join(rootPath, "src/browser/pages/login.html"), "utf8")
   const locale = req.args["locale"] || "en"
   i18n.changeLanguage(locale)
-  const appName = req.args["app-name"] || "code-server"
-  const welcomeText = req.args["welcome-text"] || (i18n.t("WELCOME", { app: appName }) as string)
+  const welcomeText = req.args["welcome-text"] || (i18n.t("WELCOME", { app: req.args["app-name"] }) as string)
 
   // Determine password message using i18n
   let passwordMsg = i18n.t("LOGIN_PASSWORD", { configFile: req.args.config })
@@ -43,7 +42,7 @@ const getRoot = async (req: Request, error?: Error): Promise<string> => {
   return replaceTemplates(
     req,
     content
-      .replace(/{{I18N_LOGIN_TITLE}}/g, i18n.t("LOGIN_TITLE", { app: appName }))
+      .replace(/{{I18N_LOGIN_TITLE}}/g, i18n.t("LOGIN_TITLE", { app: req.args["app-name"] }))
       .replace(/{{WELCOME_TEXT}}/g, welcomeText)
       .replace(/{{PASSWORD_MSG}}/g, passwordMsg)
       .replace(/{{I18N_LOGIN_BELOW}}/g, i18n.t("LOGIN_BELOW"))

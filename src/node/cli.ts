@@ -519,6 +519,7 @@ export interface DefaultedArgs extends ConfigArgs {
   "extensions-dir": string
   "user-data-dir": string
   "session-socket": string
+  "app-name": string
   /* Positional arguments. */
   _: string[]
 }
@@ -664,6 +665,10 @@ export async function setDefaults(cliArgs: UserProvidedArgs, configArgs?: Config
     process.env.VSCODE_PROXY_URI = `//${finalProxies[0]}`
   }
   args["proxy-domain"] = finalProxies
+
+  if (!args["app-name"]) {
+    args["app-name"] = "code-server"
+  }
 
   args._ = getResolvedPathsFromArgs(args)
 
