@@ -16,6 +16,7 @@ variable "GITHUB_REGISTRY" {
 
 group "default" {
     targets = [
+        "code-server-debian-13",
         "code-server-debian-12",
         "code-server-ubuntu-focal",
         "code-server-ubuntu-noble",
@@ -48,13 +49,24 @@ function "gen_tags_for_docker_and_ghcr" {
     )
 }
 
-target "code-server-debian-12" {
+target "code-server-debian-13" {
     dockerfile = "ci/release-image/Dockerfile"
     tags = concat(
         gen_tags_for_docker_and_ghcr(""),
         gen_tags_for_docker_and_ghcr("debian"),
+        gen_tags_for_docker_and_ghcr("trixie"),
+    )
+    platforms = ["linux/amd64", "linux/arm64"]
+}
+
+target "code-server-debian-12" {
+    dockerfile = "ci/release-image/Dockerfile"
+    tags = concat(
         gen_tags_for_docker_and_ghcr("bookworm"),
     )
+    args = {
+        BASE = "debian:12"
+    }
     platforms = ["linux/amd64", "linux/arm64"]
 }
 
