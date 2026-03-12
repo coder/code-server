@@ -353,26 +353,18 @@ export function ensureOrigin(req: express.Request, _?: express.Response, next?: 
 
 /**
  * Return true if the origin matches any trusted origin.  Entries are matched
- * as exact strings, the special wildcard `"*"`, or regex literals in the form
- * `/pattern/flags` (e.g. `/^.*\.example\.com$/i`).
+ * as exact strings, the special wildcard `"*"`, or `*.example.com`-style
+ * domain wildcards (same as --proxy-domain).
  */
 export function isTrustedOrigin(origin: string, trustedOrigins: string[]): boolean {
   return trustedOrigins.some((trusted) => {
     if (trusted === "*" || trusted === origin) {
       return true
     }
-    // Regex literal: /pattern/ or /pattern/flags
-    if (trusted.startsWith("/")) {
-      const closingSlash = trusted.lastIndexOf("/")
-      if (closingSlash > 0) {
-        const pattern = trusted.slice(1, closingSlash)
-        const flags = trusted.slice(closingSlash + 1)
-        try {
-          return new RegExp(pattern, flags).test(origin)
-        } catch {
-          return false
-        }
-      }
+    // *.example.com style: match origin if it is the domain or a subdomain
+    if (trusted.startsWith("*.")) {
+      const domain = trusted.slice(2).toLowerCase()
+      return origin === domain || origin.endsWith("." + domain)
     }
     return false
   })

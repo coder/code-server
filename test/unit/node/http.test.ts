@@ -31,17 +31,11 @@ describe("http", () => {
       expect(http.isTrustedOrigin("localhost:8080", ["*"])).toBe(true)
     })
 
-    it("should match regex patterns", () => {
-      expect(http.isTrustedOrigin("sub.example.com", ["/\\.example\\.com$/"])).toBe(true)
-      expect(http.isTrustedOrigin("evil.com", ["/\\.example\\.com$/"])).toBe(false)
-    })
-
-    it("should support regex flags", () => {
-      expect(http.isTrustedOrigin("SUB.EXAMPLE.COM", ["/\\.example\\.com$/i"])).toBe(true)
-    })
-
-    it("should return false for invalid regex patterns", () => {
-      expect(http.isTrustedOrigin("example.com", ["/[invalid/"])).toBe(false)
+    it("should match *.example.com wildcard (same style as --proxy-domain)", () => {
+      expect(http.isTrustedOrigin("sub.example.com", ["*.example.com"])).toBe(true)
+      expect(http.isTrustedOrigin("example.com", ["*.example.com"])).toBe(true)
+      expect(http.isTrustedOrigin("evil.com", ["*.example.com"])).toBe(false)
+      expect(http.isTrustedOrigin("example.com.evil.com", ["*.example.com"])).toBe(false)
     })
 
     it("should return false for an empty trusted origins list", () => {
@@ -87,12 +81,12 @@ describe("http", () => {
       {
         origin: "http://sub.example.com",
         host: "other.com",
-        trustedOrigins: ["/\\.example\\.com$/"],
+        trustedOrigins: ["*.example.com"],
       },
       {
         origin: "http://evil.com",
         host: "other.com",
-        trustedOrigins: ["/\\.example\\.com$/"],
+        trustedOrigins: ["*.example.com"],
         expected: "does not match",
       },
       {
