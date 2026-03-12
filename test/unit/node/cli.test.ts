@@ -38,6 +38,7 @@ const defaults = {
   "extensions-dir": path.join(paths.data, "extensions"),
   "user-data-dir": paths.data,
   "session-socket": path.join(paths.data, "code-server-ipc.sock"),
+  "app-name": "code-server",
   _: [],
 }
 

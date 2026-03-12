@@ -79,7 +79,7 @@ Index: code-server/lib/vscode/src/vs/workbench/services/configuration/browser/co
  			});
  		}));
  
-@@ -555,6 +557,12 @@ export class WorkspaceService extends Di
+@@ -559,6 +561,12 @@ export class WorkspaceService extends Di
  			previousFolders = this.workspace.folders;
  			this.workspace.update(workspace);
  		} else {
