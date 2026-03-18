@@ -112,7 +112,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -369,6 +369,8 @@ export class WebClientServer {
+@@ -370,6 +370,8 @@ export class WebClientServer {
  			serverBasePath: basePath,
  			webviewEndpoint: staticRoute + '/out/vs/workbench/contrib/webview/browser/pre',
  			userDataPath: this._environmentService.userDataPath,
@@ -239,7 +239,7 @@ Index: code-server/lib/vscode/src/vs/workbench/services/dialogs/browser/simpleFi
  		@IRemoteAgentService private readonly remoteAgentService: IRemoteAgentService,
  		@IPathService protected readonly pathService: IPathService,
  		@IKeybindingService private readonly keybindingService: IKeybindingService,
-@@ -311,21 +311,23 @@ export class SimpleFileDialog extends Di
+@@ -322,21 +322,23 @@ export class SimpleFileDialog extends Di
  			this.filePickBox.placeholder = nls.localize('remoteFileDialog.placeholder', "Folder path");
  			this.filePickBox.ok = true;
  			this.filePickBox.okLabel = typeof this.options.openLabel === 'string' ? this.options.openLabel : this.options.openLabel?.withoutMnemonic;

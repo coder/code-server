@@ -161,7 +161,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
  import { CharCode } from '../../base/common/charCode.js';
  import { IExtensionManifest } from '../../platform/extensions/common/extensions.js';
  import { ICSSDevelopmentService } from '../../platform/cssDev/node/cssDevService.js';
-@@ -385,14 +386,22 @@ export class WebClientServer {
+@@ -386,14 +387,22 @@ export class WebClientServer {
  		};
  
  		const cookies = cookie.parse(req.headers.cookie || '');

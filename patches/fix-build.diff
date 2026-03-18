@@ -14,7 +14,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/chat/browser/chatDebug/ch
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/contrib/chat/browser/chatDebug/chatDebugEditor.ts
 +++ code-server/lib/vscode/src/vs/workbench/contrib/chat/browser/chatDebug/chatDebugEditor.ts
-@@ -303,7 +303,7 @@ export class ChatDebugEditor extends Edi
+@@ -299,7 +299,7 @@ export class ChatDebugEditor extends Edi
  		}
  	}
  
