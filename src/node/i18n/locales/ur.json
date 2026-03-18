@@ -2,7 +2,7 @@
   "LOGIN_TITLE": "{{app}} لاگ ان کریں",
   "LOGIN_BELOW": "براہ کرم نیچے لاگ ان کریں۔",
   "WELCOME": "میں خوش آمدید {{app}}",
-  "LOGIN_PASSWORD": "پاس ورڈ کے لیے {{configFile}} پر کنفگ فائل چیک کریں۔",
+  "LOGIN_PASSWORD": "پاس ورڈ کے لیے کنفگ فائل چیک کریں۔",
   "LOGIN_USING_ENV_PASSWORD": "پاس ورڈ $PASSWORD سے سیٹ کیا گیا تھا۔",
   "LOGIN_USING_HASHED_PASSWORD": "پاس ورڈ $HASHED_PASSWORD سے سیٹ کیا گیا تھا۔",
   "SUBMIT": "جمع کرائیں",

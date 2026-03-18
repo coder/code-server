@@ -32,7 +32,7 @@ const getRoot = async (req: Request, error?: Error): Promise<string> => {
   const welcomeText = req.args["welcome-text"] || (i18n.t("WELCOME", { app: req.args["app-name"] }) as string)
 
   // Determine password message using i18n
-  let passwordMsg = i18n.t("LOGIN_PASSWORD", { configFile: req.args.config })
+  let passwordMsg = i18n.t("LOGIN_PASSWORD")
   if (req.args.usingEnvPassword) {
     passwordMsg = i18n.t("LOGIN_USING_ENV_PASSWORD")
   } else if (req.args.usingEnvHashedPassword) {
