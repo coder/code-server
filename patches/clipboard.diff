@@ -39,7 +39,7 @@ Index: code-server/lib/vscode/src/vs/workbench/api/node/extHostCLIServer.ts
 +export type PipeCommand = OpenCommandPipeArgs | StatusPipeArgs | OpenExternalCommandPipeArgs | ExtensionManagementPipeArgs | ClipboardPipeArgs;
  
  export interface ICommandsExecuter {
- 	executeCommand<T>(id: string, ...args: any[]): Promise<T>;
+ 	executeCommand<T>(id: string, ...args: unknown[]): Promise<T>;
 @@ -110,6 +115,9 @@ export class CLIServerBase {
  					case 'extensionManagement':
  						returnObj = await this.manageExtensions(data);
@@ -78,7 +78,7 @@ Index: code-server/lib/vscode/src/vs/platform/environment/common/argv.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/platform/environment/common/argv.ts
 +++ code-server/lib/vscode/src/vs/platform/environment/common/argv.ts
-@@ -138,6 +138,7 @@ export interface NativeParsedArgs {
+@@ -139,6 +139,7 @@ export interface NativeParsedArgs {
  	'disable-chromium-sandbox'?: boolean;
  	sandbox?: boolean;
  	'enable-coi'?: boolean;
