@@ -639,8 +639,8 @@ export async function setDefaults(cliArgs: UserProvidedArgs, configArgs?: Config
     args["github-auth"] = process.env.GITHUB_TOKEN
   }
 
-  if (process.env.CS_RECONNECTION_GRACE_TIME) {
-    args["reconnection-grace-time"] = process.env.CS_RECONNECTION_GRACE_TIME
+  if (process.env.CODE_SERVER_RECONNECTION_GRACE_TIME) {
+    args["reconnection-grace-time"] = process.env.CODE_SERVER_RECONNECTION_GRACE_TIME
   }
 
   if (process.env.CODE_SERVER_IDLE_TIMEOUT_SECONDS) {
