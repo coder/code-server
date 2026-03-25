@@ -36,3 +36,16 @@ Index: code-server/lib/vscode/build/lib/mangle/index.ts
  			minWorkers: 'max'
  		});
  	}
+Index: code-server/lib/vscode/src/vs/workbench/contrib/terminalContrib/chatAgentTools/browser/tools/runInTerminalConfirmationTool.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/workbench/contrib/terminalContrib/chatAgentTools/browser/tools/runInTerminalConfirmationTool.ts
++++ code-server/lib/vscode/src/vs/workbench/contrib/terminalContrib/chatAgentTools/browser/tools/runInTerminalConfirmationTool.ts
+@@ -58,7 +58,7 @@ export const ConfirmTerminalCommandToolD
+ };
+ 
+ export class ConfirmTerminalCommandTool extends RunInTerminalTool {
+-	override get _enableCommandLineSandboxRewriting() {
++	protected override get _enableCommandLineSandboxRewriting() {
+ 		return false;
+ 	}
+ 
