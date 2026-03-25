@@ -22,6 +22,7 @@
 - [How do I debug issues with code-server?](#how-do-i-debug-issues-with-code-server)
 - [What is the healthz endpoint?](#what-is-the-healthz-endpoint)
 - [What is the heartbeat file?](#what-is-the-heartbeat-file)
+- [How do I change the reconnection grace time?](#how-do-i-change-the-reconnection-grace-time)
 - [How do I change the password?](#how-do-i-change-the-password)
 - [Can I store my password hashed?](#can-i-store-my-password-hashed)
 - [Is multi-tenancy possible?](#is-multi-tenancy-possible)
@@ -325,6 +326,16 @@ As long as there is an active browser connection, code-server touches
 If you want to shutdown code-server if there hasn't been an active connection
 after a predetermined amount of time, you can use the --idle-timeout-seconds flag
 or set an `CODE_SERVER_IDLE_TIMEOUT_SECONDS` environment variable.
+
+## How do I change the reconnection grace time?
+
+Pass `--reconnection-grace-time <seconds>` to `code-server`, set
+`CODE_SERVER_RECONNECTION_GRACE_TIME=<seconds>`, or add
+`reconnection-grace-time: <seconds>` to
+`~/.config/code-server/config.yaml`.
+
+The default is `10800` (3 hours). If a client stays disconnected longer than
+this, it must reload the window.
 
 ## How do I change the password?
 
