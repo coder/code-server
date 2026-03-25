@@ -19,6 +19,30 @@ describe("http", () => {
     expect(http.relativeRoot("/foo/bar/")).toStrictEqual("./../..")
   })
 
+  describe("isTrustedOrigin", () => {
+    it("should match exact origins", () => {
+      expect(http.isTrustedOrigin("localhost:8080", ["localhost:8080"])).toBe(true)
+      expect(http.isTrustedOrigin("example.com", ["example.com"])).toBe(true)
+      expect(http.isTrustedOrigin("example.com", ["other.com"])).toBe(false)
+    })
+
+    it("should match the wildcard *", () => {
+      expect(http.isTrustedOrigin("anything.example.com", ["*"])).toBe(true)
+      expect(http.isTrustedOrigin("localhost:8080", ["*"])).toBe(true)
+    })
+
+    it("should match *.example.com wildcard (same style as --proxy-domain)", () => {
+      expect(http.isTrustedOrigin("sub.example.com", ["*.example.com"])).toBe(true)
+      expect(http.isTrustedOrigin("example.com", ["*.example.com"])).toBe(true)
+      expect(http.isTrustedOrigin("evil.com", ["*.example.com"])).toBe(false)
+      expect(http.isTrustedOrigin("example.com.evil.com", ["*.example.com"])).toBe(false)
+    })
+
+    it("should return false for an empty trusted origins list", () => {
+      expect(http.isTrustedOrigin("example.com", [])).toBe(false)
+    })
+  })
+
   describe("origin", () => {
     ;[
       {
@@ -54,6 +78,22 @@ describe("http", () => {
         host: "localhost:8080",
         expected: "malformed", // Parsing fails completely.
       },
+      {
+        origin: "http://sub.example.com",
+        host: "other.com",
+        trustedOrigins: ["*.example.com"],
+      },
+      {
+        origin: "http://evil.com",
+        host: "other.com",
+        trustedOrigins: ["*.example.com"],
+        expected: "does not match",
+      },
+      {
+        origin: "http://sub.example.com",
+        host: "other.com",
+        trustedOrigins: ["*"],
+      },
     ].forEach((test) => {
       ;[
         ["host", test.host],
@@ -70,7 +110,9 @@ describe("http", () => {
               origin: test.origin,
               [key]: value,
             },
-            args: {},
+            args: {
+              "trusted-origins": (test as { trustedOrigins?: string[] }).trustedOrigins,
+            },
           })
           if (typeof test.expected === "string") {
             expect(() => http.authenticateOrigin(req)).toThrow(test.expected)
