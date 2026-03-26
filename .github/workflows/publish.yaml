@@ -43,11 +43,10 @@ jobs:
       # Strip out the v (v4.9.1 -> 4.9.1).
       - name: Get and set VERSION
         run: |
-          TAG="${INPUT_VERSION}"
           echo "VERSION=${TAG#v}" >> $GITHUB_ENV
 
         env:
-          INPUT_VERSION: ${{ github.event.inputs.version || github.ref_name }}
+          TAG: ${{ github.event.inputs.version || github.ref_name }}
       - run: npm run publish:npm
         env:
           VERSION: ${{ env.VERSION }}
@@ -90,11 +89,10 @@ jobs:
       # Strip out the v (v4.9.1 -> 4.9.1).
       - name: Get and set VERSION
         run: |
-          TAG="${INPUT_VERSION}"
           echo "VERSION=${TAG#v}" >> $GITHUB_ENV
 
         env:
-          INPUT_VERSION: ${{ github.event.inputs.version || github.ref_name }}
+          TAG: ${{ github.event.inputs.version || github.ref_name }}
       - name: Validate package
         uses: heyhusen/archlinux-package-action@c9f94059ccbebe8710d31d582f33ef4e84fe575c # v3.0.0
         env:
@@ -144,11 +142,10 @@ jobs:
       # Strip out the v (v4.9.1 -> 4.9.1).
       - name: Get and set VERSION
         run: |
-          TAG="${INPUT_VERSION}"
           echo "VERSION=${TAG#v}" >> $GITHUB_ENV
 
         env:
-          INPUT_VERSION: ${{ github.event.inputs.version || github.ref_name }}
+          TAG: ${{ github.event.inputs.version || github.ref_name }}
       - name: Download deb artifacts
         uses: robinraju/release-downloader@daf26c55d821e836577a15f77d86ddc078948b05 # v1.12
         with:

@@ -111,11 +111,10 @@ jobs:
       # Strip out the v (v4.9.1 -> 4.9.1).
       - name: Get and set VERSION
         run: |
-          TAG="${REF_NAME}"
           echo "VERSION=${TAG#v}" >> $GITHUB_ENV
 
         env:
-          REF_NAME: ${{ inputs.version || github.ref_name }}
+          TAG: ${{ inputs.version || github.ref_name }}
       - env:
           VERSION: ${{ env.VERSION }}
         run: npm run package $PKG_ARCH
@@ -173,11 +172,10 @@ jobs:
       # Strip out the v (v4.9.1 -> 4.9.1).
       - name: Get and set VERSION
         run: |
-          TAG="${REF_NAME}"
           echo "VERSION=${TAG#v}" >> $GITHUB_ENV
 
         env:
-          REF_NAME: ${{ inputs.version || github.ref_name }}
+          TAG: ${{ inputs.version || github.ref_name }}
       - name: Build packages with nfpm
         env:
           VERSION: ${{ env.VERSION }}
@@ -236,11 +234,10 @@ jobs:
       # Strip out the v (v4.9.1 -> 4.9.1).
       - name: Get and set VERSION
         run: |
-          TAG="${REF_NAME}"
           echo "VERSION=${TAG#v}" >> $GITHUB_ENV
 
         env:
-          REF_NAME: ${{ inputs.version || github.ref_name }}
+          TAG: ${{ inputs.version || github.ref_name }}
       - name: Build packages with nfpm
         env:
           VERSION: ${{ env.VERSION }}
@@ -290,11 +287,10 @@ jobs:
       # Strip out the v (v4.9.1 -> 4.9.1).
       - name: Get and set VERSION
         run: |
-          TAG="${REF_NAME}"
           echo "VERSION=${TAG#v}" >> $GITHUB_ENV
 
         env:
-          REF_NAME: ${{ inputs.version || github.ref_name }}
+          TAG: ${{ inputs.version || github.ref_name }}
       - name: Modify version
         env:
           VERSION: ${{ env.VERSION }}
