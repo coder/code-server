@@ -36,7 +36,7 @@ jobs:
         uses: robinraju/release-downloader@daf26c55d821e836577a15f77d86ddc078948b05 # v1.12
         with:
           repository: "coder/code-server"
-          tag: ${{ github.event.inputs.version || github.ref_name }}
+          tag: ${{ inputs.version || github.ref_name }}
           fileName: "package.tar.gz"
           out-file-path: "release-npm-package"
 
@@ -46,7 +46,7 @@ jobs:
           echo "VERSION=${TAG#v}" >> $GITHUB_ENV
 
         env:
-          TAG: ${{ github.event.inputs.version || github.ref_name }}
+          TAG: ${{ inputs.version || github.ref_name }}
       - run: npm run publish:npm
         env:
           VERSION: ${{ env.VERSION }}
@@ -92,7 +92,7 @@ jobs:
           echo "VERSION=${TAG#v}" >> $GITHUB_ENV
 
         env:
-          TAG: ${{ github.event.inputs.version || github.ref_name }}
+          TAG: ${{ inputs.version || github.ref_name }}
       - name: Validate package
         uses: heyhusen/archlinux-package-action@c9f94059ccbebe8710d31d582f33ef4e84fe575c # v3.0.0
         env:
@@ -145,7 +145,7 @@ jobs:
           echo "VERSION=${TAG#v}" >> $GITHUB_ENV
 
         env:
-          TAG: ${{ github.event.inputs.version || github.ref_name }}
+          TAG: ${{ inputs.version || github.ref_name }}
       - name: Download deb artifacts
         uses: robinraju/release-downloader@daf26c55d821e836577a15f77d86ddc078948b05 # v1.12
         with:
