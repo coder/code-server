@@ -111,14 +111,16 @@ jobs:
       # Strip out the v (v4.9.1 -> 4.9.1).
       - name: Get and set VERSION
         run: |
-          TAG="${{ inputs.version || github.ref_name }}"
+          TAG="${REF_NAME}"
           echo "VERSION=${TAG#v}" >> $GITHUB_ENV
 
+        env:
+          REF_NAME: ${{ inputs.version || github.ref_name }}
       - env:
           VERSION: ${{ env.VERSION }}
         run: npm run package $PKG_ARCH
 
-      - uses: softprops/action-gh-release@v1
+      - uses: softprops/action-gh-release@de2c0eb89ae2a093876385947365aca7b0e5f844 # v1
         with:
           draft: true
           discussion_category_name: "📣 Announcements"
@@ -171,15 +173,17 @@ jobs:
       # Strip out the v (v4.9.1 -> 4.9.1).
       - name: Get and set VERSION
         run: |
-          TAG="${{ inputs.version || github.ref_name }}"
+          TAG="${REF_NAME}"
           echo "VERSION=${TAG#v}" >> $GITHUB_ENV
 
+        env:
+          REF_NAME: ${{ inputs.version || github.ref_name }}
       - name: Build packages with nfpm
         env:
           VERSION: ${{ env.VERSION }}
         run: npm run package
 
-      - uses: softprops/action-gh-release@v1
+      - uses: softprops/action-gh-release@de2c0eb89ae2a093876385947365aca7b0e5f844 # v1
         with:
           draft: true
           discussion_category_name: "📣 Announcements"
@@ -232,15 +236,17 @@ jobs:
       # Strip out the v (v4.9.1 -> 4.9.1).
       - name: Get and set VERSION
         run: |
-          TAG="${{ inputs.version || github.ref_name }}"
+          TAG="${REF_NAME}"
           echo "VERSION=${TAG#v}" >> $GITHUB_ENV
 
+        env:
+          REF_NAME: ${{ inputs.version || github.ref_name }}
       - name: Build packages with nfpm
         env:
           VERSION: ${{ env.VERSION }}
         run: npm run package
 
-      - uses: softprops/action-gh-release@v1
+      - uses: softprops/action-gh-release@de2c0eb89ae2a093876385947365aca7b0e5f844 # v1
         with:
           draft: true
           discussion_category_name: "📣 Announcements"
@@ -257,7 +263,7 @@ jobs:
         with:
           name: npm-release-package
 
-      - uses: softprops/action-gh-release@v1
+      - uses: softprops/action-gh-release@de2c0eb89ae2a093876385947365aca7b0e5f844 # v1
         with:
           draft: true
           discussion_category_name: "📣 Announcements"
@@ -269,7 +275,7 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Download artifacts
-        uses: dawidd6/action-download-artifact@v16
+        uses: dawidd6/action-download-artifact@2536c51d3d126276eb39f74d6bc9c72ac6ef30d3 # v16
         id: download
         with:
           branch: ${{ github.ref }}
@@ -284,9 +290,11 @@ jobs:
       # Strip out the v (v4.9.1 -> 4.9.1).
       - name: Get and set VERSION
         run: |
-          TAG="${{ inputs.version || github.ref_name }}"
+          TAG="${REF_NAME}"
           echo "VERSION=${TAG#v}" >> $GITHUB_ENV
 
+        env:
+          REF_NAME: ${{ inputs.version || github.ref_name }}
       - name: Modify version
         env:
           VERSION: ${{ env.VERSION }}
