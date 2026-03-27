@@ -4,13 +4,16 @@ set -euo pipefail
 # Once both code-server and VS Code have been built, use this script to copy
 # them into a single directory (./release), prepare the package.json and
 # product.json, and add shrinkwraps.  This results in a generic NPM package that
-# we published to NPM and also use to compile platform-specific packages.
+# we can publish to NPM.
 
 # MINIFY controls whether minified VS Code is bundled. It must match the value
 # used when VS Code was built.
 MINIFY="${MINIFY-true}"
 
 # node_modules are not copied by default.  Set KEEP_MODULES=1 to copy them.
+# Note these modules will be for the platform that built them, making the result
+# no longer generic (it can still be published though as the modules will be
+# ignored when pushing).
 KEEP_MODULES="${KEEP_MODULES-0}"
 
 main() {
@@ -85,7 +88,7 @@ bundle_vscode() {
     rsync_opts+=(--exclude node_modules)
   fi
 
-  rsync "${rsync_opts[@]}" ./lib/vscode-reh-web-*/ "$VSCODE_OUT_PATH"
+  rsync "${rsync_opts[@]}" "./lib/vscode-reh-web-$VSCODE_TARGET/" "$VSCODE_OUT_PATH"
 
   # Merge the package.json for the web/remote server so we can include
   # dependencies, since we want to ship this via NPM.

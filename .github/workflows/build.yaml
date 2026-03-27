@@ -157,11 +157,14 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
 
   build:
-    name: Build code-server
+    name: Build code-server npm package
     runs-on: ubuntu-22.04
     env:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       DISABLE_V8_COMPILE_CACHE: 1
+      VERSION: 0.0.0
+      VSCODE_TARGET: linux-x64
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v6
         with:
@@ -181,34 +184,29 @@ jobs:
             test/package-lock.json
       - run: SKIP_SUBMODULE_DEPS=1 npm ci
       - run: npm run build
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       # Get Code's git hash.  When this changes it means the content is
       # different and we need to rebuild.
       - name: Get latest lib/vscode rev
         id: vscode-rev
         run: echo "rev=$(git rev-parse HEAD:./lib/vscode)" >> $GITHUB_OUTPUT
-      # We need to rebuild when we have a new version of Code, when any of
-      # the patches changed, or when the code-server version changes (since
-      # it gets embedded into the code).  Use VSCODE_CACHE_VERSION to
-      # force a rebuild.
-      - name: Fetch prebuilt Code package from cache
+      # We need to rebuild when we have a new version of Code, when any of the
+      # patches changed, or when the code-server version changes (since it gets
+      # embedded into the code).  Use VSCODE_CACHE_VERSION to force a rebuild.
+      - name: Fetch prebuilt linux-x64 Code package from cache
         id: cache-vscode
         uses: actions/cache@v4
         with:
-          path: lib/vscode-reh-web-*
-          key: vscode-reh-package-${{ secrets.VSCODE_CACHE_VERSION }}-${{ steps.vscode-rev.outputs.rev }}-${{ hashFiles('patches/*.diff', 'ci/build/build-vscode.sh') }}
+          path: lib/vscode-reh-web-linux-x64-min-ci
+          key: vscode-reh-linux-x64-package-${{ secrets.VSCODE_CACHE_VERSION }}-${{ steps.vscode-rev.outputs.rev }}-${{ hashFiles('patches/*.diff', 'ci/build/build-vscode.sh') }}
       - name: Build vscode
-        env:
-          VERSION: "0.0.0"
         if: steps.cache-vscode.outputs.cache-hit != 'true'
         run: |
           pushd lib/vscode
           npm ci
           popd
           npm run build:vscode
-      # The release package does not contain any native modules
-      # and is neutral to architecture/os/libc version.
+      # The release package is just the compiled code, does not contain any
+      # native modules, and is thus neutral to architecture/os/libc version.
       - run: npm run release
         if: success()
       # https://github.com/actions/upload-artifact/issues/38

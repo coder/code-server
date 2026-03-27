@@ -7,12 +7,12 @@ set -euo pipefail
 MINIFY=${MINIFY-true}
 
 delete-bin-script() {
-  rm -f "lib/vscode-reh-web-linux-x64/bin/$1"
+  rm -f "lib/vscode-reh-web-$VSCODE_TARGET/bin/$1"
 }
 
 copy-bin-script() {
   local script="$1"
-  local dest="lib/vscode-reh-web-linux-x64/bin/$script"
+  local dest="lib/vscode-reh-web-$VSCODE_TARGET/bin/$script"
   cp "lib/vscode/resources/server/bin/$script" "$dest"
   sed -i.bak "s/@@VERSION@@/$(vscode_version)/g" "$dest"
   sed -i.bak "s/@@COMMIT@@/$BUILD_SOURCEVERSION/g" "$dest"
@@ -108,12 +108,8 @@ main() {
 EOF
   ) > product.json
 
-  # Any platform here works since we will do our own packaging.  We have to do
-  # this because we have an NPM package that could be installed on any platform.
-  # The correct platform dependencies and scripts will be installed as part of
-  # the post-install during `npm install` or when building a standalone release.
   npm run gulp core-ci
-  npm run gulp "vscode-reh-web-linux-x64${MINIFY:+-min}-ci"
+  npm run gulp "vscode-reh-web-$VSCODE_TARGET${MINIFY:+-min}-ci"
 
   # Reset so if you develop after building you will not be stuck with the wrong
   # commit (the dev client will use `oss-dev` but the dev server will still use
@@ -122,7 +118,7 @@ EOF
 
   popd
 
-  pushd lib/vscode-reh-web-linux-x64
+  pushd "lib/vscode-reh-web-$VSCODE_TARGET"
   # Make sure Code took the version we set in the environment variable.  Not
   # having a version will break display languages.
   if ! jq -e .commit product.json; then

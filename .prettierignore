@@ -1,5 +1,4 @@
-lib/vscode
-lib/vscode-reh-web-linux-x64
+lib
 release-standalone
 release-packages
 release

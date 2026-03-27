@@ -44,11 +44,42 @@ rsync() {
   command rsync -a --del "$@"
 }
 
-ARCH="$(arch)"
-export ARCH
-OS=$(os)
-export OS
+if [[ ! ${ARCH-} ]]; then
+  ARCH=$(arch)
+  export ARCH
+fi
+
+if [[ ! ${OS-} ]]; then
+  OS=$(os)
+  export OS
+fi
 
 # RELEASE_PATH is the destination directory for the release from the root.
 # Defaults to release
-RELEASE_PATH="${RELEASE_PATH-release}"
+if [[ ! ${RELEASE_PATH-} ]]; then
+  RELEASE_PATH="release"
+  export RELEASE_PATH
+fi
+
+nodeOS() {
+  osname=$OS
+  case $osname in
+    macos) osname=darwin ;;
+    windows) osname=win32 ;;
+  esac
+  echo "$osname"
+}
+
+nodeArch() {
+  cpu=$ARCH
+  case $cpu in
+    amd64) cpu=x64 ;;
+  esac
+  echo "$cpu"
+}
+
+# See gulpfile.reh.ts for available targets.
+if [[ ! ${VSCODE_TARGET-} ]]; then
+  VSCODE_TARGET="$(nodeOS)-$(nodeArch)"
+  export VSCODE_TARGET
+fi
