@@ -157,7 +157,7 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
 
   build:
-    name: Build code-server npm package
+    name: Build code-server linux-x64 package
     runs-on: ubuntu-22.04
     env:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
@@ -197,7 +197,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: lib/vscode-reh-web-linux-x64-min-ci
-          key: vscode-reh-linux-x64-package-${{ secrets.VSCODE_CACHE_VERSION }}-${{ steps.vscode-rev.outputs.rev }}-${{ hashFiles('patches/*.diff', 'ci/build/build-vscode.sh') }}
+          key: vscode-linux-x64-package-${{ secrets.VSCODE_CACHE_VERSION }}-${{ steps.vscode-rev.outputs.rev }}-${{ hashFiles('patches/*.diff', 'ci/build/build-vscode.sh') }}
       - name: Build vscode
         if: steps.cache-vscode.outputs.cache-hit != 'true'
         run: |
@@ -205,11 +205,8 @@ jobs:
           npm ci
           popd
           npm run build:vscode
-      # The release package is just the compiled code, does not contain any
-      # native modules, and is thus neutral to architecture/os/libc version.
-      - run: npm run release
-        if: success()
-      # https://github.com/actions/upload-artifact/issues/38
+      # Push up an artifact containing the linux-x64 release.
+      - run: KEEP_MODULES=1 npm run release
       - run: tar -czf package.tar.gz release
       - uses: actions/upload-artifact@v7
         with:
@@ -236,7 +233,6 @@ jobs:
         with:
           name: npm-package
       - run: tar -xzf package.tar.gz
-      - run: cd release && npm install --unsafe-perm --omit=dev
       - name: Install Playwright OS dependencies
         run: |
           ./test/node_modules/.bin/playwright install-deps
@@ -252,6 +248,8 @@ jobs:
   test-e2e-proxy:
     name: Run e2e tests behind proxy
     runs-on: ubuntu-22.04
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     needs: [changes, build]
     if: needs.changes.outputs.code == 'true' || needs.changes.outputs.deps == 'true'
     steps:
@@ -269,7 +267,6 @@ jobs:
         with:
           name: npm-package
       - run: tar -xzf package.tar.gz
-      - run: cd release && npm install --unsafe-perm --omit=dev
       - name: Install Playwright OS dependencies
         run: |
           ./test/node_modules/.bin/playwright install-deps
@@ -282,8 +279,6 @@ jobs:
             ~/.cache/caddy
           key: cache-caddy-2.5.2
       - name: Install Caddy
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         if: steps.caddy-cache.outputs.cache-hit != 'true'
         run: |
           gh release download v2.5.2 --repo caddyserver/caddy --pattern "caddy_2.5.2_linux_amd64.tar.gz"
