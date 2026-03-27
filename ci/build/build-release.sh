@@ -34,6 +34,30 @@ main() {
   rsync ./docs/README.md "$RELEASE_PATH"
   rsync LICENSE "$RELEASE_PATH"
   rsync ./lib/vscode/ThirdPartyNotices.txt "$RELEASE_PATH"
+
+  if [ "$KEEP_MODULES" = 1 ]; then
+    # Copy Node.  Package managers may shim their own "node" wrapper into the
+    # PATH, so run node and ask it for its true path.
+    local node_path
+    node_path="$(node -p process.execPath)"
+    rsync "$node_path" "$RELEASE_PATH/lib/node"
+    chmod 755 "$RELEASE_PATH/lib/node"
+
+    # Copy the code-server launcher.
+    mkdir -p "$RELEASE_PATH/bin"
+    rsync ./ci/build/code-server.sh "$RELEASE_PATH/bin/code-server"
+    chmod 755 "$RELEASE_PATH/bin/code-server"
+
+    # Delete the extra bin scripts.
+    rm "$RELEASE_PATH/lib/vscode/bin/remote-cli/code-darwin.sh"
+    rm "$RELEASE_PATH/lib/vscode/bin/remote-cli/code-linux.sh"
+    rm "$RELEASE_PATH/lib/vscode/bin/helpers/browser-darwin.sh"
+    rm "$RELEASE_PATH/lib/vscode/bin/helpers/browser-linux.sh"
+    if [ "$OS" != windows ] ; then
+      rm "$RELEASE_PATH/lib/vscode/bin/remote-cli/code.cmd"
+      rm "$RELEASE_PATH/lib/vscode/bin/helpers/browser.cmd"
+    fi
+  fi
 }
 
 bundle_code_server() {

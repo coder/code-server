@@ -2,8 +2,6 @@
 .cache
 /out*/
 release/
-release-npm-package/
-release-standalone/
 release-packages/
 release-gcp/
 release-images/

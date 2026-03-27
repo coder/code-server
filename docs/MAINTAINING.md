@@ -7,7 +7,6 @@
     - [Release Candidates](#release-candidates)
     - [AUR](#aur)
     - [Docker](#docker)
-    - [Homebrew](#homebrew)
     - [nixpkgs](#nixpkgs)
     - [npm](#npm)
 - [Testing](#testing)
@@ -27,20 +26,18 @@ Most of the work is keeping on top of issues and discussions.
 
 1. Check that the changelog lists all the important changes.
 2. Make sure the changelog entry lists the current version of VS Code.
-3. Update the changelog with the release date.
-4. Go to GitHub Actions > Draft release > Run workflow on the commit you want to
-   release. Make sure CI has finished the build workflow on that commit or this
-   will fail. For the version we match VS Code's minor and patch version. The
+3. Go to GitHub Actions > Draft release > Run workflow on the commit you want to
+   release. For the version we match VS Code's minor and patch version. The
    patch number may become temporarily out of sync if we need to put out a
    patch, but if we make our own minor change then we will not release it until
    the next minor VS Code release.
-5. CI will automatically grab the build artifact on that commit (which is why CI
-   has to have completed), inject the provided version into the `package.json`,
-   put together platform-specific packages, and upload those packages to a draft
-   release.
-6. Update the resulting draft release with the changelog contents.
-7. Publish the draft release after validating it.
-8. Bump the Helm chart version once the Docker images have published.
+4. CI will build an NPM package and platform-specific packages, and upload those
+   to a draft release.
+5. Update the resulting draft release with the changelog contents.
+6. Publish the draft release after validating it.
+7. Update the changelog with the release date and bump the Helm chart version
+   once the Docker images have published.
+8. Merge the PR submitted to coder/code-server-aur repo.
 
 #### Release Candidates
 
@@ -55,24 +52,18 @@ full-blown release. To do this follow the same steps as above but:
 
 #### AUR
 
-We publish to AUR as a package [here](https://aur.archlinux.org/packages/code-server/). This process is manual and can be done by following the steps in [this repo](https://github.com/coder/code-server-aur).
+We publish to AUR as a package
+[here](https://aur.archlinux.org/packages/code-server/). This process is manual
+and can be done by following the steps in [this
+repo](https://github.com/coder/code-server-aur).
 
 #### Docker
 
-We publish code-server as a Docker image [here](https://hub.docker.com/r/codercom/code-server), tagging it both with the version and latest.
+We publish code-server as a Docker image
+[here](https://hub.docker.com/r/codercom/code-server), tagging it both with the
+version and latest.
 
 This is currently automated with the release process.
-
-#### Homebrew
-
-We publish code-server on Homebrew [here](https://github.com/Homebrew/homebrew-core/blob/master/Formula/code-server.rb).
-
-This is currently automated with the release process (but may fail occasionally). If it does, run this locally:
-
-```shell
-# Replace VERSION with version
-brew bump-formula-pr --version="${VERSION}" code-server --no-browse --no-audit
-```
 
 #### nixpkgs
 
@@ -80,13 +71,15 @@ We publish code-server in nixpkgs but it must be updated manually.
 
 #### npm
 
-We publish code-server as a npm package [here](https://www.npmjs.com/package/code-server/v/latest).
+We publish code-server as a npm package
+[here](https://www.npmjs.com/package/code-server/v/latest).
 
 This is currently automated with the release process.
 
 ## Testing
 
-Our testing structure is laid out under our [Contributing docs](https://coder.com/docs/code-server/latest/CONTRIBUTING#test).
+Our testing structure is laid out under our [Contributing
+docs](https://coder.com/docs/code-server/latest/CONTRIBUTING#test).
 
 If you're ever looking to add more tests, here are a few ways to get started:
 
