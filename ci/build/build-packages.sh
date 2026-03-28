@@ -1,21 +1,18 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Given a platform-specific release found in ./release-standalone, generate an
-# compressed archives and bundles (as appropriate for the platform) named after
-# the platform's architecture and OS and place them in ./release-packages and
-# ./release-gcp.
+# Given a release found in $RELEASE_PATH, generate a deb, rpm, and tarball each
+# named after $ARCH (derived from uname -m but can be overridden for
+# cross-compilation) and $OS (derived from uname and cannot be overridden) and
+# place them in ./release-packages and ./release-gcp.
 
 main() {
   cd "$(dirname "${0}")/../.."
   source ./ci/lib.sh
   source ./ci/build/build-lib.sh
 
-  # Allow us to override architecture
-  # we use this for our Linux ARM64 cross compile builds
-  if [ "$#" -eq 1 ] && [ "$1" ]; then
-    ARCH=$1
-  fi
+  VERSION=$(jq -r .version "$RELEASE_PATH/package.json")
+  export VERSION # for nfpm to use
 
   mkdir -p release-packages
 
@@ -29,9 +26,9 @@ main() {
 release_archive() {
   local release_name="code-server-$VERSION-$OS-$ARCH"
   if [[ $OS == "linux" ]]; then
-    tar -czf "release-packages/$release_name.tar.gz" --owner=0 --group=0 --transform "s/^\.\/release-standalone/$release_name/" ./release-standalone
+    tar -czf "release-packages/$release_name.tar.gz" --owner=0 --group=0 --transform "s/^\.\/$RELEASE_PATH/$release_name/" "$RELEASE_PATH"
   else
-    tar -czf "release-packages/$release_name.tar.gz" -s "/^release-standalone/$release_name/" release-standalone
+    tar -czf "release-packages/$release_name.tar.gz" -s "/^$RELEASE_PATH/$release_name/" "$RELEASE_PATH"
   fi
 
   echo "done (release-packages/$release_name)"
@@ -52,15 +49,13 @@ release_nfpm() {
 
   export NFPM_ARCH
 
-  PKG_FORMAT="deb"
-  NFPM_ARCH="$(get_nfpm_arch $PKG_FORMAT "$ARCH")"
+  NFPM_ARCH="$(get_nfpm_arch deb "$ARCH")"
   nfpm_config="$(envsubst < ./ci/build/nfpm.yaml)"
   echo "Building deb"
   echo "$nfpm_config" | head --lines=4
   nfpm pkg -f <(echo "$nfpm_config") --target "release-packages/code-server_${VERSION}_${NFPM_ARCH}.deb"
 
-  PKG_FORMAT="rpm"
-  NFPM_ARCH="$(get_nfpm_arch $PKG_FORMAT "$ARCH")"
+  NFPM_ARCH="$(get_nfpm_arch rpm "$ARCH")"
   nfpm_config="$(envsubst < ./ci/build/nfpm.yaml)"
   echo "Building rpm"
   echo "$nfpm_config" | head --lines=4

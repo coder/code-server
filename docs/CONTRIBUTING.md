@@ -9,7 +9,6 @@
   - [Version updates to Code](#version-updates-to-code)
   - [Patching Code](#patching-code)
   - [Build](#build)
-    - [Creating a Standalone Release](#creating-a-standalone-release)
   - [Troubleshooting](#troubleshooting)
     - [I see "Forbidden access" when I load code-server in the browser](#i-see-forbidden-access-when-i-load-code-server-in-the-browser)
     - ["Can only have one anonymous define call per script"](#can-only-have-one-anonymous-define-call-per-script)
@@ -122,7 +121,7 @@ commits first if you are doing this).
 
 ### Build
 
-You can build a full production as follows:
+You can build a full production release as follows:
 
 ```shell
 git submodule update --init
@@ -130,26 +129,32 @@ quilt push -a
 npm install
 npm run build
 VERSION=0.0.0 npm run build:vscode
-npm run release
+KEEP_MODULES=1 npm run release
 ```
 
-This does not keep `node_modules`. If you want them to be kept, use
-`KEEP_MODULES=1 npm run release`
+You can omit `KEEP_MODULES` if you intend to use this in a platform-agnostic way
+(like for publishing to NPM), but since the VS Code build process does
+post-processing deletion of the modules, it is recommended to keep the modules
+when possible, since if you install them later you will have more than is
+required. `KEEP_MODULES` will also bundle Node and the code-server entry script.
 
 Run your build:
 
 ```shell
+./release/bin/code-server
+```
+
+Or if you omitted `KEEP_MODULES`:
+
+```shell
 cd release
-npm install --omit=dev # Skip if you used KEEP_MODULES=1
-# Runs the built JavaScript with Node.
+npm install --omit=dev
 node .
 ```
 
-Then, to build the release package:
+Then, to package the release:
 
 ```shell
-npm run release:standalone
-npm run test:integration
 npm run package
 ```
 
@@ -157,22 +162,6 @@ npm run package
 > version. In our GitHub Actions CI, we use CentOS 8 for maximum compatibility.
 > If you need your builds to support older distros, run the build commands
 > inside a Docker container with all the build requirements installed.
-
-#### Creating a Standalone Release
-
-Part of the build process involves creating standalone releases. At the time of
-writing, we do this for the following platforms/architectures:
-
-- Linux amd64 (.tar.gz, .deb, and .rpm)
-- Linux arm64 (.tar.gz, .deb, and .rpm)
-- Linux arm7l (.tar.gz)
-- Linux armhf.deb
-- Linux armhf.rpm
-- macOS arm64.tar.gz
-
-Currently, these are compiled in CI using the `npm run release:standalone`
-command in the `release.yaml` workflow. We then upload them to the draft release
-and distribute via GitHub Releases.
 
 ### Troubleshooting
 

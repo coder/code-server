@@ -6,7 +6,6 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: The version to publish (include "v", i.e. "v4.9.1").
         type: string
         required: true
 
@@ -23,50 +22,45 @@ concurrency:
 jobs:
   npm:
     runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code-server
-        uses: actions/checkout@v6
+    env:
+      TAG: ${{ inputs.version || github.ref_name }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+      NPM_ENVIRONMENT: "production"
 
-      - name: Install Node.js
-        uses: actions/setup-node@v6
+    steps:
+      - name: Set version to tag without leading v
+        run: |
+          echo "VERSION=${TAG#v}" >> $GITHUB_ENV
+
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
         with:
           node-version-file: .node-version
 
-      - name: Download npm package from release artifacts
-        uses: robinraju/release-downloader@daf26c55d821e836577a15f77d86ddc078948b05 # v1.12
+      - uses: robinraju/release-downloader@daf26c55d821e836577a15f77d86ddc078948b05 # v1.12
         with:
           repository: "coder/code-server"
           tag: ${{ inputs.version || github.ref_name }}
           fileName: "package.tar.gz"
           out-file-path: "release-npm-package"
 
-      # Strip out the v (v4.9.1 -> 4.9.1).
-      - name: Get and set VERSION
-        run: |
-          echo "VERSION=${TAG#v}" >> $GITHUB_ENV
-
-        env:
-          TAG: ${{ inputs.version || github.ref_name }}
-      - run: npm run publish:npm
-        env:
-          VERSION: ${{ env.VERSION }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-          NPM_ENVIRONMENT: "production"
+      - run: tar -xzf release-npm-package/package.tar.gz
+      - run: |
+          pushd release
+          npm publish --access public
 
   aur:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
       GH_TOKEN: ${{ secrets.HOMEBREW_GITHUB_API_TOKEN }}
+      TAG: ${{ inputs.version || github.ref_name }}
 
     steps:
-      # We need to checkout code-server so we can get the version
-      - name: Checkout code-server
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-          path: "./code-server"
+      - name: Set version to tag without leading v
+        run: |
+          echo "VERSION=${TAG#v}" >> $GITHUB_ENV
 
       - name: Checkout code-server-aur repo
         uses: actions/checkout@v6
@@ -86,27 +80,14 @@ jobs:
           git config --global user.name cdrci
           git config --global user.email opensource@coder.com
 
-      # Strip out the v (v4.9.1 -> 4.9.1).
-      - name: Get and set VERSION
-        run: |
-          echo "VERSION=${TAG#v}" >> $GITHUB_ENV
-
-        env:
-          TAG: ${{ inputs.version || github.ref_name }}
       - name: Validate package
         uses: heyhusen/archlinux-package-action@c9f94059ccbebe8710d31d582f33ef4e84fe575c # v3.0.0
-        env:
-          VERSION: ${{ env.VERSION }}
         with:
           pkgver: ${{ env.VERSION }}
           updpkgsums: true
           srcinfo: true
 
       - name: Open PR
-        # We need to git push -u otherwise gh will prompt
-        # asking where to push the branch.
-        env:
-          VERSION: ${{ env.VERSION }}
         run: |
           git checkout -b update-version-${{ env.VERSION }}
           git add .
@@ -116,54 +97,40 @@ jobs:
 
   docker:
     runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ github.token }}
+      TAG: ${{ inputs.version || github.ref_name }}
+
     steps:
-      - name: Checkout code-server
-        uses: actions/checkout@v6
+      - name: Set version to tag without leading v
+        run: |
+          echo "VERSION=${TAG#v}" >> $GITHUB_ENV
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # v3
+      - uses: actions/checkout@v6
+      - uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # v3
+      - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
-
-      - name: Login to Docker Hub
-        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
+      - uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-
-      - name: Login to GHCR
-        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
+      - uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # Strip out the v (v4.9.1 -> 4.9.1).
-      - name: Get and set VERSION
-        run: |
-          echo "VERSION=${TAG#v}" >> $GITHUB_ENV
-
-        env:
-          TAG: ${{ inputs.version || github.ref_name }}
-      - name: Download deb artifacts
-        uses: robinraju/release-downloader@daf26c55d821e836577a15f77d86ddc078948b05 # v1.12
+      - uses: robinraju/release-downloader@daf26c55d821e836577a15f77d86ddc078948b05 # v1.12
         with:
           repository: "coder/code-server"
           tag: v${{ env.VERSION }}
           fileName: "*.deb"
           out-file-path: "release-packages"
-
-      - name: Download rpm artifacts
-        uses: robinraju/release-downloader@daf26c55d821e836577a15f77d86ddc078948b05 # v1.12
+      - uses: robinraju/release-downloader@daf26c55d821e836577a15f77d86ddc078948b05 # v1.12
         with:
           repository: "coder/code-server"
           tag: v${{ env.VERSION }}
           fileName: "*.rpm"
           out-file-path: "release-packages"
 
-      - name: Publish to Docker
-        run: ./ci/steps/docker-buildx-push.sh
-        env:
-          VERSION: ${{ env.VERSION }}
-          GITHUB_TOKEN: ${{ github.token }}
+      - run: npm run publish:docker

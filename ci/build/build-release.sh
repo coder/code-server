@@ -4,13 +4,16 @@ set -euo pipefail
 # Once both code-server and VS Code have been built, use this script to copy
 # them into a single directory (./release), prepare the package.json and
 # product.json, and add shrinkwraps.  This results in a generic NPM package that
-# we published to NPM and also use to compile platform-specific packages.
+# we can publish to NPM.
 
 # MINIFY controls whether minified VS Code is bundled. It must match the value
 # used when VS Code was built.
 MINIFY="${MINIFY-true}"
 
 # node_modules are not copied by default.  Set KEEP_MODULES=1 to copy them.
+# Note these modules will be for the platform that built them, making the result
+# no longer generic (it can still be published though as the modules will be
+# ignored when pushing).
 KEEP_MODULES="${KEEP_MODULES-0}"
 
 main() {
@@ -31,6 +34,30 @@ main() {
   rsync ./docs/README.md "$RELEASE_PATH"
   rsync LICENSE "$RELEASE_PATH"
   rsync ./lib/vscode/ThirdPartyNotices.txt "$RELEASE_PATH"
+
+  if [ "$KEEP_MODULES" = 1 ]; then
+    # Copy Node.  Package managers may shim their own "node" wrapper into the
+    # PATH, so run node and ask it for its true path.
+    local node_path
+    node_path="$(node -p process.execPath)"
+    rsync "$node_path" "$RELEASE_PATH/lib/node"
+    chmod 755 "$RELEASE_PATH/lib/node"
+
+    # Copy the code-server launcher.
+    mkdir -p "$RELEASE_PATH/bin"
+    rsync ./ci/build/code-server.sh "$RELEASE_PATH/bin/code-server"
+    chmod 755 "$RELEASE_PATH/bin/code-server"
+
+    # Delete the extra bin scripts.
+    rm "$RELEASE_PATH/lib/vscode/bin/remote-cli/code-darwin.sh"
+    rm "$RELEASE_PATH/lib/vscode/bin/remote-cli/code-linux.sh"
+    rm "$RELEASE_PATH/lib/vscode/bin/helpers/browser-darwin.sh"
+    rm "$RELEASE_PATH/lib/vscode/bin/helpers/browser-linux.sh"
+    if [ "$OS" != windows ] ; then
+      rm "$RELEASE_PATH/lib/vscode/bin/remote-cli/code.cmd"
+      rm "$RELEASE_PATH/lib/vscode/bin/helpers/browser.cmd"
+    fi
+  fi
 }
 
 bundle_code_server() {
@@ -85,7 +112,7 @@ bundle_vscode() {
     rsync_opts+=(--exclude node_modules)
   fi
 
-  rsync "${rsync_opts[@]}" ./lib/vscode-reh-web-*/ "$VSCODE_OUT_PATH"
+  rsync "${rsync_opts[@]}" "./lib/vscode-reh-web-$VSCODE_TARGET/" "$VSCODE_OUT_PATH"
 
   # Merge the package.json for the web/remote server so we can include
   # dependencies, since we want to ship this via NPM.

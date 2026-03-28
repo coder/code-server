@@ -6,33 +6,32 @@ set -euo pipefail
 # MINIFY controls whether a minified version of vscode is built.
 MINIFY=${MINIFY-true}
 
-delete-bin-script() {
-  rm -f "lib/vscode-reh-web-linux-x64/bin/$1"
-}
-
-copy-bin-script() {
-  local script="$1"
-  local dest="lib/vscode-reh-web-linux-x64/bin/$script"
-  cp "lib/vscode/resources/server/bin/$script" "$dest"
-  sed -i.bak "s/@@VERSION@@/$(vscode_version)/g" "$dest"
-  sed -i.bak "s/@@COMMIT@@/$BUILD_SOURCEVERSION/g" "$dest"
-  sed -i.bak "s/@@APPNAME@@/code-server/g" "$dest"
+fix-bin-script() {
+  local script="lib/vscode-reh-web-$VSCODE_TARGET/bin/$1"
+  sed -i.bak "s/@@VERSION@@/$(vscode_version)/g" "$script"
+  sed -i.bak "s/@@COMMIT@@/$BUILD_SOURCEVERSION/g" "$script"
+  sed -i.bak "s/@@APPNAME@@/code-server/g" "$script"
 
   # Fix Node path on Darwin and Linux.
   # We do not want expansion here; this text should make it to the file as-is.
   # shellcheck disable=SC2016
-  sed -i.bak 's/^ROOT=\(.*\)$/VSROOT=\1\nROOT="$(dirname "$(dirname "$VSROOT")")"/g' "$dest"
-  sed -i.bak 's/ROOT\/out/VSROOT\/out/g' "$dest"
+  sed -i.bak 's/^ROOT=\(.*\)$/VSROOT=\1\nROOT="$(dirname "$(dirname "$VSROOT")")"/g' "$script"
+  sed -i.bak 's/ROOT\/out/VSROOT\/out/g' "$script"
   # We do not want expansion here; this text should make it to the file as-is.
   # shellcheck disable=SC2016
-  sed -i.bak 's/$ROOT\/node/${NODE_EXEC_PATH:-$ROOT\/lib\/node}/g' "$dest"
+  sed -i.bak 's/$ROOT\/node/${NODE_EXEC_PATH:-$ROOT\/lib\/node}/g' "$script"
 
   # Fix Node path on Windows.
-  sed -i.bak 's/^set ROOT_DIR=\(.*\)$/set ROOT_DIR=%~dp0..\\..\\..\\..\r\nset VSROOT_DIR=\1/g' "$dest"
-  sed -i.bak 's/%ROOT_DIR%\\out/%VSROOT_DIR%\\out/g' "$dest"
+  sed -i.bak 's/^set ROOT_DIR=\(.*\)$/set ROOT_DIR=%~dp0..\\..\\..\\..\r\nset VSROOT_DIR=\1/g' "$script"
+  sed -i.bak 's/%ROOT_DIR%\\out/%VSROOT_DIR%\\out/g' "$script"
 
-  chmod +x "$dest"
-  rm "$dest.bak"
+  chmod +x "$script"
+  rm "$script.bak"
+}
+
+copy-bin-script() {
+  cp "lib/vscode/resources/server/bin/$1" "lib/vscode-reh-web-$VSCODE_TARGET/bin/$1"
+  fix-bin-script "$1"
 }
 
 main() {
@@ -108,12 +107,8 @@ main() {
 EOF
   ) > product.json
 
-  # Any platform here works since we will do our own packaging.  We have to do
-  # this because we have an NPM package that could be installed on any platform.
-  # The correct platform dependencies and scripts will be installed as part of
-  # the post-install during `npm install` or when building a standalone release.
   npm run gulp core-ci
-  npm run gulp "vscode-reh-web-linux-x64${MINIFY:+-min}-ci"
+  npm run gulp "vscode-reh-web-$VSCODE_TARGET${MINIFY:+-min}-ci"
 
   # Reset so if you develop after building you will not be stuck with the wrong
   # commit (the dev client will use `oss-dev` but the dev server will still use
@@ -122,7 +117,7 @@ EOF
 
   popd
 
-  pushd lib/vscode-reh-web-linux-x64
+  pushd "lib/vscode-reh-web-$VSCODE_TARGET"
   # Make sure Code took the version we set in the environment variable.  Not
   # having a version will break display languages.
   if ! jq -e .commit product.json; then
@@ -131,15 +126,28 @@ EOF
   fi
   popd
 
+  # Set vars and fix paths.
+  case $OS in
+    windows)
+      fix-bin-script remote-cli/code.cmd
+      fix-bin-script helpers/browser.cmd
+      ;;
+    *)
+      fix-bin-script remote-cli/code-server
+      fix-bin-script helpers/browser.sh
+      ;;
+  esac
+
+  # Include bin scripts for other platforms so we can use the right one in the
+  # NPM post-install.
+
   # These provide a `code-server` command in the integrated terminal to open
   # files in the current instance.
-  delete-bin-script remote-cli/code-server
   copy-bin-script remote-cli/code-darwin.sh
   copy-bin-script remote-cli/code-linux.sh
   copy-bin-script remote-cli/code.cmd
 
   # These provide a way for terminal applications to open browser windows.
-  delete-bin-script helpers/browser.sh
   copy-bin-script helpers/browser-darwin.sh
   copy-bin-script helpers/browser-linux.sh
   copy-bin-script helpers/browser.cmd

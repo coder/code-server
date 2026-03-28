@@ -1,6 +1,4 @@
-lib/vscode
-lib/vscode-reh-web-linux-x64
-release-standalone
+lib
 release-packages
 release
 helm-chart
