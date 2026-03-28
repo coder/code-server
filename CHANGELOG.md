@@ -22,6 +22,39 @@ Code v99.99.999
 
 ## Unreleased
 
+## [4.112.0](https://github.com/coder/code-server/releases/tag/v4.112.0) - 2026-03-19
+
+Code v1.112.0
+
+### Changed
+
+- Update to Code 1.112.0
+
+## [4.111.0](https://github.com/coder/code-server/releases/tag/v4.111.0) - 2026-03-11
+
+Code v1.111.0
+
+### Changed
+
+- Update to Code 1.111.0
+- `--app-name` now affects the error page title.
+
+## [4.110.1](https://github.com/coder/code-server/releases/tag/v4.110.1) - 2026-03-10
+
+Code v1.110.1
+
+### Changed
+
+- Update to Code 1.110.1
+
+## [4.110.0](https://github.com/coder/code-server/releases/tag/v4.110.0) - 2026-03-09
+
+Code v1.110.0
+
+### Changed
+
+- Update to Code 1.110.0
+
 ## [4.109.5](https://github.com/coder/code-server/releases/tag/v4.109.5) - 2026-03-02
 
 Code v1.109.5
