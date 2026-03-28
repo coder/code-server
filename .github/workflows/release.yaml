@@ -77,17 +77,12 @@ jobs:
             libsecret-1-dev:$APT_ARCH \
             libkrb5-dev:$APT_ARCH \
             ca-certificates \
-            curl wget rsync gettext-base
+            curl wget rsync gettext-base quilt git
       - name: Install nfpm
         run: |
           mkdir -p ~/.local/bin
           curl -sSfL https://github.com/goreleaser/nfpm/releases/download/v2.3.1/nfpm_2.3.1_`uname -s`_`uname -m`.tar.gz | tar -C ~/.local/bin -zxv nfpm
           echo "$HOME/.local/bin" >> $GITHUB_PATH
-      - run: sudo apt update && sudo apt install -y libkrb5-dev
-      - uses: awalsh128/cache-apt-pkgs-action@2c09a5e66da6c8016428a2172bd76e5e4f14bb17 # latest
-        with:
-          packages: quilt
-          version: 1.0
 
       - name: Set version to tag without leading v
         run: |
