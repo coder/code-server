@@ -47,8 +47,9 @@ jobs:
 
       - run: tar -xzf release-npm-package/package.tar.gz
       - run: |
+          echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
           pushd release
-          npm publish --access public
+          npm publish --tag latest --access public
 
   aur:
     runs-on: ubuntu-latest
