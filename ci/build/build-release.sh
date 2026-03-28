@@ -75,6 +75,7 @@ bundle_code_server() {
   jq --slurp '(.[0] | del(.scripts,.jest,.devDependencies)) * .[1]' package.json <(
     cat << EOF
   {
+    "version": "$(jq -r .codeServerVersion "./lib/vscode-reh-web-$VSCODE_TARGET/product.json")",
     "commit": "$(git rev-parse HEAD)",
     "scripts": {
       "postinstall": "sh ./postinstall.sh"
