@@ -1,0 +1,26 @@
+Apply --app-name to VS Code web page titles
+
+VS Code's `${appName}` title variable comes from `productService.nameLong` in the
+web client. code-server already injects per-request product configuration into
+VS Code's web bootstrap, so set `nameShort`/`nameLong` from the existing
+`--app-name` CLI arg there.
+
+This keeps the patch minimal and makes browser tab titles honor `--app-name`
+without changing unrelated product metadata.
+
+Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
++++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
+@@ -333,8 +333,11 @@ export class WebClientServer {
+ 			scopes: [['user:email'], ['repo']]
+ 		} : undefined;
+ 
++		const appName = this._environmentService.args['app-name'];
+ 		const productConfiguration = {
+ 			embedderIdentifier: 'server-distro',
++			nameShort: appName,
++			nameLong: appName,
+ 			extensionsGallery: this._webExtensionResourceUrlTemplate && this._productService.extensionsGallery ? {
+ 				...this._productService.extensionsGallery,
+ 				resourceUrlTemplate: this._webExtensionResourceUrlTemplate.with({

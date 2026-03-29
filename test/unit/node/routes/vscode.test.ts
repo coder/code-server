@@ -27,4 +27,16 @@ describe("vscode", () => {
       })
     }).rejects.toThrow()
   })
+
+  it("should apply app-name to the VS Code product configuration", async () => {
+    const appName = "testnäme"
+    codeServer = await integration.setup(["--auth=none", `--app-name=${appName}`], "")
+
+    const resp = await codeServer.fetch("/vscode")
+    const htmlContent = await resp.text()
+
+    expect(resp.status).toBe(200)
+    expect(htmlContent).toContain(`\"nameShort\":\"${appName}\"`)
+    expect(htmlContent).toContain(`\"nameLong\":\"${appName}\"`)
+  })
 })
