@@ -41,7 +41,7 @@ jobs:
       - uses: robinraju/release-downloader@daf26c55d821e836577a15f77d86ddc078948b05 # v1.12
         with:
           repository: "coder/code-server"
-          tag: ${{ inputs.version || github.ref_name }}
+          tag: ${{ env.TAG }}
           fileName: "package.tar.gz"
           out-file-path: "release-npm-package"
 
