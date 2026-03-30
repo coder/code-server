@@ -26,7 +26,7 @@ main() {
 release_archive() {
   local release_name="code-server-$VERSION-$OS-$ARCH"
   if [[ $OS == "linux" ]]; then
-    tar -czf "release-packages/$release_name.tar.gz" --owner=0 --group=0 --transform "s/^\.\/$RELEASE_PATH/$release_name/" "$RELEASE_PATH"
+    tar -czf "release-packages/$release_name.tar.gz" --owner=0 --group=0 --transform "s/^$RELEASE_PATH/$release_name/" "$RELEASE_PATH"
   else
     tar -czf "release-packages/$release_name.tar.gz" -s "/^$RELEASE_PATH/$release_name/" "$RELEASE_PATH"
   fi
