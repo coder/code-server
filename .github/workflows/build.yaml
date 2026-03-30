@@ -157,6 +157,8 @@ jobs:
       VERSION: 0.0.0
       VSCODE_TARGET: linux-x64
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      ELECTRON_SKIP_BINARY_DOWNLOAD: 1
+      PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
 
     steps:
       - run: sudo apt update && sudo apt install -y libkrb5-dev
