@@ -19,65 +19,41 @@ concurrency:
 
 jobs:
   package-linux:
-    name: ${{ matrix.vscode_target }}
-    runs-on: ubuntu-latest
-    container: "python:3.8-slim-buster"
+    name: ${{ format('linux-{0}', matrix.vscode_arch) }}
+    runs-on: ubuntu-22.04
+
     strategy:
       matrix:
         include:
-          - prefix: x86_64-linux-gnu
-            npm_arch: x64
-            apt_arch: amd64
+          - npm_arch: x64
+            vscode_arch: x64
             package_arch: amd64
-            vscode_target: linux-x64
-          - prefix: aarch64-linux-gnu
-            npm_arch: arm64
-            apt_arch: arm64
+          - npm_arch: arm64
+            vscode_arch: arm64
             package_arch: arm64
-            vscode_target: linux-arm64
-          - prefix: arm-linux-gnueabihf
-            npm_arch: armv7l
-            apt_arch: armhf
+          - npm_arch: arm
+            vscode_arch: armhf
             package_arch: armv7l
-            vscode_target: linux-armhf
 
     env:
-      AR: ${{ format('{0}-ar', matrix.prefix) }}
-      AS: ${{ format('{0}-as', matrix.prefix) }}
-      CC: ${{ format('{0}-gcc', matrix.prefix) }}
-      CPP: ${{ format('{0}-cpp', matrix.prefix) }}
-      CXX: ${{ format('{0}-g++', matrix.prefix) }}
-      FC: ${{ format('{0}-gfortran', matrix.prefix) }}
-      LD: ${{ format('{0}-ld', matrix.prefix) }}
-      STRIP: ${{ format('{0}-strip', matrix.prefix) }}
-      PKG_CONFIG_PATH: ${{ format('/usr/lib/{0}/pkgconfig', matrix.prefix) }}
-      # Set cross-compiler package arch.
-      APT_ARCH: ${{ matrix.apt_arch }}
-      # For downloading the right Node.
-      npm_config_arch: ${{ matrix.npm_arch }}
-      # Overrides package architecture.
-      ARCH: ${{ matrix.package_arch }}
-      # Not building from source results in an x86_64 argon2, as if
-      # npm_config_arch is being ignored.
-      npm_config_build_from_source: true
-      # Overrides VS Code gulp build target.
-      VSCODE_TARGET: ${{ matrix.vscode_target }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      ELECTRON_SKIP_BINARY_DOWNLOAD: 1
+      PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
       TAG: ${{ inputs.version || github.ref_name }}
+      # Set release package name.
+      ARCH: ${{ matrix.package_arch }}
+      # Cross-compile target.
+      VSCODE_ARCH: ${{ matrix.vscode_arch }}
+      npm_config_arch: ${{ matrix.npm_arch }}
+      # Gulp target name.
+      VSCODE_TARGET: ${{ format('linux-{0}', matrix.vscode_arch) }}
 
     steps:
-      - name: Install cross-compiler and system dependencies
-        run: |
-          sed -i 's/deb\.debian\.org/archive.debian.org/g' /etc/apt/sources.list
-          dpkg --add-architecture $APT_ARCH
-          apt update && apt install -y --no-install-recommends \
-            crossbuild-essential-$APT_ARCH \
-            libx11-dev:$APT_ARCH \
-            libx11-xcb-dev:$APT_ARCH \
-            libxkbfile-dev:$APT_ARCH \
-            libsecret-1-dev:$APT_ARCH \
-            libkrb5-dev:$APT_ARCH \
-            ca-certificates \
-            curl wget rsync gettext-base quilt git
+      - run: sudo apt update && sudo apt install -y libkrb5-dev
+      - uses: awalsh128/cache-apt-pkgs-action@2c09a5e66da6c8016428a2172bd76e5e4f14bb17 # latest
+        with:
+          packages: quilt
+          version: 1.0
       - name: Install nfpm
         run: |
           mkdir -p ~/.local/bin
@@ -99,17 +75,28 @@ jobs:
           cache-dependency-path: |
             package-lock.json
             test/package-lock.json
-      - run: npm ci
-      - run: npm run build
-      - run: npm run build:vscode
+
+      - name: Build
+        run: |
+          cd lib/vscode/build
+          npm ci
+          cd ..
+          source ./build/azure-pipelines/linux/setup-env.sh
+          # Run preinstall script before root dependencies are installed
+          # so that v8 headers are patched correctly for native modules.
+          node build/npm/preinstall.ts
+          cd ../..
+          npm ci
+          npm run build
+          npm run build:vscode
 
       # Platform-agnostic NPM package.
       - run: npm run release
-        if: ${{ matrix.vscode_target == 'linux-x64' }}
+        if: ${{ matrix.vscode_arch == 'x64' }}
       - run: tar -czf package.tar.gz release
-        if: ${{ matrix.vscode_target == 'linux-x64' }}
+        if: ${{ matrix.vscode_arch == 'x64' }}
       - uses: softprops/action-gh-release@de2c0eb89ae2a093876385947365aca7b0e5f844 # v1
-        if: ${{ matrix.vscode_target == 'linux-x64' }}
+        if: ${{ matrix.vscode_arch == 'x64' }}
         with:
           draft: true
           discussion_category_name: "📣 Announcements"
@@ -117,13 +104,6 @@ jobs:
 
       # Platform-specific release.
       - run: KEEP_MODULES=1 npm run release
-      - name: Replace node with cross-compile equivalent
-        run: |
-          node_version=$(node --version)
-          wget https://nodejs.org/dist/${node_version}/node-${node_version}-linux-${npm_config_arch}.tar.xz
-          tar -xf node-${node_version}-linux-${npm_config_arch}.tar.xz node-${node_version}-linux-${npm_config_arch}/bin/node --strip-components=2
-          mv ./node ./release/lib/node
-
       - run: npm run package
       - uses: softprops/action-gh-release@de2c0eb89ae2a093876385947365aca7b0e5f844 # v1
         with:
@@ -173,6 +153,7 @@ jobs:
           cache-dependency-path: |
             package-lock.json
             test/package-lock.json
+
       - run: npm ci
       - run: npm run build
       - run: npm run build:vscode
