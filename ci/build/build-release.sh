@@ -85,11 +85,15 @@ EOF
   ) > "$RELEASE_PATH/package.json"
   mv npm-shrinkwrap.json "$RELEASE_PATH"
 
-  rsync ci/build/npm-postinstall.sh "$RELEASE_PATH/postinstall.sh"
-
   if [ "$KEEP_MODULES" = 1 ]; then
     rsync node_modules/ "$RELEASE_PATH/node_modules"
+    # Remove dev dependencies.
+    pushd "$RELEASE_PATH"
+    npm prune --production
+    popd
   fi
+
+  rsync ci/build/npm-postinstall.sh "$RELEASE_PATH/postinstall.sh"
 }
 
 bundle_vscode() {
@@ -108,7 +112,9 @@ bundle_vscode() {
   # need it for the npm package.
   rsync_opts+=(--exclude /node)
 
-  # Exclude Node modules.
+  # Exclude Node modules.  Note that these will already only include production
+  # dependencies, so if we do keep them there is no need to do any
+  # post-processing to remove dev dependencies.
   if [[ $KEEP_MODULES = 0 ]]; then
     rsync_opts+=(--exclude node_modules)
   fi
