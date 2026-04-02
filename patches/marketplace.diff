@@ -41,7 +41,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -327,7 +327,6 @@ export class WebClientServer {
+@@ -346,7 +346,6 @@ export class WebClientServer {
  
  		const staticRoute = posix.join(basePath, this._productPath, STATIC_PATH);
  		const callbackRoute = posix.join(basePath, this._productPath, CALLBACK_PATH);
@@ -49,7 +49,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
  
  		const resolveWorkspaceURI = (defaultLocation?: string) => defaultLocation && URI.file(resolve(defaultLocation)).with({ scheme: Schemas.vscodeRemote, authority: remoteAuthority });
  
-@@ -343,14 +342,7 @@ export class WebClientServer {
+@@ -362,14 +361,7 @@ export class WebClientServer {
  			codeServerVersion: this._productService.codeServerVersion,
  			rootEndpoint: rootBase,
  			embedderIdentifier: 'server-distro',
