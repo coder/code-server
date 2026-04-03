@@ -36,13 +36,6 @@ main() {
   rsync ./lib/vscode/ThirdPartyNotices.txt "$RELEASE_PATH"
 
   if [ "$KEEP_MODULES" = 1 ]; then
-    # Copy Node.  Package managers may shim their own "node" wrapper into the
-    # PATH, so run node and ask it for its true path.
-    local node_path
-    node_path="$(node -p process.execPath)"
-    rsync "$node_path" "$RELEASE_PATH/lib/node"
-    chmod 755 "$RELEASE_PATH/lib/node"
-
     # Copy the code-server launcher.
     mkdir -p "$RELEASE_PATH/bin"
     rsync ./ci/build/code-server.sh "$RELEASE_PATH/bin/code-server"
@@ -108,8 +101,7 @@ bundle_vscode() {
   # npm package so exclude any .gitignore files.
   rsync_opts+=(--exclude .gitignore)
 
-  # Exclude Node as we will add it ourselves for the standalone and will not
-  # need it for the npm package.
+  # Exclude Node since we want to place it in a directory above.
   rsync_opts+=(--exclude /node)
 
   # Exclude Node modules.  Note that these will already only include production
@@ -120,6 +112,11 @@ bundle_vscode() {
   fi
 
   rsync "${rsync_opts[@]}" "./lib/vscode-reh-web-$VSCODE_TARGET/" "$VSCODE_OUT_PATH"
+
+  # Copy the Node binary.
+  if [[ $KEEP_MODULES = 1 ]]; then
+    cp "./lib/vscode-reh-web-$VSCODE_TARGET/node" "$RELEASE_PATH/lib"
+  fi
 
   # Merge the package.json for the web/remote server so we can include
   # dependencies, since we want to ship this via NPM.
