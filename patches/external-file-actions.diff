@@ -112,7 +112,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -370,6 +370,8 @@ export class WebClientServer {
+@@ -389,6 +389,8 @@ export class WebClientServer {
  			serverBasePath: basePath,
  			webviewEndpoint: staticRoute + '/out/vs/workbench/contrib/webview/browser/pre',
  			userDataPath: this._environmentService.userDataPath,
@@ -230,7 +230,7 @@ Index: code-server/lib/vscode/src/vs/workbench/services/dialogs/browser/simpleFi
  import { IRemoteAgentService } from '../../remote/common/remoteAgentService.js';
  import { IContextKeyService, IContextKey, RawContextKey } from '../../../../platform/contextkey/common/contextkey.js';
  import { equalsIgnoreCase, format, startsWithIgnoreCase } from '../../../../base/common/strings.js';
-@@ -152,7 +152,7 @@ export class SimpleFileDialog extends Di
+@@ -161,7 +161,7 @@ export class SimpleFileDialog extends Di
  		@IFileDialogService private readonly fileDialogService: IFileDialogService,
  		@IModelService private readonly modelService: IModelService,
  		@ILanguageService private readonly languageService: ILanguageService,
@@ -239,7 +239,7 @@ Index: code-server/lib/vscode/src/vs/workbench/services/dialogs/browser/simpleFi
  		@IRemoteAgentService private readonly remoteAgentService: IRemoteAgentService,
  		@IPathService protected readonly pathService: IPathService,
  		@IKeybindingService private readonly keybindingService: IKeybindingService,
-@@ -362,21 +362,23 @@ export class SimpleFileDialog extends Di
+@@ -392,21 +392,23 @@ export class SimpleFileDialog extends Di
  			this.filePickBox.placeholder = nls.localize('remoteFileDialog.placeholder', "Folder path");
  			this.filePickBox.ok = true;
  			this.filePickBox.okLabel = typeof this.options.openLabel === 'string' ? this.options.openLabel : this.options.openLabel?.withoutMnemonic;
