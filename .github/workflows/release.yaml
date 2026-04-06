@@ -45,7 +45,11 @@ jobs:
       # Cross-compile target.
       VSCODE_ARCH: ${{ matrix.vscode_arch }}
       npm_config_arch: ${{ matrix.npm_arch }}
+      # Ensure native modules are built from source to avoid prebuilds and use
+      # the correct version of glibc.
+      npm_config_build_from_source: true
       # Gulp target name.
+      # TODO: Pull from VSCODE_ARCH instead.
       VSCODE_TARGET: ${{ format('linux-{0}', matrix.vscode_arch) }}
 
     steps:
@@ -125,6 +129,8 @@ jobs:
       VSCODE_TARGET: ${{ matrix.vscode_target }}
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       TAG: ${{ inputs.version || github.ref_name }}
+      # Ensure native modules are built from source to avoid prebuilds.
+      npm_config_build_from_source: true
 
     steps:
       # The version of node-gyp we use depends on distutils but it was removed
