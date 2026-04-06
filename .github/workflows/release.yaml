@@ -45,7 +45,11 @@ jobs:
       # Cross-compile target.
       VSCODE_ARCH: ${{ matrix.vscode_arch }}
       npm_config_arch: ${{ matrix.npm_arch }}
+      # Ensure native modules are built from source to avoid prebuilds and use
+      # the correct version of glibc.
+      npm_config_build_from_source: true
       # Gulp target name.
+      # TODO: Pull from VSCODE_ARCH instead.
       VSCODE_TARGET: ${{ format('linux-{0}', matrix.vscode_arch) }}
 
     steps:
