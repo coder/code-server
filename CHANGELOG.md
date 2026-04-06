@@ -22,6 +22,39 @@ Code v99.99.999
 
 ## Unreleased
 
+## [4.114.1](https://github.com/coder/code-server/releases/tag/v4.114.1) - 2026-04-06
+
+Code v1.114.0
+
+### Changed
+
+- Ensure native modules are built from source so they use the correct version of
+  glibc. This should bring down the requirement from 2.34 back down to 2.28.
+
+## [4.114.0](https://github.com/coder/code-server/releases/tag/v4.114.0) - 2026-04-04
+
+Code v1.114.0
+
+### Changed
+
+- Update to Code 1.114.0.
+
+## [4.113.1](https://github.com/coder/code-server/releases/tag/v4.113.1) - 2026-04-03
+
+Code v1.113.0
+
+This is a re-release of v4.113.0 but with the correct Node binaries for arm64
+and armv7l. Previously they were packaging the amd64 Node binary due to a
+mistake while refactoring CI to use more of the upstream build scripts.
+
+## [4.113.0](https://github.com/coder/code-server/releases/tag/v4.113.0) - 2026-04-02
+
+Code v1.113.0
+
+### Changed
+
+- Update to Code 1.113.0
+
 ## [4.112.0](https://github.com/coder/code-server/releases/tag/v4.112.0) - 2026-03-19
 
 Code v1.112.0
