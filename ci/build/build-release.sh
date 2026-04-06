@@ -79,7 +79,7 @@ EOF
   mv npm-shrinkwrap.json "$RELEASE_PATH"
 
   if [ "$KEEP_MODULES" = 1 ]; then
-    local rsync_opts=()
+    local rsync_opts=(-a)
     if [[ ${DEBUG-} = 1 ]]; then
       rsync_opts+=(-vh)
     fi
@@ -100,7 +100,7 @@ EOF
 bundle_vscode() {
   mkdir -p "$VSCODE_OUT_PATH"
 
-  local rsync_opts=()
+  local rsync_opts=(-a)
   if [[ ${DEBUG-} = 1 ]]; then
     rsync_opts+=(-vh)
   fi
