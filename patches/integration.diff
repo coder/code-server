@@ -263,7 +263,7 @@ Index: code-server/lib/vscode/src/server-main.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/server-main.ts
 +++ code-server/lib/vscode/src/server-main.ts
-@@ -22,6 +22,9 @@ import { IServerAPI } from './vs/server/
+@@ -22,6 +22,10 @@ import { IServerAPI } from './vs/server/
  perf.mark('code/server/start');
  (globalThis as { vscodeServerStartTime?: number }).vscodeServerStartTime = performance.now();
  
@@ -271,9 +271,12 @@ Index: code-server/lib/vscode/src/server-main.ts
 +// of the top-level so it will not run immediately and we can control the start.
 +async function start() {
  // Do a quick parse to determine if a server or the cli needs to be started
- const parsedArgs = minimist(process.argv.slice(2), {
- 	boolean: ['start-server', 'list-extensions', 'print-ip-address', 'help', 'version', 'accept-server-license-terms', 'update-extensions'],
-@@ -150,6 +153,7 @@ if (shouldSpawnCli) {
+-const parsedArgs = minimist(process.argv.slice(2), {
+-	boolean: ['start-server', 'list-extensions', 'print-ip-address', 'help', 'version', 'accept-server-license-terms', 'update-extensions'],
++const parsedArgs = minimist(process.argv.slice(2), {
++	boolean: ['start-server', 'list-extensions', 'print-ip-address', 'help', 'version', 'accept-server-license-terms', 'update-extensions'],
++	string: ['host', 'port', 'socket-path', 'server-data-dir', 'connection-token', 'connection-token-file'],
+@@ -150,6 +154,7 @@ if (shouldSpawnCli) {
  		}
  	});
  }
@@ -281,7 +284,7 @@ Index: code-server/lib/vscode/src/server-main.ts
  
  function sanitizeStringArg(val: unknown): string | undefined {
  	if (Array.isArray(val)) { // if an argument is passed multiple times, minimist creates an array
-@@ -283,3 +287,22 @@ function prompt(question: string): Promi
+@@ -283,3 +288,22 @@ function prompt(question: string): Promi
  		});
  	});
  }
