@@ -143,7 +143,7 @@ jobs:
             test/package-lock.json
       - run: SKIP_SUBMODULE_DEPS=1 npm ci
       - run: npm run test:unit
-      - uses: codecov/codecov-action@1af58845a975a7985b0beb0cbe6fbbb71a41dbad # v5
+      - uses: codecov/codecov-action@57e3a136b779b570ffcdbf80b3bdc90e7fab3de2 # v5
         if: success()
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
