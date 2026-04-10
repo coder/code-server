@@ -8,7 +8,9 @@ metadata:
   annotations: {{- toYaml .Values.annotations | nindent 4 }}
   {{- end }}
 spec:
-  replicas: {{ .Values.replicaCount | default 1 }}
+  {{- if ne .Values.replicaCount nil }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
   strategy:
     type: Recreate
   selector:
