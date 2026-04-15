@@ -82,6 +82,9 @@ export class CodeServer {
       path.join(dir, "Machine/settings.json"),
       JSON.stringify({
         "workbench.startupEditor": "none",
+        // Disable the welcome popup so we can avoid having to click through it
+        // on every test.
+        "workbench.welcomePage.experimentalOnboarding": false,
       }),
       "utf8",
     )
