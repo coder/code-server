@@ -291,7 +291,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/extensions/browser/extens
  		}
  
  		// Prefers to run on UI
-@@ -2072,17 +2069,6 @@ export class SetLanguageAction extends E
+@@ -2242,17 +2239,6 @@ export class SetLanguageAction extends E
  	update(): void {
  		this.enabled = false;
  		this.class = SetLanguageAction.DisabledClass;
@@ -309,7 +309,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/extensions/browser/extens
  	}
  
  	override async run(): Promise<any> {
-@@ -2099,7 +2085,6 @@ export class ClearLanguageAction extends
+@@ -2269,7 +2255,6 @@ export class ClearLanguageAction extends
  	private static readonly DisabledClass = `${this.EnabledClass} disabled`;
  
  	constructor(
@@ -317,7 +317,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/extensions/browser/extens
  		@ILocaleService private readonly localeService: ILocaleService,
  	) {
  		super(ClearLanguageAction.ID, ClearLanguageAction.TITLE.value, ClearLanguageAction.DisabledClass, false);
-@@ -2109,17 +2094,6 @@ export class ClearLanguageAction extends
+@@ -2279,17 +2264,6 @@ export class ClearLanguageAction extends
  	update(): void {
  		this.enabled = false;
  		this.class = ClearLanguageAction.DisabledClass;
