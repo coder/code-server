@@ -8,7 +8,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/extensions/browser/extens
 --- code-server.orig/lib/vscode/src/vs/workbench/contrib/extensions/browser/extensionsWorkbenchService.ts
 +++ code-server/lib/vscode/src/vs/workbench/contrib/extensions/browser/extensionsWorkbenchService.ts
 @@ -342,6 +342,10 @@ export class Extension implements IExten
- 			if (this.type === ExtensionType.System && this.productService.quality === 'stable') {
+ 			if (this.type === ExtensionType.System && this.productService.quality === 'stable' && !this.productService.builtInExtensionsEnabledWithAutoUpdates?.some(id => id.toLowerCase() === this.identifier.id.toLowerCase())) {
  				return false;
  			}
 +			// Do not update builtin extensions.
