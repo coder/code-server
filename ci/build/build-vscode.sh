@@ -108,7 +108,7 @@ EOF
   ) > product.json
 
 
-  VSCODE_QUALITY=stable npm run gulp compile-copilot-extension-build
+  VSCODE_QUALITY=stable npm run gulp compile-copilot-extension-full-build
 
   npm run gulp core-ci
   npm run gulp "vscode-reh-web-$VSCODE_TARGET${MINIFY:+-min}-ci"
