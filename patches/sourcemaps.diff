@@ -1,43 +1,25 @@
-Make sourcemaps self-hosted
+Remove sourcemaps URL
 
-Normally source maps get removed as part of the build process so prevent that
-from happening.  Also avoid using the windows.net host since obviously we can
-not host our source maps there and want them to be self-hosted even if we could.
-
-To test try debugging/browsing the source of a build in a browser.
+These will not work since we patch VS Code.
 
 Index: code-server/lib/vscode/build/gulpfile.reh.ts
 ===================================================================
 --- code-server.orig/lib/vscode/build/gulpfile.reh.ts
 +++ code-server/lib/vscode/build/gulpfile.reh.ts
-@@ -263,8 +263,7 @@ function packageTask(type: string, platf
+@@ -261,10 +261,15 @@ function packageTask(type: string, platf
+ 	const destination = path.join(BUILD_ROOT, destinationFolderName);
+ 
  	return () => {
++		const jsFilterMain = util.filter(data => !data.isDirectory() && /\.js$/.test(data.path));
++
  		const src = gulp.src(sourceFolderName + '/**', { base: '.' })
  			.pipe(rename(function (path) { path.dirname = path.dirname!.replace(new RegExp('^' + sourceFolderName), 'out'); }))
--			.pipe(util.setExecutableBit(['**/*.sh']))
+ 			.pipe(util.setExecutableBit(['**/*.sh']))
 -			.pipe(filter(['**', '!**/*.{js,css}.map']));
-+			.pipe(util.setExecutableBit(['**/*.sh']));
++			.pipe(filter(['**', '!**/*.{js,css}.map']))
++			.pipe(jsFilterMain)
++			.pipe(util.stripSourceMappingURL())
++			.pipe(jsFilterMain.restore);
  
  		const workspaceExtensionPoints = ['debuggers', 'jsonValidation'];
  		const isUIExtension = (manifest: { extensionKind?: string; main?: string; contributes?: Record<string, unknown> }) => {
-@@ -304,9 +303,9 @@ function packageTask(type: string, platf
- 			.map(name => `.build/extensions/${name}/**`);
- 
- 		const extensions = gulp.src(extensionPaths, { base: '.build', dot: true });
--		const extensionsCommonDependencies = gulp.src('.build/extensions/node_modules/**', { base: '.build', dot: true });
--		const sources = es.merge(src, extensions, extensionsCommonDependencies)
-+		const extensionsCommonDependencies = gulp.src('.build/extensions/node_modules/**', { base: '.build', dot: true })
- 			.pipe(filter(['**', '!**/*.{js,css}.map'], { dot: true }));
-+		const sources = es.merge(src, extensions, extensionsCommonDependencies);
- 
- 		let version = packageJson.version;
- 		const quality = (product as typeof product & { quality?: string }).quality;
-@@ -505,7 +504,7 @@ function tweakProductForServerWeb(produc
- 	const minifyTask = task.define(`minify-vscode-${type}`, task.series(
- 		bundleTask,
- 		util.rimraf(`out-vscode-${type}-min`),
--		optimize.minifyTask(`out-vscode-${type}`, `https://main.vscode-cdn.net/sourcemaps/${commit}/core`)
-+		optimize.minifyTask(`out-vscode-${type}`, ``)
- 	));
- 	gulp.task(minifyTask);
- 
