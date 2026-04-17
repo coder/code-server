@@ -93,6 +93,7 @@ jobs:
       - uses: azure/setup-helm@dda3372f752e03dde6b3237bc9431cdc2f7a02a2 # v5.0.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+          version: 'v3.19.2'
       - run: helm plugin install https://github.com/instrumenta/helm-kubeval
       - run: helm kubeval ci/helm-chart
 
