@@ -73,7 +73,6 @@ target "code-server-debian-12" {
 target "code-server-ubuntu-focal" {
     dockerfile = "ci/release-image/Dockerfile"
     tags = concat(
-        gen_tags_for_docker_and_ghcr("ubuntu"),
         gen_tags_for_docker_and_ghcr("focal"),
     )
     args = {
@@ -86,6 +85,7 @@ target "code-server-ubuntu-noble" {
     dockerfile = "ci/release-image/Dockerfile"
     tags = concat(
         gen_tags_for_docker_and_ghcr("noble"),
+        gen_tags_for_docker_and_ghcr("ubuntu"),
     )
     args = {
         BASE = "ubuntu:noble"
