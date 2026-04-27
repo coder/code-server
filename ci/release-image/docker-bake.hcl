@@ -20,6 +20,7 @@ group "default" {
         "code-server-debian-12",
         "code-server-ubuntu-focal",
         "code-server-ubuntu-noble",
+        "code-server-ubuntu-resolute",
         "code-server-fedora-39",
         "code-server-opensuse-tumbleweed",
     ]
@@ -89,6 +90,17 @@ target "code-server-ubuntu-noble" {
     )
     args = {
         BASE = "ubuntu:noble"
+    }
+    platforms = ["linux/amd64", "linux/arm64"]
+}
+
+target "code-server-ubuntu-resolute" {
+    dockerfile = "ci/release-image/Dockerfile"
+    tags = concat(
+        gen_tags_for_docker_and_ghcr("resolute"),
+    )
+    args = {
+        BASE = "ubuntu:resolute"
     }
     platforms = ["linux/amd64", "linux/arm64"]
 }
