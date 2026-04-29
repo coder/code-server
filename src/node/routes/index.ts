@@ -11,7 +11,7 @@ import { App } from "../app"
 import { AuthType, DefaultedArgs } from "../cli"
 import { commit, rootPath } from "../constants"
 import { Heart } from "../heart"
-import { redirect } from "../http"
+import { redirect, ensureAuthenticated } from "../http"
 import { CoderSettings, SettingsProvider } from "../settings"
 import { UpdateProvider } from "../update"
 import { getMediaMime, paths } from "../util"
@@ -58,7 +58,7 @@ export const register = async (
   app.router.use(cookieParser())
   app.wsRouter.use(cookieParser())
 
-  const settings = new SettingsProvider<CoderSettings>(path.join(args["user-data-dir"], "coder.json"))
+  const settings = new SettingsProvider<CoderSettings>(args["user-data-dir"] + path.sep + "coder.json")
   const updater = new UpdateProvider("https://api.github.com/repos/coder/code-server/releases/latest", settings)
 
   const cookieSessionName = getCookieSessionName(args["cookie-suffix"])
@@ -90,7 +90,8 @@ export const register = async (
     // TODO: This does *NOT* work if you have a base path since to specify the
     // protocol we need to specify the whole path.
     if (args.cert && !(req.connection as tls.TLSSocket).encrypted) {
-      return res.redirect(`https://${req.headers.host}${req.originalUrl}`)
+      const host = String(req.headers.host || "").replace(/[^a-zA-Z0-9.:\-[\]]/g, "")
+      return res.redirect(`https://${host}${req.originalUrl}`)
     }
     next()
   })
@@ -114,6 +115,7 @@ export const register = async (
     await pathProxy.proxy(req, res)
   })
   app.wsRouter.get("/proxy/:port{/*path}", async (req) => {
+    await ensureAuthenticated(req)
     await pathProxy.wsProxy(req as unknown as WebsocketRequest)
   })
   // These two routes pass through the path directly.
@@ -126,6 +128,7 @@ export const register = async (
     })
   })
   app.wsRouter.get("/absproxy/:port{/*path}", async (req) => {
+    await ensureAuthenticated(req)
     await pathProxy.wsProxy(req as unknown as WebsocketRequest, {
       passthroughPath: true,
       proxyBasePath: args["abs-proxy-base-path"],
