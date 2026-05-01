@@ -40,7 +40,7 @@ Index: code-server/lib/vscode/build/lib/extensions.ts
  import { type IExtensionDefinition, getExtensionStream } from './builtInExtensions.ts';
  import { fetchUrls, fetchGithub } from './fetch.ts';
  import { createTsgoStream, spawnTsgo } from './tsgo.ts';
-+import { prepareBuiltInCopilotExtensionShims } from './copilot.ts';
++import { prepareBuiltInCopilotRipgrepShim } from './copilot.ts';
  import vzip from 'gulp-vinyl-zip';
  
  import { createRequire } from 'module';
@@ -148,7 +148,7 @@ Index: code-server/lib/vscode/build/lib/extensions.ts
 +	}
 +
 +	try {
-+		prepareBuiltInCopilotExtensionShims(platform, arch, outputDir, appNodeModulesDir);
++		prepareBuiltInCopilotRipgrepShim(platform, arch, outputDir, appNodeModulesDir);
 +		fancyLog(`[prepareCopilotExtensionNativeShims] Materialized native shims for ${platform}-${arch}`);
 +	} catch (err) {
 +		// Downgrade to a warning for local builds since the extension
