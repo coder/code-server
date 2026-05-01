@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<title>Voxa AI</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: 'Arial';
+    background: linear-gradient(to right, #6a11cb, #ffb6c1);
+    color: white;
+}
+
+.container {
+    max-width: 400px;
+    margin: 50px auto;
+    background: rgba(255,255,255,0.1);
+    border-radius: 20px;
+    padding: 20px;
+    backdrop-filter: blur(10px);
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.chat-box {
+    height: 300px;
+    overflow-y: auto;
+    background: rgba(0,0,0,0.2);
+    border-radius: 15px;
+    padding: 10px;
+}
+
+.message {
+    margin: 10px 0;
+    padding: 10px;
+    border-radius: 10px;
+    max-width: 80%;
+}
+
+.user {
+    background: #ffb6c1;
+    align-self: flex-end;
+    text-align: right;
+}
+
+.bot {
+    background: #6a11cb;
+    text-align: left;
+}
+
+.input-area {
+    display: flex;
+    margin-top: 10px;
+}
+
+input {
+    flex: 1;
+    padding: 10px;
+    border-radius: 10px;
+    border: none;
+}
+
+button {
+    padding: 10px;
+    margin-left: 5px;
+    border: none;
+    border-radius: 10px;
+    background: #fff;
+    color: #6a11cb;
+    font-weight: bold;
+    cursor: pointer;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+    <h1>💬 Voxa AI</h1>
+
+    <div class="chat-box" id="chatBox"></div>
+
+    <div class="input-area">
+        <input type="text" id="userInput" placeholder="اكتبي جملة بالإنجليزي...">
+        <button onclick="sendMessage()">إرسال</button>
+    </div>
+</div>
+
+<script>
+function sendMessage() {
+    let input = document.getElementById("userInput");
+    let message = input.value;
+
+    if (message.trim() === "") return;
+
+    addMessage(message, "user");
+
+    let reply = generateReply(message);
+    setTimeout(() => addMessage(reply, "bot"), 500);
+
+    input.value = "";
+}
+
+function addMessage(text, type) {
+    let chatBox = document.getElementById("chatBox");
+    let msg = document.createElement("div");
+    msg.classList.add("message", type);
+    msg.innerText = text;
+    chatBox.appendChild(msg);
+    chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+function generateReply(msg) {
+    msg = msg.toLowerCase();
+
+    if (msg.includes("hello")) {
+        return "Hi! 😊 How can I help you?";
+    } else if (msg.includes("how are you")) {
+        return "I'm great! 💖 What about you?";
+    } else if (msg.includes("thanks")) {
+        return "You're welcome! 🌸";
+    } else {
+        return "Good sentence! 👍 Keep practicing 💕";
+    }
+}
+</script>
+
+</body>
+      </html>
