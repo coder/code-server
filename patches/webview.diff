@@ -71,10 +71,19 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/index
  
  	<meta http-equiv="Content-Security-Policy"
 -		content="default-src 'none'; script-src 'sha256-q+WTr+fBXpLLE3++yWNaxT6BTWQtsKscoeIlynBRk4E=' 'self'; frame-src 'self'; style-src 'unsafe-inline';">
-+		content="default-src 'none'; script-src 'sha256-TRhQKOVfHYg34NwPrDGzFSP3l32HL8sgSHYg4kYl0ho=' 'self'; frame-src 'self'; style-src 'unsafe-inline';">
++		content="default-src 'none'; script-src 'sha256-m1DlJtsIJd46QuWYNcsaYIG1xI+9FyjKQu+cfp+zq5Q=' 'self'; frame-src 'self'; style-src 'unsafe-inline';">
  
  	<!-- Disable pinch zooming -->
  	<meta name="viewport"
+@@ -253,7 +253,7 @@
+ 			}
+ 
+ 			const swPath = encodeURI(`service-worker.js?v=${expectedWorkerVersion}&vscode-resource-base-authority=${searchParams.get('vscode-resource-base-authority')}&remoteAuthority=${searchParams.get('remoteAuthority') ?? ''}`);
+-			navigator.serviceWorker.register(swPath, { type: 'module', updateViaCache: 'none' })
++			navigator.serviceWorker.register(swPath)
+ 				.then(async registration => {
+ 					if (navigator.serviceWorker.controller) {
+ 						// A previous SW is already controlling. Force an update
 @@ -332,6 +332,12 @@
  
  				const hostname = location.hostname;
