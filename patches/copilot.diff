@@ -2,7 +2,7 @@ Index: code-server/lib/vscode/build/gulpfile.extensions.ts
 ===================================================================
 --- code-server.orig/lib/vscode/build/gulpfile.extensions.ts
 +++ code-server/lib/vscode/build/gulpfile.extensions.ts
-@@ -293,6 +293,29 @@ export const compileCopilotExtensionBuil
+@@ -294,6 +294,29 @@ export const compileCopilotExtensionBuil
  gulp.task(compileCopilotExtensionBuildTask);
  
  /**
@@ -44,7 +44,7 @@ Index: code-server/lib/vscode/build/lib/extensions.ts
  import vzip from 'gulp-vinyl-zip';
  
  import { createRequire } from 'module';
-@@ -482,6 +483,116 @@ export function packageCopilotExtensionS
+@@ -487,6 +488,116 @@ export function packageCopilotExtensionS
  	).pipe(util2.setExecutableBit(['**/*.sh']));
  }
  
