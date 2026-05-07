@@ -61,7 +61,7 @@ Index: code-server/lib/vscode/build/lib/extensions.ts
 +		return es.readArray([]);
 +	}
 +
-+	const esbuildConfigFileName = '.esbuild.ts';
++	const esbuildConfigFileName = '.esbuild.mts';
 +	const esbuildScript = path.join(extensionPath, esbuildConfigFileName);
 +	if (!fs.existsSync(esbuildScript)) {
 +		throw new Error(`Copilot esbuild script not found at ${esbuildScript}`);
