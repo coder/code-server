@@ -44,7 +44,7 @@ Index: code-server/lib/vscode/build/lib/extensions.ts
  import vzip from 'gulp-vinyl-zip';
  
  import { createRequire } from 'module';
-@@ -487,6 +488,116 @@ export function packageCopilotExtensionS
+@@ -492,6 +493,116 @@ export function packageCopilotExtensionS
  	).pipe(util2.setExecutableBit(['**/*.sh']));
  }
  
