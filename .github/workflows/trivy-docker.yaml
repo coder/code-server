@@ -18,8 +18,6 @@ on:
       - .github/workflows/trivy-docker.yaml
 
   schedule:
-    # Run at 10:15 am UTC (3:15am PT/5:15am CT)
-    # Run at 0 minutes 0 hours of every day.
     - cron: "15 10 * * *"
 
   workflow_dispatch:

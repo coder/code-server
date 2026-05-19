@@ -20,6 +20,7 @@ function update_vscode() {
   if ! git checkout 2>&1 "$target_vscode_version" ; then
     echo "$target_vscode_version does not exist locally, fetching..."
     git fetch --all --prune
+    echo "Checking out $target_vscode_version again..."
     git checkout "$target_vscode_version"
   fi
   popd

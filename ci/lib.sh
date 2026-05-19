@@ -80,6 +80,7 @@ nodeArch() {
 
 run-steps() {
   local -i failed=0
+  mkdir -p .cache
   rm -f .cache/checklist
   while (( $# )) ; do
     local name=$1 ; shift
