@@ -117,7 +117,7 @@ jobs:
           files: package.tar.gz
           tag_name: v${{ env.VERSION }}
           name: v${{ env.VERSION }}
-          body: .cache/release-notes
+          body_path: .cache/release-notes
 
       # Platform-specific release.
       - run: KEEP_MODULES=1 npm run release
