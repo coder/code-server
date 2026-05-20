@@ -63,10 +63,10 @@ jobs:
           git config --global user.email opensource@coder.com
           git checkout -b "update/$VERSION"
           git add .
-          git commit -m "Update VS Code to $VERSION"
+          git commit -m "Update Code to $VERSION"
           git push -u origin "$(git branch --show)"
           gh pr create \
             --repo coder/code-server \
-            --title "Update VS Code to $VERSION" \
+            --title "Update Code to $VERSION" \
             --body-file .cache/checklist \
             --draft
