@@ -28,14 +28,6 @@ Code v1.121.0
 
 - Update to Code 1.121.0
 
-## [4.119.0](https://github.com/coder/code-server/releases/tag/v4.119.0) - 2026-05-07
-
-Code v1.119.0
-
-### Changed
-
-- Update to Code 1.119.0
-
 ## [4.118.0](https://github.com/coder/code-server/releases/tag/v4.118.0) - 2026-05-06
 
 Code v1.118.0
