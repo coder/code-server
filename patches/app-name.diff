@@ -12,15 +12,15 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -333,8 +333,11 @@ export class WebClientServer {
- 			scopes: [['user:email'], ['repo']]
- 		} : undefined;
+@@ -366,8 +366,11 @@ export class WebClientServer {
+ 			linkProtectionTrustedDomains.push(...this._productService.linkProtectionTrustedDomains);
+ 		}
  
 +		const appName = this._environmentService.args['app-name'];
- 		const productConfiguration = {
- 			embedderIdentifier: 'server-distro',
+ 		const productConfiguration: Partial<Mutable<IProductConfiguration>> = {
+ 			codeServerVersion: this._productService.codeServerVersion,
 +			nameShort: appName,
 +			nameLong: appName,
- 			extensionsGallery: this._webExtensionResourceUrlTemplate && this._productService.extensionsGallery ? {
- 				...this._productService.extensionsGallery,
- 				resourceUrlTemplate: this._webExtensionResourceUrlTemplate.with({
+ 			rootEndpoint: rootBase,
+ 			updateEndpoint: !this._environmentService.args['disable-update-check'] ? rootBase + '/update/check' : undefined,
+ 			logoutEndpoint: this._environmentService.args['auth'] && this._environmentService.args['auth'] !== "none" ? rootBase + '/logout' : undefined,
