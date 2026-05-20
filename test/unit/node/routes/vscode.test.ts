@@ -36,7 +36,7 @@ describe("vscode", () => {
     const htmlContent = await resp.text()
 
     expect(resp.status).toBe(200)
-    expect(htmlContent).toContain(`\"nameShort\":\"${appName}\"`)
-    expect(htmlContent).toContain(`\"nameLong\":\"${appName}\"`)
+    expect(htmlContent).toContain(`"nameShort":"${appName}"`)
+    expect(htmlContent).toContain(`"nameLong":"${appName}"`)
   })
 })
