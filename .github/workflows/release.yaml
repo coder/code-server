@@ -10,7 +10,7 @@ on:
     types:
       - closed
     branches:
-      - "update/**"
+      - main
 
 permissions:
   contents: write # For creating releases.
@@ -26,7 +26,9 @@ jobs:
   package-linux:
     name: ${{ format('linux-{0}', matrix.vscode_arch) }}
     runs-on: ubuntu-22.04
-    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.merged == true
+    if: >-
+      (github.event_name == 'workflow_dispatch') ||
+      (github.event_name == 'pull_request_target' && github.event.pull_request.merged == true && startsWith(github.head_ref, 'update/'))
 
     strategy:
       matrix:
@@ -133,7 +135,9 @@ jobs:
   package-macos:
     name: ${{ matrix.vscode_target }}
     runs-on: ${{ matrix.os }}
-    if: github.event_name == 'workflow_dispatch' || github.event.pull_request_merged == true
+    if: >-
+      (github.event_name == 'workflow_dispatch') ||
+      (github.event_name == 'pull_request_target' && github.event.pull_request.merged == true && startsWith(github.head_ref, 'update/'))
     strategy:
       matrix:
         include:
