@@ -8,6 +8,26 @@ VS Code's web bootstrap, so set `nameShort`/`nameLong` from the existing
 This keeps the patch minimal and makes browser tab titles honor `--app-name`
 without changing unrelated product metadata.
 
+Index: code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
++++ code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
+@@ -24,6 +24,7 @@ export const serverOptions: OptionDescri
+ 	'disable-getting-started-override': { type: 'boolean' },
+ 	'locale': { type: 'string' },
+ 	'link-protection-trusted-domains': { type: 'string[]' },
++	'app-name': { type: 'string' },
+ 
+ 	/* ----- server setup ----- */
+ 
+@@ -120,6 +121,7 @@ export interface ServerParsedArgs {
+ 	'disable-getting-started-override'?: boolean,
+ 	'locale'?: string
+ 	'link-protection-trusted-domains'?: string[],
++	'app-name'?: string,
+ 
+ 	/* ----- server setup ----- */
+ 
 Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
