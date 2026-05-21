@@ -1,0 +1,46 @@
+Apply --app-name to VS Code web page titles
+
+VS Code's `${appName}` title variable comes from `productService.nameLong` in the
+web client. code-server already injects per-request product configuration into
+VS Code's web bootstrap, so set `nameShort`/`nameLong` from the existing
+`--app-name` CLI arg there.
+
+This keeps the patch minimal and makes browser tab titles honor `--app-name`
+without changing unrelated product metadata.
+
+Index: code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
++++ code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
+@@ -24,6 +24,7 @@ export const serverOptions: OptionDescri
+ 	'disable-getting-started-override': { type: 'boolean' },
+ 	'locale': { type: 'string' },
+ 	'link-protection-trusted-domains': { type: 'string[]' },
++	'app-name': { type: 'string' },
+ 
+ 	/* ----- server setup ----- */
+ 
+@@ -120,6 +121,7 @@ export interface ServerParsedArgs {
+ 	'disable-getting-started-override'?: boolean,
+ 	'locale'?: string
+ 	'link-protection-trusted-domains'?: string[],
++	'app-name'?: string,
+ 
+ 	/* ----- server setup ----- */
+ 
+Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
++++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
+@@ -366,8 +366,11 @@ export class WebClientServer {
+ 			linkProtectionTrustedDomains.push(...this._productService.linkProtectionTrustedDomains);
+ 		}
+ 
++		const appName = this._environmentService.args['app-name'];
+ 		const productConfiguration: Partial<Mutable<IProductConfiguration>> = {
+ 			codeServerVersion: this._productService.codeServerVersion,
++			nameShort: appName,
++			nameLong: appName,
+ 			rootEndpoint: rootBase,
+ 			updateEndpoint: !this._environmentService.args['disable-update-check'] ? rootBase + '/update/check' : undefined,
+ 			logoutEndpoint: this._environmentService.args['auth'] && this._environmentService.args['auth'] !== "none" ? rootBase + '/logout' : undefined,
