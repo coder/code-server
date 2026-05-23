@@ -136,6 +136,7 @@ bundle_vscode() {
 
   # Include global extension dependencies as well.
   rsync "$VSCODE_SRC_PATH/extensions/package.json" "$VSCODE_OUT_PATH/extensions/package.json"
+  ./ci/build/add-vscode-extension-dependencies.sh "$VSCODE_OUT_PATH/extensions/package.json" "$VSCODE_SRC_PATH/extensions"
   cp "$VSCODE_SRC_PATH/extensions/npm-shrinkwrap.json" "$VSCODE_OUT_PATH/extensions/npm-shrinkwrap.json"
   rsync "$VSCODE_SRC_PATH/extensions/postinstall.mjs" "$VSCODE_OUT_PATH/extensions/postinstall.mjs"
 }
@@ -165,11 +166,22 @@ create_shrinkwraps() {
   mv package-lock.json.temp package-lock.json
   popd
 
-  pushd "$VSCODE_SRC_PATH/extensions/"
-  cp package-lock.json package-lock.json.temp
+  # Generate the extension shrinkwrap from a temporary manifest so we can add
+  # code-server-specific hoisted runtime dependencies without mutating the VS Code
+  # submodule package.json or package-lock.json.
+  local extensions_shrinkwrap_tmp
+  extensions_shrinkwrap_tmp="$(mktemp -d)"
+  cp "$VSCODE_SRC_PATH/extensions/package.json" "$extensions_shrinkwrap_tmp/package.json"
+  cp "$VSCODE_SRC_PATH/extensions/package-lock.json" "$extensions_shrinkwrap_tmp/package-lock.json"
+  ./ci/build/add-vscode-extension-dependencies.sh "$extensions_shrinkwrap_tmp/package.json" "$VSCODE_SRC_PATH/extensions"
+
+  pushd "$extensions_shrinkwrap_tmp"
+  npm install --package-lock-only --ignore-scripts
   npm shrinkwrap
-  mv package-lock.json.temp package-lock.json
   popd
+
+  cp "$extensions_shrinkwrap_tmp/npm-shrinkwrap.json" "$VSCODE_SRC_PATH/extensions/npm-shrinkwrap.json"
+  rm -rf "$extensions_shrinkwrap_tmp"
 }
 
 main "$@"
