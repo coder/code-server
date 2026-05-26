@@ -677,9 +677,7 @@ export async function setDefaults(cliArgs: UserProvidedArgs, configArgs?: Config
   }
   args["proxy-domain"] = finalProxies
 
-  if (!args["app-name"]) {
-    args["app-name"] = "code-server"
-  }
+  args["app-name"] ??= process.env.CODE_SERVER_APP_NAME || "code-server"
 
   args._ = getResolvedPathsFromArgs(args)
 
