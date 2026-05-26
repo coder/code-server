@@ -201,7 +201,7 @@ There are four kinds of tests in code-server:
 Our unit tests are written in TypeScript and run using
 [Jest](https://jestjs.io/), the testing framework].
 
-These live under [test/unit](../test/unit).
+These live under [test/unit](https://github.com/coder/code-server/tree/main/test/unit).
 
 We use unit tests for functions and things that can be tested in isolation. The
 file structure is modeled closely after `/src` so it's easy for people to know
@@ -230,7 +230,7 @@ testing the CLI requires us to build and package code-server.
 The end-to-end (e2e) tests are written in TypeScript and run using
 [Playwright](https://playwright.dev/).
 
-These live under [test/e2e](../test/e2e).
+These live under [test/e2e](https://github.com/coder/code-server/tree/main/test/e2e).
 
 Before the e2e tests run, we run `globalSetup`, which eliminates the need to log
 in before each test by preserving the authentication state.
@@ -246,15 +246,15 @@ We also have a model where you can create helpers to use within tests. See
 code-server essentially serves as an HTTP API for logging in and starting a
 remote Code process.
 
-The CLI code is in [src/node](../src/node) and the HTTP routes are implemented
-in [src/node/routes](../src/node/routes).
+The CLI code is in [src/node](https://github.com/coder/code-server/tree/main/src/node) and the HTTP routes are implemented
+in [src/node/routes](https://github.com/coder/code-server/tree/main/src/node/routes).
 
 Most of the meaty parts are in the Code portion of the codebase under
-[lib/vscode](../lib/vscode), which we describe next.
+[lib/vscode](https://github.com/coder/code-server/tree/main/lib/vscode), which we describe next.
 
 ### Modifications to Code
 
-Our modifications to Code can be found in the [patches](../patches) directory.
+Our modifications to Code can be found in the [patches](https://github.com/coder/code-server/tree/main/patches) directory.
 We pull in Code as a submodule pointing to an upstream release branch.
 
 In v1 of code-server, we had Code as a submodule and used a single massive patch
@@ -277,7 +277,7 @@ requires us to ensure that our changes are still applied correctly and work as
 intended. In the future, we'd like to run Code unit tests against our builds to
 ensure that features work as expected.
 
-> We have [extension docs](../ci/README.md) on the CI and build system.
+> We have [extension docs](https://github.com/coder/code-server/tree/main/ci) on the CI and build system.
 
 If the functionality you're working on does NOT depend on code from Code, please
 move it out and into code-server.
