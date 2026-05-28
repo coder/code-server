@@ -37,7 +37,8 @@ function main() {
     "Update changelog" "update_changelog"
   )
 
-  run-steps "${steps[@]}"
+  # Even if a step failed, still output the last checkmark.
+  run-steps "${steps[@]}" || true
 
   # This step is always manual.
   echo "- [ ] https://github.com/coder/code-server-aur/pulls" >> .cache/checklist

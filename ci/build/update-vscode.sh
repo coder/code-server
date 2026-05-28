@@ -146,7 +146,8 @@ function main() {
     "Add changelog note" "add_changelog"
   )
 
-  run-steps "${steps[@]}"
+  # Even if a step failed, still output the last checkmark.
+  run-steps "${steps[@]}" || true
 
   # This step is always manual.
   echo "- [ ] Verify changelog" >> .cache/checklist
