@@ -31,7 +31,8 @@ Code v1.122.0
 ### Fixed
 
 - `--app-name` will now affect window titles within the editor (it is now used
-  as the value for `${appName}` in the title template).
+  as the value for `${appName}` in the title template) as well as some other
+  places like the help > about dialog.
 
 ### Added
 
