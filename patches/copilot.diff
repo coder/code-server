@@ -26,7 +26,7 @@ Index: code-server/lib/vscode/build/gulpfile.extensions.ts
 +		return Promise.resolve();
 +	})
 +));
-+gulp.task(compileCopilotExtensionFullBuildTask);
++task.task(compileCopilotExtensionFullBuildTask);
 +
 +/**
   * Compiles the extensions for the build.
