@@ -20,7 +20,7 @@ Index: code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
  
  	/* ----- server setup ----- */
  
-@@ -120,6 +121,7 @@ export interface ServerParsedArgs {
+@@ -124,6 +125,7 @@ export interface ServerParsedArgs {
  	'disable-getting-started-override'?: boolean,
  	'locale'?: string
  	'link-protection-trusted-domains'?: string[],

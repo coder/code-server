@@ -22,6 +22,22 @@ Code v99.99.999
 
 ## Unreleased
 
+Code v1.122.0
+
+### Changed
+
+- Update to Code 1.122.0
+
+### Fixed
+
+- `--app-name` will now affect window titles within the editor (it is now used
+  as the value for `${appName}` in the title template) as well as some other
+  places like the help > about dialog.
+
+### Added
+
+- App name can now be set with the `CODE_SERVER_APP_NAME` environment variable.
+
 ## [4.121.0](https://github.com/coder/code-server/releases/tag/v4.121.0) - 2026-05-20
 
 Code v1.121.0
