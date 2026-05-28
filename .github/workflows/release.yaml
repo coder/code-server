@@ -148,7 +148,7 @@ jobs:
     env:
       VSCODE_TARGET: ${{ matrix.vscode_target }}
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      TAG: ${{ inputs.version || github.ref_name }}
+      TAG: ${{ inputs.version || github.event.pull_request.head.ref || github.ref_name }}
       # Ensure native modules are built from source to avoid prebuilds.
       npm_config_build_from_source: true
 
