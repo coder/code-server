@@ -159,7 +159,7 @@ jobs:
           git config --global user.email opensource@coder.com
           git checkout -b "helm/$VERSION"
           git add .
-          git commit -m "Update to $VERSION"
+          git commit -m "Update Helm chart and changelog with $VERSION"
           git push -u origin "$(git branch --show)"
           gh pr create \
             --repo coder/code-server \
