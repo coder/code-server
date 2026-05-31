@@ -1,0 +1,22 @@
+Support MY_APP_CS_REMOTE_NAME environment variable for remote indicator
+
+If MY_APP_CS_REMOTE_NAME is set, the bottom-left status bar will show a
+remote indicator with the provided name instead of the default "Web" label.
+
+Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
++++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
+@@ -414,7 +414,11 @@ export class WebClientServer {
+ 			folderUri: resolveWorkspaceURI(this._environmentService.args['default-folder']),
+ 			workspaceUri: resolveWorkspaceURI(this._environmentService.args['default-workspace']),
+ 			productConfiguration,
+-			callbackRoute: callbackRoute
++			callbackRoute: callbackRoute,
++			windowIndicator: process.env.MY_APP_CS_REMOTE_NAME ? {
++				label: `$(remote) ${process.env.MY_APP_CS_REMOTE_NAME}`,
++				tooltip: process.env.MY_APP_CS_REMOTE_NAME
++			} : undefined
+ 		};
+ 
+ 		const cookies = cookie.parse(req.headers.cookie || '');
