@@ -24,7 +24,7 @@ async function entry(): Promise<void> {
   const args = await setDefaults(cliArgs, configArgs)
 
   if (args.help) {
-    console.log("code-server", getVersionString())
+    console.log("Visual Studio Code", getVersionString())
     console.log("")
     console.log(`Usage: code-server [options] [path]`)
     console.log(`    - Opening a directory: code-server ./path/to/your/project`)
