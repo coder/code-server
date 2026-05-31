@@ -1,3 +1,3 @@
 #!/usr/bin/env sh
 
-exec /usr/lib/code-server/bin/code-server "$@"
+exec /usr/lib/vscode/lib/vscode/bin/remote-cli/code "$@"

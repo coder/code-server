@@ -1,4 +1,4 @@
-name: "code-server"
+name: "vscode"
 arch: "${NFPM_ARCH}"
 platform: "linux"
 version: "v${VERSION}"
@@ -13,7 +13,7 @@ license: "MIT"
 
 contents:
   - src: ./ci/build/code-server-nfpm.sh
-    dst: /usr/bin/code-server
+    dst: /usr/bin/code
 
   - src: ./ci/build/code-server@.service
     dst: /usr/lib/systemd/system/code-server@.service
@@ -22,4 +22,4 @@ contents:
     dst: /usr/lib/systemd/user/code-server.service
 
   - src: ./release/*
-    dst: /usr/lib/code-server
+    dst: /usr/lib/vscode
