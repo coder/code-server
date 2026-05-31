@@ -146,6 +146,20 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
  			embedderIdentifier: 'server-distro',
  			extensionsGallery: this._webExtensionResourceUrlTemplate && this._productService.extensionsGallery ? {
  				...this._productService.extensionsGallery,
+@@ -386,7 +393,10 @@ export class WebClientServer {
+ 			enableWorkspaceTrust: !this._environmentService.args['disable-workspace-trust'],
+ 			folderUri: resolveWorkspaceURI(this._environmentService.args['default-folder']),
+ 			workspaceUri: resolveWorkspaceURI(this._environmentService.args['default-workspace']),
+ 			productConfiguration,
+-			callbackRoute: callbackRoute
++			callbackRoute: callbackRoute,
++			windowIndicator: process.env.MY_APP_CS_REMOTE_NAME ? {
++				label: `$(remote) ${process.env.MY_APP_CS_REMOTE_NAME}`,
++				tooltip: process.env.MY_APP_CS_REMOTE_NAME
++			} : undefined,
+ 		};
+ 
+ 		const cookies = cookie.parse(req.headers.cookie || '');
 @@ -407,7 +414,9 @@ export class WebClientServer {
  			WORKBENCH_AUTH_SESSION: authSessionInfo ? asJSON(authSessionInfo) : '',
  			WORKBENCH_WEB_BASE_URL: staticRoute,
