@@ -13,7 +13,7 @@ Index: code-server/lib/vscode/src/vs/base/common/product.ts
  	readonly rootEndpoint?: string
  	readonly updateEndpoint?: string
 +	readonly logoutEndpoint?: string
- 
+
  	readonly version: string;
  	readonly date?: string;
 Index: code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
@@ -25,17 +25,17 @@ Index: code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
  	/* ----- code-server ----- */
  	'disable-update-check': { type: 'boolean' },
 +	'auth': { type: 'string' },
- 
+
  	/* ----- server setup ----- */
- 
+
 @@ -112,6 +113,7 @@ export const serverOptions: OptionDescri
  export interface ServerParsedArgs {
  	/* ----- code-server ----- */
  	'disable-update-check'?: boolean;
 +	'auth'?: string;
- 
+
  	/* ----- server setup ----- */
- 
+
 Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
@@ -61,7 +61,7 @@ Index: code-server/lib/vscode/src/vs/workbench/browser/client.ts
  import { INotificationService, Severity } from '../../platform/notification/common/notification.js';
  import { IProductService } from '../../platform/product/common/productService.js';
  import { IStorageService, StorageScope, StorageTarget } from '../../platform/storage/common/storage.js';
- 
+
  export class CodeServerClient extends Disposable {
 +	static LOGOUT_COMMAND_ID = 'code-server.logout';
 +
@@ -77,10 +77,10 @@ Index: code-server/lib/vscode/src/vs/workbench/browser/client.ts
 +			this.addLogoutCommand(this.productService.logoutEndpoint);
 +		}
  	}
- 
+
  	private checkUpdates(updateEndpoint: string) {
 @@ -132,4 +140,25 @@ export class CodeServerClient extends Di
- 
+
  		updateLoop();
  	}
 +
@@ -99,7 +99,7 @@ Index: code-server/lib/vscode/src/vs/workbench/browser/client.ts
 +			MenuRegistry.appendMenuItem(menuId, {
 +				command: {
 +					id: CodeServerClient.LOGOUT_COMMAND_ID,
-+					title: localize('logout', "Sign out of {0}", 'code-server'),
++					title: localize('logout', "退出", 'code-server'),
 +				},
 +			});
 +		}

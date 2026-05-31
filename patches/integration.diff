@@ -23,16 +23,16 @@ Index: code-server/lib/vscode/src/vs/server/node/server.main.ts
 +import { serverOptions, ServerParsedArgs } from './serverEnvironmentService.js';
  import product from '../../platform/product/common/product.js';
  import * as perf from '../../base/common/performance.js';
- 
+
 @@ -34,38 +34,47 @@ const errorReporter: ErrorReporter = {
  	}
  };
- 
+
 -const args = parseArgs(process.argv.slice(2), serverOptions, errorReporter);
 +function parse(): ServerParsedArgs {
 +	return parseArgs(process.argv.slice(2), serverOptions, errorReporter);
 +}
- 
+
 -const REMOTE_DATA_FOLDER = args['server-data-dir'] || process.env['VSCODE_AGENT_FOLDER'] || join(os.homedir(), product.serverDataFolderName || '.vscode-remote');
 -const USER_DATA_PATH = join(REMOTE_DATA_FOLDER, 'data');
 -const APP_SETTINGS_HOME = join(USER_DATA_PATH, 'User');
@@ -74,7 +74,7 @@ Index: code-server/lib/vscode/src/vs/server/node/server.main.ts
 +	});
 +	return REMOTE_DATA_FOLDER;
 +}
- 
+
  /**
   * invoked by server-main.js
   */
@@ -83,7 +83,7 @@ Index: code-server/lib/vscode/src/vs/server/node/server.main.ts
 +function spawnCli(args = parse()): Promise<void> {
 +	return runCli(args, createDirs(args), serverOptions);
  }
- 
+
  /**
   * invoked by server-main.js
   */
@@ -175,20 +175,20 @@ Index: code-server/lib/vscode/src/vs/workbench/browser/web.main.ts
 @@ -140,6 +141,9 @@ export class BrowserMain extends Disposa
  		// Startup
  		const instantiationService = workbench.startup();
- 
+
 +		const codeServerClient = this._register(instantiationService.createInstance(CodeServerClient));
 +		await codeServerClient.startup();
 +
  		// Window
  		this._register(instantiationService.createInstance(BrowserWindow));
- 
+
 Index: code-server/lib/vscode/src/vs/base/common/product.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/base/common/product.ts
 +++ code-server/lib/vscode/src/vs/base/common/product.ts
 @@ -65,6 +65,8 @@ export type ExtensionVirtualWorkspaceSup
  };
- 
+
  export interface IProductConfiguration {
 +	readonly codeServerVersion?: string
 +
@@ -206,12 +206,12 @@ Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench-dev.html
 -		<link rel="apple-touch-icon" href="{{WORKBENCH_WEB_BASE_URL}}/resources/server/code-192.png" />
 +		<link rel="apple-touch-icon" sizes="192x192" href="/_static/src/browser/media/pwa-icon-192.png" />
 +		<link rel="apple-touch-icon" sizes="512x512" href="/_static/src/browser/media/pwa-icon-512.png" />
- 
+
  		<!-- Disable pinch zooming -->
  		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
 @@ -26,8 +27,9 @@
  		<meta id="vscode-workbench-builtin-extensions" data-settings="{{WORKBENCH_BUILTIN_EXTENSIONS}}">
- 
+
  		<!-- Workbench Icon/Manifest/CSS -->
 -		<link rel="icon" href="{{WORKBENCH_WEB_BASE_URL}}/resources/server/favicon.ico" type="image/x-icon" />
 -		<link rel="manifest" href="{{WORKBENCH_WEB_BASE_URL}}/resources/server/manifest.json" crossorigin="use-credentials" />
@@ -219,7 +219,7 @@ Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench-dev.html
 +		<link rel="alternate icon" href="/_static/src/browser/media/favicon.ico" type="image/x-icon" />
 +		<link rel="manifest" href="/manifest.json" crossorigin="use-credentials" />
  		<style id="vscode-css-modules" type="text/css" media="screen"></style>
- 
+
  	</head>
 Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench.html
 ===================================================================
@@ -232,12 +232,12 @@ Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench.html
 -		<link rel="apple-touch-icon" href="{{WORKBENCH_WEB_BASE_URL}}/resources/server/code-192.png" />
 +		<link rel="apple-touch-icon" sizes="192x192" href="/_static/src/browser/media/pwa-icon-192.png" />
 +		<link rel="apple-touch-icon" sizes="512x512" href="/_static/src/browser/media/pwa-icon-512.png" />
- 
+
  		<!-- Disable pinch zooming -->
  		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
 @@ -23,8 +24,9 @@
  		<meta id="vscode-workbench-auth-session" data-settings="{{WORKBENCH_AUTH_SESSION}}">
- 
+
  		<!-- Workbench Icon/Manifest/CSS -->
 -		<link rel="icon" href="{{WORKBENCH_WEB_BASE_URL}}/resources/server/favicon.ico" type="image/x-icon" />
 -		<link rel="manifest" href="{{WORKBENCH_WEB_BASE_URL}}/resources/server/manifest.json" crossorigin="use-credentials" />
@@ -245,7 +245,7 @@ Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench.html
 +		<link rel="alternate icon" href="/_static/src/browser/media/favicon.ico" type="image/x-icon" />
 +		<link rel="manifest" href="/manifest.json" crossorigin="use-credentials" />
  		<link rel="stylesheet" href="{{WORKBENCH_WEB_BASE_URL}}/out/vs/code/browser/workbench/workbench.css">
- 
+
  	</head>
 Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
@@ -253,7 +253,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 @@ -353,6 +353,7 @@ export class WebClientServer {
  		} : undefined;
- 
+
  		const productConfiguration: Partial<Mutable<IProductConfiguration>> = {
 +			codeServerVersion: this._productService.codeServerVersion,
  			embedderIdentifier: 'server-distro',
@@ -266,7 +266,7 @@ Index: code-server/lib/vscode/src/server-main.ts
 @@ -22,6 +22,9 @@ import { IServerAPI } from './vs/server/
  perf.mark('code/server/start');
  (globalThis as { vscodeServerStartTime?: number }).vscodeServerStartTime = performance.now();
- 
+
 +// This is not indented to make the diff less noisy.  We need to move this out
 +// of the top-level so it will not run immediately and we can control the start.
 +async function start() {
@@ -278,7 +278,7 @@ Index: code-server/lib/vscode/src/server-main.ts
  	});
  }
 +}
- 
+
  function sanitizeStringArg(val: unknown): string | undefined {
  	if (Array.isArray(val)) { // if an argument is passed multiple times, minimist creates an array
 @@ -283,3 +287,22 @@ function prompt(question: string): Promi
@@ -304,21 +304,3 @@ Index: code-server/lib/vscode/src/server-main.ts
 +if (!process.env.CODE_SERVER_PARENT_PID) {
 +	start();
 +}
-Index: code-server/lib/vscode/src/vs/workbench/browser/parts/dialogs/dialog.ts
-===================================================================
---- code-server.orig/lib/vscode/src/vs/workbench/browser/parts/dialogs/dialog.ts
-+++ code-server/lib/vscode/src/vs/workbench/browser/parts/dialogs/dialog.ts
-@@ -47,8 +47,11 @@ export function createWorkbenchDialogOpt
- 
- export function createBrowserAboutDialogDetails(productService: IProductService): { title: string; details: string; detailsToCopy: string } {
- 	const detailString = (useAgo: boolean): string => {
--		return localize('aboutDetail',
--			"Version: {0}\nCommit: {1}\nDate: {2}\nBrowser: {3}",
-+		return localize('aboutCodeServerDetail',
-+			"code-server: {0}",
-+			productService.codeServerVersion ? `v${productService.codeServerVersion}` : 'Unknown'
-+		) + '\n' + localize('aboutDetail',
-+			"Code: {0}\nCommit: {1}\nDate: {2}\nBrowser: {3}",
- 			productService.version || 'Unknown',
- 			productService.commit || 'Unknown',
- 			productService.date ? `${productService.date}${useAgo ? ' (' + fromNow(new Date(productService.date), true) + ')' : ''}` : 'Unknown',
