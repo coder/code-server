@@ -136,7 +136,7 @@ EOF
       fix-bin-script helpers/browser.cmd
       ;;
     *)
-      fix-bin-script remote-cli/code-server
+      fix-bin-script remote-cli/code
       fix-bin-script helpers/browser.sh
       ;;
   esac
