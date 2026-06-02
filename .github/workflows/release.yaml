@@ -72,10 +72,12 @@ jobs:
           curl -sSfL https://github.com/goreleaser/nfpm/releases/download/v2.3.1/nfpm_2.3.1_`uname -s`_`uname -m`.tar.gz | tar -C ~/.local/bin -zxv nfpm
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
-      - name: Strip update/ and v from tag
+      - name: Strip update/ and v from tag and set major version
         run: |
           version=${TAG#update/}
-          echo "VERSION=${version#v}" >> $GITHUB_ENV
+          version=${version#v}
+          version=4${version:1}
+          echo "VERSION=$version" >> $GITHUB_ENV
 
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
@@ -164,10 +166,12 @@ jobs:
           curl -sSfL https://github.com/goreleaser/nfpm/releases/download/v2.3.1/nfpm_2.3.1_`uname -s`_`uname -m`.tar.gz | tar -C ~/.local/bin -zxv nfpm
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
-      - name: Strip update/ and v from tag
+      - name: Strip update/ and v from tag and set major version
         run: |
           version=${TAG#update/}
-          echo "VERSION=${version#v}" >> $GITHUB_ENV
+          version=${version#v}
+          version=4${version:1}
+          echo "VERSION=$version" >> $GITHUB_ENV
 
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
