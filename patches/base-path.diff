@@ -263,7 +263,7 @@ Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench.ts
  	}
  
  	private startListening(): void {
-@@ -584,17 +585,6 @@ class WorkspaceProvider implements IWork
+@@ -590,17 +591,6 @@ class WorkspaceProvider implements IWork
  	}
  }
  
@@ -281,7 +281,7 @@ Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench.ts
  (function () {
  
  	// Find config by checking for DOM
-@@ -604,8 +594,8 @@ function readCookie(name: string): strin
+@@ -610,8 +600,8 @@ function readCookie(name: string): strin
  	if (!configElement || !configElementAttribute) {
  		throw new Error('Missing web configuration element');
  	}
