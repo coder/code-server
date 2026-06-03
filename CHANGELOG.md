@@ -27,6 +27,8 @@ Code v1.123.0
 ### Changed
 
 - Update to Code 1.123.0
+- Microsoft dropped support for armhf remotes so there will no longer be any
+  builds for armhf.
 
 ## [4.122.1](https://github.com/coder/code-server/releases/tag/v4.122.1) - 2026-06-02
 

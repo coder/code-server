@@ -39,9 +39,6 @@ jobs:
           - npm_arch: arm64
             vscode_arch: arm64
             package_arch: arm64
-          - npm_arch: arm
-            vscode_arch: armhf
-            package_arch: armv7l
 
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
