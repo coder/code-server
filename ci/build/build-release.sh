@@ -128,7 +128,9 @@ bundle_vscode() {
 
   # Merge the package.json for the web/remote server so we can include
   # dependencies, since we want to ship this via NPM.
-  jq --slurp '.[0] * .[1]' \
+  # Also override the name to prevent vulnerability scanners from
+  # misidentifying this package as VS Code (see #7071).
+  jq --slurp '.[0] * .[1] | .name = "code-oss-dev"' \
     "$VSCODE_SRC_PATH/remote/package.json" \
     "$VSCODE_OUT_PATH/package.json" > "$VSCODE_OUT_PATH/package.json.merged"
   mv "$VSCODE_OUT_PATH/package.json.merged" "$VSCODE_OUT_PATH/package.json"
