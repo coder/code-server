@@ -22,6 +22,11 @@ Code v99.99.999
 
 ## Unreleased
 
+### Added
+
+- Selecting editor text with a stylus or pen now works on Android, like it
+  already did on iOS. A finger still scrolls.
+
 ## [4.123.0](https://github.com/coder/code-server/releases/tag/v4.123.0) - 2026-06-03
 
 Code v1.123.0
