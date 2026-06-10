@@ -104,7 +104,7 @@ Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench.ts
  import type { IURLCallbackProvider } from '../../../workbench/services/url/browser/urlService.js';
  import { create } from '../../../workbench/workbench.web.main.internal.js';
  
-@@ -612,6 +613,39 @@ class WorkspaceProvider implements IWork
+@@ -612,6 +613,44 @@ class WorkspaceProvider implements IWork
  		settingsSyncOptions: config.settingsSyncOptions ? { enabled: config.settingsSyncOptions.enabled, } : undefined,
  		workspaceProvider: WorkspaceProvider.create(config),
  		urlCallbackProvider: new LocalStorageURLCallbackProvider(config.callbackRoute),
@@ -116,9 +116,17 @@ Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench.ts
 +					const renderedTemplate = config.productConfiguration.proxyEndpointTemplate
 +						.replace('{{port}}', localhostMatch.port.toString())
 +						.replace('{{host}}', window.location.host)
-+					resolvedUri = URI.parse(new URL(renderedTemplate, window.location.href).toString())
++					const proxyUrl = new URL(renderedTemplate, window.location.href)
++					// Preserve the original path and query string
++					if (resolvedUri.path && resolvedUri.path !== '/') {
++						proxyUrl.pathname += resolvedUri.path.substring(1)
++					}
++					if (resolvedUri.query) {
++						proxyUrl.search = resolvedUri.query
++					}
++					resolvedUri = URI.parse(proxyUrl.toString())
 +				} else {
-+					throw new Error(`Failed to resolve external URI: ${uri.toString()}. Could not determine base url because productConfiguration missing.`)
++					throw new Error(Failed to resolve external URI: ${uri.toString()}. Could not determine base url because productConfiguration missing.)
 +				}
 +			}
 +			// If not localhost, return unmodified.
