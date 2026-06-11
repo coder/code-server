@@ -13,7 +13,7 @@ function runTestExtensionTests() {
 
     // Remove end slash in address.
     const normalizedAddress = address.replace(/\/+$/, "")
-    await codeServerPage.page.getByText(`Info: proxyUri: ${normalizedAddress}/proxy/{{port}}/`)
+    await expect(codeServerPage.page.getByText(`Info: proxyUri: ${normalizedAddress}/proxy/{{port}}/`)).toBeVisible()
   })
 }
 

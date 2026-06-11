@@ -18,14 +18,14 @@ describe("Uploads (enabled)", ["--disable-workspace-trust"], {}, () => {
     // Action
     await codeServerPage.openContextMenu('span:has-text("test-directory")')
 
-    expect(await codeServerPage.page.isVisible("text=Upload...")).toBe(true)
+    await expect(codeServerPage.page.locator("text=Upload...")).toBeVisible()
   })
 
   test("should see the 'Show Local' button on Open File", async ({ codeServerPage }) => {
     // Action
     await codeServerPage.navigateMenus(["File", "Open File..."])
     await codeServerPage.page.waitForSelector(".quick-input-widget")
-    expect(await codeServerPage.page.isVisible("text=Show Local")).toBe(true)
+    await expect(codeServerPage.page.locator("text=Show Local")).toBeVisible()
   })
 })
 
@@ -44,13 +44,13 @@ describe("Uploads (disabled)", ["--disable-workspace-trust", "--disable-file-upl
     // Action
     await codeServerPage.openContextMenu('span:has-text("test-directory")')
 
-    expect(await codeServerPage.page.isVisible("text=Upload...")).toBe(false)
+    await expect(codeServerPage.page.locator("text=Upload...")).not.toBeVisible()
   })
 
   test("should not see the 'Show Local' button on Open File", async ({ codeServerPage }) => {
     // Action
     await codeServerPage.navigateMenus(["File", "Open File..."])
     await codeServerPage.page.waitForSelector(".quick-input-widget")
-    expect(await codeServerPage.page.isVisible("text=Show Local")).toBe(false)
+    await expect(codeServerPage.page.locator("text=Show Local")).not.toBeVisible()
   })
 })

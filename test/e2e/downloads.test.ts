@@ -18,7 +18,7 @@ describe("Downloads (enabled)", ["--disable-workspace-trust"], {}, async () => {
     // Action
     await codeServerPage.openContextMenu("text=unique-file.txt")
 
-    expect(await codeServerPage.page.isVisible("text=Download...")).toBe(true)
+    await expect(codeServerPage.page.locator("text=Download...")).toBeVisible()
   })
 
   test("should see the 'Show Local' button on Save As", async ({ codeServerPage }) => {
@@ -37,7 +37,7 @@ describe("Downloads (enabled)", ["--disable-workspace-trust"], {}, async () => {
     await codeServerPage.page.keyboard.type("Making some edits.")
     await codeServerPage.navigateMenus(["File", "Save As..."])
     await codeServerPage.page.waitForSelector(".quick-input-widget")
-    expect(await codeServerPage.page.isVisible("text=Show Local")).toBe(true)
+    await expect(codeServerPage.page.locator("text=Show Local")).toBeVisible()
   })
 
   test("should see the 'Show Local' button on Save File", async ({ codeServerPage }) => {
@@ -46,14 +46,14 @@ describe("Downloads (enabled)", ["--disable-workspace-trust"], {}, async () => {
     await codeServerPage.waitForTab("Untitled-1")
     await codeServerPage.navigateMenus(["File", "Save"])
     await codeServerPage.page.waitForSelector(".quick-input-widget")
-    expect(await codeServerPage.page.isVisible("text=Show Local")).toBe(true)
+    await expect(codeServerPage.page.locator("text=Show Local")).toBeVisible()
   })
 
   test("should see the 'Show Local' button on Save Workspace As", async ({ codeServerPage }) => {
     // Action
     await codeServerPage.navigateMenus(["File", "Save Workspace As..."])
     await codeServerPage.page.waitForSelector(".quick-input-widget")
-    expect(await codeServerPage.page.isVisible("text=Show Local")).toBe(true)
+    await expect(codeServerPage.page.locator("text=Show Local")).toBeVisible()
   })
 })
 
@@ -72,7 +72,7 @@ describe("Downloads (disabled)", ["--disable-workspace-trust", "--disable-file-d
     // Action
     await codeServerPage.openContextMenu("text=unique-file.txt")
 
-    expect(await codeServerPage.page.isVisible("text=Download...")).toBe(false)
+    await expect(codeServerPage.page.locator("text=Download...")).not.toBeVisible()
   })
 
   test("should not see the 'Show Local' button on Save as", async ({ codeServerPage }) => {
@@ -87,7 +87,7 @@ describe("Downloads (disabled)", ["--disable-workspace-trust", "--disable-file-d
     await codeServerPage.openFile(fileName)
     await codeServerPage.page.click(".tab")
     await codeServerPage.navigateMenus(["File", "Save As..."])
-    expect(await codeServerPage.page.isVisible("text=Show Local")).toBe(false)
+    await expect(codeServerPage.page.locator("text=Show Local")).not.toBeVisible()
   })
 
   test("should not see the 'Show Local' button on Save File", async ({ codeServerPage }) => {
@@ -96,13 +96,13 @@ describe("Downloads (disabled)", ["--disable-workspace-trust", "--disable-file-d
     await codeServerPage.waitForTab("Untitled-1")
     await codeServerPage.navigateMenus(["File", "Save"])
     await codeServerPage.page.waitForSelector(".quick-input-widget")
-    expect(await codeServerPage.page.isVisible("text=Show Local")).toBe(false)
+    await expect(codeServerPage.page.locator("text=Show Local")).not.toBeVisible()
   })
 
   test("should not see the 'Show Local' button on Save Workspace As", async ({ codeServerPage }) => {
     // Action
     await codeServerPage.navigateMenus(["File", "Save Workspace As..."])
     await codeServerPage.page.waitForSelector(".quick-input-widget")
-    expect(await codeServerPage.page.isVisible("text=Show Local")).toBe(false)
+    await expect(codeServerPage.page.locator("text=Show Local")).not.toBeVisible()
   })
 })

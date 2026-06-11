@@ -115,6 +115,12 @@ describe("heartbeatTimer", () => {
     const heart = new Heart(`${testDir}/shutdown.txt`, mockIsActive)
     await heart.beat()
     jest.advanceTimersByTime(60 * 1000)
+    // advanceTimersByTime fires the timer callback synchronously, but the
+    // callback awaits isActive() — drain the microtask queue so its rejection
+    // handler (which logs the warning) actually runs before we assert.
+    await Promise.resolve()
+    await Promise.resolve()
+    await Promise.resolve()
 
     expect(mockIsActive).toHaveBeenCalled()
     expect(logger.warn).toHaveBeenCalledWith(errorMsg)
@@ -147,7 +153,7 @@ describe("stateChange", () => {
 
     expect(mockOnChange.mock.calls[0][0]).toBe("alive")
   })
-  it.only("should change to expired when not active", async () => {
+  it("should change to expired when not active", async () => {
     jest.useFakeTimers()
     heart = new Heart(`${testDir}/shutdown.txt`, () => new Promise((resolve) => resolve(false)))
     const mockOnChange = jest.fn()

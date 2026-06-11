@@ -25,7 +25,7 @@ describe("login", ["--disable-workspace-trust", "--auth", "password"], {}, () =>
     // Click the submit button and login
     await codeServerPage.page.click(".submit")
     await codeServerPage.page.waitForLoadState("networkidle")
-    expect(await codeServerPage.page.isVisible("text=Missing password"))
+    await expect(codeServerPage.page.locator("text=Missing password")).toBeVisible()
   })
 
   test("should see an error message for incorrect password", async ({ codeServerPage }) => {
@@ -34,7 +34,7 @@ describe("login", ["--disable-workspace-trust", "--auth", "password"], {}, () =>
     // Click the submit button and login
     await codeServerPage.page.click(".submit")
     await codeServerPage.page.waitForLoadState("networkidle")
-    expect(await codeServerPage.page.isVisible("text=Incorrect password"))
+    await expect(codeServerPage.page.locator("text=Incorrect password")).toBeVisible()
   })
 
   test("should hit the rate limiter for too many unsuccessful logins", async ({ codeServerPage }) => {
@@ -49,13 +49,13 @@ describe("login", ["--disable-workspace-trust", "--auth", "password"], {}, () =>
       await codeServerPage.page.waitForLoadState("networkidle")
       // We double-check that the correct error message shows
       // which should be for incorrect password
-      expect(await codeServerPage.page.isVisible("text=Incorrect password"))
+      await expect(codeServerPage.page.locator("text=Incorrect password")).toBeVisible()
     }
 
     // The 15th should fail for a different reason:
     // login rate
     await codeServerPage.page.click(".submit")
     await codeServerPage.page.waitForLoadState("networkidle")
-    expect(await codeServerPage.page.isVisible("text=Login rate limited!"))
+    await expect(codeServerPage.page.locator("text=Login rate limited!")).toBeVisible()
   })
 })
