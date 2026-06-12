@@ -22,6 +22,20 @@ Code v99.99.999
 
 ## Unreleased
 
+Code v1.124.2
+
+### Security
+
+- Strip code-server's session token from the cookie before proxying to a local
+  port. Previously, when you used built-in password authentication, the cookie
+  would be sent to the local proxied port, which meant if the service was
+  malicious and not already running as your code-server user it could use the
+  cookie to log into code-server and execute commands as your code-server user.
+
+### Changed
+
+- Update to Code 1.124.2
+
 ## [4.123.0](https://github.com/coder/code-server/releases/tag/v4.123.0) - 2026-06-03
 
 Code v1.123.0
