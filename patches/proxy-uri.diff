@@ -27,7 +27,7 @@ http.server` and it should show a notification and show up in the ports panel
 using the /proxy/port.
 
 Index: code-server/lib/vscode/src/vs/base/common/product.ts
-===================================================================
+====================================================================
 --- code-server.orig/lib/vscode/src/vs/base/common/product.ts
 +++ code-server/lib/vscode/src/vs/base/common/product.ts
 @@ -69,6 +69,7 @@ export interface IProductConfiguration {
@@ -54,7 +54,7 @@ Index: code-server/lib/vscode/src/vs/platform/remote/browser/remoteAuthorityReso
 @@ -86,9 +86,14 @@ export class RemoteAuthorityResolverServ
  		const connectionToken = await Promise.resolve(this._connectionTokens.get(authority) || this._connectionToken);
  		performance.mark(`code/didResolveConnectionToken/${authorityPrefix}`);
- 		this._logService.info(`Resolved connection token (${authorityPrefix}) after ${sw.elapsed()} ms`);
+ 		this._blogService.info(`Resolved connection token (${authorityPrefix}) after ${sw.elapsed()} ms`);
 +		let options: ResolvedOptions | undefined;
 +		if (this.productService.proxyEndpointTemplate) {
 +			const proxyUrl = new URL(this.productService.proxyEndpointTemplate, mainWindow.location.href);
@@ -68,13 +68,13 @@ Index: code-server/lib/vscode/src/vs/platform/remote/browser/remoteAuthorityReso
  		this._cache.set(authority, result);
  		this._onDidChangeConnectionData.fire();
 Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-===================================================================
+=====================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 @@ -362,6 +362,7 @@ export class WebClientServer {
  			rootEndpoint: rootBase,
- 			updateEndpoint: !this._environmentService.args['disable-update-check'] ? rootBase + '/update/check' : undefined,
- 			logoutEndpoint: this._environmentService.args['auth'] && this._environmentService.args['auth'] !== "none" ? rootBase + '/logout' : undefined,
+ 		updateEndpoint: !this._environmentService.args['disable-update-check'] ? rootBase + '/update/check' : undefined,
+ 		logoutEndpoint: this._environmentService.args['auth'] && this._environmentService.args['auth'] !== "none" ? rootBase + '/logout' : undefined,
 +			proxyEndpointTemplate: process.env.VSCODE_PROXY_URI ?? rootBase + '/proxy/{{port}}/',
  			embedderIdentifier: 'server-distro',
  			extensionsGallery: this._productService.extensionsGallery,
@@ -126,7 +126,7 @@ Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench.ts
 +					}
 +					resolvedUri = URI.parse(proxyUrl.toString())
 +				} else {
-+					throw new Error(Failed to resolve external URI: ${uri.toString()}. Could not determine base url because productConfiguration missing.)
++					throw new Error(`Failed to resolve external URI: ${uri.toString()}. Could not determine base url because productConfiguration missing.`)
 +				}
 +			}
 +			// If not localhost, return unmodified.
@@ -153,7 +153,7 @@ Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench.ts
  			? undefined /* with a remote without embedder-preferred storage, store on the remote */
  			: new LocalStorageSecretStorageProvider(secretStorageCrypto),
 Index: code-server/lib/vscode/src/vs/workbench/contrib/remote/browser/remoteExplorer.ts
-===================================================================
+==================================================================9
 --- code-server.orig/lib/vscode/src/vs/workbench/contrib/remote/browser/remoteExplorer.ts
 +++ code-server/lib/vscode/src/vs/workbench/contrib/remote/browser/remoteExplorer.ts
 @@ -83,8 +83,8 @@ export class ForwardedPortsView extends
@@ -167,3 +167,4 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/remote/browser/remoteExpl
  
  		if (featuresEnabled || viewEnabled) {
  			// Also enable the view if it isn't already.
+
