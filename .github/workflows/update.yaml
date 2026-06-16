@@ -47,7 +47,7 @@ jobs:
             echo done=false >> $GITHUB_OUTPUT
           fi
 
-      - uses: awalsh128/cache-apt-pkgs-action@acb598e5ddbc6f68a970c5da0688d2f3a9f04d05 # latest
+      - uses: awalsh128/cache-apt-pkgs-action@681749ae568c81c2037cb9185e38b709b261bd2f # latest
         if: steps.check.outputs.done == 'false'
         with:
           packages: quilt
