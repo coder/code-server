@@ -1,15 +1,12 @@
 import * as express from "express"
-import * as http from "http"
-import nodeFetch from "node-fetch"
 import { HttpCode } from "../../../src/common/http"
-import { proxy } from "../../../src/node/proxy"
 import { wss, Router as WsRouter } from "../../../src/node/wsRouter"
-import { getAvailablePort, mockLogger } from "../../utils/helpers"
+import { mockLogger } from "../../utils/helpers"
 import * as httpserver from "../../utils/httpserver"
 import * as integration from "../../utils/integration"
 
 describe("proxy", () => {
-  const nhooyrDevServer = new httpserver.HttpServer()
+  const proxyTarget = new httpserver.HttpServer()
   const wsApp = express.default()
   const wsRouter = WsRouter()
   let codeServer: httpserver.HttpServer | undefined
@@ -19,21 +16,22 @@ describe("proxy", () => {
 
   beforeAll(async () => {
     wsApp.use("/", wsRouter.router)
-    await nhooyrDevServer.listen((req, res) => {
+    await proxyTarget.listen((req, res) => {
       e(req, res)
     })
-    nhooyrDevServer.listenUpgrade(wsApp)
-    proxyPath = `/proxy/${nhooyrDevServer.port()}/wsup`
+    proxyTarget.listenUpgrade(wsApp)
+    proxyPath = `/proxy/${proxyTarget.port()}/wsup`
     absProxyPath = proxyPath.replace("/proxy/", "/absproxy/")
   })
 
   afterAll(async () => {
-    await nhooyrDevServer.dispose()
+    await proxyTarget.dispose()
   })
 
   beforeEach(() => {
     e = express.default()
     mockLogger()
+    delete process.env.PASSWORD
   })
 
   afterEach(async () => {
@@ -283,65 +281,42 @@ describe("proxy", () => {
     const resp = await codeServer.fetch(proxyPath, { method: "OPTIONS" })
     expect(resp.status).toBe(200)
   })
-})
 
-// NOTE@jsjoeio
-// Both this test suite and the one above it are very similar
-// The main difference is this one uses http and node-fetch
-// and specifically tests the proxy in isolation vs. using
-// the httpserver abstraction we've built.
-//
-// Leaving this as a separate test suite for now because
-// we may consider refactoring the httpserver abstraction
-// in the future.
-//
-// If you're writing a test specifically for code in
-// src/node/proxy.ts, you should probably add it to
-// this test suite.
-describe("proxy (standalone)", () => {
-  let URL = ""
-  let PROXY_URL = ""
-  let testServer: http.Server
-  let proxyTarget: http.Server
+  it("should return a 500 when no target is running ", async () => {
+    const target = new httpserver.HttpServer()
+    await target.listen(() => {})
+    const port = target.port()
+    target.dispose()
+    codeServer = await integration.setup(["--auth=none"], "")
+    const resp = await codeServer.fetch(`/proxy/${port}/wsup`)
+    expect(resp.status).toBe(HttpCode.ServerError)
+    expect(resp.statusText).toBe("Internal Server Error")
+  })
 
-  beforeEach(async () => {
-    const PORT = await getAvailablePort()
-    const PROXY_PORT = await getAvailablePort()
-    URL = `http://localhost:${PORT}`
-    PROXY_URL = `http://localhost:${PROXY_PORT}`
-    // Define server and a proxy server
-    testServer = http.createServer((req, res) => {
-      proxy.web(req, res, {
-        target: PROXY_URL,
-      })
+  it("should strip token cookie", async () => {
+    const token = "my-super-secure-token"
+    process.env.HASHED_PASSWORD = token
+    codeServer = await integration.setup(["--auth=password"])
+
+    // Set up a listener that just prints the cookies it got.
+    e.get("/wsup/cookies", (req, res) => {
+      res.writeHead(HttpCode.Ok, { "Content-Type": "text/plain" })
+      res.end(req.headers.cookie)
     })
 
-    proxyTarget = http.createServer((req, res) => {
-      res.writeHead(200, { "Content-Type": "text/plain" })
-      res.end()
+    // Send the token along with other cookies which should be preserved.
+    // Encode one to make sure they are being re-encoded properly.
+    const value = "hello=there"
+    const encodedValue = encodeURIComponent(value)
+    const resp = await codeServer.fetch(proxyPath + "/cookies", {
+      headers: {
+        cookie: `cookie1=${encodedValue}; code-server-session=${token}; cookie2=hello;`,
+      },
     })
 
-    // Start both servers
-    proxyTarget.listen(PROXY_PORT)
-    testServer.listen(PORT)
-  })
-
-  afterEach(async () => {
-    testServer.close()
-    proxyTarget.close()
-  })
-
-  it("should return a 500 when proxy target errors ", async () => {
-    // Close the proxy target so that proxy errors
-    proxyTarget.close()
-    const errorResp = await nodeFetch(`${URL}/error`)
-    expect(errorResp.status).toBe(HttpCode.ServerError)
-    expect(errorResp.statusText).toBe("Internal Server Error")
-  })
-
-  it("should proxy correctly", async () => {
-    const resp = await nodeFetch(`${URL}/route`)
+    // The proxied listener should not have printed the code-server token.
     expect(resp.status).toBe(200)
-    expect(resp.statusText).toBe("OK")
+    const text = await resp.text()
+    expect(text).toBe(`cookie1=${encodedValue}; cookie2=hello`)
   })
 })
