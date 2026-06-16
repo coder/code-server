@@ -86,7 +86,7 @@
     "safe-compare": "^1.1.4",
     "semver": "^7.5.4",
     "ws": "^8.14.2",
-    "xdg-basedir": "^4.0.0"
+    "xdg-basedir": "^5.1.0"
   },
   "resolutions": {
     "@types/node": "22.x"
