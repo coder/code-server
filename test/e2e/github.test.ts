@@ -12,7 +12,7 @@ if (process.env.GITHUB_TOKEN) {
       await codeServerPage.page.click("text=Allow")
       // It should ask to select an account, one of which will be the one we
       // pre-injected.
-      expect(await codeServerPage.page.isVisible("text=Select an account")).toBe(false)
+      await expect(codeServerPage.page.locator("text=Select an account")).not.toBeVisible()
     })
   })
 
@@ -26,7 +26,7 @@ if (process.env.GITHUB_TOKEN) {
       await codeServerPage.page.click("text=Allow")
       // Since there is no account it will ask directly for the token (because
       // we are on localhost; otherwise it would initiate the oauth flow).
-      expect(await codeServerPage.page.isVisible("text=GitHub Personal Access Token")).toBe(false)
+      await expect(codeServerPage.page.locator("text=GitHub Personal Access Token")).not.toBeVisible()
     })
   })
 } else {
