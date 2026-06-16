@@ -1,0 +1,36 @@
+Support stylus/pen text selection on Android
+
+The editor only uses the pen-aware PointerEventHandler on iOS, or on Android
+when platform.isMobile is true. That flag comes from a "Mobi" token in the user
+agent string, which Android tablets usually leave out, so on a tablet the editor
+fell back to TouchHandler. A stylus could then scroll but never select text.
+
+This widens the check so any Android device gets PointerEventHandler when
+Pointer Events are available, the same as iOS already does. The iOS branch is
+left alone. Once PointerEventHandler is active, a pen drag selects text, a
+finger drag still scrolls, the pen's barrel button opens the context menu, and
+the mouse keeps working as before.
+
+To test:
+
+1. Open code-server in Chrome on an Android tablet. (In desktop Chrome you can
+   also use DevTools device mode with an Android tablet user agent that has no
+   "Mobi" token.)
+2. Open a file.
+3. Drag across text with a stylus or pen. The text should select.
+4. Drag with a finger. The editor should scroll.
+5. With a mouse, selection and right-click should behave as before.
+
+Index: code-server/lib/vscode/src/vs/editor/browser/controller/pointerHandler.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/editor/browser/controller/pointerHandler.ts
++++ code-server/lib/vscode/src/vs/editor/browser/controller/pointerHandler.ts
+@@ -141,7 +141,7 @@ export class PointerHandler extends Disp
+ 
+ 	constructor(context: ViewContext, viewController: ViewController, viewHelper: IPointerHandlerHelper) {
+ 		super();
+-		const isPhone = platform.isIOS || (platform.isAndroid && platform.isMobile);
++		const isPhone = platform.isIOS || platform.isAndroid;
+ 		if (isPhone && BrowserFeatures.pointerEvents) {
+ 			this.handler = this._register(new PointerEventHandler(context, viewController, viewHelper));
+ 		} else if (mainWindow.TouchEvent) {
