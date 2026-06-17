@@ -93,7 +93,7 @@ Index: code-server/lib/vscode/src/vs/base/common/product.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/base/common/product.ts
 +++ code-server/lib/vscode/src/vs/base/common/product.ts
-@@ -67,6 +67,7 @@ export type ExtensionVirtualWorkspaceSup
+@@ -86,6 +86,7 @@ export interface IAgentSdkProductConfig
  export interface IProductConfiguration {
  	readonly codeServerVersion?: string
  	readonly rootEndpoint?: string
@@ -101,14 +101,14 @@ Index: code-server/lib/vscode/src/vs/base/common/product.ts
  
  	readonly version: string;
  	readonly date?: string;
-@@ -119,6 +120,7 @@ export interface IProductConfiguration {
+@@ -138,6 +139,7 @@ export interface IProductConfiguration {
  		readonly resourceUrlTemplate: string;
  		readonly nlsBaseUrl: string;
  		readonly accessSKUs?: string[];
 +		readonly authorizationHeaderToken?: string;
  	};
  
- 	readonly mcpGallery?: {
+ 	readonly agentSdks?: { readonly [packageId: string]: IAgentSdkProductConfig };
 Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts

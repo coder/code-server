@@ -147,7 +147,7 @@ Index: code-server/lib/vscode/src/vs/base/common/product.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/base/common/product.ts
 +++ code-server/lib/vscode/src/vs/base/common/product.ts
-@@ -74,6 +74,7 @@ export interface IProductConfiguration {
+@@ -93,6 +93,7 @@ export interface IProductConfiguration {
  		readonly path: string;
  		readonly scope: string;
  	}
