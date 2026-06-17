@@ -54,7 +54,6 @@ init({
   lowerCaseLng: true,
   debug: process.env.NODE_ENV === "development",
   resources: defaultResources,
-  showSupportNotice: false,
 })
 
 export default i18next

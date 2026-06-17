@@ -32,7 +32,7 @@ describe("code-server", ["--disable-workspace-trust"], {}, () => {
 
   test("should show the Integrated Terminal", async ({ codeServerPage }) => {
     await codeServerPage.focusTerminal()
-    expect(await codeServerPage.page.isVisible("#terminal")).toBe(true)
+    await expect(codeServerPage.page.locator("#terminal")).toBeVisible()
   })
 
   test("should open a file", async ({ codeServerPage }) => {

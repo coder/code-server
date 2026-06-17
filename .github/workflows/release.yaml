@@ -59,7 +59,7 @@ jobs:
 
     steps:
       - run: sudo apt update && sudo apt install -y libkrb5-dev
-      - uses: awalsh128/cache-apt-pkgs-action@2c09a5e66da6c8016428a2172bd76e5e4f14bb17 # latest
+      - uses: awalsh128/cache-apt-pkgs-action@681749ae568c81c2037cb9185e38b709b261bd2f # latest
         with:
           packages: quilt
           version: 1.0
@@ -76,7 +76,7 @@ jobs:
           version=4${version:1}
           echo "VERSION=$version" >> $GITHUB_ENV
 
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
         with:
           submodules: true
       - run: quilt push -a
@@ -110,7 +110,7 @@ jobs:
       - run: |
           sed "/^## Unreleased/,/^## / ! d" CHANGELOG.md | head -n -2 | tail -n +3 > .cache/release-notes
         if: ${{ matrix.vscode_arch == 'x64' }}
-      - uses: softprops/action-gh-release@de2c0eb89ae2a093876385947365aca7b0e5f844 # v1
+      - uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda # v3.0.0
         if: ${{ matrix.vscode_arch == 'x64' }}
         with:
           draft: true
@@ -123,7 +123,7 @@ jobs:
       # Platform-specific release.
       - run: KEEP_MODULES=1 npm run release
       - run: npm run package
-      - uses: softprops/action-gh-release@de2c0eb89ae2a093876385947365aca7b0e5f844 # v1
+      - uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda # v3.0.0
         with:
           draft: true
           discussion_category_name: "📣 Announcements"
@@ -170,7 +170,7 @@ jobs:
           version=4${version:1}
           echo "VERSION=$version" >> $GITHUB_ENV
 
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
         with:
           submodules: true
       - run: quilt push -a
@@ -189,7 +189,7 @@ jobs:
       - run: npm run test:native
 
       - run: npm run package
-      - uses: softprops/action-gh-release@de2c0eb89ae2a093876385947365aca7b0e5f844 # v1
+      - uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda # v3.0.0
         with:
           draft: true
           discussion_category_name: "📣 Announcements"

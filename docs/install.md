@@ -101,9 +101,8 @@ _exact_ same commands presented in the rest of this document.
 We recommend installing with `npm` when:
 
 1. You aren't using a machine with `amd64` or `arm64`.
-2. You are installing code-server on Windows.
-3. You're on Linux with `glibc` < v2.28 or `glibcxx` < v3.4.21.
-4. You're running Alpine Linux or are using a non-glibc libc. See
+2. You're on Linux with `glibc` < v2.28 or `glibcxx` < v3.4.21.
+3. You're running Alpine Linux or are using a non-glibc libc. See
    [#1430](https://github.com/coder/code-server/issues/1430#issuecomment-629883198)
    for more information.
 
@@ -296,8 +295,7 @@ You can install code-server using the [Helm package manager](https://coder.com/d
 ## Windows
 
 We currently [do not publish Windows
-releases](https://github.com/coder/code-server/issues/1397). We recommend
-installing code-server onto Windows with [`npm`](#npm).
+releases](https://github.com/coder/code-server/issues/1397).
 
 ## Raspberry Pi
 

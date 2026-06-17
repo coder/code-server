@@ -16,8 +16,6 @@ updates:
       interval: "monthly"
       time: "06:00"
       timezone: "America/Chicago"
-    commit-message:
-      prefix: "chore"
     labels: []
     ignore:
       # Ignore patch updates for all dependencies
