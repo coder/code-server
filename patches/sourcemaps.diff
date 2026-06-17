@@ -6,7 +6,7 @@ Index: code-server/lib/vscode/build/gulpfile.reh.ts
 ===================================================================
 --- code-server.orig/lib/vscode/build/gulpfile.reh.ts
 +++ code-server/lib/vscode/build/gulpfile.reh.ts
-@@ -296,10 +296,15 @@ function packageTask(type: string, platf
+@@ -297,10 +297,15 @@ function packageTask(type: string, platf
  	const destination = path.join(BUILD_ROOT, destinationFolderName);
  
  	return () => {
