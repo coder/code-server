@@ -112,7 +112,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -389,6 +389,8 @@ export class WebClientServer {
+@@ -383,6 +383,8 @@ export class WebClientServer {
  			serverBasePath: basePath,
  			webviewEndpoint: staticRoute + '/out/vs/workbench/contrib/webview/browser/pre',
  			userDataPath: this._environmentService.userDataPath,
