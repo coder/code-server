@@ -146,7 +146,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
  			embedderIdentifier: 'server-distro',
  			extensionsGallery: this._webExtensionResourceUrlTemplate && this._productService.extensionsGallery ? {
  				...this._productService.extensionsGallery,
-@@ -407,7 +414,9 @@ export class WebClientServer {
+@@ -401,7 +408,9 @@ export class WebClientServer {
  			WORKBENCH_AUTH_SESSION: authSessionInfo ? asJSON(authSessionInfo) : '',
  			WORKBENCH_WEB_BASE_URL: staticRoute,
  			WORKBENCH_NLS_URL,
@@ -157,7 +157,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
  		};
  
  		// DEV ---------------------------------------------------------------------------------------
-@@ -444,7 +453,7 @@ export class WebClientServer {
+@@ -438,7 +447,7 @@ export class WebClientServer {
  			'default-src \'self\';',
  			'img-src \'self\' https: data: blob:;',
  			'media-src \'self\';',
@@ -166,7 +166,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
  			'child-src \'self\';',
  			`frame-src 'self' https://*.vscode-cdn.net data:;`,
  			'worker-src \'self\' data: blob:;',
-@@ -517,3 +526,70 @@ export class WebClientServer {
+@@ -511,3 +520,70 @@ export class WebClientServer {
  		return void res.end(data);
  	}
  }

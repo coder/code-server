@@ -54,7 +54,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -380,6 +380,7 @@ export class WebClientServer {
+@@ -374,6 +374,7 @@ export class WebClientServer {
  		const workbenchWebConfiguration = {
  			remoteAuthority,
  			serverBasePath: basePath,
