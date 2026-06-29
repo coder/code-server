@@ -11,7 +11,7 @@ import { App } from "../app"
 import { AuthType, DefaultedArgs } from "../cli"
 import { commit, rootPath } from "../constants"
 import { Heart } from "../heart"
-import { redirect } from "../http"
+import { ensureAuthenticated, redirect } from "../http"
 import { CoderSettings, SettingsProvider } from "../settings"
 import { UpdateProvider } from "../update"
 import { getMediaMime, paths } from "../util"
@@ -113,7 +113,7 @@ export const register = async (
   app.router.all("/proxy/:port{/*path}", async (req, res) => {
     await pathProxy.proxy(req, res)
   })
-  app.wsRouter.get("/proxy/:port{/*path}", async (req) => {
+  app.wsRouter.get("/proxy/:port{/*path}", ensureAuthenticated, async (req) => {
     await pathProxy.wsProxy(req as unknown as WebsocketRequest)
   })
   // These two routes pass through the path directly.
@@ -125,7 +125,7 @@ export const register = async (
       proxyBasePath: args["abs-proxy-base-path"],
     })
   })
-  app.wsRouter.get("/absproxy/:port{/*path}", async (req) => {
+  app.wsRouter.get("/absproxy/:port{/*path}", ensureAuthenticated, async (req) => {
     await pathProxy.wsProxy(req as unknown as WebsocketRequest, {
       passthroughPath: true,
       proxyBasePath: args["abs-proxy-base-path"],
