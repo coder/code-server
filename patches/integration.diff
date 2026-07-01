@@ -263,7 +263,7 @@ Index: code-server/lib/vscode/src/server-main.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/server-main.ts
 +++ code-server/lib/vscode/src/server-main.ts
-@@ -22,6 +22,9 @@ import { IServerAPI } from './vs/server/
+@@ -23,6 +23,9 @@ import { IServerAPI } from './vs/server/
  perf.mark('code/server/start');
  (globalThis as { vscodeServerStartTime?: number }).vscodeServerStartTime = performance.now();
  
@@ -273,7 +273,16 @@ Index: code-server/lib/vscode/src/server-main.ts
  // Do a quick parse to determine if a server or the cli needs to be started
  const parsedArgs = minimist(process.argv.slice(2), {
  	boolean: ['start-server', 'list-extensions', 'print-ip-address', 'help', 'version', 'accept-server-license-terms', 'update-extensions'],
-@@ -150,6 +153,7 @@ if (shouldSpawnCli) {
+@@ -50,7 +53,7 @@ if (shouldSpawnCli) {
+ 		mod.spawnCli();
+ 	});
+ } else {
+-	installServerProcessExitDiagnostics();
++	installServerProcessExitDiagnostics(parsedArgs);
+ 
+ 	let _remoteExtensionHostAgentServer: IServerAPI | null = null;
+ 	let _remoteExtensionHostAgentServerPromise: Promise<IServerAPI> | null = null;
+@@ -153,6 +156,7 @@ if (shouldSpawnCli) {
  		}
  	});
  }
@@ -281,7 +290,16 @@ Index: code-server/lib/vscode/src/server-main.ts
  
  function sanitizeStringArg(val: unknown): string | undefined {
  	if (Array.isArray(val)) { // if an argument is passed multiple times, minimist creates an array
-@@ -283,3 +287,22 @@ function prompt(question: string): Promi
+@@ -173,7 +177,7 @@ function sanitizeStringArg(val: unknown)
+  * provided) so they survive process teardown (an async stdio write from an
+  * `exit` handler does not).
+  */
+-function installServerProcessExitDiagnostics(): void {
++function installServerProcessExitDiagnostics(parsedArgs: minimist.ParsedArgs): void {
+ 	if (!process.env['VSCODE_SERVER_EXIT_DIAGNOSTICS']) {
+ 		return;
+ 	}
+@@ -406,3 +410,22 @@ function prompt(question: string): Promi
  		});
  	});
  }
