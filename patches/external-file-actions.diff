@@ -147,7 +147,7 @@ Index: code-server/lib/vscode/src/vs/workbench/browser/contextkeys.ts
  		@IProductService private readonly productService: IProductService,
  		@IEditorGroupsService private readonly editorGroupService: IEditorGroupsService,
  		@IEditorService private readonly editorService: IEditorService,
-@@ -201,6 +201,10 @@ export class WorkbenchContextKeysHandler
+@@ -202,6 +202,10 @@ export class WorkbenchContextKeysHandler
  		this.auxiliaryBarMaximizedContext = AuxiliaryBarMaximizedContext.bindTo(this.contextKeyService);
  		this.auxiliaryBarMaximizedContext.set(this.layoutService.isAuxiliaryBarMaximized());
  
