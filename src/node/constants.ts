@@ -1,9 +1,13 @@
 import { logger } from "@coder/logger"
-import type { JSONSchemaForNPMPackageJsonFiles } from "@schemastore/package"
 import * as os from "os"
 import * as path from "path"
 
-export function getPackageJson(relativePath: string): JSONSchemaForNPMPackageJsonFiles {
+type PackageJson = {
+  version: string
+  commit: string
+}
+
+export function getPackageJson(relativePath: string): PackageJson {
   let pkg = {}
   try {
     pkg = require(relativePath)
@@ -11,7 +15,7 @@ export function getPackageJson(relativePath: string): JSONSchemaForNPMPackageJso
     logger.warn(error.message)
   }
 
-  return pkg
+  return pkg as PackageJson
 }
 
 export const rootPath = path.resolve(__dirname, "../..")
