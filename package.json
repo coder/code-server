@@ -79,7 +79,7 @@
     "js-yaml": "^4.1.0",
     "limiter": "^2.1.0",
     "pem": "^1.14.8",
-    "proxy-agent": "^6.3.1",
+    "proxy-agent": "^8.0.2",
     "qs": "^6.15.0",
     "rotating-file-stream": "^3.1.1",
     "safe-compare": "^1.1.4",
