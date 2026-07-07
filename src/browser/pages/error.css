@@ -2,6 +2,14 @@
   box-sizing: border-box;
   padding: 20px;
   text-align: center;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+@media (max-width: 480px) {
+  .error-display {
+    padding: 15px;
+  }
 }
 
 .error-display > .header {
@@ -9,10 +17,22 @@
   margin: 0;
 }
 
+@media (max-width: 480px) {
+  .error-display > .header {
+    font-size: 4rem;
+  }
+}
+
 .error-display > .body {
   color: #444;
   color: light-dark(#444, #ccc);
   font-size: 1.2rem;
+}
+
+@media (max-width: 480px) {
+  .error-display > .body {
+    font-size: 1rem;
+  }
 }
 
 .error-display > .links {
