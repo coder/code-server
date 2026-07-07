@@ -64,7 +64,7 @@
       const favicon = document.querySelector('link[rel="icon"]')
       if (favicon && favicon.getAttribute('media') === '(max-width: 480px)') {
         const viewportWidth = window.innerWidth
-        const newWidth = viewportWidth < 320 ? 64 : 147
+        const newWidth = viewportWidth < 320 ? 128 : 147
         favicon.setAttribute('style', `width: ${newWidth}px; height: ${newWidth}px;`)
       }
       

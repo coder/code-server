@@ -159,7 +159,7 @@ link[rel="icon"] {
 
 @media (max-width: 480px) {
   link[rel="icon"] {
-    max-height: 64px;
-    max-width: 64px;
+    max-height: 128px;
+    max-width: 128px;
   }
 }
