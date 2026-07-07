@@ -27,7 +27,8 @@ code-server/
 │   ├── .env                  # Environment variables
 │   ├── data/                 # User data persistence
 │   ├── storage/              # Code-server storage
-│   └── settings/             # User settings
+│   ├── settings/             # User settings
+│   └── extensions/           # Code-server extensions
 └── README.md                 # This file
 ```
 
