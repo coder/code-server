@@ -12,7 +12,9 @@
     />
     <meta name="color-scheme" content="light dark" />
     <title>{{ERROR_TITLE}} - {{APP_NAME}}</title>
-    <link rel="icon" href="{{CS_STATIC_BASE}}/src/browser/media/favicon-dark-support.svg" />
+    <!-- Scalable favicon based on device dimensions -->
+    <link rel="icon" href="{{CS_STATIC_BASE}}/src/browser/media/favicon-dark-support.svg" media="(min-width: 481px)" />
+    <link rel="icon" href="{{CS_STATIC_BASE}}/src/browser/media/favicon-dark-support.svg" media="(max-width: 480px)" style="width: 32px; height: 32px;" />
     <link rel="alternate icon" href="{{CS_STATIC_BASE}}/src/browser/media/favicon.ico" />
     <link rel="manifest" href="/manifest.json" crossorigin="use-credentials" />
     <link rel="apple-touch-icon" sizes="192x192" href="{{CS_STATIC_BASE}}/src/browser/media/pwa-icon-192.png" />
@@ -31,5 +33,23 @@
         </div>
       </div>
     </div>
+    <script>
+      // Make favicon scalable on mobile devices
+      const favicon = document.querySelector('link[rel="icon"]')
+      if (favicon && favicon.getAttribute('media') === '(max-width: 480px)') {
+        const viewportWidth = window.innerWidth
+        const newWidth = viewportWidth < 320 ? 16 : 32
+        favicon.setAttribute('style', `width: ${newWidth}px; height: ${newWidth}px;`)
+      }
+      
+      // Adjust on resize
+      window.addEventListener('resize', () => {
+        const favicon = document.querySelector('link[rel="icon"]')
+        if (favicon && favicon.getAttribute('media') === '(max-width: 480px)') {
+          const newWidth = window.innerWidth < 320 ? 16 : 32
+          favicon.setAttribute('style', `width: ${newWidth}px; height: ${newWidth}px;`)
+        }
+      })
+    </script>
   </body>
 </html>

@@ -150,3 +150,16 @@ canvas {
   top: 0;
   left: 0;
 }
+
+/* Scalable favicon */
+link[rel="icon"] {
+  max-height: 32px;
+  max-width: 32px;
+}
+
+@media (min-width: 481px) {
+  link[rel="icon"] {
+    max-height: 147px;
+    max-width: 147px;
+  }
+}
