@@ -153,13 +153,13 @@ canvas {
 
 /* Scalable favicon */
 link[rel="icon"] {
-  max-height: 32px;
-  max-width: 32px;
+  max-height: 147px;
+  max-width: 147px;
 }
 
-@media (min-width: 481px) {
+@media (max-width: 480px) {
   link[rel="icon"] {
-    max-height: 147px;
-    max-width: 147px;
+    max-height: 64px;
+    max-width: 64px;
   }
 }
