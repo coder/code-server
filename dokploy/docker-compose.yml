@@ -39,13 +39,21 @@ services:
       - DISABLE_STARTUP_PAGE=${DISABLE_STARTUP_PAGE:-true}
       - DISABLE_UPDATE_POPUP=${DISABLE_UPDATE_POPUP:-true}
       - DISABLE_DASHBOARD=${DISABLE_DASHBOARD:-true}
+      - DISABLE_STARTUP_PAGE=${DISABLE_STARTUP_PAGE:-true}
+      - DISABLE_EXTENSIONS=${DISABLE_EXTENSIONS:-true}
+      - DISABLE_UPDATE_POPUP=${DISABLE_UPDATE_POPUP:-true}
     volumes:
       - ./data:/home/coder/.local/share/code-server/data
       - ./storage:/home/coder/.local/share/code-server/storage
       - ./settings:/home/coder/.local/share/code-server/settings
       - ./extensions:/home/coder/.local/share/code-server/extensions
+      - ./logs:/home/coder/.local/share/code-server/logs
+      - ./User:/home/coder/.local/share/code-server/User
     networks:
       - code-server-network
+    user: "root"
+    security_opt:
+      - seccomp=unconfined
     deploy:
       resources:
         limits:
