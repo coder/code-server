@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  code-server:
+    image: codercom/code-server:latest
+    container_name: code-server
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      - PASSWORD=${PASSWORD}
+      - PASSWORD_HINT=${PASSWORD_HINT:-set-a-password}
+      - USER=${USER:-admin}
+      - GROUP=${GROUP:-admin}
+      - TZ=${TZ:-America/New_York}
+      - PROXY_DOMAIN=${PROXY_DOMAIN}
+      - PASSWORD_EXPIRY_DAYS=${PASSWORD_EXPIRY_DAYS:-30}
+      - PASSWORD_MINIMUM_LENGTH=${PASSWORD_MINIMUM_LENGTH:-8}
+      - PASSWORD_MINIMUM_DIFFERENT_CHARS=${PASSWORD_MINIMUM_DIFFERENT_CHARS:-3}
+      - DISABLE_GUEST_ACCESS=${DISABLE_GUEST_ACCESS:-true}
+      - DISABLE_USER_SWITCHING=${DISABLE_USER_SWITCHING:-true}
+      - DISABLE_TERMINAL=${DISABLE_TERMINAL:-false}
+      - DISABLE_SSH=${DISABLE_SSH:-true}
+      - DISABLE_UPDATE_CHECK=${DISABLE_UPDATE_CHECK:-true}
+      - DISABLE_UPDATE_NOTIFICATION=${DISABLE_UPDATE_NOTIFICATION:-true}
+      - DISABLE_UPDATE_POPUP=${DISABLE_UPDATE_POPUP:-true}
+      - DISABLE_DASHBOARD=${DISABLE_DASHBOARD:-false}
+      - DISABLE_FILE_BROWSER=${DISABLE_FILE_BROWSER:-false}
+      - DISABLE_FILE_BROWSER_UPLOAD=${DISABLE_FILE_BROWSER_UPLOAD:-true}
+      - DISABLE_FILE_BROWSER_DOWNLOAD=${DISABLE_FILE_BROWSER_DOWNLOAD:-true}
+      - DISABLE_FILE_BROWSER_DELETE=${DISABLE_FILE_BROWSER_DELETE:-true}
+      - DISABLE_FILE_BROWSER_CREATE=${DISABLE_FILE_BROWSER_CREATE:-true}
+      - DISABLE_FILE_BROWSER_RENAME=${DISABLE_FILE_BROWSER_RENAME:-true}
+      - DISABLE_FILE_BROWSER_MOVE=${DISABLE_FILE_BROWSER_MOVE:-true}
+      - DISABLE_FILE_BROWSER_COPY=${DISABLE_FILE_BROWSER_COPY:-true}
+      - DISABLE_FILE_BROWSER_SEARCH=${DISABLE_FILE_BROWSER_SEARCH:-true}
+      - DISABLE_FILE_BROWSER_ZIP=${DISABLE_FILE_BROWSER_ZIP:-true}
+      - DISABLE_FILE_BROWSER_UNZIP=${DISABLE_FILE_BROWSER_UNZIP:-true}
+    volumes:
+      - ./data:/home/coder/.local/share/code-server
+      - ./storage:/home/coder/.local/share/code-server/storage
+      - ./settings:/home/coder/.local/share/code-server/settings
+    networks:
+      - code-server-network
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+networks:
+  code-server-network:
+    driver: bridge
