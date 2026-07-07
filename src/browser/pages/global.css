@@ -151,15 +151,4 @@ canvas {
   left: 0;
 }
 
-/* Scalable favicon */
-link[rel="icon"] {
-  max-height: 147px;
-  max-width: 147px;
-}
-
-@media (max-width: 480px) {
-  link[rel="icon"] {
-    max-height: 128px;
-    max-width: 128px;
-  }
-}
+/* Icons handled by centralized icon-adapter.ts */
