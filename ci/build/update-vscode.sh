@@ -42,6 +42,8 @@ function refresh_patches() {
 function update_node() {
   local node_version
   node_version=$(cat .node-version)
+  local target_node_version
+  target_node_version=$(grep target lib/vscode/remote/.npmrc | awk -F= '{print $2}' | tr -d '"')
   if [[ $node_version == "$target_node_version" ]] ; then
     echo "Already set to $target_node_version"
   else
@@ -116,9 +118,6 @@ function main() {
 
   source ./ci/lib.sh
 
-  local target_node_version
-  target_node_version=$(grep target lib/vscode/remote/.npmrc | awk -F= '{print $2}' | tr -d '"')
-
   declare -a steps
 
   # If version is not set, assume we are already at the target version and the
@@ -141,7 +140,7 @@ function main() {
   fi
 
   steps+=(
-    "Set Node version to $target_node_version" "update_node"
+    "Update Node version" "update_node"
     "Update CSP webview hash" "update_csp"
     "Add changelog note" "add_changelog"
   )
