@@ -154,22 +154,39 @@ abstract class Process {
 export class ChildProcess extends Process {
   public logger = logger.named(`child:${process.pid}`)
 
+  private parentCheckInterval: NodeJS.Timeout | undefined
+
   public constructor(private readonly parentPid: number) {
     super()
 
     // Kill the inner process if the parent dies. This is for the case where the
     // parent process is forcefully terminated and cannot clean up.
-    setInterval(() => {
+    this.parentCheckInterval = setInterval(() => {
       try {
         // process.kill throws an exception if the process doesn't exist.
         process.kill(this.parentPid, 0)
       } catch (_) {
         // Consider this an error since it should have been able to clean up
         // the child process unless it was forcefully killed.
+        this.clearParentCheck()
         this.logger.error(`parent process ${parentPid} died`)
         this._onDispose.emit(undefined)
       }
     }, 5000)
+
+    // Clean up the interval when the process is disposed for any reason
+    // (e.g. SIGINT, SIGTERM) to prevent repeated error logging and
+    // re-entrant dispose emissions.
+    this.onDispose(() => {
+      this.clearParentCheck()
+    })
+  }
+
+  private clearParentCheck(): void {
+    if (this.parentCheckInterval) {
+      clearInterval(this.parentCheckInterval)
+      this.parentCheckInterval = undefined
+    }
   }
 
   /**
