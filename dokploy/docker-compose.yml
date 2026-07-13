@@ -3,7 +3,7 @@ version: '3.8'
 services:
   code-server:
     build:
-      context: .
+      context: ..
       dockerfile: Dockerfile
     container_name: code-server
     restart: unless-stopped

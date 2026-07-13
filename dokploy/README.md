@@ -26,8 +26,8 @@
 
 ```
 code-server/
+├── Dockerfile                 # Custom image with opencode pre-installed
 ├── dokploy/
-│   ├── Dockerfile             # Custom image with opencode pre-installed
 │   ├── docker-compose.yml     # Dokploy deployment config
 │   ├── .env                   # Environment variables
 │   ├── code-server-data/      # Persisted data (created automatically)
