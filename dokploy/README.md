@@ -83,23 +83,30 @@ The fork is maintained at [kt-production-repo/opencode](https://github.com/kt-pr
 
 ## Volume Mounts
 
-Mount the entire config directory as a single volume to let code-server manage its own subdirectories:
+To ensure persistence of code-server data, extensions, settings, logs, and user-specific data, mount the following directories:
 
-- `./code-server-data:/home/coder/.local/share/code-server` — All user data, storage, settings, extensions, and logs
+| Host Path | Container Path | Description |
+|---|---|---|
+| `./code-server-data` | `/home/coder/.local/share/code-server` | Main code-server data (storage, etc.) |
+| `./code-server-extensions` | `/home/coder/.local/share/code-server/extensions` | Installed VS Code extensions |
+| `./code-server-settings` | `/home/coder/.config` | User configuration (includes opencode config) |
+| `./code-server-logs` | `/home/coder/.local/share/code-server/logs` | Application logs |
+| `./code-server-user` | `/home/coder/.local/share/code-server/User` | User-specific data (globalStorage, Machine, history) |
 
-**Why a single mount?** Code-server runs as the `coder` user (UID 1001) internally. Using individual subdirectory mounts (like `./data`, `./extensions` separately) can cause permission mismatches because code-server creates files in parent directories on startup. A single mount avoids this.
+**Why separate mounts?** Separating these directories makes it easier to back up specific parts (e.g., just extensions or settings) and avoids potential permission conflicts when code-server creates files in parent directories on startup.
 
-If you previously used the old multi-volume layout, migrate existing data:
+If you prefer a single volume mount, you can still use:
+- `./code-server-data:/home/coder/.local/share/code-server`
+
+However, the multi-mount approach above is recommended for better organization and backup flexibility.
+
+**If you previously used the old single-volume layout, migrate existing data:**
 ```bash
 # Stop the container first, then:
-mkdir -p code-server-data
-cp -r data/* code-server-data/ 2>/dev/null || true
-cp -r storage/* code-server-data/ 2>/dev/null || true
-cp -r settings/* code-server-data/ 2>/dev/null || true
-cp -r extensions/* code-server-data/ 2>/dev/null || true
-cp -r logs/* code-server-data/ 2>/dev/null || true
-cp -r User/* code-server-data/ 2>/dev/null || true
-chown -R 1001:1001 code-server-data
+mkdir -p code-server-data code-server-extensions code-server-settings code-server-logs code-server-user
+cp -r code-server-data/* code-server-data/ 2>/dev/null || true  # if you had the old single volume named code-server-data
+# Adjust paths as needed based on your previous setup
+chown -R 1001:1001 code-server-data code-server-extensions code-server-settings code-server-logs code-server-user
 ```
 
 ## Resource Limits
