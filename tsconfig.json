@@ -13,7 +13,7 @@
     "experimentalDecorators": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
-    "sourceMap": true,
+    "sourceMap": false,
     "tsBuildInfoFile": "./.cache/tsbuildinfo",
     "incremental": true,
     "typeRoots": [

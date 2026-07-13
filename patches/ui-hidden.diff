@@ -1,0 +1,672 @@
+diff --git code-server/lib/vscode/src/vs/workbench/browser/parts/activitybar/activitybarPart.ts code-server/lib/vscode/src/vs/workbench/browser/parts/activitybar/activitybarPart.ts
+index ee371523d831..0e3afb8a208f 100644
+--- code-server/lib/vscode/src/vs/workbench/browser/parts/activitybar/activitybarPart.ts
++++ code-server/lib/vscode/src/vs/workbench/browser/parts/activitybar/activitybarPart.ts
+@@ -165,7 +165,7 @@ export class ActivitybarPart extends Part {
+ 				activeBackgroundColor: undefined, inactiveBackgroundColor: undefined, activeBorderBottomColor: undefined,
+ 			}),
+ 			overflowActionSize: actionHeight,
+-		}, Parts.ACTIVITYBAR_PART, this.paneCompositePart, true);
++		}, Parts.ACTIVITYBAR_PART, this.paneCompositePart, false);
+ 	}
+
+ 	protected override createContentArea(parent: HTMLElement): HTMLElement {
+diff --git code-server/lib/vscode/src/vs/workbench/contrib/chat/browser/agentPluginsView.ts code-server/lib/vscode/src/vs/workbench/contrib/chat/browser/agentPluginsView.ts
+index 329a7c6ed987..55293d97d2f4 100644
+--- code-server/lib/vscode/src/vs/workbench/contrib/chat/browser/agentPluginsView.ts
++++ code-server/lib/vscode/src/vs/workbench/contrib/chat/browser/agentPluginsView.ts
+@@ -10,38 +10,38 @@ import { IListContextMenuEvent } from '../../../../base/browser/ui/list/list.js'
+ import { IPagedRenderer } from '../../../../base/browser/ui/list/listPaging.js';
+ import { Action, IAction, Separator } from '../../../../base/common/actions.js';
+ import { RunOnceScheduler } from '../../../../base/common/async.js';
+-import { CancellationToken, CancellationTokenSource } from '../../../../base/common/cancellation.js';
+-import { Codicon } from '../../../../base/common/codicons.js';
++import { CancellationTokenSource } from '../../../../base/common/cancellation.js';
++// import { Codicon } from '../../../../base/common/codicons.js';
+ import { Event } from '../../../../base/common/event.js';
+-import { Disposable, DisposableStore, disposeIfDisposable, IDisposable, isDisposable, MutableDisposable } from '../../../../base/common/lifecycle.js';
++import { DisposableStore, disposeIfDisposable, IDisposable, isDisposable, MutableDisposable } from '../../../../base/common/lifecycle.js';
+ import { ThemeIcon } from '../../../../base/common/themables.js';
+ import { autorun, derived, IObservable, IReaderWithStore } from '../../../../base/common/observable.js';
+ import { IPagedModel, PagedModel } from '../../../../base/common/paging.js';
+ import { dirname } from '../../../../base/common/resources.js';
+-import { localize, localize2 } from '../../../../nls.js';
+-import { Action2, MenuId, registerAction2 } from '../../../../platform/actions/common/actions.js';
++import { localize } from '../../../../nls.js';
++// import { Action2, MenuId } from '../../../../platform/actions/common/actions.js';
+ import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
+-import { ContextKeyExpr, IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
++import { IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
+ import { IContextMenuService } from '../../../../platform/contextview/browser/contextView.js';
+ import { IHoverService } from '../../../../platform/hover/browser/hover.js';
+-import { SyncDescriptor } from '../../../../platform/instantiation/common/descriptors.js';
+-import { IInstantiationService, ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
++// import { SyncDescriptor } from '../../../../platform/instantiation/common/descriptors.js';
++import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
+ import { IKeybindingService } from '../../../../platform/keybinding/common/keybinding.js';
+ import { ILabelService } from '../../../../platform/label/common/label.js';
+ import { WorkbenchPagedList } from '../../../../platform/list/browser/listService.js';
+ import { IOpenerService } from '../../../../platform/opener/common/opener.js';
+-import { Registry } from '../../../../platform/registry/common/platform.js';
++// import { Registry } from '../../../../platform/registry/common/platform.js';
+ import { IThemeService } from '../../../../platform/theme/common/themeService.js';
+ import { getLocationBasedViewColors } from '../../../browser/parts/views/viewPane.js';
+ import { IViewletViewOptions } from '../../../browser/parts/views/viewsViewlet.js';
+-import { IWorkbenchContribution } from '../../../common/contributions.js';
+-import { IViewDescriptorService, IViewsRegistry, Extensions as ViewExtensions } from '../../../common/views.js';
++// import { IWorkbenchContribution } from '../../../common/contributions.js';
++import { IViewDescriptorService } from '../../../common/views.js';
+ import { IEditorService } from '../../../services/editor/common/editorService.js';
+-import { VIEW_CONTAINER } from '../../extensions/browser/extensions.contribution.js';
++// import { VIEW_CONTAINER } from '../../extensions/browser/extensions.contribution.js';
+ import { manageExtensionIcon } from '../../extensions/browser/extensionsIcons.js';
+ import { AbstractExtensionsListView } from '../../extensions/browser/extensionsViews.js';
+-import { DefaultViewsContext, extensionsFilterSubMenu, IExtensionsWorkbenchService, SearchAgentPluginsContext } from '../../extensions/common/extensions.js';
+-import { ChatContextKeys } from '../common/actions/chatContextKeys.js';
++// import { extensionsFilterSubMenu, IExtensionsWorkbenchService } from '../../extensions/common/extensions.js';
++// import { ChatContextKeys } from '../common/actions/chatContextKeys.js';
+ import { IAgentPlugin, IAgentPluginService } from '../common/plugins/agentPluginService.js';
+ import { isContributionEnabled } from '../common/enablement.js';
+ import { IPluginInstallService } from '../common/plugins/pluginInstallService.js';
+@@ -49,7 +49,7 @@ import { hasSourceChanged, IMarketplacePlugin, IPluginMarketplaceService } from
+ import { AgentPluginEditorInput } from './agentPluginEditor/agentPluginEditorInput.js';
+ import { AgentPluginItemKind, IAgentPluginItem, IInstalledPluginItem, IMarketplacePluginItem } from './agentPluginEditor/agentPluginItems.js';
+ import { getInstalledPluginContextMenuActions, InstallPluginAction, OpenPluginReadmeAction } from './agentPluginActions.js';
+-import { InstalledAgentPluginsViewId, HasInstalledAgentPluginsContext } from './chat.js';
++// import { InstalledAgentPluginsViewId } from './chat.js';
+
+ //#region Item model
+
+@@ -556,114 +556,114 @@ export class AgentPluginsListView extends AbstractExtensionsListView<IAgentPlugi
+
+ //#region Browse command
+
+-class AgentPluginsBrowseCommand extends Action2 {
+-	constructor() {
+-		super({
+-			id: 'workbench.agentPlugins.browse',
+-			title: localize2('agentPlugins.browse', "Agent Plugins"),
+-			tooltip: localize2('agentPlugins.browse.tooltip', "Browse Agent Plugins"),
+-			icon: Codicon.search,
+-			precondition: ContextKeyExpr.and(ChatContextKeys.Setup.hidden.negate(), ChatContextKeys.Setup.disabledInWorkspace.negate()),
+-			menu: [{
+-				id: extensionsFilterSubMenu,
+-				group: '1_predefined',
+-				order: 2,
+-				when: ContextKeyExpr.and(ChatContextKeys.Setup.hidden.negate(), ChatContextKeys.Setup.disabledInWorkspace.negate()),
+-			}, {
+-				id: MenuId.ViewTitle,
+-				when: ContextKeyExpr.and(ContextKeyExpr.equals('view', InstalledAgentPluginsViewId), ChatContextKeys.Setup.hidden.negate(), ChatContextKeys.Setup.disabledInWorkspace.negate()),
+-				group: 'navigation',
+-			}],
+-		});
+-	}
+-
+-	async run(accessor: ServicesAccessor) {
+-		accessor.get(IExtensionsWorkbenchService).openSearch('@agentPlugins ');
+-	}
+-}
+-
+-class CheckForPluginUpdatesCommand extends Action2 {
+-	constructor() {
+-		super({
+-			id: 'workbench.agentPlugins.checkForUpdates',
+-			title: localize2('agentPlugins.checkForUpdates', "Update Plugins"),
+-			category: localize2('chat.category', "Chat"),
+-			precondition: ChatContextKeys.enabled,
+-			f1: true,
+-		});
+-	}
+-
+-	async run(accessor: ServicesAccessor) {
+-		await accessor.get(IPluginInstallService).updateAllPlugins({}, CancellationToken.None);
+-	}
+-}
+-
+-class ForceUpdatePluginsCommand extends Action2 {
+-	constructor() {
+-		super({
+-			id: 'workbench.agentPlugins.forceUpdate',
+-			title: localize2('agentPlugins.forceUpdate', "Update Plugins (Force)"),
+-			category: localize2('chat.category', "Chat"),
+-			precondition: ChatContextKeys.enabled,
+-			f1: true,
+-		});
+-	}
+-
+-	async run(accessor: ServicesAccessor) {
+-		await accessor.get(IPluginInstallService).updateAllPlugins({ force: true }, CancellationToken.None);
+-	}
+-}
++// class AgentPluginsBrowseCommand extends Action2 {
++// 	constructor() {
++// 		super({
++// 			id: 'workbench.agentPlugins.browse',
++// 			title: localize2('agentPlugins.browse', "Agent Plugins"),
++// 			tooltip: localize2('agentPlugins.browse.tooltip', "Browse Agent Plugins"),
++// 			icon: Codicon.search,
++// 			precondition: ContextKeyExpr.and(ChatContextKeys.Setup.hidden.negate(), ChatContextKeys.Setup.disabledInWorkspace.negate()),
++// 			menu: [{
++// 				id: extensionsFilterSubMenu,
++// 				group: '1_predefined',
++// 				order: 2,
++// 				when: ContextKeyExpr.and(ChatContextKeys.Setup.hidden.negate(), ChatContextKeys.Setup.disabledInWorkspace.negate()),
++// 			}, {
++// 				id: MenuId.ViewTitle,
++// 				when: ContextKeyExpr.and(ContextKeyExpr.equals('view', InstalledAgentPluginsViewId), ChatContextKeys.Setup.hidden.negate(), ChatContextKeys.Setup.disabledInWorkspace.negate()),
++// 				group: 'navigation',
++// 			}],
++// 		});
++// 	}
++
++// 	async run(accessor: ServicesAccessor) {
++// 		accessor.get(IExtensionsWorkbenchService).openSearch('@agentPlugins ');
++// 	}
++// }
++
++// class CheckForPluginUpdatesCommand extends Action2 {
++// 	constructor() {
++// 		super({
++// 			id: 'workbench.agentPlugins.checkForUpdates',
++// 			title: localize2('agentPlugins.checkForUpdates', "Update Plugins"),
++// 			category: localize2('chat.category', "Chat"),
++// 			precondition: ChatContextKeys.enabled,
++// 			f1: true,
++// 		});
++// 	}
++
++// 	async run(accessor: ServicesAccessor) {
++// 		await accessor.get(IPluginInstallService).updateAllPlugins({}, CancellationToken.None);
++// 	}
++// }
++
++// class ForceUpdatePluginsCommand extends Action2 {
++// 	constructor() {
++// 		super({
++// 			id: 'workbench.agentPlugins.forceUpdate',
++// 			title: localize2('agentPlugins.forceUpdate', "Update Plugins (Force)"),
++// 			category: localize2('chat.category', "Chat"),
++// 			precondition: ChatContextKeys.enabled,
++// 			f1: true,
++// 		});
++// 	}
++
++// 	async run(accessor: ServicesAccessor) {
++// 		await accessor.get(IPluginInstallService).updateAllPlugins({ force: true }, CancellationToken.None);
++// 	}
++// }
+
+ //#endregion
+ //#region Views contribution
+
+-export class AgentPluginsViewsContribution extends Disposable implements IWorkbenchContribution {
+-
+-	static ID = 'workbench.chat.agentPlugins.views.contribution';
+-
+-	constructor(
+-		@IContextKeyService contextKeyService: IContextKeyService,
+-		@IAgentPluginService agentPluginService: IAgentPluginService,
+-	) {
+-		super();
+-
+-		const hasInstalledKey = HasInstalledAgentPluginsContext.bindTo(contextKeyService);
+-		this._register(autorun(reader => {
+-			hasInstalledKey.set(agentPluginService.plugins.read(reader).length > 0);
+-		}));
+-
+-		registerAction2(AgentPluginsBrowseCommand);
+-		registerAction2(CheckForPluginUpdatesCommand);
+-		registerAction2(ForceUpdatePluginsCommand);
+-
+-		Registry.as<IViewsRegistry>(ViewExtensions.ViewsRegistry).registerViews([
+-			{
+-				id: InstalledAgentPluginsViewId,
+-				name: localize2('agent-plugins-installed', "Agent Plugins - Installed"),
+-				ctorDescriptor: new SyncDescriptor(AgentPluginsListView, [{ installedOnly: true }]),
+-				when: ContextKeyExpr.and(DefaultViewsContext, HasInstalledAgentPluginsContext, ChatContextKeys.Setup.hidden.negate()),
+-				weight: 30,
+-				order: 5,
+-				canToggleVisibility: true,
+-			},
+-			{
+-				id: 'workbench.views.agentPlugins.default.marketplace',
+-				name: localize2('agent-plugins', "Agent Plugins"),
+-				ctorDescriptor: new SyncDescriptor(AgentPluginsListView, [{}]),
+-				when: ContextKeyExpr.and(DefaultViewsContext, HasInstalledAgentPluginsContext.toNegated(), ChatContextKeys.Setup.hidden.negate()),
+-				weight: 30,
+-				order: 5,
+-				canToggleVisibility: true,
+-				hideByDefault: true,
+-			},
+-			{
+-				id: 'workbench.views.agentPlugins.marketplace',
+-				name: localize2('agent-plugins', "Agent Plugins"),
+-				ctorDescriptor: new SyncDescriptor(AgentPluginsListView, [{}]),
+-				when: ContextKeyExpr.and(SearchAgentPluginsContext, ChatContextKeys.Setup.hidden.negate()),
+-			},
+-		], VIEW_CONTAINER);
+-	}
+-}
++// export class AgentPluginsViewsContribution extends Disposable implements IWorkbenchContribution {
++
++// 	static ID = 'workbench.chat.agentPlugins.views.contribution';
++
++// 	constructor(
++// 		@IContextKeyService contextKeyService: IContextKeyService,
++// 		@IAgentPluginService agentPluginService: IAgentPluginService,
++// 	) {
++// 		super();
++
++// 		const hasInstalledKey = HasInstalledAgentPluginsContext.bindTo(contextKeyService);
++// 		this._register(autorun(reader => {
++// 			hasInstalledKey.set(agentPluginService.plugins.read(reader).length > 0);
++// 		}));
++
++// 		registerAction2(AgentPluginsBrowseCommand);
++// 		registerAction2(CheckForPluginUpdatesCommand);
++// 		registerAction2(ForceUpdatePluginsCommand);
++
++// 		Registry.as<IViewsRegistry>(ViewExtensions.ViewsRegistry).registerViews([
++// 			{
++// 				id: InstalledAgentPluginsViewId,
++// 				name: localize2('agent-plugins-installed', "Agent Plugins - Installed"),
++// 				ctorDescriptor: new SyncDescriptor(AgentPluginsListView, [{ installedOnly: true }]),
++// 				when: ContextKeyExpr.and(DefaultViewsContext, HasInstalledAgentPluginsContext, ChatContextKeys.Setup.hidden.negate()),
++// 				weight: 30,
++// 				order: 5,
++// 				canToggleVisibility: true,
++// 			},
++// 			{
++// 				id: 'workbench.views.agentPlugins.default.marketplace',
++// 				name: localize2('agent-plugins', "Agent Plugins"),
++// 				ctorDescriptor: new SyncDescriptor(AgentPluginsListView, [{}]),
++// 				when: ContextKeyExpr.and(DefaultViewsContext, HasInstalledAgentPluginsContext.toNegated(), ChatContextKeys.Setup.hidden.negate()),
++// 				weight: 30,
++// 				order: 5,
++// 				canToggleVisibility: true,
++// 				hideByDefault: true,
++// 			},
++// 			{
++// 				id: 'workbench.views.agentPlugins.marketplace',
++// 				name: localize2('agent-plugins', "Agent Plugins"),
++// 				ctorDescriptor: new SyncDescriptor(AgentPluginsListView, [{}]),
++// 				when: ContextKeyExpr.and(SearchAgentPluginsContext, ChatContextKeys.Setup.hidden.negate()),
++// 			},
++// 		], VIEW_CONTAINER);
++// 	}
++// }
+
+ //#endregion
+diff --git code-server/lib/vscode/src/vs/workbench/contrib/chat/browser/chat.view.contribution.ts code-server/lib/vscode/src/vs/workbench/contrib/chat/browser/chat.view.contribution.ts
+index 37bf962d03a5..64bda38fca4c 100644
+--- code-server/lib/vscode/src/vs/workbench/contrib/chat/browser/chat.view.contribution.ts
++++ code-server/lib/vscode/src/vs/workbench/contrib/chat/browser/chat.view.contribution.ts
+@@ -3,7 +3,7 @@
+  *  Licensed under the MIT License. See License.txt in the project root for license information.
+  *--------------------------------------------------------------------------------------------*/
+
+-import { WorkbenchPhase, registerWorkbenchContribution2 } from '../../../common/contributions.js';
+-import { AgentPluginsViewsContribution } from './agentPluginsView.js';
++// import { WorkbenchPhase, registerWorkbenchContribution2 } from '../../../common/contributions.js';
++// import { AgentPluginsViewsContribution } from './agentPluginsView.js';
+
+-registerWorkbenchContribution2(AgentPluginsViewsContribution.ID, AgentPluginsViewsContribution, WorkbenchPhase.AfterRestored);
++// registerWorkbenchContribution2(AgentPluginsViewsContribution.ID, AgentPluginsViewsContribution, WorkbenchPhase.AfterRestored);
+diff --git code-server/lib/vscode/src/vs/workbench/contrib/debug/browser/debug.contribution.ts code-server/lib/vscode/src/vs/workbench/contrib/debug/browser/debug.contribution.ts
+index 6a10c81e6bee..92bb10b93ff5 100644
+--- code-server/lib/vscode/src/vs/workbench/contrib/debug/browser/debug.contribution.ts
++++ code-server/lib/vscode/src/vs/workbench/contrib/debug/browser/debug.contribution.ts
+@@ -27,16 +27,17 @@ import { IViewContainersRegistry, IViewsRegistry, ViewContainer, ViewContainerLo
+ import { launchSchemaId } from '../../../services/configuration/common/configuration.js';
+ import { LifecyclePhase } from '../../../services/lifecycle/common/lifecycle.js';
+ import { COPY_NOTEBOOK_VARIABLE_VALUE_ID, COPY_NOTEBOOK_VARIABLE_VALUE_LABEL } from '../../notebook/browser/contrib/notebookVariables/notebookVariableCommands.js';
+-import { BREAKPOINTS_VIEW_ID, BREAKPOINT_EDITOR_CONTRIBUTION_ID, CALLSTACK_VIEW_ID, CONTEXT_BREAKPOINTS_EXIST, CONTEXT_BREAK_WHEN_VALUE_CHANGES_SUPPORTED, CONTEXT_BREAK_WHEN_VALUE_IS_ACCESSED_SUPPORTED, CONTEXT_BREAK_WHEN_VALUE_IS_READ_SUPPORTED, CONTEXT_CALLSTACK_ITEM_TYPE, CONTEXT_CAN_VIEW_MEMORY, CONTEXT_DEBUGGERS_AVAILABLE, CONTEXT_DEBUG_STATE, CONTEXT_DEBUG_UX, CONTEXT_EXPRESSION_SELECTED, CONTEXT_FOCUSED_SESSION_IS_ATTACH, CONTEXT_FOCUSED_SESSION_IS_NO_DEBUG, CONTEXT_HAS_DEBUGGED, CONTEXT_IN_DEBUG_MODE, CONTEXT_JUMP_TO_CURSOR_SUPPORTED, CONTEXT_LOADED_SCRIPTS_SUPPORTED, CONTEXT_RESTART_FRAME_SUPPORTED, CONTEXT_SET_EXPRESSION_SUPPORTED, CONTEXT_SET_VARIABLE_SUPPORTED, CONTEXT_STACK_FRAME_SUPPORTS_RESTART, CONTEXT_STEP_INTO_TARGETS_SUPPORTED, CONTEXT_SUSPEND_DEBUGGEE_SUPPORTED, CONTEXT_TERMINATE_DEBUGGEE_SUPPORTED, CONTEXT_TERMINATE_THREADS_SUPPORTED, CONTEXT_VARIABLE_EVALUATE_NAME_PRESENT, CONTEXT_VARIABLE_IS_READONLY, CONTEXT_VARIABLE_VALUE, CONTEXT_WATCH_ITEM_TYPE, DEBUG_PANEL_ID, DISASSEMBLY_VIEW_ID, EDITOR_CONTRIBUTION_ID, INTERNAL_CONSOLE_OPTIONS_SCHEMA, LOADED_SCRIPTS_VIEW_ID, REPL_VIEW_ID, State, VARIABLES_VIEW_ID, VIEWLET_ID, WATCH_VIEW_ID, getStateLabel } from '../common/debug.js';
++import { BREAKPOINT_EDITOR_CONTRIBUTION_ID, CONTEXT_BREAK_WHEN_VALUE_CHANGES_SUPPORTED, CONTEXT_BREAK_WHEN_VALUE_IS_ACCESSED_SUPPORTED, CONTEXT_BREAK_WHEN_VALUE_IS_READ_SUPPORTED, CONTEXT_CALLSTACK_ITEM_TYPE, CONTEXT_CAN_VIEW_MEMORY, CONTEXT_DEBUGGERS_AVAILABLE, CONTEXT_DEBUG_STATE, CONTEXT_EXPRESSION_SELECTED, CONTEXT_FOCUSED_SESSION_IS_ATTACH, CONTEXT_FOCUSED_SESSION_IS_NO_DEBUG, CONTEXT_IN_DEBUG_MODE, CONTEXT_JUMP_TO_CURSOR_SUPPORTED, CONTEXT_LOADED_SCRIPTS_SUPPORTED, CONTEXT_RESTART_FRAME_SUPPORTED, CONTEXT_SET_EXPRESSION_SUPPORTED, CONTEXT_SET_VARIABLE_SUPPORTED, CONTEXT_STACK_FRAME_SUPPORTS_RESTART, CONTEXT_STEP_INTO_TARGETS_SUPPORTED, CONTEXT_SUSPEND_DEBUGGEE_SUPPORTED, CONTEXT_TERMINATE_DEBUGGEE_SUPPORTED, CONTEXT_TERMINATE_THREADS_SUPPORTED, CONTEXT_VARIABLE_EVALUATE_NAME_PRESENT, CONTEXT_VARIABLE_IS_READONLY, CONTEXT_VARIABLE_VALUE, CONTEXT_WATCH_ITEM_TYPE, DEBUG_PANEL_ID, DISASSEMBLY_VIEW_ID, EDITOR_CONTRIBUTION_ID, INTERNAL_CONSOLE_OPTIONS_SCHEMA, REPL_VIEW_ID, State, VARIABLES_VIEW_ID, WATCH_VIEW_ID, getStateLabel } from '../common/debug.js';
++//BREAKPOINTS_VIEW_ID, CALLSTACK_VIEW_ID,CONTEXT_BREAKPOINTS_EXIST
+ import { DebugWatchAccessibilityAnnouncer } from '../common/debugAccessibilityAnnouncer.js';
+ import { DebugContentProvider } from '../common/debugContentProvider.js';
+ import { DebugLifecycle } from '../common/debugLifecycle.js';
+ import { DisassemblyViewInput } from '../common/disassemblyViewInput.js';
+ import { ReplAccessibilityAnnouncer } from '../common/replAccessibilityAnnouncer.js';
+ import { BreakpointEditorContribution } from './breakpointEditorContribution.js';
+-import { BreakpointsView } from './breakpointsView.js';
++// import { BreakpointsView } from './breakpointsView.js';
+ import { CallStackEditorContribution } from './callStackEditorContribution.js';
+-import { CallStackView } from './callStackView.js';
++// import { CallStackView } from './callStackView.js';
+ import { registerColors } from './debugColors.js';
+ import { ADD_CONFIGURATION_ID, ADD_TO_WATCH_ID, ADD_TO_WATCH_LABEL, CALLSTACK_BOTTOM_ID, CALLSTACK_BOTTOM_LABEL, CALLSTACK_DOWN_ID, CALLSTACK_DOWN_LABEL, CALLSTACK_TOP_ID, CALLSTACK_TOP_LABEL, CALLSTACK_UP_ID, CALLSTACK_UP_LABEL, CONTINUE_ID, CONTINUE_LABEL, COPY_EVALUATE_PATH_ID, COPY_EVALUATE_PATH_LABEL, COPY_STACK_TRACE_ID, COPY_VALUE_ID, COPY_VALUE_LABEL, DEBUG_COMMAND_CATEGORY, DEBUG_CONSOLE_QUICK_ACCESS_PREFIX, DEBUG_QUICK_ACCESS_PREFIX, DEBUG_RUN_COMMAND_ID, DEBUG_RUN_LABEL, DEBUG_START_COMMAND_ID, DEBUG_START_LABEL, DISCONNECT_AND_SUSPEND_ID, DISCONNECT_AND_SUSPEND_LABEL, DISCONNECT_ID, DISCONNECT_LABEL, EDIT_EXPRESSION_COMMAND_ID, JUMP_TO_CURSOR_ID, NEXT_DEBUG_CONSOLE_ID, NEXT_DEBUG_CONSOLE_LABEL, OPEN_LOADED_SCRIPTS_LABEL, PAUSE_ID, PAUSE_LABEL, PREV_DEBUG_CONSOLE_ID, PREV_DEBUG_CONSOLE_LABEL, REMOVE_EXPRESSION_COMMAND_ID, RESTART_FRAME_ID, RESTART_LABEL, RESTART_SESSION_ID, SELECT_AND_START_ID, SELECT_AND_START_LABEL, SELECT_DEBUG_CONSOLE_ID, SELECT_DEBUG_CONSOLE_LABEL, SELECT_DEBUG_SESSION_ID, SELECT_DEBUG_SESSION_LABEL, SET_EXPRESSION_COMMAND_ID, SHOW_LOADED_SCRIPTS_ID, STEP_INTO_ID, STEP_INTO_LABEL, STEP_INTO_TARGET_ID, STEP_INTO_TARGET_LABEL, STEP_OUT_ID, STEP_OUT_LABEL, STEP_OVER_ID, STEP_OVER_LABEL, STOP_ID, STOP_LABEL, TERMINATE_THREAD_ID, TOGGLE_INLINE_BREAKPOINT_ID, COPY_ADDRESS_ID, COPY_ADDRESS_LABEL, TOGGLE_BREAKPOINT_ID, BREAK_WHEN_VALUE_CHANGES_ID, BREAK_WHEN_VALUE_IS_ACCESSED_ID, BREAK_WHEN_VALUE_IS_READ_ID } from './debugCommands.js';
+ import { DebugConsoleQuickAccess } from './debugConsoleQuickAccess.js';
+@@ -49,9 +50,9 @@ import './debugSettingMigration.js';
+ import { DebugStatusContribution } from './debugStatus.js';
+ import { DebugTitleContribution } from './debugTitle.js';
+ import { DebugToolBar } from './debugToolBar.js';
+-import { DebugViewPaneContainer } from './debugViewlet.js';
++// import { DebugViewPaneContainer } from './debugViewlet.js';
+ import { DisassemblyView, DisassemblyViewContribution } from './disassemblyView.js';
+-import { LoadedScriptsView } from './loadedScriptsView.js';
++// import { LoadedScriptsView } from './loadedScriptsView.js';
+ import './media/debug.contribution.css';
+ import './media/debugHover.css';
+ import { Repl } from './repl.js';
+@@ -59,9 +60,9 @@ import { ReplAccessibilityHelp } from './replAccessibilityHelp.js';
+ import { ReplAccessibleView } from './replAccessibleView.js';
+ import { RunAndDebugAccessibilityHelp } from './runAndDebugAccessibilityHelp.js';
+ import { StatusBarColorProvider } from './statusbarColorProvider.js';
+-import { SET_VARIABLE_ID, VIEW_MEMORY_ID, VariablesView } from './variablesView.js';
+-import { ADD_WATCH_ID, ADD_WATCH_LABEL, REMOVE_WATCH_EXPRESSIONS_COMMAND_ID, REMOVE_WATCH_EXPRESSIONS_LABEL, WatchExpressionsView } from './watchExpressionsView.js';
+-import { WelcomeView } from './welcomeView.js';
++import { SET_VARIABLE_ID, VIEW_MEMORY_ID } from './variablesView.js'; //VariablesView
++import { ADD_WATCH_ID, ADD_WATCH_LABEL, REMOVE_WATCH_EXPRESSIONS_COMMAND_ID, REMOVE_WATCH_EXPRESSIONS_LABEL } from './watchExpressionsView.js'; //WatchExpressionsView
++// import { WelcomeView } from './welcomeView.js';
+ import { DebugChatContextContribution } from './debugChatIntegration.js';
+
+ // Register services
+@@ -450,29 +451,31 @@ Registry.as<IViewsRegistry>(ViewExtensions.ViewsRegistry).registerViews([{
+ }], VIEW_CONTAINER);
+
+
+-const viewContainer = Registry.as<IViewContainersRegistry>(ViewExtensions.ViewContainersRegistry).registerViewContainer({
+-	id: VIEWLET_ID,
+-	title: nls.localize2('run and debug', "Run and Debug"),
+-	openCommandActionDescriptor: {
+-		id: VIEWLET_ID,
+-		mnemonicTitle: nls.localize({ key: 'miViewRun', comment: ['&& denotes a mnemonic'] }, "&&Run"),
+-		keybindings: { primary: KeyMod.CtrlCmd | KeyMod.Shift | KeyCode.KeyD },
+-		order: 3
+-	},
+-	ctorDescriptor: new SyncDescriptor(DebugViewPaneContainer),
+-	icon: icons.runViewIcon,
+-	alwaysUseContainerInfo: true,
+-	order: 3,
+-}, ViewContainerLocation.Sidebar);
++// const viewContainer = Registry.as<IViewContainersRegistry>(ViewExtensions.ViewContainersRegistry).registerViewContainer({
++// 	id: VIEWLET_ID,
++// 	title: nls.localize2('run and debug', "Run and Debug"),
++// 	openCommandActionDescriptor: {
++// 		id: VIEWLET_ID,
++// 		mnemonicTitle: nls.localize({ key: 'miViewRun', comment: ['&& denotes a mnemonic'] }, "&&Run"),
++// 		keybindings: { primary: KeyMod.CtrlCmd | KeyMod.Shift | KeyCode.KeyD },
++// 		order: 3
++// 	},
++// 	ctorDescriptor: new SyncDescriptor(DebugViewPaneContainer),
++// 	icon: icons.runViewIcon,
++// 	alwaysUseContainerInfo: true,
++// 	order: 3,
++// }, ViewContainerLocation.Sidebar);
++
++//const viewContainer = undefined;
+
+ // Register default debug views
+-const viewsRegistry = Registry.as<IViewsRegistry>(ViewExtensions.ViewsRegistry);
+-viewsRegistry.registerViews([{ id: VARIABLES_VIEW_ID, name: nls.localize2('variables', "Variables"), containerIcon: icons.variablesViewIcon, ctorDescriptor: new SyncDescriptor(VariablesView), order: 10, weight: 40, canToggleVisibility: true, canMoveView: true, focusCommand: { id: 'workbench.debug.action.focusVariablesView' }, when: CONTEXT_DEBUG_UX.isEqualTo('default') }], viewContainer);
+-viewsRegistry.registerViews([{ id: WATCH_VIEW_ID, name: nls.localize2('watch', "Watch"), containerIcon: icons.watchViewIcon, ctorDescriptor: new SyncDescriptor(WatchExpressionsView), order: 20, weight: 10, canToggleVisibility: true, canMoveView: true, focusCommand: { id: 'workbench.debug.action.focusWatchView' }, when: CONTEXT_DEBUG_UX.isEqualTo('default') }], viewContainer);
+-viewsRegistry.registerViews([{ id: CALLSTACK_VIEW_ID, name: nls.localize2('callStack', "Call Stack"), containerIcon: icons.callStackViewIcon, ctorDescriptor: new SyncDescriptor(CallStackView), order: 30, weight: 30, canToggleVisibility: true, canMoveView: true, focusCommand: { id: 'workbench.debug.action.focusCallStackView' }, when: CONTEXT_DEBUG_UX.isEqualTo('default') }], viewContainer);
+-viewsRegistry.registerViews([{ id: BREAKPOINTS_VIEW_ID, name: nls.localize2('breakpoints', "Breakpoints"), containerIcon: icons.breakpointsViewIcon, ctorDescriptor: new SyncDescriptor(BreakpointsView), order: 40, weight: 20, canToggleVisibility: true, canMoveView: true, focusCommand: { id: 'workbench.debug.action.focusBreakpointsView' }, when: ContextKeyExpr.or(CONTEXT_BREAKPOINTS_EXIST, CONTEXT_DEBUG_UX.isEqualTo('default'), CONTEXT_HAS_DEBUGGED) }], viewContainer);
+-viewsRegistry.registerViews([{ id: WelcomeView.ID, name: WelcomeView.LABEL, containerIcon: icons.runViewIcon, ctorDescriptor: new SyncDescriptor(WelcomeView), order: 1, weight: 40, canToggleVisibility: true, when: CONTEXT_DEBUG_UX.isEqualTo('simple') }], viewContainer);
+-viewsRegistry.registerViews([{ id: LOADED_SCRIPTS_VIEW_ID, name: nls.localize2('loadedScripts', "Loaded Scripts"), containerIcon: icons.loadedScriptsViewIcon, ctorDescriptor: new SyncDescriptor(LoadedScriptsView), order: 35, weight: 5, canToggleVisibility: true, canMoveView: true, collapsed: true, when: ContextKeyExpr.and(CONTEXT_LOADED_SCRIPTS_SUPPORTED, CONTEXT_DEBUG_UX.isEqualTo('default')) }], viewContainer);
++//const viewsRegistry = Registry.as<IViewsRegistry>(ViewExtensions.ViewsRegistry);
++// viewsRegistry.registerViews([{ id: VARIABLES_VIEW_ID, name: nls.localize2('variables', "Variables"), containerIcon: icons.variablesViewIcon, ctorDescriptor: new SyncDescriptor(VariablesView), order: 10, weight: 40, canToggleVisibility: true, canMoveView: true, focusCommand: { id: 'workbench.debug.action.focusVariablesView' }, when: CONTEXT_DEBUG_UX.isEqualTo('default') }], viewContainer);
++// viewsRegistry.registerViews([{ id: WATCH_VIEW_ID, name: nls.localize2('watch', "Watch"), containerIcon: icons.watchViewIcon, ctorDescriptor: new SyncDescriptor(WatchExpressionsView), order: 20, weight: 10, canToggleVisibility: true, canMoveView: true, focusCommand: { id: 'workbench.debug.action.focusWatchView' }, when: CONTEXT_DEBUG_UX.isEqualTo('default') }], viewContainer);
++// viewsRegistry.registerViews([{ id: CALLSTACK_VIEW_ID, name: nls.localize2('callStack', "Call Stack"), containerIcon: icons.callStackViewIcon, ctorDescriptor: new SyncDescriptor(CallStackView), order: 30, weight: 30, canToggleVisibility: true, canMoveView: true, focusCommand: { id: 'workbench.debug.action.focusCallStackView' }, when: CONTEXT_DEBUG_UX.isEqualTo('default') }], viewContainer);
++// viewsRegistry.registerViews([{ id: BREAKPOINTS_VIEW_ID, name: nls.localize2('breakpoints', "Breakpoints"), containerIcon: icons.breakpointsViewIcon, ctorDescriptor: new SyncDescriptor(BreakpointsView), order: 40, weight: 20, canToggleVisibility: true, canMoveView: true, focusCommand: { id: 'workbench.debug.action.focusBreakpointsView' }, when: ContextKeyExpr.or(CONTEXT_BREAKPOINTS_EXIST, CONTEXT_DEBUG_UX.isEqualTo('default'), CONTEXT_HAS_DEBUGGED) }], viewContainer);
++// viewsRegistry.registerViews([{ id: WelcomeView.ID, name: WelcomeView.LABEL, containerIcon: icons.runViewIcon, ctorDescriptor: new SyncDescriptor(WelcomeView), order: 1, weight: 40, canToggleVisibility: true, when: CONTEXT_DEBUG_UX.isEqualTo('simple') }], viewContainer);
++// viewsRegistry.registerViews([{ id: LOADED_SCRIPTS_VIEW_ID, name: nls.localize2('loadedScripts', "Loaded Scripts"), containerIcon: icons.loadedScriptsViewIcon, ctorDescriptor: new SyncDescriptor(LoadedScriptsView), order: 35, weight: 5, canToggleVisibility: true, canMoveView: true, collapsed: true, when: ContextKeyExpr.and(CONTEXT_LOADED_SCRIPTS_SUPPORTED, CONTEXT_DEBUG_UX.isEqualTo('default')) }], viewContainer);
+
+ // Register disassembly view
+
+diff --git code-server/lib/vscode/src/vs/workbench/contrib/extensions/browser/extensions.contribution.ts code-server/lib/vscode/src/vs/workbench/contrib/extensions/browser/extensions.contribution.ts
+index 489257f34083..c57ae6d54794 100644
+--- code-server/lib/vscode/src/vs/workbench/contrib/extensions/browser/extensions.contribution.ts
++++ code-server/lib/vscode/src/vs/workbench/contrib/extensions/browser/extensions.contribution.ts
+@@ -7,7 +7,7 @@ import { IAction } from '../../../../base/common/actions.js';
+ import { CancellationToken } from '../../../../base/common/cancellation.js';
+ import { onUnexpectedError } from '../../../../base/common/errors.js';
+ import { Event } from '../../../../base/common/event.js';
+-import { KeyCode, KeyMod } from '../../../../base/common/keyCodes.js';
++// import { KeyCode, KeyMod } from '../../../../base/common/keyCodes.js';
+ import { mnemonicButtonLabel } from '../../../../base/common/labels.js';
+ import { Disposable, DisposableStore, IDisposable, isDisposable } from '../../../../base/common/lifecycle.js';
+ import { Schemas } from '../../../../base/common/network.js';
+@@ -49,7 +49,7 @@ import { Extensions as ConfigurationMigrationExtensions, IConfigurationMigration
+ import { IsSessionsWindowContext, ResourceContextKey, WorkbenchStateContext } from '../../../common/contextkeys.js';
+ import { IWorkbenchContribution, IWorkbenchContributionsRegistry, registerWorkbenchContribution2, Extensions as WorkbenchExtensions, WorkbenchPhase } from '../../../common/contributions.js';
+ import { EditorExtensions } from '../../../common/editor.js';
+-import { IViewContainersRegistry, Extensions as ViewContainerExtensions, ViewContainerLocation } from '../../../common/views.js';
++// import { IViewContainersRegistry, Extensions as ViewContainerExtensions, ViewContainerLocation } from '../../../common/views.js';
+ import { DEFAULT_ACCOUNT_SIGN_IN_COMMAND } from '../../../services/accounts/browser/defaultAccount.js';
+ import { IEditorService } from '../../../services/editor/common/editorService.js';
+ import { EnablementState, IExtensionManagementServerService, IPublisherInfo, IWorkbenchExtensionEnablementService, IWorkbenchExtensionManagementService } from '../../../services/extensionManagement/common/extensionManagement.js';
+@@ -80,9 +80,9 @@ import { ClearLanguageAction, ConfigureWorkspaceFolderRecommendedExtensionsActio
+ import { ExtensionActivationProgress } from './extensionsActivationProgress.js';
+ import { ExtensionsCompletionItemsProvider } from './extensionsCompletionItemsProvider.js';
+ import { ExtensionDependencyChecker } from './extensionsDependencyChecker.js';
+-import { clearSearchResultsIcon, configureRecommendedIcon, extensionsViewIcon, filterIcon, installWorkspaceRecommendedIcon, refreshIcon } from './extensionsIcons.js';
++import { clearSearchResultsIcon, configureRecommendedIcon, filterIcon, installWorkspaceRecommendedIcon, refreshIcon } from './extensionsIcons.js';
+ import { InstallExtensionQuickAccessProvider, ManageExtensionsQuickAccessProvider } from './extensionsQuickAccess.js';
+-import { BuiltInExtensionsContext, ExtensionMarketplaceStatusUpdater, ExtensionsSearchValueContext, ExtensionsSortByContext, ExtensionsViewletViewsContribution, ExtensionsViewPaneContainer, MaliciousExtensionChecker, RecommendedExtensionsContext, SearchHasTextContext, SearchMarketplaceExtensionsContext, StatusUpdater } from './extensionsViewlet.js';
++import { BuiltInExtensionsContext, ExtensionMarketplaceStatusUpdater, ExtensionsSearchValueContext, ExtensionsSortByContext, ExtensionsViewletViewsContribution, MaliciousExtensionChecker, RecommendedExtensionsContext, SearchHasTextContext, SearchMarketplaceExtensionsContext, StatusUpdater } from './extensionsViewlet.js';
+ import { ExtensionsWorkbenchService } from './extensionsWorkbenchService.js';
+ import './media/extensionManagement.css';
+ import { UnsupportedExtensionsMigrationContrib } from './unsupportedExtensionsMigrationContribution.js';
+@@ -111,22 +111,24 @@ Registry.as<IEditorPaneRegistry>(EditorExtensions.EditorPane).registerEditorPane
+ 		new SyncDescriptor(ExtensionsInput)
+ 	]);
+
+-export const VIEW_CONTAINER = Registry.as<IViewContainersRegistry>(ViewContainerExtensions.ViewContainersRegistry).registerViewContainer(
+-	{
+-		id: VIEWLET_ID,
+-		title: localize2('extensions', "Extensions"),
+-		openCommandActionDescriptor: {
+-			id: VIEWLET_ID,
+-			mnemonicTitle: localize({ key: 'miViewExtensions', comment: ['&& denotes a mnemonic'] }, "E&&xtensions"),
+-			keybindings: { primary: KeyMod.CtrlCmd | KeyMod.Shift | KeyCode.KeyX },
+-			order: 4,
+-		},
+-		ctorDescriptor: new SyncDescriptor(ExtensionsViewPaneContainer),
+-		icon: extensionsViewIcon,
+-		order: 4,
+-		rejectAddedViews: true,
+-		alwaysUseContainerInfo: true,
+-	}, ViewContainerLocation.Sidebar);
++// export const VIEW_CONTAINER = Registry.as<IViewContainersRegistry>(ViewContainerExtensions.ViewContainersRegistry).registerViewContainer(
++// 	{
++// 		id: VIEWLET_ID,
++// 		title: localize2('extensions', "Extensions"),
++// 		openCommandActionDescriptor: {
++// 			id: VIEWLET_ID,
++// 			mnemonicTitle: localize({ key: 'miViewExtensions', comment: ['&& denotes a mnemonic'] }, "E&&xtensions"),
++// 			keybindings: { primary: KeyMod.CtrlCmd | KeyMod.Shift | KeyCode.KeyX },
++// 			order: 4,
++// 		},
++// 		ctorDescriptor: new SyncDescriptor(ExtensionsViewPaneContainer),
++// 		icon: extensionsViewIcon,
++// 		order: 4,
++// 		rejectAddedViews: true,
++// 		alwaysUseContainerInfo: true,
++// 	}, ViewContainerLocation.Sidebar);
++
++export const VIEW_CONTAINER = undefined; // Do not register the view container for extensions, since it is registered in the workbench contributions
+
+ Registry.as<IConfigurationRegistry>(ConfigurationExtensions.Configuration)
+ 	.registerConfiguration({
+diff --git code-server/lib/vscode/src/vs/workbench/contrib/mcp/browser/mcp.view.contribution.ts code-server/lib/vscode/src/vs/workbench/contrib/mcp/browser/mcp.view.contribution.ts
+index 204f4682f132..45dad9ac1148 100644
+--- code-server/lib/vscode/src/vs/workbench/contrib/mcp/browser/mcp.view.contribution.ts
++++ code-server/lib/vscode/src/vs/workbench/contrib/mcp/browser/mcp.view.contribution.ts
+@@ -3,7 +3,7 @@
+  *  Licensed under the MIT License. See License.txt in the project root for license information.
+  *--------------------------------------------------------------------------------------------*/
+
+-import { registerWorkbenchContribution2, WorkbenchPhase } from '../../../common/contributions.js';
+-import { McpServersViewsContribution } from './mcpServersView.js';
++// import { registerWorkbenchContribution2, WorkbenchPhase } from '../../../common/contributions.js';
++// import { McpServersViewsContribution } from './mcpServersView.js';
+
+-registerWorkbenchContribution2(McpServersViewsContribution.ID, McpServersViewsContribution, WorkbenchPhase.AfterRestored);
++// registerWorkbenchContribution2(McpServersViewsContribution.ID, McpServersViewsContribution, WorkbenchPhase.AfterRestored);
+diff --git code-server/lib/vscode/src/vs/workbench/contrib/mcp/browser/mcpServersView.ts code-server/lib/vscode/src/vs/workbench/contrib/mcp/browser/mcpServersView.ts
+index dc231e441dd4..b628cdc89e70 100644
+--- code-server/lib/vscode/src/vs/workbench/contrib/mcp/browser/mcpServersView.ts
++++ code-server/lib/vscode/src/vs/workbench/contrib/mcp/browser/mcpServersView.ts
+@@ -9,11 +9,11 @@ import { ActionBar } from '../../../../base/browser/ui/actionbar/actionbar.js';
+ import { IListContextMenuEvent } from '../../../../base/browser/ui/list/list.js';
+ import { Emitter, Event } from '../../../../base/common/event.js';
+ import { createMarkdownCommandLink, MarkdownString } from '../../../../base/common/htmlContent.js';
+-import { combinedDisposable, Disposable, DisposableStore, dispose, IDisposable, isDisposable, MutableDisposable } from '../../../../base/common/lifecycle.js';
++import { combinedDisposable, DisposableStore, dispose, IDisposable, isDisposable, MutableDisposable } from '../../../../base/common/lifecycle.js';
+ import { DelayedPagedModel, IPagedModel, PagedModel, IterativePagedModel } from '../../../../base/common/paging.js';
+-import { localize, localize2 } from '../../../../nls.js';
++import { localize } from '../../../../nls.js';
+ import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
+-import { ContextKeyDefinedExpr, ContextKeyExpr, IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
++import { IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
+ import { IContextMenuService } from '../../../../platform/contextview/browser/contextView.js';
+ import { IDialogService } from '../../../../platform/dialogs/common/dialogs.js';
+ import { IHoverService } from '../../../../platform/hover/browser/hover.js';
+@@ -25,21 +25,21 @@ import { IOpenerService } from '../../../../platform/opener/common/opener.js';
+ import { IThemeService } from '../../../../platform/theme/common/themeService.js';
+ import { getLocationBasedViewColors } from '../../../browser/parts/views/viewPane.js';
+ import { IViewletViewOptions } from '../../../browser/parts/views/viewsViewlet.js';
+-import { IViewDescriptorService, IViewsRegistry, ViewContainerLocation, Extensions as ViewExtensions } from '../../../common/views.js';
+-import { HasInstalledMcpServersContext, IMcpWorkbenchService, InstalledMcpServersViewId, IWorkbenchMcpServer, McpServerContainers, McpServerEnablementState, McpServersGalleryStatusContext } from '../common/mcpTypes.js';
++import { IViewDescriptorService, ViewContainerLocation, } from '../../../common/views.js';
++import { IMcpWorkbenchService, IWorkbenchMcpServer, McpServerContainers, McpServerEnablementState } from '../common/mcpTypes.js';
+ import { DropDownAction, getContextMenuActions, InstallAction, InstallingLabelAction, ManageMcpServerAction, McpServerStatusAction } from './mcpServerActions.js';
+ import { PublisherWidget, StarredWidget, McpServerIconWidget, McpServerHoverWidget, McpServerScopeBadgeWidget } from './mcpServerWidgets.js';
+ import { ActionRunner, IAction, Separator } from '../../../../base/common/actions.js';
+ import { IActionViewItemOptions } from '../../../../base/browser/ui/actionbar/actionViewItems.js';
+-import { mcpGalleryServiceEnablementConfig, mcpGalleryServiceUrlConfig } from '../../../../platform/mcp/common/mcpManagement.js';
++import { mcpGalleryServiceEnablementConfig } from '../../../../platform/mcp/common/mcpManagement.js';
+ import { ThemeIcon } from '../../../../base/common/themables.js';
+ import { alert } from '../../../../base/browser/ui/aria/aria.js';
+-import { Registry } from '../../../../platform/registry/common/platform.js';
+-import { IWorkbenchContribution } from '../../../common/contributions.js';
+-import { SyncDescriptor } from '../../../../platform/instantiation/common/descriptors.js';
+-import { DefaultViewsContext, SearchMcpServersContext } from '../../extensions/common/extensions.js';
+-import { VIEW_CONTAINER } from '../../extensions/browser/extensions.contribution.js';
+-import { ChatContextKeys } from '../../chat/common/actions/chatContextKeys.js';
++// import { Registry } from '../../../../platform/registry/common/platform.js';
++// import { IWorkbenchContribution } from '../../../common/contributions.js';
++// import { SyncDescriptor } from '../../../../platform/instantiation/common/descriptors.js';
++// import { DefaultViewsContext, SearchMcpServersContext } from '../../extensions/common/extensions.js';
++// import { VIEW_CONTAINER } from '../../extensions/browser/extensions.contribution.js';
++// import { ChatContextKeys } from '../../chat/common/actions/chatContextKeys.js';
+ import { Button } from '../../../../base/browser/ui/button/button.js';
+ import { defaultButtonStyles } from '../../../../platform/theme/browser/defaultStyles.js';
+ import { AbstractExtensionsListView } from '../../extensions/browser/extensionsViews.js';
+@@ -48,8 +48,8 @@ import { HoverPosition } from '../../../../base/browser/ui/hover/hoverWidget.js'
+ import { IWorkbenchLayoutService, Position } from '../../../services/layout/browser/layoutService.js';
+ import { mcpServerIcon } from './mcpServerIcons.js';
+ import { IPagedRenderer } from '../../../../base/browser/ui/list/listPaging.js';
+-import { IMcpGalleryManifestService, McpGalleryManifestStatus } from '../../../../platform/mcp/common/mcpGalleryManifest.js';
+-import { ProductQualityContext } from '../../../../platform/contextkey/common/contextkeys.js';
++import { IMcpGalleryManifestService } from '../../../../platform/mcp/common/mcpGalleryManifest.js';
++// import { ProductQualityContext } from '../../../../platform/contextkey/common/contextkeys.js';
+ import { SeverityIcon } from '../../../../base/browser/ui/severityIcon/severityIcon.js';
+ import { IMarkdownRendererService } from '../../../../platform/markdown/browser/markdownRenderer.js';
+ import { ILogService } from '../../../../platform/log/common/log.js';
+@@ -531,53 +531,53 @@ export class DefaultBrowseMcpServersView extends McpServersListView {
+ 	}
+ }
+
+-export class McpServersViewsContribution extends Disposable implements IWorkbenchContribution {
+-
+-	static ID = 'workbench.mcp.servers.views.contribution';
+-
+-	constructor() {
+-		super();
+-
+-		Registry.as<IViewsRegistry>(ViewExtensions.ViewsRegistry).registerViews([
+-			{
+-				id: InstalledMcpServersViewId,
+-				name: localize2('mcp-installed', "MCP Servers - Installed"),
+-				ctorDescriptor: new SyncDescriptor(McpServersListView, [{}]),
+-				when: ContextKeyExpr.and(DefaultViewsContext, HasInstalledMcpServersContext, ChatContextKeys.Setup.hidden.negate(), ChatContextKeys.Setup.disabledInWorkspace.negate()),
+-				weight: 40,
+-				order: 4,
+-				canToggleVisibility: true
+-			},
+-			{
+-				id: 'workbench.views.mcp.default.marketplace',
+-				name: localize2('mcp', "MCP Servers"),
+-				ctorDescriptor: new SyncDescriptor(DefaultBrowseMcpServersView, [{}]),
+-				when: ContextKeyExpr.and(DefaultViewsContext, HasInstalledMcpServersContext.toNegated(), ChatContextKeys.Setup.hidden.negate(), ChatContextKeys.Setup.disabledInWorkspace.negate(), McpServersGalleryStatusContext.isEqualTo(McpGalleryManifestStatus.Available), ContextKeyExpr.or(ContextKeyDefinedExpr.create(`config.${mcpGalleryServiceUrlConfig}`), ProductQualityContext.notEqualsTo('stable'), ContextKeyDefinedExpr.create(`config.${mcpGalleryServiceEnablementConfig}`))),
+-				weight: 40,
+-				order: 4,
+-				canToggleVisibility: true
+-			},
+-			{
+-				id: 'workbench.views.mcp.marketplace',
+-				name: localize2('mcp', "MCP Servers"),
+-				ctorDescriptor: new SyncDescriptor(McpServersListView, [{}]),
+-				when: ContextKeyExpr.and(SearchMcpServersContext, ChatContextKeys.Setup.hidden.negate(), ChatContextKeys.Setup.disabledInWorkspace.negate(), McpServersGalleryStatusContext.isEqualTo(McpGalleryManifestStatus.Available), ContextKeyExpr.or(ContextKeyDefinedExpr.create(`config.${mcpGalleryServiceUrlConfig}`), ProductQualityContext.notEqualsTo('stable'), ContextKeyDefinedExpr.create(`config.${mcpGalleryServiceEnablementConfig}`))),
+-			},
+-			{
+-				id: 'workbench.views.mcp.default.welcomeView',
+-				name: localize2('mcp', "MCP Servers"),
+-				ctorDescriptor: new SyncDescriptor(DefaultBrowseMcpServersView, [{ showWelcome: true }]),
+-				when: ContextKeyExpr.and(DefaultViewsContext, HasInstalledMcpServersContext.toNegated(), ChatContextKeys.Setup.hidden.negate(), ChatContextKeys.Setup.disabledInWorkspace.negate(), McpServersGalleryStatusContext.isEqualTo(McpGalleryManifestStatus.Available), ContextKeyDefinedExpr.create(`config.${mcpGalleryServiceUrlConfig}`).negate(), ProductQualityContext.isEqualTo('stable'), ContextKeyDefinedExpr.create(`config.${mcpGalleryServiceEnablementConfig}`).negate()),
+-				weight: 40,
+-				order: 4,
+-				canToggleVisibility: true
+-			},
+-			{
+-				id: 'workbench.views.mcp.welcomeView',
+-				name: localize2('mcp', "MCP Servers"),
+-				ctorDescriptor: new SyncDescriptor(McpServersListView, [{ showWelcome: true }]),
+-				when: ContextKeyExpr.and(SearchMcpServersContext, ChatContextKeys.Setup.hidden.negate(), ChatContextKeys.Setup.disabledInWorkspace.negate(), McpServersGalleryStatusContext.isEqualTo(McpGalleryManifestStatus.Available), ContextKeyDefinedExpr.create(`config.${mcpGalleryServiceUrlConfig}`).negate(), ProductQualityContext.isEqualTo('stable'), ContextKeyDefinedExpr.create(`config.${mcpGalleryServiceEnablementConfig}`).negate()),
+-			}
+-		], VIEW_CONTAINER);
+-	}
+-}
++// export class McpServersViewsContribution extends Disposable implements IWorkbenchContribution {
++
++// 	static ID = 'workbench.mcp.servers.views.contribution';
++
++// 	constructor() {
++// 		super();
++
++// 		Registry.as<IViewsRegistry>(ViewExtensions.ViewsRegistry).registerViews([
++// 			{
++// 				id: InstalledMcpServersViewId,
++// 				name: localize2('mcp-installed', "MCP Servers - Installed"),
++// 				ctorDescriptor: new SyncDescriptor(McpServersListView, [{}]),
++// 				when: ContextKeyExpr.and(DefaultViewsContext, HasInstalledMcpServersContext, ChatContextKeys.Setup.hidden.negate(), ChatContextKeys.Setup.disabledInWorkspace.negate()),
++// 				weight: 40,
++// 				order: 4,
++// 				canToggleVisibility: true
++// 			},
++// 			{
++// 				id: 'workbench.views.mcp.default.marketplace',
++// 				name: localize2('mcp', "MCP Servers"),
++// 				ctorDescriptor: new SyncDescriptor(DefaultBrowseMcpServersView, [{}]),
++// 				when: ContextKeyExpr.and(DefaultViewsContext, HasInstalledMcpServersContext.toNegated(), ChatContextKeys.Setup.hidden.negate(), ChatContextKeys.Setup.disabledInWorkspace.negate(), McpServersGalleryStatusContext.isEqualTo(McpGalleryManifestStatus.Available), ContextKeyExpr.or(ContextKeyDefinedExpr.create(`config.${mcpGalleryServiceUrlConfig}`), ProductQualityContext.notEqualsTo('stable'), ContextKeyDefinedExpr.create(`config.${mcpGalleryServiceEnablementConfig}`))),
++// 				weight: 40,
++// 				order: 4,
++// 				canToggleVisibility: true
++// 			},
++// 			{
++// 				id: 'workbench.views.mcp.marketplace',
++// 				name: localize2('mcp', "MCP Servers"),
++// 				ctorDescriptor: new SyncDescriptor(McpServersListView, [{}]),
++// 				when: ContextKeyExpr.and(SearchMcpServersContext, ChatContextKeys.Setup.hidden.negate(), ChatContextKeys.Setup.disabledInWorkspace.negate(), McpServersGalleryStatusContext.isEqualTo(McpGalleryManifestStatus.Available), ContextKeyExpr.or(ContextKeyDefinedExpr.create(`config.${mcpGalleryServiceUrlConfig}`), ProductQualityContext.notEqualsTo('stable'), ContextKeyDefinedExpr.create(`config.${mcpGalleryServiceEnablementConfig}`))),
++// 			},
++// 			{
++// 				id: 'workbench.views.mcp.default.welcomeView',
++// 				name: localize2('mcp', "MCP Servers"),
++// 				ctorDescriptor: new SyncDescriptor(DefaultBrowseMcpServersView, [{ showWelcome: true }]),
++// 				when: ContextKeyExpr.and(DefaultViewsContext, HasInstalledMcpServersContext.toNegated(), ChatContextKeys.Setup.hidden.negate(), ChatContextKeys.Setup.disabledInWorkspace.negate(), McpServersGalleryStatusContext.isEqualTo(McpGalleryManifestStatus.Available), ContextKeyDefinedExpr.create(`config.${mcpGalleryServiceUrlConfig}`).negate(), ProductQualityContext.isEqualTo('stable'), ContextKeyDefinedExpr.create(`config.${mcpGalleryServiceEnablementConfig}`).negate()),
++// 				weight: 40,
++// 				order: 4,
++// 				canToggleVisibility: true
++// 			},
++// 			{
++// 				id: 'workbench.views.mcp.welcomeView',
++// 				name: localize2('mcp', "MCP Servers"),
++// 				ctorDescriptor: new SyncDescriptor(McpServersListView, [{ showWelcome: true }]),
++// 				when: ContextKeyExpr.and(SearchMcpServersContext, ChatContextKeys.Setup.hidden.negate(), ChatContextKeys.Setup.disabledInWorkspace.negate(), McpServersGalleryStatusContext.isEqualTo(McpGalleryManifestStatus.Available), ContextKeyDefinedExpr.create(`config.${mcpGalleryServiceUrlConfig}`).negate(), ProductQualityContext.isEqualTo('stable'), ContextKeyDefinedExpr.create(`config.${mcpGalleryServiceEnablementConfig}`).negate()),
++// 			}
++// 		], VIEW_CONTAINER);
++// 	}
++// }

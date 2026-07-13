@@ -1,0 +1,41 @@
+diff --git code-server/lib/vscode/src/vs/workbench/services/keybinding/browser/keybindingService.ts b/src/vs/workbench/services/keybinding/browser/keybindingService.ts
+index 5db49b2be12..b6c6670231a 100644
+--- code-server/lib/vscode/src/vs/workbench/services/keybinding/browser/keybindingService.ts
++++ code-server/lib/vscode/src/vs/workbench/services/keybinding/browser/keybindingService.ts
+@@ -184,6 +184,36 @@ export class WorkbenchKeybindingService extends AbstractKeybindingService {
+ 		readonly contribution: KeybindingsSchemaContribution;
+ 	}> = [];
+ 	private readonly kbsJsonSchema: KeybindingsJsonSchema;
++	protected override _dispatch(e: IKeyboardEvent,target: never): boolean {
++    // 白名单允许的快捷键组合
++    const allowSet = new Set<string>([
++        'ctrl+keyc',
++        'ctrl+keyv',
++        'ctrl+keyx',
++        'ctrl+keyz',
++        'ctrl+keys',
++        'ctrl+keyf',
++    ]);
++
++    // 组装当前按键标识（仅处理Ctrl组合，Mac meta单独区分）
++    let keyLabel = '';
++    if (e.ctrlKey && !e.metaKey) {
++        keyLabel = `ctrl+${e.code.toLowerCase()}`;
++    }
++    // Mac系统兼容 meta(cmd) 版本
++    if (e.metaKey && !e.ctrlKey) {
++        keyLabel = `ctrl+${e.code.toLowerCase()}`;
++    }
++    // 不在白名单，直接返回false，不执行任何快捷键逻辑
++    if (!allowSet.has(keyLabel)) {
++        return false;
++    }
++
++    // 白名单按键放行，走原生分发逻辑
++    return super._dispatch(e, target);
++}
++
++
+ 
+ 	constructor(
+ 		@IContextKeyService contextKeyService: IContextKeyService,

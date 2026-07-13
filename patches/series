@@ -24,3 +24,6 @@ trusted-domains.diff
 signature-verification.diff
 copilot.diff
 app-name.diff
+disable_terminal_keybind.diff
+whitelist-keybingding.diff
+ui-hidden.diff

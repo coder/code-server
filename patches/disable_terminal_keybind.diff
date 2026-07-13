@@ -1,0 +1,45 @@
+diff --git code-server/lib/vscode/src/vs/workbench/contrib/externalTerminal/browser/externalTerminal.contribution.ts code-server/lib/vscode/src/vs/workbench/contrib/externalTerminal/browser/externalTerminal.contribution.ts
+index da0388a5435..fb91e3665c5 100644
+--- code-server/lib/vscode/src/vs/workbench/contrib/externalTerminal/browser/externalTerminal.contribution.ts
++++ code-server/lib/vscode/src/vs/workbench/contrib/externalTerminal/browser/externalTerminal.contribution.ts
+@@ -132,9 +132,9 @@ export class ExternalTerminalContribution extends Disposable implements IWorkben
+ 			when: shouldShowExternalKindOnLocal
+ 		};
+
+-
+-		MenuRegistry.appendMenuItem(MenuId.ExplorerContext, this._openInTerminalMenuItem);
+-		MenuRegistry.appendMenuItem(MenuId.ExplorerContext, this._openInIntegratedTerminalMenuItem);
++		// 屏蔽右键打开的终端
++		//MenuRegistry.appendMenuItem(MenuId.ExplorerContext, this._openInTerminalMenuItem);
++		//MenuRegistry.appendMenuItem(MenuId.ExplorerContext, this._openInIntegratedTerminalMenuItem);
+
+ 		this._register(this._configurationService.onDidChangeConfiguration(e => {
+ 			if (e.affectsConfiguration('terminal.explorerKind') || e.affectsConfiguration('terminal.external')) {
+diff --git code-server/lib/vscode/src/vs/workbench/contrib/terminal/browser/terminalService.ts code-server/lib/vscode/src/vs/workbench/contrib/terminal/browser/terminalService.ts
+index 152d14d7a9b..589cb6e0366 100644
+--- code-server/lib/vscode/src/vs/workbench/contrib/terminal/browser/terminalService.ts
++++ code-server/lib/vscode/src/vs/workbench/contrib/terminal/browser/terminalService.ts
+@@ -449,6 +449,11 @@ export class TerminalService extends Disposable implements ITerminalService {
+ 		this._logService.trace('Pty host ready');
+ 	}
+
++	private _isTerminalDisabled(): boolean {
++		return true
++	}
++
++
+ 	private async _reconnectToRemoteTerminals(): Promise<void> {
+ 		const remoteAuthority = this._environmentService.remoteAuthority;
+ 		if (!remoteAuthority) {
+@@ -973,6 +978,11 @@ export class TerminalService extends Disposable implements ITerminalService {
+ 	}
+
+ 	async createTerminal(options?: ICreateTerminalOptions): Promise<ITerminalInstance> {
++
++		if (this._isTerminalDisabled()) {
++			this._notificationService.info('集成终端已被管理员禁用，无法创建');
++			return;
++		}
+ 		// Await the initialization of available profiles as long as this is not a pty terminal or a
+ 		// local terminal in a remote workspace as profile won't be used in those cases and these
+ 		// terminals need to be launched before remote connections are established.
