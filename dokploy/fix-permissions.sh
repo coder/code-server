@@ -5,27 +5,21 @@
 
 set -e
 
-echo "🔧 Fixing code-server permissions..."
+echo "Fixing code-server permissions..."
 
-# Create required directories
-echo "📁 Creating required directories..."
-mkdir -p data storage settings extensions logs User/globalStorage User/Machine User/history
+# Create the single volume directory
+echo "Creating directory..."
+mkdir -p code-server-data
 
 # Set correct ownership (coder user is typically UID 1001)
-echo "🔑 Setting permissions..."
-chown -R 1001:1001 data storage settings extensions logs User
+echo "Setting ownership to coder user (UID 1001)..."
+chown -R 1001:1001 code-server-data
 
 # Set read/write/execute for coder user
-chmod -R 755 data storage settings extensions logs User
+chmod -R 755 code-server-data
 
-echo "✅ Permissions fixed!"
+echo "Permissions fixed!"
 echo ""
-echo "📍 Directories created:"
-echo "   - data: User data persistence"
-echo "   - storage: Code-server storage"
-echo "   - settings: User settings"
-echo "   - extensions: Code-server extensions"
-echo "   - logs: Application logs"
-echo "   - User: User-specific data"
+echo "Directory: code-server-data"
 echo ""
-echo "🔄 Next step: Restart the code-server container in Dokploy UI"
+echo "Next step: Restart the code-server container in Dokploy UI"

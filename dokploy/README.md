@@ -23,13 +23,11 @@
 ```
 code-server/
 ├── dokploy/
-│   ├── docker-compose.yml    # Dokploy deployment config
-│   ├── .env                  # Environment variables
-│   ├── data/                 # User data persistence
-│   ├── storage/              # Code-server storage
-│   ├── settings/             # User settings
-│   └── extensions/           # Code-server extensions
-└── README.md                 # This file
+│   ├── docker-compose.yml     # Dokploy deployment config
+│   ├── .env                   # Environment variables
+│   ├── code-server-data/      # Persisted data (created automatically)
+│   └── fix-permissions.sh     # Permission fix helper (run once on host)
+└── README.md                  # This file
 ```
 
 ## Environment Variables Reference
@@ -68,9 +66,24 @@ code-server/
 
 ## Volume Mounts
 
-- `./data:/home/coder/.local/share/code-server` - User data
-- `./storage:/home/coder/.local/share/code-server/storage` - Code-server storage
-- `./settings:/home/coder/.local/share/code-server/settings` - User settings
+Mount the entire config directory as a single volume to let code-server manage its own subdirectories:
+
+- `./code-server-data:/home/coder/.local/share/code-server` — All user data, storage, settings, extensions, and logs
+
+**Why a single mount?** Code-server runs as the `coder` user (UID 1001) internally. Using individual subdirectory mounts (like `./data`, `./extensions` separately) can cause permission mismatches because code-server creates files in parent directories on startup. A single mount avoids this.
+
+If you previously used the old multi-volume layout, migrate existing data:
+```bash
+# Stop the container first, then:
+mkdir -p code-server-data
+cp -r data/* code-server-data/ 2>/dev/null || true
+cp -r storage/* code-server-data/ 2>/dev/null || true
+cp -r settings/* code-server-data/ 2>/dev/null || true
+cp -r extensions/* code-server-data/ 2>/dev/null || true
+cp -r logs/* code-server-data/ 2>/dev/null || true
+cp -r User/* code-server-data/ 2>/dev/null || true
+chown -R 1001:1001 code-server-data
+```
 
 ## Resource Limits
 
