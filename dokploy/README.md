@@ -46,6 +46,8 @@ code-server/
 - `DISABLE_SSH` - Disable SSH access (true/false)
 - `DISABLE_DASHBOARD` - Hide dashboard (true/false)
 - `DISABLE_FILE_BROWSER` - Disable file browser (true/false)
+- `DISABLE_STARTUP_PAGE` - Skip the startup page (true/false)
+- `DISABLE_EXTENSIONS` - Disable all extensions including opencode (true/false)
 
 ### File Browser
 - `DISABLE_FILE_BROWSER_UPLOAD` - Disable uploads
@@ -114,7 +116,7 @@ chown -R 1001:1001 code-server-data
 3. Configure firewall rules
 4. Regularly update the image
 5. Monitor resource usage
-6. Backup the `data`, `storage`, and `settings` directories
+6. Backup the `code-server-data` directory
 
 ## Updating
 

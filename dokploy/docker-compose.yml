@@ -36,7 +36,8 @@ services:
       - DISABLE_FILE_BROWSER_SEARCH=${DISABLE_FILE_BROWSER_SEARCH:-true}
       - DISABLE_FILE_BROWSER_ZIP=${DISABLE_FILE_BROWSER_ZIP:-true}
       - DISABLE_FILE_BROWSER_UNZIP=${DISABLE_FILE_BROWSER_UNZIP:-true}
-      - DISABLE_EXTENSIONS=${DISABLE_EXTENSIONS:-true}
+      - DISABLE_EXTENSIONS=${DISABLE_EXTENSIONS:-false}
+      - DISABLE_STARTUP_PAGE=${DISABLE_STARTUP_PAGE:-true}
     volumes:
       - ./code-server-data:/home/coder/.local/share/code-server
     networks:
