@@ -9,20 +9,25 @@
 
 2. **Deploy in Dokploy**
    - Create a new Dokploy project
-   - Upload `docker-compose.yml` as the deployment file
+   - Upload the entire `dokploy/` directory (or configure the git source to point to this repo)
    - Set the environment variables from `.env`
-   - Deploy the service
+   - Deploy the service — the `Dockerfile` will build a custom image with opencode pre-installed
 
 3. **Access Code-Server**
    - URL: `https://your-domain.com:8080`
    - Username: `admin`
    - Password: (from .env)
 
+4. **Use OpenCode**
+   - Open the integrated terminal in code-server
+   - Run `opencode` to start the AI coding agent
+
 ## Directory Structure
 
 ```
 code-server/
 ├── dokploy/
+│   ├── Dockerfile             # Custom image with opencode pre-installed
 │   ├── docker-compose.yml     # Dokploy deployment config
 │   ├── .env                   # Environment variables
 │   ├── code-server-data/      # Persisted data (created automatically)
@@ -65,6 +70,16 @@ code-server/
 - `DISABLE_UPDATE_CHECK` - Disable update checks (true/false)
 - `DISABLE_UPDATE_NOTIFICATION` - Disable update notifications
 - `DISABLE_UPDATE_POPUP` - Disable update popups
+
+## OpenCode
+
+[OpenCode](https://opencode.ai) is an open-source AI coding agent pre-installed in this image.
+
+- Run `opencode` in the code-server integrated terminal
+- Use `Tab` to switch between **build** (full-access) and **plan** (read-only) agents
+- Configure via `~/.opencode/config.json` or the `.opencode/` directory in your project
+
+The fork is maintained at [kt-production-repo/opencode](https://github.com/kt-production-repo/opencode).
 
 ## Volume Mounts
 
