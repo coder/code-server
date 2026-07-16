@@ -1,21 +1,21 @@
-diff --git code-server/lib/vscode/src/vs/workbench/browser/parts/activitybar/activitybarPart.ts code-server/lib/vscode/src/vs/workbench/browser/parts/activitybar/activitybarPart.ts
-index ee371523d831..0e3afb8a208f 100644
---- code-server/lib/vscode/src/vs/workbench/browser/parts/activitybar/activitybarPart.ts
+Index: code-server/lib/vscode/src/vs/workbench/browser/parts/activitybar/activitybarPart.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/workbench/browser/parts/activitybar/activitybarPart.ts
 +++ code-server/lib/vscode/src/vs/workbench/browser/parts/activitybar/activitybarPart.ts
-@@ -165,7 +165,7 @@ export class ActivitybarPart extends Part {
+@@ -165,7 +165,7 @@ export class ActivitybarPart extends Par
  				activeBackgroundColor: undefined, inactiveBackgroundColor: undefined, activeBorderBottomColor: undefined,
  			}),
  			overflowActionSize: actionHeight,
 -		}, Parts.ACTIVITYBAR_PART, this.paneCompositePart, true);
 +		}, Parts.ACTIVITYBAR_PART, this.paneCompositePart, false);
  	}
-
+ 
  	protected override createContentArea(parent: HTMLElement): HTMLElement {
-diff --git code-server/lib/vscode/src/vs/workbench/contrib/chat/browser/agentPluginsView.ts code-server/lib/vscode/src/vs/workbench/contrib/chat/browser/agentPluginsView.ts
-index 329a7c6ed987..55293d97d2f4 100644
---- code-server/lib/vscode/src/vs/workbench/contrib/chat/browser/agentPluginsView.ts
+Index: code-server/lib/vscode/src/vs/workbench/contrib/chat/browser/agentPluginsView.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/workbench/contrib/chat/browser/agentPluginsView.ts
 +++ code-server/lib/vscode/src/vs/workbench/contrib/chat/browser/agentPluginsView.ts
-@@ -10,38 +10,38 @@ import { IListContextMenuEvent } from '../../../../base/browser/ui/list/list.js'
+@@ -10,38 +10,38 @@ import { IListContextMenuEvent } from '.
  import { IPagedRenderer } from '../../../../base/browser/ui/list/listPaging.js';
  import { Action, IAction, Separator } from '../../../../base/common/actions.js';
  import { RunOnceScheduler } from '../../../../base/common/async.js';
@@ -68,19 +68,19 @@ index 329a7c6ed987..55293d97d2f4 100644
  import { IAgentPlugin, IAgentPluginService } from '../common/plugins/agentPluginService.js';
  import { isContributionEnabled } from '../common/enablement.js';
  import { IPluginInstallService } from '../common/plugins/pluginInstallService.js';
-@@ -49,7 +49,7 @@ import { hasSourceChanged, IMarketplacePlugin, IPluginMarketplaceService } from
+@@ -49,7 +49,7 @@ import { hasSourceChanged, IMarketplaceP
  import { AgentPluginEditorInput } from './agentPluginEditor/agentPluginEditorInput.js';
  import { AgentPluginItemKind, IAgentPluginItem, IInstalledPluginItem, IMarketplacePluginItem } from './agentPluginEditor/agentPluginItems.js';
  import { getInstalledPluginContextMenuActions, InstallPluginAction, OpenPluginReadmeAction } from './agentPluginActions.js';
 -import { InstalledAgentPluginsViewId, HasInstalledAgentPluginsContext } from './chat.js';
 +// import { InstalledAgentPluginsViewId } from './chat.js';
-
+ 
  //#region Item model
-
-@@ -556,114 +556,114 @@ export class AgentPluginsListView extends AbstractExtensionsListView<IAgentPlugi
-
+ 
+@@ -556,114 +556,114 @@ export class AgentPluginsListView extend
+ 
  //#region Browse command
-
+ 
 -class AgentPluginsBrowseCommand extends Action2 {
 -	constructor() {
 -		super({
@@ -195,14 +195,16 @@ index 329a7c6ed987..55293d97d2f4 100644
 +// 		await accessor.get(IPluginInstallService).updateAllPlugins({ force: true }, CancellationToken.None);
 +// 	}
 +// }
-
+ 
  //#endregion
  //#region Views contribution
-
+ 
 -export class AgentPluginsViewsContribution extends Disposable implements IWorkbenchContribution {
--
++// export class AgentPluginsViewsContribution extends Disposable implements IWorkbenchContribution {
+ 
 -	static ID = 'workbench.chat.agentPlugins.views.contribution';
--
++// 	static ID = 'workbench.chat.agentPlugins.views.contribution';
+ 
 -	constructor(
 -		@IContextKeyService contextKeyService: IContextKeyService,
 -		@IAgentPluginService agentPluginService: IAgentPluginService,
@@ -247,10 +249,6 @@ index 329a7c6ed987..55293d97d2f4 100644
 -		], VIEW_CONTAINER);
 -	}
 -}
-+// export class AgentPluginsViewsContribution extends Disposable implements IWorkbenchContribution {
-+
-+// 	static ID = 'workbench.chat.agentPlugins.views.contribution';
-+
 +// 	constructor(
 +// 		@IContextKeyService contextKeyService: IContextKeyService,
 +// 		@IAgentPluginService agentPluginService: IAgentPluginService,
@@ -295,28 +293,28 @@ index 329a7c6ed987..55293d97d2f4 100644
 +// 		], VIEW_CONTAINER);
 +// 	}
 +// }
-
+ 
  //#endregion
-diff --git code-server/lib/vscode/src/vs/workbench/contrib/chat/browser/chat.view.contribution.ts code-server/lib/vscode/src/vs/workbench/contrib/chat/browser/chat.view.contribution.ts
-index 37bf962d03a5..64bda38fca4c 100644
---- code-server/lib/vscode/src/vs/workbench/contrib/chat/browser/chat.view.contribution.ts
+Index: code-server/lib/vscode/src/vs/workbench/contrib/chat/browser/chat.view.contribution.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/workbench/contrib/chat/browser/chat.view.contribution.ts
 +++ code-server/lib/vscode/src/vs/workbench/contrib/chat/browser/chat.view.contribution.ts
 @@ -3,7 +3,7 @@
   *  Licensed under the MIT License. See License.txt in the project root for license information.
   *--------------------------------------------------------------------------------------------*/
-
+ 
 -import { WorkbenchPhase, registerWorkbenchContribution2 } from '../../../common/contributions.js';
 -import { AgentPluginsViewsContribution } from './agentPluginsView.js';
 +// import { WorkbenchPhase, registerWorkbenchContribution2 } from '../../../common/contributions.js';
 +// import { AgentPluginsViewsContribution } from './agentPluginsView.js';
-
+ 
 -registerWorkbenchContribution2(AgentPluginsViewsContribution.ID, AgentPluginsViewsContribution, WorkbenchPhase.AfterRestored);
 +// registerWorkbenchContribution2(AgentPluginsViewsContribution.ID, AgentPluginsViewsContribution, WorkbenchPhase.AfterRestored);
-diff --git code-server/lib/vscode/src/vs/workbench/contrib/debug/browser/debug.contribution.ts code-server/lib/vscode/src/vs/workbench/contrib/debug/browser/debug.contribution.ts
-index 6a10c81e6bee..92bb10b93ff5 100644
---- code-server/lib/vscode/src/vs/workbench/contrib/debug/browser/debug.contribution.ts
+Index: code-server/lib/vscode/src/vs/workbench/contrib/debug/browser/debug.contribution.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/workbench/contrib/debug/browser/debug.contribution.ts
 +++ code-server/lib/vscode/src/vs/workbench/contrib/debug/browser/debug.contribution.ts
-@@ -27,16 +27,17 @@ import { IViewContainersRegistry, IViewsRegistry, ViewContainer, ViewContainerLo
+@@ -27,16 +27,17 @@ import { IViewContainersRegistry, IViews
  import { launchSchemaId } from '../../../services/configuration/common/configuration.js';
  import { LifecyclePhase } from '../../../services/lifecycle/common/lifecycle.js';
  import { COPY_NOTEBOOK_VARIABLE_VALUE_ID, COPY_NOTEBOOK_VARIABLE_VALUE_LABEL } from '../../notebook/browser/contrib/notebookVariables/notebookVariableCommands.js';
@@ -349,7 +347,7 @@ index 6a10c81e6bee..92bb10b93ff5 100644
  import './media/debug.contribution.css';
  import './media/debugHover.css';
  import { Repl } from './repl.js';
-@@ -59,9 +60,9 @@ import { ReplAccessibilityHelp } from './replAccessibilityHelp.js';
+@@ -59,9 +60,9 @@ import { ReplAccessibilityHelp } from '.
  import { ReplAccessibleView } from './replAccessibleView.js';
  import { RunAndDebugAccessibilityHelp } from './runAndDebugAccessibilityHelp.js';
  import { StatusBarColorProvider } from './statusbarColorProvider.js';
@@ -360,12 +358,12 @@ index 6a10c81e6bee..92bb10b93ff5 100644
 +import { ADD_WATCH_ID, ADD_WATCH_LABEL, REMOVE_WATCH_EXPRESSIONS_COMMAND_ID, REMOVE_WATCH_EXPRESSIONS_LABEL } from './watchExpressionsView.js'; //WatchExpressionsView
 +// import { WelcomeView } from './welcomeView.js';
  import { DebugChatContextContribution } from './debugChatIntegration.js';
-
+ 
  // Register services
-@@ -450,29 +451,31 @@ Registry.as<IViewsRegistry>(ViewExtensions.ViewsRegistry).registerViews([{
+@@ -450,29 +451,31 @@ Registry.as<IViewsRegistry>(ViewExtensio
  }], VIEW_CONTAINER);
-
-
+ 
+ 
 -const viewContainer = Registry.as<IViewContainersRegistry>(ViewExtensions.ViewContainersRegistry).registerViewContainer({
 -	id: VIEWLET_ID,
 -	title: nls.localize2('run and debug', "Run and Debug"),
@@ -396,7 +394,7 @@ index 6a10c81e6bee..92bb10b93ff5 100644
 +// }, ViewContainerLocation.Sidebar);
 +
 +//const viewContainer = undefined;
-
+ 
  // Register default debug views
 -const viewsRegistry = Registry.as<IViewsRegistry>(ViewExtensions.ViewsRegistry);
 -viewsRegistry.registerViews([{ id: VARIABLES_VIEW_ID, name: nls.localize2('variables', "Variables"), containerIcon: icons.variablesViewIcon, ctorDescriptor: new SyncDescriptor(VariablesView), order: 10, weight: 40, canToggleVisibility: true, canMoveView: true, focusCommand: { id: 'workbench.debug.action.focusVariablesView' }, when: CONTEXT_DEBUG_UX.isEqualTo('default') }], viewContainer);
@@ -412,14 +410,14 @@ index 6a10c81e6bee..92bb10b93ff5 100644
 +// viewsRegistry.registerViews([{ id: BREAKPOINTS_VIEW_ID, name: nls.localize2('breakpoints', "Breakpoints"), containerIcon: icons.breakpointsViewIcon, ctorDescriptor: new SyncDescriptor(BreakpointsView), order: 40, weight: 20, canToggleVisibility: true, canMoveView: true, focusCommand: { id: 'workbench.debug.action.focusBreakpointsView' }, when: ContextKeyExpr.or(CONTEXT_BREAKPOINTS_EXIST, CONTEXT_DEBUG_UX.isEqualTo('default'), CONTEXT_HAS_DEBUGGED) }], viewContainer);
 +// viewsRegistry.registerViews([{ id: WelcomeView.ID, name: WelcomeView.LABEL, containerIcon: icons.runViewIcon, ctorDescriptor: new SyncDescriptor(WelcomeView), order: 1, weight: 40, canToggleVisibility: true, when: CONTEXT_DEBUG_UX.isEqualTo('simple') }], viewContainer);
 +// viewsRegistry.registerViews([{ id: LOADED_SCRIPTS_VIEW_ID, name: nls.localize2('loadedScripts', "Loaded Scripts"), containerIcon: icons.loadedScriptsViewIcon, ctorDescriptor: new SyncDescriptor(LoadedScriptsView), order: 35, weight: 5, canToggleVisibility: true, canMoveView: true, collapsed: true, when: ContextKeyExpr.and(CONTEXT_LOADED_SCRIPTS_SUPPORTED, CONTEXT_DEBUG_UX.isEqualTo('default')) }], viewContainer);
-
+ 
  // Register disassembly view
-
-diff --git code-server/lib/vscode/src/vs/workbench/contrib/extensions/browser/extensions.contribution.ts code-server/lib/vscode/src/vs/workbench/contrib/extensions/browser/extensions.contribution.ts
-index 489257f34083..c57ae6d54794 100644
---- code-server/lib/vscode/src/vs/workbench/contrib/extensions/browser/extensions.contribution.ts
+ 
+Index: code-server/lib/vscode/src/vs/workbench/contrib/extensions/browser/extensions.contribution.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/workbench/contrib/extensions/browser/extensions.contribution.ts
 +++ code-server/lib/vscode/src/vs/workbench/contrib/extensions/browser/extensions.contribution.ts
-@@ -7,7 +7,7 @@ import { IAction } from '../../../../base/common/actions.js';
+@@ -7,7 +7,7 @@ import { IAction } from '../../../../bas
  import { CancellationToken } from '../../../../base/common/cancellation.js';
  import { onUnexpectedError } from '../../../../base/common/errors.js';
  import { Event } from '../../../../base/common/event.js';
@@ -428,7 +426,7 @@ index 489257f34083..c57ae6d54794 100644
  import { mnemonicButtonLabel } from '../../../../base/common/labels.js';
  import { Disposable, DisposableStore, IDisposable, isDisposable } from '../../../../base/common/lifecycle.js';
  import { Schemas } from '../../../../base/common/network.js';
-@@ -49,7 +49,7 @@ import { Extensions as ConfigurationMigrationExtensions, IConfigurationMigration
+@@ -49,7 +49,7 @@ import { Extensions as ConfigurationMigr
  import { IsSessionsWindowContext, ResourceContextKey, WorkbenchStateContext } from '../../../common/contextkeys.js';
  import { IWorkbenchContribution, IWorkbenchContributionsRegistry, registerWorkbenchContribution2, Extensions as WorkbenchExtensions, WorkbenchPhase } from '../../../common/contributions.js';
  import { EditorExtensions } from '../../../common/editor.js';
@@ -437,7 +435,7 @@ index 489257f34083..c57ae6d54794 100644
  import { DEFAULT_ACCOUNT_SIGN_IN_COMMAND } from '../../../services/accounts/browser/defaultAccount.js';
  import { IEditorService } from '../../../services/editor/common/editorService.js';
  import { EnablementState, IExtensionManagementServerService, IPublisherInfo, IWorkbenchExtensionEnablementService, IWorkbenchExtensionManagementService } from '../../../services/extensionManagement/common/extensionManagement.js';
-@@ -80,9 +80,9 @@ import { ClearLanguageAction, ConfigureWorkspaceFolderRecommendedExtensionsActio
+@@ -80,9 +80,9 @@ import { ClearLanguageAction, ConfigureW
  import { ExtensionActivationProgress } from './extensionsActivationProgress.js';
  import { ExtensionsCompletionItemsProvider } from './extensionsCompletionItemsProvider.js';
  import { ExtensionDependencyChecker } from './extensionsDependencyChecker.js';
@@ -449,10 +447,10 @@ index 489257f34083..c57ae6d54794 100644
  import { ExtensionsWorkbenchService } from './extensionsWorkbenchService.js';
  import './media/extensionManagement.css';
  import { UnsupportedExtensionsMigrationContrib } from './unsupportedExtensionsMigrationContribution.js';
-@@ -111,22 +111,24 @@ Registry.as<IEditorPaneRegistry>(EditorExtensions.EditorPane).registerEditorPane
+@@ -111,22 +111,24 @@ Registry.as<IEditorPaneRegistry>(EditorE
  		new SyncDescriptor(ExtensionsInput)
  	]);
-
+ 
 -export const VIEW_CONTAINER = Registry.as<IViewContainersRegistry>(ViewContainerExtensions.ViewContainersRegistry).registerViewContainer(
 -	{
 -		id: VIEWLET_ID,
@@ -487,29 +485,29 @@ index 489257f34083..c57ae6d54794 100644
 +// 	}, ViewContainerLocation.Sidebar);
 +
 +export const VIEW_CONTAINER = undefined; // Do not register the view container for extensions, since it is registered in the workbench contributions
-
+ 
  Registry.as<IConfigurationRegistry>(ConfigurationExtensions.Configuration)
  	.registerConfiguration({
-diff --git code-server/lib/vscode/src/vs/workbench/contrib/mcp/browser/mcp.view.contribution.ts code-server/lib/vscode/src/vs/workbench/contrib/mcp/browser/mcp.view.contribution.ts
-index 204f4682f132..45dad9ac1148 100644
---- code-server/lib/vscode/src/vs/workbench/contrib/mcp/browser/mcp.view.contribution.ts
+Index: code-server/lib/vscode/src/vs/workbench/contrib/mcp/browser/mcp.view.contribution.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/workbench/contrib/mcp/browser/mcp.view.contribution.ts
 +++ code-server/lib/vscode/src/vs/workbench/contrib/mcp/browser/mcp.view.contribution.ts
 @@ -3,7 +3,7 @@
   *  Licensed under the MIT License. See License.txt in the project root for license information.
   *--------------------------------------------------------------------------------------------*/
-
+ 
 -import { registerWorkbenchContribution2, WorkbenchPhase } from '../../../common/contributions.js';
 -import { McpServersViewsContribution } from './mcpServersView.js';
 +// import { registerWorkbenchContribution2, WorkbenchPhase } from '../../../common/contributions.js';
 +// import { McpServersViewsContribution } from './mcpServersView.js';
-
+ 
 -registerWorkbenchContribution2(McpServersViewsContribution.ID, McpServersViewsContribution, WorkbenchPhase.AfterRestored);
 +// registerWorkbenchContribution2(McpServersViewsContribution.ID, McpServersViewsContribution, WorkbenchPhase.AfterRestored);
-diff --git code-server/lib/vscode/src/vs/workbench/contrib/mcp/browser/mcpServersView.ts code-server/lib/vscode/src/vs/workbench/contrib/mcp/browser/mcpServersView.ts
-index dc231e441dd4..b628cdc89e70 100644
---- code-server/lib/vscode/src/vs/workbench/contrib/mcp/browser/mcpServersView.ts
+Index: code-server/lib/vscode/src/vs/workbench/contrib/mcp/browser/mcpServersView.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/workbench/contrib/mcp/browser/mcpServersView.ts
 +++ code-server/lib/vscode/src/vs/workbench/contrib/mcp/browser/mcpServersView.ts
-@@ -9,11 +9,11 @@ import { ActionBar } from '../../../../base/browser/ui/actionbar/actionbar.js';
+@@ -9,11 +9,11 @@ import { ActionBar } from '../../../../b
  import { IListContextMenuEvent } from '../../../../base/browser/ui/list/list.js';
  import { Emitter, Event } from '../../../../base/common/event.js';
  import { createMarkdownCommandLink, MarkdownString } from '../../../../base/common/htmlContent.js';
@@ -524,7 +522,7 @@ index dc231e441dd4..b628cdc89e70 100644
  import { IContextMenuService } from '../../../../platform/contextview/browser/contextView.js';
  import { IDialogService } from '../../../../platform/dialogs/common/dialogs.js';
  import { IHoverService } from '../../../../platform/hover/browser/hover.js';
-@@ -25,21 +25,21 @@ import { IOpenerService } from '../../../../platform/opener/common/opener.js';
+@@ -25,21 +25,21 @@ import { IOpenerService } from '../../..
  import { IThemeService } from '../../../../platform/theme/common/themeService.js';
  import { getLocationBasedViewColors } from '../../../browser/parts/views/viewPane.js';
  import { IViewletViewOptions } from '../../../browser/parts/views/viewsViewlet.js';
@@ -555,7 +553,7 @@ index dc231e441dd4..b628cdc89e70 100644
  import { Button } from '../../../../base/browser/ui/button/button.js';
  import { defaultButtonStyles } from '../../../../platform/theme/browser/defaultStyles.js';
  import { AbstractExtensionsListView } from '../../extensions/browser/extensionsViews.js';
-@@ -48,8 +48,8 @@ import { HoverPosition } from '../../../../base/browser/ui/hover/hoverWidget.js'
+@@ -48,8 +48,8 @@ import { HoverPosition } from '../../../
  import { IWorkbenchLayoutService, Position } from '../../../services/layout/browser/layoutService.js';
  import { mcpServerIcon } from './mcpServerIcons.js';
  import { IPagedRenderer } from '../../../../base/browser/ui/list/listPaging.js';
@@ -566,17 +564,21 @@ index dc231e441dd4..b628cdc89e70 100644
  import { SeverityIcon } from '../../../../base/browser/ui/severityIcon/severityIcon.js';
  import { IMarkdownRendererService } from '../../../../platform/markdown/browser/markdownRenderer.js';
  import { ILogService } from '../../../../platform/log/common/log.js';
-@@ -531,53 +531,53 @@ export class DefaultBrowseMcpServersView extends McpServersListView {
+@@ -531,53 +531,53 @@ export class DefaultBrowseMcpServersView
  	}
  }
-
+ 
 -export class McpServersViewsContribution extends Disposable implements IWorkbenchContribution {
--
++// export class McpServersViewsContribution extends Disposable implements IWorkbenchContribution {
+ 
 -	static ID = 'workbench.mcp.servers.views.contribution';
--
++// 	static ID = 'workbench.mcp.servers.views.contribution';
+ 
 -	constructor() {
 -		super();
--
++// 	constructor() {
++// 		super();
+ 
 -		Registry.as<IViewsRegistry>(ViewExtensions.ViewsRegistry).registerViews([
 -			{
 -				id: InstalledMcpServersViewId,
@@ -620,13 +622,6 @@ index dc231e441dd4..b628cdc89e70 100644
 -		], VIEW_CONTAINER);
 -	}
 -}
-+// export class McpServersViewsContribution extends Disposable implements IWorkbenchContribution {
-+
-+// 	static ID = 'workbench.mcp.servers.views.contribution';
-+
-+// 	constructor() {
-+// 		super();
-+
 +// 		Registry.as<IViewsRegistry>(ViewExtensions.ViewsRegistry).registerViews([
 +// 			{
 +// 				id: InstalledMcpServersViewId,
@@ -670,3 +665,56 @@ index dc231e441dd4..b628cdc89e70 100644
 +// 		], VIEW_CONTAINER);
 +// 	}
 +// }
+Index: code-server/lib/vscode/src/vs/workbench/browser/workbench.contribution.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/workbench/browser/workbench.contribution.ts
++++ code-server/lib/vscode/src/vs/workbench/browser/workbench.contribution.ts
+@@ -865,27 +865,27 @@ const registry = Registry.as<IConfigurat
+ 					localize({ key: 'window.commandCenter', comment: ['{0}, {1} is a placeholder for a setting identifier.'] }, "Show command launcher together with the window title. This setting only has an effect when {0} is not set to {1}.", '`#window.customTitleBarVisibility#`', '`never`'),
+ 				agentsWindow: { default: false, readOnly: true },
+ 			},
+-			'window.menuBarVisibility': {
+-				'type': 'string',
+-				'enum': ['classic', 'visible', 'toggle', 'hidden', 'compact'],
+-				'markdownEnumDescriptions': [
+-					localize('window.menuBarVisibility.classic', "Menu is displayed at the top of the window and only hidden in full screen mode."),
+-					localize('window.menuBarVisibility.visible', "Menu is always visible at the top of the window even in full screen mode."),
+-					isMacintosh ?
+-						localize('window.menuBarVisibility.toggle.mac', "Menu is hidden but can be displayed at the top of the window by executing the `Focus Application Menu` command.") :
+-						localize('window.menuBarVisibility.toggle', "Menu is hidden but can be displayed at the top of the window via the Alt key."),
+-					localize('window.menuBarVisibility.hidden', "Menu is always hidden."),
+-					isWeb ?
+-						localize('window.menuBarVisibility.compact.web', "Menu is displayed as a compact button in the side bar.") :
+-						localize({ key: 'window.menuBarVisibility.compact', comment: ['{0}, {1} is a placeholder for a setting identifier.'] }, "Menu is displayed as a compact button in the side bar. This value is ignored when {0} is {1} and {2} is either {3} or {4}.", '`#window.titleBarStyle#`', '`native`', '`#window.menuStyle#`', '`native`', '`inherit`')
+-				],
+-				'default': isWeb ? 'compact' : 'classic',
+-				'scope': ConfigurationScope.APPLICATION,
+-				'markdownDescription': isMacintosh ?
+-					localize('menuBarVisibility.mac', "Control the visibility of the menu bar. A setting of 'toggle' means that the menu bar is hidden and executing `Focus Application Menu` will show it. A setting of 'compact' will move the menu into the side bar.") :
+-					localize('menuBarVisibility', "Control the visibility of the menu bar. A setting of 'toggle' means that the menu bar is hidden and a single press of the Alt key will show it. A setting of 'compact' will move the menu into the side bar."),
+-				'included': isWindows || isLinux || isWeb
+-			},
++			// 'window.menuBarVisibility': {
++			// 	'type': 'string',
++			// 	'enum': ['classic', 'visible', 'toggle', 'hidden', 'compact'],
++			// 	'markdownEnumDescriptions': [
++			// 		localize('window.menuBarVisibility.classic', "Menu is displayed at the top of the window and only hidden in full screen mode."),
++			// 		localize('window.menuBarVisibility.visible', "Menu is always visible at the top of the window even in full screen mode."),
++			// 		isMacintosh ?
++			// 			localize('window.menuBarVisibility.toggle.mac', "Menu is hidden but can be displayed at the top of the window by executing the `Focus Application Menu` command.") :
++			// 			localize('window.menuBarVisibility.toggle', "Menu is hidden but can be displayed at the top of the window via the Alt key."),
++			// 		localize('window.menuBarVisibility.hidden', "Menu is always hidden."),
++			// 		isWeb ?
++			// 			localize('window.menuBarVisibility.compact.web', "Menu is displayed as a compact button in the side bar.") :
++			// 			localize({ key: 'window.menuBarVisibility.compact', comment: ['{0}, {1} is a placeholder for a setting identifier.'] }, "Menu is displayed as a compact button in the side bar. This value is ignored when {0} is {1} and {2} is either {3} or {4}.", '`#window.titleBarStyle#`', '`native`', '`#window.menuStyle#`', '`native`', '`inherit`')
++			// 	],
++			// 	'default': isWeb ? 'compact' : 'classic',
++			// 	'scope': ConfigurationScope.APPLICATION,
++			// 	'markdownDescription': isMacintosh ?
++			// 		localize('menuBarVisibility.mac', "Control the visibility of the menu bar. A setting of 'toggle' means that the menu bar is hidden and executing `Focus Application Menu` will show it. A setting of 'compact' will move the menu into the side bar.") :
++			// 		localize('menuBarVisibility', "Control the visibility of the menu bar. A setting of 'toggle' means that the menu bar is hidden and a single press of the Alt key will show it. A setting of 'compact' will move the menu into the side bar."),
++			// 	'included': isWindows || isLinux || isWeb
++			// },
+ 			'window.enableMenuBarMnemonics': {
+ 				'type': 'boolean',
+ 				'default': true,
