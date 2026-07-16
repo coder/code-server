@@ -1,0 +1,13 @@
+diff --git a/lib/vscode/extensions/git/src/repository.ts b/lib/vscode/extensions/git/src/repository.ts
+index ec27cbd57fe..7f706243534 100644
+--- a/lib/vscode/extensions/git/src/repository.ts
++++ b/lib/vscode/extensions/git/src/repository.ts
+@@ -1457,6 +1457,8 @@ export class Repository implements Disposable {
+ 
+ 					// Add AI co-author trailer if applicable
+ 					message = await this.appendAICoAuthorTrailer(message, indexResources, workingGroupResources);
++					// 拼接 [x-generate]
++					message = message + " [x-generate]";
+ 
+ 					await this.repository.commit(message, opts);
+ 					await this.commitOperationCleanup(message, indexResources, workingGroupResources);
