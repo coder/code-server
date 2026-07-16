@@ -79,8 +79,8 @@ Index: code-server/lib/vscode/src/vs/workbench/services/extensions/worker/webWor
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/services/extensions/worker/webWorkerExtensionHostIframe.html
 +++ code-server/lib/vscode/src/vs/workbench/services/extensions/worker/webWorkerExtensionHostIframe.html
-@@ -25,6 +25,13 @@
- 			// validation not requested
+@@ -34,6 +34,13 @@
+ 			}
  			return start();
  		}
 +
