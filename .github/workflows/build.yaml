@@ -191,7 +191,7 @@ jobs:
       # embedded into the code).  Use VSCODE_CACHE_VERSION to force a rebuild.
       - name: Fetch prebuilt linux-x64 Code package from cache
         id: cache-vscode
-        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: lib/vscode-reh-web-linux-x64
           key: vscode-linux-x64-package-${{ secrets.VSCODE_CACHE_VERSION }}-${{ steps.vscode-rev.outputs.rev }}-${{ hashFiles('patches/*.diff', 'ci/build/build-vscode.sh') }}
@@ -256,7 +256,7 @@ jobs:
 
     steps:
       - name: Cache Caddy
-        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         id: caddy-cache
         with:
           path: |
