@@ -12,6 +12,8 @@
     />
     <meta name="color-scheme" content="light dark" />
     <title>{{ERROR_TITLE}} - {{APP_NAME}}</title>
+    <!-- Scalable favicon based on device dimensions -->
+    <!-- Centralized icon management -->
     <link rel="icon" href="{{CS_STATIC_BASE}}/src/browser/media/favicon-dark-support.svg" />
     <link rel="alternate icon" href="{{CS_STATIC_BASE}}/src/browser/media/favicon.ico" />
     <link rel="manifest" href="/manifest.json" crossorigin="use-credentials" />
@@ -19,6 +21,7 @@
     <link rel="apple-touch-icon" sizes="512x512" href="{{CS_STATIC_BASE}}/src/browser/media/pwa-icon-512.png" />
     <link href="{{CS_STATIC_BASE}}/src/browser/pages/global.css" rel="stylesheet" />
     <link href="{{CS_STATIC_BASE}}/src/browser/pages/error.css" rel="stylesheet" />
+    <link href="{{CS_STATIC_BASE}}/src/browser/pages/icons.css" rel="stylesheet" />
     <meta id="coder-options" data-settings="{{OPTIONS}}" />
   </head>
   <body>
@@ -31,5 +34,12 @@
         </div>
       </div>
     </div>
+    <script src="{{CS_STATIC_BASE}}/src/browser/pages/icon-adapter.ts" type="module"></script>
+    <script>
+      // Initialize icon adapter
+      if (typeof IconAdapter !== 'undefined') {
+        IconAdapter.init();
+      }
+    </script>
   </body>
 </html>

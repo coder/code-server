@@ -4,6 +4,13 @@ body {
   overflow: auto;
 }
 
+@media (max-width: 480px) {
+  body {
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+}
+
 .login-form {
   display: flex;
   flex-direction: column;
@@ -47,6 +54,14 @@ body {
   outline: 2px solid rgb(63, 131, 248);
 }
 
+@media (max-width: 480px) {
+  .login-form > .field > .password {
+    border-radius: 8px;
+    padding: 18px;
+    min-height: 48px;
+  }
+}
+
 .login-form > .user {
   display: none;
 }
@@ -59,6 +74,18 @@ body {
   .login-form > .field > .submit {
     margin-left: 0px;
     margin-top: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .login-form {
+    padding: 20px;
+  }
+  
+  .login-form > .field > .submit {
+    min-height: 48px;
+    padding: 16px 20px;
+    font-size: 1.05rem;
   }
 }
 

@@ -52,6 +52,10 @@ Code v1.127.0
 
 - Update to Code 1.127.0
 
+### Fixed
+
+- Prevent non-stop "parent process died" output by clearing the parent-check interval after first detection
+
 ## [4.126.0](https://github.com/coder/code-server/releases/tag/v4.126.0) - 2026-06-24
 
 Code v1.126.0

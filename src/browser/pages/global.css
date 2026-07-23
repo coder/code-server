@@ -31,7 +31,7 @@ button {
 .-button {
   background-color: rgb(87, 114, 245);
   background-color: light-dark(rgb(87, 114, 245), rgb(26, 86, 219));
-  border-radius: 5px;
+  border-radius: 6px;
   border: none;
   box-sizing: border-box;
   color: white;
@@ -40,6 +40,17 @@ button {
   padding: 18px 20px;
   font-weight: 500;
   text-decoration: none;
+  min-height: 44px;
+  min-width: 44px;
+}
+
+@media (max-width: 480px) {
+  .-button {
+    border-radius: 8px;
+    padding: 20px 18px;
+    min-height: 48px;
+    font-size: 1.05rem;
+  }
 }
 
 .center-container {
@@ -53,6 +64,13 @@ button {
   width: 100%;
 }
 
+@media (max-width: 480px) {
+  .center-container {
+    padding: 15px;
+    min-height: 100vh;
+  }
+}
+
 .card-box {
   background-color: rgb(250, 253, 258);
   background-color: light-dark(rgb(250, 253, 258), #1f2937);
@@ -62,6 +80,15 @@ button {
     rgba(0, 0, 0, 0.117647) 0px 3px 6px 0px;
   max-width: 650px;
   width: 100%;
+  margin: 0 auto;
+}
+
+@media (max-width: 480px) {
+  .card-box {
+    border-radius: 8px;
+    box-shadow: light-dark(rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.4)) 0px 4px 8px 0px;
+    max-width: 100%;
+  }
 }
 
 .card-box > .header {
@@ -72,9 +99,21 @@ button {
   padding: 30px;
 }
 
+@media (max-width: 480px) {
+  .card-box > .header {
+    padding: 20px;
+  }
+}
+
 .card-box > .header > .main {
   margin: 0;
   font-size: 1.5rem;
+}
+
+@media (max-width: 480px) {
+  .card-box > .header > .main {
+    font-size: 1.3rem;
+  }
 }
 
 .card-box > .header > .sub {
@@ -83,8 +122,20 @@ button {
   margin-top: 10px;
 }
 
+@media (max-width: 480px) {
+  .card-box > .header > .sub {
+    font-size: 0.9rem;
+  }
+}
+
 .card-box > .content {
   padding: 40px;
+}
+
+@media (max-width: 480px) {
+  .card-box > .content {
+    padding: 20px;
+  }
 }
 
 .card-box > .content > .none {
@@ -99,3 +150,5 @@ canvas {
   top: 0;
   left: 0;
 }
+
+/* Icons handled by centralized icon-adapter.ts */
