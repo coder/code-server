@@ -10,18 +10,17 @@ Index: code-server/lib/vscode/src/vs/workbench/services/extensions/common/extens
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/services/extensions/common/extensions.ts
 +++ code-server/lib/vscode/src/vs/workbench/services/extensions/common/extensions.ts
-@@ -321,10 +321,7 @@ function extensionDescriptionArrayToMap(
+@@ -324,6 +324,10 @@ function extensionDescriptionArrayToMap(
  }
  
  export function isProposedApiEnabled(extension: IExtensionDescription, proposal: ApiProposalName): boolean {
--	if (!extension.enabledApiProposals) {
--		return false;
--	}
--	return true;// extension.enabledApiProposals.includes(proposal);
-+	return true
- }
- 
- export function checkProposedApiEnabled(extension: IExtensionDescription, proposal: ApiProposalName): void {
++	return true;
++}
++
++export function _isProposedApiEnabled(extension: IExtensionDescription, proposal: ApiProposalName): boolean {
+ 	if (!extension.enabledApiProposals) {
+ 		return false;
+ 	}
 Index: code-server/lib/vscode/src/vs/workbench/services/extensions/common/extensionsProposedApi.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/services/extensions/common/extensionsProposedApi.ts

@@ -4,11 +4,24 @@ set -Eeuo pipefail
 
 function unapply_patches() {
   local -i exit_code=0
-  quiet quilt pop -af || exit_code=$?
+  quiet quilt pop -af 2>&1 || exit_code=$?
   case $exit_code in
     # Sucessfully unapplied.
     0) ;;
     # No more patches to unapply.
+    2) ;;
+    # Some error.
+    *) return $exit_code ;;
+  esac
+}
+
+function apply_patches() {
+  local -i exit_code=0
+  quiet quilt push -a 2>&1 || exit_code=$?
+  case $exit_code in
+    # Sucessfully applied.
+    0) ;;
+    # No more patches to apply.
     2) ;;
     # Some error.
     *) return $exit_code ;;
@@ -28,8 +41,8 @@ function update_vscode() {
 
 function refresh_patches() {
   local -i exit_code=0
-  while quiet quilt push ; ! (( exit_code=$? )) ; do
-    quilt refresh
+  while quiet quilt push 2>&1 ; ! (( exit_code=$? )) ; do
+    quilt refresh 2>&1
   done
   case $exit_code in
     # No more patches to apply.
@@ -56,50 +69,41 @@ function get-webview-script-hash() {
   local html
   html=$(<"$1")
   local start_tag='<script async type="module">'
+  if [[ $file == */webWorkerExtensionHostIframe.html ]] ; then
+    start_tag='<script>'
+  fi
   local end_tag="</script>"
   html=${html##*"$start_tag"}
   html=${html%%"$end_tag"*}
   echo -n "$html" | openssl sha256 -binary | openssl base64
 }
 
+function delete_csp() {
+  quilt delete csp-hashes.diff
+}
+
 function update_csp() {
-  local current
-  current=$(quilt top 2>/dev/null || echo "")
-  local patch_action=""
-  echo "Currently at ${current:-base}"
-  if [[ $current != */webview.diff ]] ; then
-    echo "Moving to patches/webview.diff..."
-    local -i exit_code=0
-    if quilt applied 2>/dev/null | grep --quiet webview.diff ; then
-      quiet quilt pop webview || exit_code=$?
-      patch_action=pop
-    else
-      quiet quilt push webview || exit_code=$?
-      patch_action=push
-    fi
-    case $exit_code in
-      # Successfully moved.
-      0) ;;
-      # Some error.
-      *) return $exit_code ;;
-    esac
-  fi
+  apply_patches
 
-  local file=lib/vscode/src/vs/workbench/contrib/webview/browser/pre/index.html
-  local hash
-  hash=$(get-webview-script-hash "$file")
-  echo "Calculated hash as $hash"
-  # Use octothorpe as a delimiter since the hash may contain a slash.
-  sed -i.bak "s#script-src 'sha256-[^']\+'#script-src 'sha256-$hash'#" "$file"
+  local files=(
+    ./lib/vscode/src/vs/workbench/contrib/webview/browser/pre/index.html
+    ./lib/vscode/src/vs/workbench/services/extensions/worker/webWorkerExtensionHostIframe.html
+  )
+
+  quilt new csp-hashes.diff
+
+  local file
+  for file in "${files[@]}" ; do
+    quilt add "$file"
+
+    local hash
+    hash=$(get-webview-script-hash "$file")
+    echo "Calculated hash as $hash"
+    # Use octothorpe as a delimiter since the hash may contain a slash.
+    sed -i.bak "s#'sha256-[^']\+'#'sha256-$hash'#" "$file"
+  done
+
   quilt refresh
-
-  if [[ $patch_action != "" ]] ; then
-    echo "Moving back to ${current:-base}..."
-    case $patch_action in
-      pop) quiet quilt push "$current" ;;
-      push) quiet quilt pop "${current:--a}" ;;
-    esac
-  fi
 }
 
 function add_changelog() {
@@ -119,6 +123,9 @@ function main() {
   source ./ci/lib.sh
 
   declare -a steps
+
+  # Hashes are always regenerated to avoid having to resolve conflicts..
+  steps+=("Revert CSP hashes" "delete_csp")
 
   # If version is not set, assume we are already at the target version and the
   # user is just trying to resolve conflics.
@@ -141,7 +148,7 @@ function main() {
 
   steps+=(
     "Update Node version" "update_node"
-    "Update CSP webview hash" "update_csp"
+    "Regenerate CSP hashes" "update_csp"
     "Add changelog note" "add_changelog"
   )
 

@@ -28,7 +28,7 @@ jobs:
         run: |
           echo "VERSION=${TAG#v}" >> $GITHUB_ENV
 
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
         with:
           submodules: true
 
@@ -47,7 +47,7 @@ jobs:
             echo done=false >> $GITHUB_OUTPUT
           fi
 
-      - uses: awalsh128/cache-apt-pkgs-action@681749ae568c81c2037cb9185e38b709b261bd2f # latest
+      - uses: awalsh128/cache-apt-pkgs-action@553a35bb8ebd9fcabcb1c9451aa4c98e1b4ca8a9 # latest
         if: steps.check.outputs.done == 'false'
         with:
           packages: quilt
