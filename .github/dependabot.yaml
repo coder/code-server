@@ -6,6 +6,8 @@ updates:
       interval: "monthly"
       time: "06:00"
       timezone: "America/Chicago"
+    cooldown:
+      default-days: 7
     labels: []
     commit-message:
       prefix: "chore"
@@ -16,6 +18,8 @@ updates:
       interval: "monthly"
       time: "06:00"
       timezone: "America/Chicago"
+    cooldown:
+      default-days: 7
     labels: []
     ignore:
       # Ignore patch updates for all dependencies
