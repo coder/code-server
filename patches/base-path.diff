@@ -144,9 +144,9 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
  			codeServerVersion: this._productService.codeServerVersion,
 +			rootEndpoint: rootBase,
  			embedderIdentifier: 'server-distro',
+ 			voiceWsUrl: this._productService.voiceWsUrl,
  			extensionsGallery: this._webExtensionResourceUrlTemplate && this._productService.extensionsGallery ? {
- 				...this._productService.extensionsGallery,
-@@ -401,7 +408,9 @@ export class WebClientServer {
+@@ -402,7 +409,9 @@ export class WebClientServer {
  			WORKBENCH_AUTH_SESSION: authSessionInfo ? asJSON(authSessionInfo) : '',
  			WORKBENCH_WEB_BASE_URL: staticRoute,
  			WORKBENCH_NLS_URL,
@@ -157,7 +157,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
  		};
  
  		// DEV ---------------------------------------------------------------------------------------
-@@ -438,7 +447,7 @@ export class WebClientServer {
+@@ -439,7 +448,7 @@ export class WebClientServer {
  			'default-src \'self\';',
  			'img-src \'self\' https: data: blob:;',
  			'media-src \'self\';',
@@ -166,7 +166,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
  			'child-src \'self\';',
  			`frame-src 'self' https://*.vscode-cdn.net data:;`,
  			'worker-src \'self\' data: blob:;',
-@@ -511,3 +520,70 @@ export class WebClientServer {
+@@ -512,3 +521,70 @@ export class WebClientServer {
  		return void res.end(data);
  	}
  }
@@ -241,7 +241,7 @@ Index: code-server/lib/vscode/src/vs/base/common/product.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/base/common/product.ts
 +++ code-server/lib/vscode/src/vs/base/common/product.ts
-@@ -85,6 +85,7 @@ export interface IAgentSdkProductConfig
+@@ -98,6 +98,7 @@ export interface IDictationRuntimeProduc
  
  export interface IProductConfiguration {
  	readonly codeServerVersion?: string

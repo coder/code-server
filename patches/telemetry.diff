@@ -141,13 +141,13 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 +			enableTelemetry: this._productService.enableTelemetry,
 +			telemetryEndpoint: this._productService.telemetryEndpoint,
  			embedderIdentifier: 'server-distro',
+ 			voiceWsUrl: this._productService.voiceWsUrl,
  			extensionsGallery: this._productService.extensionsGallery,
- 		};
 Index: code-server/lib/vscode/src/vs/base/common/product.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/base/common/product.ts
 +++ code-server/lib/vscode/src/vs/base/common/product.ts
-@@ -93,6 +93,7 @@ export interface IProductConfiguration {
+@@ -106,6 +106,7 @@ export interface IProductConfiguration {
  		readonly path: string;
  		readonly scope: string;
  	}

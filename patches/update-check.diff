@@ -93,7 +93,7 @@ Index: code-server/lib/vscode/src/vs/base/common/product.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/base/common/product.ts
 +++ code-server/lib/vscode/src/vs/base/common/product.ts
-@@ -86,6 +86,7 @@ export interface IAgentSdkProductConfig
+@@ -99,6 +99,7 @@ export interface IDictationRuntimeProduc
  export interface IProductConfiguration {
  	readonly codeServerVersion?: string
  	readonly rootEndpoint?: string
@@ -101,7 +101,7 @@ Index: code-server/lib/vscode/src/vs/base/common/product.ts
  
  	readonly version: string;
  	readonly date?: string;
-@@ -138,6 +139,7 @@ export interface IProductConfiguration {
+@@ -151,6 +152,7 @@ export interface IProductConfiguration {
  		readonly resourceUrlTemplate: string;
  		readonly nlsBaseUrl: string;
  		readonly accessSKUs?: string[];
@@ -119,8 +119,8 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
  			rootEndpoint: rootBase,
 +			updateEndpoint: !this._environmentService.args['disable-update-check'] ? rootBase + '/update/check' : undefined,
  			embedderIdentifier: 'server-distro',
+ 			voiceWsUrl: this._productService.voiceWsUrl,
  			extensionsGallery: this._productService.extensionsGallery,
- 		};
 Index: code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
