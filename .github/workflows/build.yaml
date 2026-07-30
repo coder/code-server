@@ -194,7 +194,7 @@ jobs:
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: lib/vscode-reh-web-linux-x64
-          key: vscode-linux-x64-package-${{ secrets.VSCODE_CACHE_VERSION }}-${{ steps.vscode-rev.outputs.rev }}-${{ hashFiles('patches/*.diff', 'ci/build/build-vscode.sh') }}
+          key: vscode-linux-x64-package-${{ secrets.VSCODE_CACHE_VERSION }}-${{ steps.vscode-rev.outputs.rev }}-${{ hashFiles('patches/*.diff', 'patches/series', 'ci/build/build-vscode.sh') }}
       - name: Build vscode
         if: steps.cache-vscode.outputs.cache-hit != 'true'
         run: |
