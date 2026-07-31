@@ -90,7 +90,8 @@ export const register = async (
     // TODO: This does *NOT* work if you have a base path since to specify the
     // protocol we need to specify the whole path.
     if (args.cert && !(req.connection as tls.TLSSocket).encrypted) {
-      return res.redirect(`https://${req.headers.host}${req.originalUrl}`)
+      const host = String(req.headers.host || "").replace(/[^\w.\-:[\]]/g, "")
+      return res.redirect(`https://${host}${req.originalUrl}`)
     }
     next()
   })

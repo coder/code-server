@@ -15,7 +15,7 @@ const getProxyTarget = (
   const base = (req as any).base || ""
   // Cast since we only have one port param.
   const port = parseInt(req.params.port as string, 10)
-  if (isNaN(port)) {
+  if (isNaN(port) || port < 1024 || port > 65535) {
     throw new HttpError("Invalid port", HttpCode.BadRequest)
   }
   return `http://0.0.0.0:${port}${opts?.proxyBasePath || ""}/${req.originalUrl.slice(base.length)}`
