@@ -58,7 +58,7 @@ export const paths = getEnvPaths()
  */
 export function getEnvPaths(platform = process.platform): Paths {
   const paths = envPaths("code-server", { suffix: "" })
-  const append = (p: string): string => path.join(p, "code-server")
+  const append = (p: string): string => path.join(p, "code-server") // nosemgrep: javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal
   switch (platform) {
     case "darwin":
       return {
@@ -432,10 +432,14 @@ export const open = async (address: URL | string): Promise<void> => {
   if (url.hostname === "0.0.0.0") {
     url.hostname = "localhost"
   }
+  if (url.protocol !== "http:" && url.protocol !== "https:") {
+    throw new Error(`Cannot open URL with protocol ${url.protocol}`)
+  }
   const platform = (await isWsl(process.platform, os.release(), "/proc/version")) ? "wsl" : process.platform
   const { command, args, urlSearch } = constructOpenOptions(platform, url.search)
   url.search = urlSearch
-  const proc = cp.spawn(command, [...args, url.toString()], {})
+  const urlString = url.toString()
+  const proc = cp.spawn(command, [...args, urlString], { shell: false }) // nosemgrep: javascript.lang.security.detect-child-process.detect-child-process
   await new Promise<void>((resolve, reject) => {
     proc.on("error", reject)
     proc.on("close", (code) => {
