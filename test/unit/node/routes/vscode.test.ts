@@ -12,7 +12,11 @@ describe("vscode", () => {
   })
 
   afterEach(async () => {
-    process.env.PASSWORD = previousEnvPassword
+    if (typeof previousEnvPassword !== "undefined") {
+      process.env.PASSWORD = previousEnvPassword
+    } else {
+      delete process.env.PASSWORD
+    }
     if (codeServer) {
       await codeServer.dispose()
       codeServer = undefined
