@@ -4,11 +4,15 @@ import * as integration from "../../../utils/integration"
 
 describe("vscode", () => {
   let codeServer: httpserver.HttpServer | undefined
+  // TODO: Support setting this as an argument for tests.
+  const previousEnvPassword = process.env.PASSWORD
   beforeEach(() => {
+    process.env.PASSWORD = "test"
     mockLogger()
   })
 
   afterEach(async () => {
+    process.env.PASSWORD = previousEnvPassword
     if (codeServer) {
       await codeServer.dispose()
       codeServer = undefined
@@ -26,5 +30,11 @@ describe("vscode", () => {
         },
       })
     }).rejects.toThrow()
+  })
+
+  it("should require auth", async () => {
+    codeServer = await integration.setup(["--auth=password"], "")
+    let resp = await codeServer.fetch("/mint-key", { method: "POST" })
+    expect(resp.status).toBe(401)
   })
 })
