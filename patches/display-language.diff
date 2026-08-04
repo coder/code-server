@@ -161,7 +161,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
  import { CharCode } from '../../base/common/charCode.js';
  import { IExtensionManifest } from '../../platform/extensions/common/extensions.js';
  import { ICSSDevelopmentService } from '../../platform/cssDev/node/cssDevService.js';
-@@ -399,14 +400,22 @@ export class WebClientServer {
+@@ -400,14 +401,22 @@ export class WebClientServer {
  		};
  
  		const cookies = cookie.parse(req.headers.cookie || '');
@@ -291,7 +291,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/extensions/browser/extens
  		}
  
  		// Prefers to run on UI
-@@ -2284,17 +2281,6 @@ export class SetLanguageAction extends E
+@@ -2282,17 +2279,6 @@ export class SetLanguageAction extends E
  	update(): void {
  		this.enabled = false;
  		this.class = SetLanguageAction.DisabledClass;
@@ -309,7 +309,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/extensions/browser/extens
  	}
  
  	override async run(): Promise<any> {
-@@ -2311,7 +2297,6 @@ export class ClearLanguageAction extends
+@@ -2309,7 +2295,6 @@ export class ClearLanguageAction extends
  	private static readonly DisabledClass = `${this.EnabledClass} disabled`;
  
  	constructor(
@@ -317,7 +317,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/extensions/browser/extens
  		@ILocaleService private readonly localeService: ILocaleService,
  	) {
  		super(ClearLanguageAction.ID, ClearLanguageAction.TITLE.value, ClearLanguageAction.DisabledClass, false);
-@@ -2321,17 +2306,6 @@ export class ClearLanguageAction extends
+@@ -2319,17 +2304,6 @@ export class ClearLanguageAction extends
  	update(): void {
  		this.enabled = false;
  		this.class = ClearLanguageAction.DisabledClass;

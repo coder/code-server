@@ -79,7 +79,7 @@ function get-webview-script-hash() {
 }
 
 function delete_csp() {
-  quilt delete csp-hashes.diff
+  quilt delete csp-hashes.diff || true
 }
 
 function update_csp() {

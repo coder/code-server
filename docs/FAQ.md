@@ -17,6 +17,7 @@
 - [Where is VS Code configuration stored?](#where-is-vs-code-configuration-stored)
 - [How can I reuse my VS Code configuration?](#how-can-i-reuse-my-vs-code-configuration)
 - [How does code-server decide what workspace or folder to open?](#how-does-code-server-decide-what-workspace-or-folder-to-open)
+- [Can I open a file at a specific line from a URL?](#can-i-open-a-file-at-a-specific-line-from-a-url)
 - [How do I access my Documents/Downloads/Desktop folders in code-server on macOS?](#how-do-i-access-my-documentsdownloadsdesktop-folders-in-code-server-on-macos)
 - [How do I direct server-side requests through a proxy?](#how-do-i-direct-server-side-requests-through-a-proxy)
 - [How do I debug issues with code-server?](#how-do-i-debug-issues-with-code-server)
@@ -229,6 +230,39 @@ code-server tries the following in this order:
 2. The `folder` query parameter
 3. The workspace or directory passed via the command line
 4. The last opened workspace or directory
+
+## Can I open a file at a specific line from a URL?
+
+Yes. In addition to `workspace` and `folder`, code-server supports VS Code's
+`payload` query parameter, which can open a specific file — optionally at a
+line and column — once the workbench loads.
+
+`payload` is a URL-encoded JSON array of `[key, value]` string pairs. The
+`openFile` key takes a `vscode-remote://<host>/<absolute path>` URI, where
+`<host>` is the host you use to reach code-server. Add
+`["gotoLineMode","true"]` to have a trailing `:line[:column]` suffix on the
+path interpreted as a cursor position:
+
+```text
+https://code.example.com/?folder=/home/coder/project&payload=[["gotoLineMode","true"],["openFile","vscode-remote://code.example.com/home/coder/project/src/app.py:10:5"]]
+```
+
+(with the `payload` value URL-encoded). Notes:
+
+- Paths must be absolute; there is no form relative to `folder`.
+- This is upstream VS Code web behavior (the same mechanism vscode.dev uses),
+  so it works without any code-server-specific configuration.
+
+For example, to generate links from a shell:
+
+```sh
+#!/bin/sh
+# usage: code-link <absolute-file> [line[:column]]
+HOST=code.example.com
+payload="[[\"gotoLineMode\",\"true\"],[\"openFile\",\"vscode-remote://$HOST$1${2:+:$2}\"]]"
+printf 'https://%s/?folder=%s&payload=%s\n' "$HOST" "$(dirname "$1")" \
+  "$(printf '%s' "$payload" | jq -sRr @uri)"
+```
 
 ## How do I access my Documents/Downloads/Desktop folders in code-server on macOS?
 

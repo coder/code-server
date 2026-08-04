@@ -44,7 +44,7 @@ Index: code-server/lib/vscode/build/lib/extensions.ts
  import watcher from './watch/index.ts';
  
  import { createRequire } from 'module';
-@@ -483,6 +484,116 @@ export function packageCopilotExtensionS
+@@ -491,6 +492,116 @@ export function packageCopilotExtensionS
  	).pipe(util2.setExecutableBit(['**/*.sh']));
  }
  

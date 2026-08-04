@@ -210,7 +210,7 @@ router.get("/manifest.json", async (req, res) => {
 })
 
 let mintKeyPromise: Promise<Buffer> | undefined
-router.post("/mint-key", async (req, res) => {
+router.post("/mint-key", ensureAuthenticated, async (req, res) => {
   if (!mintKeyPromise) {
     mintKeyPromise = new Promise(async (resolve) => {
       const keyPath = path.join(req.args["user-data-dir"], "serve-web-key-half")

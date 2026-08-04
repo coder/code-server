@@ -186,7 +186,7 @@ Index: code-server/lib/vscode/src/vs/base/common/product.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/base/common/product.ts
 +++ code-server/lib/vscode/src/vs/base/common/product.ts
-@@ -84,6 +84,8 @@ export interface IAgentSdkProductConfig
+@@ -97,6 +97,8 @@ export interface IDictationRuntimeProduc
  }
  
  export interface IProductConfiguration {
@@ -257,8 +257,8 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
  		const productConfiguration: Partial<Mutable<IProductConfiguration>> = {
 +			codeServerVersion: this._productService.codeServerVersion,
  			embedderIdentifier: 'server-distro',
+ 			voiceWsUrl: this._productService.voiceWsUrl,
  			extensionsGallery: this._webExtensionResourceUrlTemplate && this._productService.extensionsGallery ? {
- 				...this._productService.extensionsGallery,
 Index: code-server/lib/vscode/src/server-main.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/server-main.ts

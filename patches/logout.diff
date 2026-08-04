@@ -8,7 +8,7 @@ Index: code-server/lib/vscode/src/vs/base/common/product.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/base/common/product.ts
 +++ code-server/lib/vscode/src/vs/base/common/product.ts
-@@ -87,6 +87,7 @@ export interface IProductConfiguration {
+@@ -100,6 +100,7 @@ export interface IProductConfiguration {
  	readonly codeServerVersion?: string
  	readonly rootEndpoint?: string
  	readonly updateEndpoint?: string
@@ -46,8 +46,8 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
  			updateEndpoint: !this._environmentService.args['disable-update-check'] ? rootBase + '/update/check' : undefined,
 +			logoutEndpoint: this._environmentService.args['auth'] && this._environmentService.args['auth'] !== "none" ? rootBase + '/logout' : undefined,
  			embedderIdentifier: 'server-distro',
+ 			voiceWsUrl: this._productService.voiceWsUrl,
  			extensionsGallery: this._productService.extensionsGallery,
- 		};
 Index: code-server/lib/vscode/src/vs/workbench/browser/client.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/browser/client.ts

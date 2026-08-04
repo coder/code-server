@@ -49,10 +49,10 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
  
  		const resolveWorkspaceURI = (defaultLocation?: string) => defaultLocation && URI.file(resolve(defaultLocation)).with({ scheme: Schemas.vscodeRemote, authority: remoteAuthority });
  
-@@ -362,14 +361,7 @@ export class WebClientServer {
- 			codeServerVersion: this._productService.codeServerVersion,
+@@ -363,14 +362,7 @@ export class WebClientServer {
  			rootEndpoint: rootBase,
  			embedderIdentifier: 'server-distro',
+ 			voiceWsUrl: this._productService.voiceWsUrl,
 -			extensionsGallery: this._webExtensionResourceUrlTemplate && this._productService.extensionsGallery ? {
 -				...this._productService.extensionsGallery,
 -				resourceUrlTemplate: this._webExtensionResourceUrlTemplate.with({

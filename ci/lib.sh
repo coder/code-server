@@ -93,7 +93,7 @@ run-steps() {
         echo "- [X] $name" >> .cache/checklist
       else
         ((failed++))
-        echo "- [-] $name" >> .cache/checklist
+        echo "- [ ] $name" >> .cache/checklist
         echo "Failed" | indent
       fi
     else
