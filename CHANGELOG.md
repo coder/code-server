@@ -22,6 +22,12 @@ Code v99.99.999
 
 ## Unreleased
 
+Code v1.132.0
+
+### Changed
+
+- Update to Code 1.132.0
+
 ### Fixed
 
 - When proxying, cookies were being decoded and re-encoded, which could cause

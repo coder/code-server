@@ -135,7 +135,7 @@ Index: code-server/lib/vscode/src/vs/workbench/browser/web.api.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/browser/web.api.ts
 +++ code-server/lib/vscode/src/vs/workbench/browser/web.api.ts
-@@ -322,6 +322,11 @@ export interface IWorkbenchConstructionO
+@@ -329,6 +329,11 @@ export interface IWorkbenchConstructionO
  	 */
  	readonly isEnabledFileUploads?: boolean
  

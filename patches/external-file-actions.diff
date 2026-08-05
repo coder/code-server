@@ -27,7 +27,7 @@ Index: code-server/lib/vscode/src/vs/workbench/browser/web.api.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/browser/web.api.ts
 +++ code-server/lib/vscode/src/vs/workbench/browser/web.api.ts
-@@ -312,6 +312,16 @@ export interface IWorkbenchConstructionO
+@@ -319,6 +319,16 @@ export interface IWorkbenchConstructionO
  	 */
  	readonly userDataPath?: string
  
@@ -166,12 +166,12 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/files/browser/fileActions
  import { AutoSaveAfterShortDelayContext } from '../../../services/filesConfiguration/common/filesConfigurationService.js';
  import { WorkbenchListDoubleSelection } from '../../../../platform/list/browser/listService.js';
  import { Schemas } from '../../../../base/common/network.js';
--import { DirtyWorkingCopiesContext, EnterMultiRootWorkspaceSupportContext, HasWebFileSystemAccess, IsSessionsWindowContext, WorkbenchStateContext, WorkspaceFolderCountContext, SidebarFocusContext, ActiveEditorCanRevertContext, ActiveEditorContext, ResourceContextKey, ActiveEditorAvailableEditorIdsContext, MultipleEditorsSelectedInGroupContext, TwoEditorsSelectedInGroupContext, SelectedEditorsInGroupFileOrUntitledResourceContextKey } from '../../../common/contextkeys.js';
-+import { IsEnabledFileDownloads, IsEnabledFileUploads, DirtyWorkingCopiesContext, EnterMultiRootWorkspaceSupportContext, HasWebFileSystemAccess, IsSessionsWindowContext, WorkbenchStateContext, WorkspaceFolderCountContext, SidebarFocusContext, ActiveEditorCanRevertContext, ActiveEditorContext, ResourceContextKey, ActiveEditorAvailableEditorIdsContext, MultipleEditorsSelectedInGroupContext, TwoEditorsSelectedInGroupContext, SelectedEditorsInGroupFileOrUntitledResourceContextKey } from '../../../common/contextkeys.js';
+-import { DirtyWorkingCopiesContext, EnterMultiRootWorkspaceSupportContext, HasWebFileSystemAccess, IsSessionsWindowContext, WorkbenchStateContext, WorkspaceFolderCountContext, SidebarFocusContext, ActiveEditorCanRevertContext, ActiveEditorContext, ActiveEditorDirtyContext, ResourceContextKey, ActiveEditorAvailableEditorIdsContext, MultipleEditorsSelectedInGroupContext, TwoEditorsSelectedInGroupContext, SelectedEditorsInGroupFileOrUntitledResourceContextKey } from '../../../common/contextkeys.js';
++import { IsEnabledFileDownloads, IsEnabledFileUploads, DirtyWorkingCopiesContext, EnterMultiRootWorkspaceSupportContext, HasWebFileSystemAccess, IsSessionsWindowContext, WorkbenchStateContext, WorkspaceFolderCountContext, SidebarFocusContext, ActiveEditorCanRevertContext, ActiveEditorContext, ActiveEditorDirtyContext, ResourceContextKey, ActiveEditorAvailableEditorIdsContext, MultipleEditorsSelectedInGroupContext, TwoEditorsSelectedInGroupContext, SelectedEditorsInGroupFileOrUntitledResourceContextKey } from '../../../common/contextkeys.js';
  import { IsWebContext } from '../../../../platform/contextkey/common/contextkeys.js';
  import { ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
  import { ThemeIcon } from '../../../../base/common/themables.js';
-@@ -571,13 +571,16 @@ MenuRegistry.appendMenuItem(MenuId.Explo
+@@ -573,13 +573,16 @@ MenuRegistry.appendMenuItem(MenuId.Explo
  		id: DOWNLOAD_COMMAND_ID,
  		title: DOWNLOAD_LABEL
  	},
@@ -195,7 +195,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/files/browser/fileActions
  	)
  }));
  
-@@ -589,6 +592,7 @@ MenuRegistry.appendMenuItem(MenuId.Explo
+@@ -591,6 +594,7 @@ MenuRegistry.appendMenuItem(MenuId.Explo
  		title: UPLOAD_LABEL,
  	},
  	when: ContextKeyExpr.and(
