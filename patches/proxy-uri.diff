@@ -148,7 +148,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/remote/browser/remoteExpl
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/contrib/remote/browser/remoteExplorer.ts
 +++ code-server/lib/vscode/src/vs/workbench/contrib/remote/browser/remoteExplorer.ts
-@@ -84,8 +84,8 @@ export class ForwardedPortsView extends
+@@ -99,8 +99,8 @@ export class ForwardedPortsView extends
  	private async enableForwardedPortsFeatures() {
  		this.contextKeyListener.clear();
  
