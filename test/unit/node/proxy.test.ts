@@ -298,25 +298,44 @@ describe("proxy", () => {
     process.env.HASHED_PASSWORD = token
     codeServer = await integration.setup(["--auth=password"])
 
-    // Set up a listener that just prints the cookies it got.
     e.get("/wsup/cookies", (req, res) => {
       res.writeHead(HttpCode.Ok, { "Content-Type": "text/plain" })
       res.end(req.headers.cookie)
     })
 
-    // Send the token along with other cookies which should be preserved.
-    // Encode one to make sure they are being re-encoded properly.
-    const value = "hello=there"
-    const encodedValue = encodeURIComponent(value)
-    const resp = await codeServer.fetch(proxyPath + "/cookies", {
-      headers: {
-        cookie: `cookie1=${encodedValue}; code-server-session=${token}; cookie2=hello;`,
-      },
+    const cookies = [
+      "cookie2=hello",
+      // Cookies should pass through unchanged, neither encoded nor decoded.
+      `cookie1=${encodeURIComponent("hello=there")}`,
+      "cookie3=foo|bar",
+      `cookie4=${encodeURIComponent("foo|bar")}`,
+      `cookie5=${encodeURIComponent("bar;baz")}`,
+    ]
+
+    // Test each slot to ensure the token is found anywhere.
+    for (let i = 0; i <= cookies.length; ++i) {
+      const left = cookies.slice(0, i)
+      const right = cookies.slice(i)
+      const resp = await codeServer.fetch(proxyPath + "/cookies", {
+        headers: {
+          cookie: [...left, `code-server-session=${token}`, ...right].join("; "),
+        },
+      })
+      expect(resp.status).toBe(200)
+      expect(await resp.text()).toBe(cookies.join("; "))
+    }
+  })
+
+  it("should proxy when no cookies", async () => {
+    codeServer = await integration.setup(["--auth=none"])
+
+    e.get("/wsup/cookies", (req, res) => {
+      res.writeHead(HttpCode.Ok, { "Content-Type": "text/plain" })
+      res.end(req.headers.cookie || "no cookies")
     })
 
-    // The proxied listener should not have printed the code-server token.
+    const resp = await codeServer.fetch(proxyPath + "/cookies")
     expect(resp.status).toBe(200)
-    const text = await resp.text()
-    expect(text).toBe(`cookie1=${encodedValue}; cookie2=hello`)
+    expect(await resp.text()).toBe("no cookies")
   })
 })

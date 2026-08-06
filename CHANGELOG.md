@@ -22,6 +22,12 @@ Code v99.99.999
 
 ## Unreleased
 
+### Fixed
+
+- When proxying, cookies were being decoded and re-encoded, which could cause
+  issues for applications that encode differently. Cookies are now passed
+  through unchanged (aside from stripping out code-server's session token).
+
 ## [4.131.0](https://github.com/coder/code-server/releases/tag/v4.131.0) - 2026-07-30
 
 Code v1.131.0
