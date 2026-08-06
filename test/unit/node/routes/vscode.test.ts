@@ -38,7 +38,7 @@ describe("vscode", () => {
 
   it("should require auth", async () => {
     codeServer = await integration.setup(["--auth=password"], "")
-    let resp = await codeServer.fetch("/mint-key", { method: "POST" })
+    const resp = await codeServer.fetch("/mint-key", { method: "POST" })
     expect(resp.status).toBe(401)
   })
 })
