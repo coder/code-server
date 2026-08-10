@@ -105,7 +105,7 @@ $ helm upgrade --install code-server \
   --set persistence.enabled=false
 ```
 
-The above command sets the the persistence storage to false.
+The above command sets the persistence storage to false.
 
 Alternatively, a YAML file that specifies the values for the above parameters
 can be provided while installing the chart. For example,
