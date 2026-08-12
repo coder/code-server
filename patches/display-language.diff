@@ -9,16 +9,16 @@ Index: code-server/lib/vscode/src/vs/server/node/serverServices.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/serverServices.ts
 +++ code-server/lib/vscode/src/vs/server/node/serverServices.ts
-@@ -12,7 +12,7 @@ import * as path from '../../base/common
- import { IURITransformer } from '../../base/common/uriIpc.js';
+@@ -13,7 +13,7 @@ import { IURITransformer } from '../../b
+ import { generateUuid } from '../../base/common/uuid.js';
  import { getMachineId, getSqmMachineId, getDevDeviceId } from '../../base/node/id.js';
  import { Promises } from '../../base/node/pfs.js';
 -import { ClientConnectionEvent, IMessagePassingProtocol, IPCServer, StaticRouter } from '../../base/parts/ipc/common/ipc.js';
 +import { ClientConnectionEvent, IMessagePassingProtocol, IPCServer, ProxyChannel, StaticRouter } from '../../base/parts/ipc/common/ipc.js';
  import { ProtocolConstants } from '../../base/parts/ipc/common/ipc.net.js';
+ import { createRandomIPCHandle } from '../../base/parts/ipc/node/ipc.net.js';
  import { IConfigurationService } from '../../platform/configuration/common/configuration.js';
- import { ConfigurationService } from '../../platform/configuration/common/configurationService.js';
-@@ -358,6 +358,9 @@ export async function setupServerService
+@@ -417,6 +417,9 @@ export async function setupServerService
  
  		socketServer.registerChannel('mcpManagement', new McpManagementChannel(mcpManagementService, (ctx: RemoteAgentConnectionContext) => getUriTransformer(ctx.remoteAuthority)));
  
