@@ -1,11 +1,12 @@
 import { field, logger } from "@coder/logger"
+import { promises as fs } from "fs"
 import http from "http"
 import * as os from "os"
 import * as path from "path"
 import { Disposable } from "../common/emitter"
 import { plural } from "../common/util"
 import { createApp, ensureAddress } from "./app"
-import { AuthType, DefaultedArgs, Feature, toCodeArgs, UserProvidedArgs } from "./cli"
+import { agentHostSocketPath, AuthType, DefaultedArgs, Feature, toCodeArgs, UserProvidedArgs } from "./cli"
 import { commit, version, vsRootPath } from "./constants"
 import { loadCustomStrings } from "./i18n"
 import { register } from "./routes"
@@ -119,6 +120,27 @@ export const openInExistingInstance = async (args: DefaultedArgs, socketPath: st
   vscode.end()
 }
 
+/**
+ * Remove a leftover agent host socket.
+ *
+ * Code binds the socket but never unlinks it, so a socket left behind by a
+ * killed instance makes the agent host fail to listen on the next start.
+ * Named pipes on Windows are not files and disappear on their own.
+ */
+const removeStaleAgentHostSocket = async (socketPath: string): Promise<void> => {
+  if (process.platform === "win32") {
+    return
+  }
+  try {
+    await fs.unlink(socketPath)
+    logger.debug(`Removed stale agent host socket ${socketPath}`)
+  } catch (error: any) {
+    if (error.code !== "ENOENT") {
+      logger.warn(`Could not remove agent host socket ${socketPath}: ${error.message}`)
+    }
+  }
+}
+
 export const runCodeServer = async (
   args: DefaultedArgs,
 ): Promise<{ dispose: Disposable["dispose"]; server: http.Server }> => {
@@ -137,6 +159,11 @@ export const runCodeServer = async (
     throw new Error(
       "Please pass in a password via the config file or environment variable ($PASSWORD or $HASHED_PASSWORD)",
     )
+  }
+
+  // Must happen before Code can be loaded, which is on the first request.
+  if (args.agents) {
+    await removeStaleAgentHostSocket(agentHostSocketPath(args["user-data-dir"]))
   }
 
   const app = await createApp(args)
@@ -196,6 +223,10 @@ export const runCodeServer = async (
   }
   if (args["skip-auth-preflight"]) {
     logger.info("  - Skipping authentication for preflight requests")
+  }
+  if (args.agents) {
+    logger.info(`  - Agent host enabled on ${agentHostSocketPath(args["user-data-dir"])}`)
+    logger.info("    - Code's Agents Window is not bundled for the server; agents appear in the regular chat UI")
   }
   if (process.env.VSCODE_PROXY_URI) {
     logger.info(`Using proxy URI in PORTS tab: ${process.env.VSCODE_PROXY_URI}`)

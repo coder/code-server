@@ -40,6 +40,7 @@
 - [How do I hide the coder/coder promotion in Help: Getting Started?](#how-do-i-hide-the-codercoder-promotion-in-help-getting-started)
 - [How do I disable the proxy?](#how-do-i-disable-the-proxy)
 - [How do I disable file download?](#how-do-i-disable-file-download)
+- [Can I use the Agents Window?](#can-i-use-the-agents-window)
 - [Why do web views not work?](#why-do-web-views-not-work)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
@@ -541,6 +542,40 @@ when using the option.
 ## How do I disable file download?
 
 You can pass the flag `--disable-file-downloads` to `code-server`
+
+## Can I use the Agents Window?
+
+Not yet, but you can enable the agent host it runs on.
+
+VS Code 1.132 added the [Agents
+Window](https://code.visualstudio.com/docs/agents/run/agents-window), opened on
+the desktop with `code --agents`. It is built from `vs/sessions`, a workbench
+that is separate from the regular one, and Code only bundles that workbench into
+its `vscode-web` build (the one behind vscode.dev). The server build code-server
+ships, `vscode-reh-web`, does not include it, so there is no Agents Window to
+serve yet.
+
+What the server build does include is the agent host, the process that actually
+runs agent sessions. Code starts it only when it is told where the host should
+listen, and code-server does not tell it by default. Pass `--agents` to change
+that:
+
+```console
+code-server --agents
+```
+
+The agent host then listens on `agent-host.sock` inside your user data directory
+(a named pipe on Windows), and Code registers the channel the browser uses to
+reach it. Agent sessions show up in the regular chat UI rather than in their own
+window.
+
+Two caveats:
+
+- Anyone who can read that socket can talk to the agent host, so keep your user
+  data directory private. It is not exposed over HTTP.
+- Code resolves the Claude and Codex SDKs from `product.agentSdks`, which its
+  build pipeline only writes into the desktop server build. Those agents are
+  unavailable unless you point Code at a local SDK root yourself.
 
 ## Why do web views not work?
 
