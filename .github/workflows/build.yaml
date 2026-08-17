@@ -90,12 +90,10 @@ jobs:
     if: needs.changes.outputs.helm == 'true'
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
-      - uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310 # v5.0.1
+      - uses: bmuschko/setup-kubeconform@e5d264ec1eafe2314e750c429a9da7639dd5a003 # v1.1.0
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          version: "v3.19.2"
-      - run: helm plugin install https://github.com/instrumenta/helm-kubeval
-      - run: helm kubeval ci/helm-chart
+          kubeconform-version: "0.8.0"
+      - run: kubeconform ci/helm-chart
 
   lint-ts:
     name: Lint TypeScript files

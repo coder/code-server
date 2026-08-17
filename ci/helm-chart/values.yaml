@@ -6,7 +6,7 @@ replicaCount: 1
 
 image:
   repository: codercom/code-server
-  tag: '4.132.0'
+  tag: '4.133.0'
   pullPolicy: Always
 
 # Specifies one or more secrets to be used when pulling images from a
@@ -33,6 +33,10 @@ serviceAccount:
 
 # Specifies annotations for deployment
 annotations: {}
+
+# code-server.labels -- The Deployment labels. See:
+# https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
+labels: {}
 
 podAnnotations: {}
 
