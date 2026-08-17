@@ -19,9 +19,9 @@ Index: code-server/lib/vscode/src/vs/platform/product/common/product.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/platform/product/common/product.ts
 +++ code-server/lib/vscode/src/vs/platform/product/common/product.ts
-@@ -49,6 +49,17 @@ else if (globalThis._VSCODE_PRODUCT_JSON
- 			version: pkg.version
- 		});
+@@ -65,6 +65,17 @@ else if (globalThis._VSCODE_PRODUCT_JSON
+ 			Object.assign(product, { copilotVersions: { runtime, sdk } });
+ 		}
  	}
 +
 +	Object.assign(product, {
