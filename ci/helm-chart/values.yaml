@@ -34,6 +34,10 @@ serviceAccount:
 # Specifies annotations for deployment
 annotations: {}
 
+# code-server.labels -- The Deployment labels. See:
+# https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
+labels: {}
+
 podAnnotations: {}
 
 podSecurityContext: {}
