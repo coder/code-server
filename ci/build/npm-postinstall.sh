@@ -65,8 +65,8 @@ main() {
     echo "USE AT YOUR OWN RISK!"
   fi
 
-  if [ "$major_node_version" -ne "${FORCE_NODE_VERSION:-22}" ]; then
-    echo "ERROR: code-server currently requires node v22."
+  if [ "$major_node_version" -ne "${FORCE_NODE_VERSION:-24}" ]; then
+    echo "ERROR: code-server currently requires node v24."
     if [ -n "$FORCE_NODE_VERSION" ]; then
       echo "However, you have overrided the version check to use v$FORCE_NODE_VERSION."
     fi

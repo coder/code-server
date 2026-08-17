@@ -11,11 +11,11 @@ curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
 ```
 
 6. Exit the terminal using `exit` and then reopen the terminal
-7. Install and use Node.js 22:
+7. Install and use Node.js 24:
 
 ```shell
-nvm install 22
-nvm use 22
+nvm install 24
+nvm use 24
 ```
 
 8. Install code-server globally on device with: `npm install --global code-server`
