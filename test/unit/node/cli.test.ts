@@ -10,6 +10,7 @@ import {
   setDefaults,
   shouldOpenInExistingInstance,
   toCodeArgs,
+  agentHostSocketPath,
   optionDescriptions,
   options,
   Options,
@@ -114,6 +115,8 @@ describe("parser", () => {
 
           "--skip-auth-preflight",
 
+          "--agents",
+
           ["--session-socket", "/tmp/override-code-server-ipc-socket"],
 
           ["--reconnection-grace-time", "86400"],
@@ -157,6 +160,7 @@ describe("parser", () => {
       "reconnection-grace-time": "86400",
       "abs-proxy-base-path": "/codeserver/app1",
       "skip-auth-preflight": true,
+      agents: true,
     })
   })
 
@@ -984,6 +988,7 @@ describe("toCodeArgs", () => {
     port: "8080",
     version: false,
     log: undefined,
+    "agent-host-path": undefined,
   }
 
   const testName = "vscode-args"
@@ -1005,6 +1010,25 @@ describe("toCodeArgs", () => {
       ...vscodeDefaults,
       _: [file],
     })
+  })
+
+  it("should tell Code where to run the agent host", async () => {
+    expect(await toCodeArgs(await setDefaults(parse(["--agents"])))).toStrictEqual({
+      ...vscodeDefaults,
+      agents: true,
+      "agent-host-path": agentHostSocketPath(paths.data),
+    })
+  })
+
+  it("should derive the agent host socket from the user data directory", async () => {
+    if (process.platform === "win32") {
+      expect(agentHostSocketPath("C:\\one")).toMatch(/^\\\\\.\\pipe\\code-server-agent-host-[0-9a-f]{16}$/)
+    } else {
+      expect(agentHostSocketPath("/one")).toBe(path.join("/one", "agent-host.sock"))
+    }
+    // Concurrent instances have separate user data directories, so their agent
+    // hosts must not land on the same socket.
+    expect(agentHostSocketPath("/one")).not.toBe(agentHostSocketPath("/two"))
   })
 })
 

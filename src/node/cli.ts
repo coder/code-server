@@ -1,4 +1,5 @@
 import { field, Level, logger } from "@coder/logger"
+import * as crypto from "crypto"
 import { promises as fs } from "fs"
 import { load } from "js-yaml"
 import * as path from "path"
@@ -91,6 +92,7 @@ export interface UserProvidedArgs extends UserProvidedCodeArgs {
   "reuse-window"?: boolean
   "new-window"?: boolean
   "ignore-last-opened"?: boolean
+  agents?: boolean
   verbose?: boolean
   "app-name"?: string
   "welcome-text"?: string
@@ -287,6 +289,16 @@ export const options: Options<Required<UserProvidedArgs>> = {
     type: "boolean",
     short: "r",
     description: "Force to open a file or folder in an already opened window.",
+  },
+  // Named after Code's own --agents so the flags line up once we can serve the
+  // Agents Window itself.  That needs Code's `vs/sessions` bundle, which its
+  // build only adds to the vscode-web entry points, not to the server build we
+  // package (see build/gulpfile.reh.ts in the submodule).
+  agents: {
+    type: "boolean",
+    description:
+      "Start Code's agent host so agent sessions can run on the server. Code's dedicated Agents Window is not \n" +
+      "bundled for the server yet, so agents surface in the regular chat UI rather than in their own window.",
   },
 
   log: { type: LogLevel },
@@ -907,6 +919,22 @@ export interface CodeArgs extends UserProvidedCodeArgs {
   "without-browser-env-var"?: boolean
   compatibility?: string
   log?: string[]
+  "agent-host-path"?: string
+}
+
+/**
+ * Where Code's agent host should listen when --agents is set.
+ *
+ * Windows has no Unix sockets so use a named pipe there instead.  The path is
+ * derived from the user data directory since that is what separates concurrent
+ * instances from each other.
+ */
+export function agentHostSocketPath(userDataDir: string): string {
+  if (process.platform === "win32") {
+    const hash = crypto.createHash("sha1").update(userDataDir).digest("hex").substring(0, 16)
+    return `\\\\.\\pipe\\code-server-agent-host-${hash}`
+  }
+  return path.join(userDataDir, "agent-host.sock")
 }
 
 /**
@@ -921,5 +949,10 @@ export const toCodeArgs = async (args: DefaultedArgs): Promise<CodeArgs> => {
     version: !!args.version,
     port: args.port?.toString(),
     log: args.log ? [args.log] : undefined,
+    // Telling Code where the agent host should listen is what makes it spawn
+    // one.  It also registers the channel the workbench uses to reach the agent
+    // host over the remote connection; without a path that channel is
+    // registered as unavailable and agent sessions cannot connect.
+    "agent-host-path": args.agents ? agentHostSocketPath(args["user-data-dir"]) : undefined,
   }
 }
