@@ -76,20 +76,6 @@ main() {
     exit 1
   fi
 
-  # Under npm, if we are running as root, we need --unsafe-perm otherwise
-  # post-install scripts will not have sufficient permissions to do their thing.
-  if is_root; then
-    case "${npm_config_user_agent-}" in npm*)
-      if [ "${npm_config_unsafe_perm-}" != "true" ]; then
-        echo "Please pass --unsafe-perm to npm to install code-server"
-        echo "Otherwise post-install scripts will not have permissions to run"
-        echo "See https://docs.npmjs.com/misc/config#unsafe-perm"
-        echo "See https://stackoverflow.com/questions/49084929/npm-sudo-global-installation-unsafe-perm"
-        exit 1
-      fi
-      ;;
-    esac
-  fi
 
   if ! vscode_install; then
     echo "You may not have the required dependencies to build the native modules."
@@ -110,7 +96,7 @@ install_with_yarn_or_npm() {
   # end-user we want to keep using whatever package manager is in use.
   case "${npm_config_user_agent-}" in
     npm*)
-      if ! npm install --unsafe-perm --omit=dev; then
+      if ! npm install --omit=dev; then
         return 1
       fi
       ;;

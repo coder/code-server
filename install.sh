@@ -436,7 +436,7 @@ install_npm() {
     fi
     echoh "Installing with npm."
     echoh
-    "$sh_c" "$NPM_PATH" install -g "code-server@$VERSION" --unsafe-perm
+    "$sh_c" "$NPM_PATH" install -g "code-server@$VERSION"
     NPM_BIN_DIR="\$($NPM_PATH bin -g)" echo_npm_postinstall
     return
   fi
