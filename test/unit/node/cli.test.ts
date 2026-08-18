@@ -51,6 +51,7 @@ describe("parser", () => {
     delete process.env.CODE_SERVER_RECONNECTION_GRACE_TIME
     delete process.env.VSCODE_PROXY_URI
     delete process.env.CS_DISABLE_PROXY
+    delete process.env.VSCODE_OPTIONS
     console.log = jest.fn()
   })
 
@@ -410,6 +411,17 @@ describe("parser", () => {
     expect(defaultArgs).toEqual({
       ...defaults,
       "disable-file-downloads": true,
+    })
+  })
+
+  it("should use env var VSCODE_OPTIONS", async () => {
+    process.env.VSCODE_OPTIONS = "--enable-sandbox agents=true"
+    const args = parse(["--vscode-option", "verbose-logging"])
+
+    const defaultArgs = await setDefaults(args)
+    expect(defaultArgs).toEqual({
+      ...defaults,
+      "vscode-option": ["verbose-logging", "--enable-sandbox", "agents=true"],
     })
   })
 
@@ -1005,6 +1017,44 @@ describe("toCodeArgs", () => {
       ...vscodeDefaults,
       _: [file],
     })
+  })
+
+  it("should pass through --vscode-option", async () => {
+    const args = parse([
+      "--vscode-option",
+      "enable-sandbox",
+      "--vscode-option",
+      "agents=true",
+      "--vscode-option",
+      "enable-smoke-test-driver=false",
+    ])
+    expect(await toCodeArgs(await setDefaults(args))).toStrictEqual({
+      ...vscodeDefaults,
+      "enable-sandbox": true,
+      agents: true,
+      "enable-smoke-test-driver": false,
+    })
+  })
+
+  it("should collect a repeated --vscode-option into an array", async () => {
+    const args = parse([
+      "--vscode-option",
+      "locate-extension=a",
+      "--vscode-option",
+      "locate-extension=b",
+      "--vscode-option",
+      "locate-extension=c",
+    ])
+    expect(await toCodeArgs(await setDefaults(args))).toStrictEqual({
+      ...vscodeDefaults,
+      "locate-extension": ["a", "b", "c"],
+    })
+  })
+
+  it("should error if --vscode-option has no flag", async () => {
+    await expect(toCodeArgs(await setDefaults(parse(["--vscode-option", "=nothing"])))).rejects.toThrow(
+      "--vscode-option requires a flag name",
+    )
   })
 })
 
