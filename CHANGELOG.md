@@ -22,6 +22,17 @@ Code v99.99.999
 
 ## Unreleased
 
+### Fixed
+
+- `--reconnection-grace-time` is now honoured when the browser goes away.
+  Closing the tab used to dispose the connection gracefully, which the server
+  treats as a finished client and cleans up at once, so the grace time was never
+  consulted; and any new connection shortened every disconnected session to the
+  5-minute short grace, so opening a second tab cut a deliberately long grace
+  time back down. Sessions now survive a closed browser for as long as the
+  configured grace time. Installations that never set the flag keep the previous
+  behaviour.
+
 ## [4.133.0](https://github.com/coder/code-server/releases/tag/v4.133.0) - 2026-08-17
 
 Code v1.133.0
