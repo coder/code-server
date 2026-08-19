@@ -21,7 +21,8 @@ jobs:
     outputs:
       ci: ${{ steps.filter.outputs.ci }}
       code: ${{ steps.filter.outputs.code }}
-      deps: ${{ steps.filter.outputs.deps }}
+      npm: ${{ steps.filter.outputs.npm }}
+      vscode: ${{ steps.filter.outputs.vscode }}
       docs: ${{ steps.filter.outputs.docs }}
       helm: ${{ steps.filter.outputs.helm }}
     steps:
@@ -42,11 +43,12 @@ jobs:
             code:
               - "src/**"
               - "test/**"
-            deps:
-              - "lib/**"
-              - "patches/**"
+            npm:
               - "package-lock.json"
               - "test/package-lock.json"
+            vscode:
+              - "lib/**"
+              - "patches/**"
       - id: debug
         run: |
           echo "${{ toJSON(steps.filter )}}"
@@ -130,7 +132,7 @@ jobs:
     name: Run unit tests
     runs-on: ubuntu-22.04
     needs: changes
-    if: needs.changes.outputs.code == 'true'
+    if: needs.changes.outputs.code == 'true' || needs.changes.outputs.npm == 'true'
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v6
@@ -214,7 +216,7 @@ jobs:
     env:
       LOG_LEVEL: debug
     needs: [changes, build]
-    if: needs.changes.outputs.code == 'true' || needs.changes.outputs.deps == 'true' || needs.changes.outputs.ci == 'true'
+    if: needs.changes.outputs.code == 'true' || needs.changes.outputs.npm == 'true' || needs.changes.outputs.vscode == 'true' || needs.changes.outputs.ci == 'true'
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
@@ -250,7 +252,7 @@ jobs:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       LOG_LEVEL: debug
     needs: [changes, build]
-    if: needs.changes.outputs.code == 'true' || needs.changes.outputs.deps == 'true' || needs.changes.outputs.ci == 'true'
+    if: needs.changes.outputs.code == 'true' || needs.changes.outputs.npm == 'true' || needs.changes.outputs.vscode == 'true' || needs.changes.outputs.ci == 'true'
 
     steps:
       - name: Cache Caddy
