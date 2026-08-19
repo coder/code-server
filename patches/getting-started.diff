@@ -201,7 +201,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -388,6 +388,7 @@ export class WebClientServer {
+@@ -385,6 +385,7 @@ export class WebClientServer {
  			userDataPath: this._environmentService.userDataPath,
  			isEnabledFileDownloads: !this._environmentService.args['disable-file-downloads'],
  			isEnabledFileUploads: !this._environmentService.args['disable-file-uploads'],
@@ -234,7 +234,7 @@ Index: code-server/lib/vscode/src/vs/workbench/common/contextkeys.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/common/contextkeys.ts
 +++ code-server/lib/vscode/src/vs/workbench/common/contextkeys.ts
-@@ -42,6 +42,7 @@ export const InAutomationContext = new R
+@@ -44,6 +44,7 @@ export const InAutomationContext = new R
  
  export const IsEnabledFileDownloads = new RawContextKey<boolean>('isEnabledFileDownloads', true, true);
  export const IsEnabledFileUploads = new RawContextKey<boolean>('isEnabledFileUploads', true, true);

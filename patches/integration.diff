@@ -251,7 +251,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -353,6 +353,7 @@ export class WebClientServer {
+@@ -350,6 +350,7 @@ export class WebClientServer {
  		} : undefined;
  
  		const productConfiguration: Partial<Mutable<IProductConfiguration>> = {
@@ -326,7 +326,7 @@ Index: code-server/lib/vscode/src/vs/workbench/browser/parts/dialogs/dialog.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/browser/parts/dialogs/dialog.ts
 +++ code-server/lib/vscode/src/vs/workbench/browser/parts/dialogs/dialog.ts
-@@ -47,8 +47,11 @@ export function createWorkbenchDialogOpt
+@@ -54,8 +54,11 @@ export function createWorkbenchDialogOpt
  
  export function createBrowserAboutDialogDetails(productService: IProductService): { title: string; details: string; detailsToCopy: string } {
  	const detailString = (useAgo: boolean): string => {
