@@ -126,7 +126,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -367,6 +367,8 @@ export class WebClientServer {
+@@ -364,6 +364,8 @@ export class WebClientServer {
  				scope: vscodeBase + '/',
  				path: rootBase + '/_static/out/browser/serviceWorker.js',
  			},
@@ -151,7 +151,7 @@ Index: code-server/lib/vscode/src/vs/platform/product/common/product.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/platform/product/common/product.ts
 +++ code-server/lib/vscode/src/vs/platform/product/common/product.ts
-@@ -113,7 +113,8 @@ else {
+@@ -74,7 +74,8 @@ else if (globalThis._VSCODE_PRODUCT_JSON
  			resourceUrlTemplate: "https://open-vsx.org/vscode/asset/{publisher}/{name}/{version}/Microsoft.VisualStudio.Code.WebResources/{path}",
  			controlUrl: "",
  			recommendationsUrl: "",

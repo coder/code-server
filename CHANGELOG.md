@@ -22,6 +22,27 @@ Code v99.99.999
 
 ## Unreleased
 
+Code v1.134.0
+
+### Added
+
+- New `--socket-fd` flag that can be used to listen on a file descriptor. In
+  particular, this allows using code-server with systemd's socket activation.
+- New `--vscode-option` repeatable flag that can be used to pass through options
+  to VS Code. It requires `flag=value` or simply `flag` for booleans. For
+  example: `--vscode-option enable-sandbox --vscode-option agents=true`. The
+  `VSCODE_OPTIONS` environment variable may also be used. For example:
+  `VSCODE_OPTIONS="enable-sandbox agents=true"`. Note that this code-server
+  simply splits this variable on spaces and is not aware of quoting.
+
+### Changed
+
+- Update to Code 1.134.0
+- Remove `--unsafe-perm` from installation scripts. This flag results in an
+  error when used with npm since v12 and has been a no-op since v7. If you are
+  installing with a version of npm older than v7 as root, installation may not
+  work correctly.
+
 ## [4.133.0](https://github.com/coder/code-server/releases/tag/v4.133.0) - 2026-08-17
 
 Code v1.133.0

@@ -112,7 +112,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -384,6 +384,8 @@ export class WebClientServer {
+@@ -381,6 +381,8 @@ export class WebClientServer {
  			serverBasePath: basePath,
  			webviewEndpoint: staticRoute + '/out/vs/workbench/contrib/webview/browser/pre',
  			userDataPath: this._environmentService.userDataPath,
@@ -207,7 +207,7 @@ Index: code-server/lib/vscode/src/vs/workbench/common/contextkeys.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/common/contextkeys.ts
 +++ code-server/lib/vscode/src/vs/workbench/common/contextkeys.ts
-@@ -40,6 +40,9 @@ export const EmbedderIdentifierContext =
+@@ -42,6 +42,9 @@ export const EmbedderIdentifierContext =
  
  export const InAutomationContext = new RawContextKey<boolean>('inAutomation', false, localize('inAutomation', "Whether VS Code is running under automation/smoke test"));
  
