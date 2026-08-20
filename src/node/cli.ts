@@ -83,6 +83,7 @@ export interface UserProvidedArgs extends UserProvidedCodeArgs {
   open?: boolean
   "bind-addr"?: string
   socket?: string
+  "socket-fd"?: number
   "socket-mode"?: string
   "trusted-origins"?: string[]
   version?: boolean
@@ -236,6 +237,10 @@ export const options: Options<Required<UserProvidedArgs>> = {
   port: { type: "number", description: "" },
 
   socket: { type: "string", path: true, description: "Path to a socket (bind-addr will be ignored)." },
+  "socket-fd": {
+    type: "number",
+    description: "File descriptor of a pre-bound, listening socket to use (for systemd socket activation).",
+  },
   "socket-mode": { type: "string", description: "File mode of the socket." },
   "trusted-origins": {
     type: "string[]",

@@ -3,7 +3,7 @@ import { promises } from "fs"
 import * as http from "http"
 import * as https from "https"
 import * as path from "path"
-import { createApp, ensureAddress, handleArgsSocketCatchError, listen } from "../../../src/node/app"
+import { createApp, ensureAddress, handleArgsSocketCatchError, isFdOpts, listen } from "../../../src/node/app"
 import { OptionalString, setDefaults } from "../../../src/node/cli"
 import { generateCertificate } from "../../../src/node/util"
 import { clean, mockLogger, getAvailablePort, tmpdir } from "../../utils/helpers"
@@ -259,5 +259,49 @@ describe("listen", () => {
       expect(error).toBeInstanceOf(Error)
       expect((error as any).message).toMatch(errorMessage)
     }
+  })
+})
+
+describe("listen (socket-fd)", () => {
+  // Wrap a bound-but-not-yet-listening TCP socket so we get a real file
+  // descriptor that listen({ fd }) can adopt, mirroring the systemd socket
+  // activation case where the process inherits an fd and calls listen(2) on it.
+  // Using a live net.Server's fd instead fails with EEXIST because the socket
+  // is already listening in-process.
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const { TCP, constants: TCPConstants } = (process as any).binding("tcp_wrap")
+
+  let inherited: any
+  let httpServer: http.Server
+  let unlinkSpy: jest.SpyInstance
+
+  beforeEach(async () => {
+    mockLogger()
+    unlinkSpy = jest.spyOn(promises, "unlink")
+    inherited = new TCP(TCPConstants.SERVER)
+    inherited.bind("127.0.0.1", 0)
+    httpServer = http.createServer()
+  })
+
+  afterEach(() => {
+    httpServer.close()
+    try {
+      inherited.close()
+    } catch {
+      // The fd is adopted by httpServer.close() above; ignore double-close.
+    }
+    jest.clearAllMocks()
+  })
+
+  it("isFdOpts detects a numeric socket-fd", () => {
+    expect(isFdOpts({ "socket-fd": 3 })).toBe(true)
+    expect(isFdOpts({ socket: "/tmp/x.sock" } as any)).toBe(false)
+  })
+
+  it("listens on an inherited fd without unlinking", async () => {
+    const fd = inherited.fd as number
+    await listen(httpServer, { "socket-fd": fd })
+    expect(httpServer.address()).not.toBeNull()
+    expect(unlinkSpy).not.toHaveBeenCalled()
   })
 })

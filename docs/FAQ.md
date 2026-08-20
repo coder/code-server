@@ -41,6 +41,7 @@
 - [How do I disable the proxy?](#how-do-i-disable-the-proxy)
 - [How do I disable file download?](#how-do-i-disable-file-download)
 - [Why do web views not work?](#why-do-web-views-not-work)
+- [Can I run code-server with systemd socket activation?](#can-i-run-code-server-with-systemd-socket-activation)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 <!-- prettier-ignore-end -->
@@ -560,3 +561,41 @@ To fix this, you must either:
   create and trust a certificate manually).
 - Disable security if your browser allows it. For example, in Chromium see
   `chrome://flags/#unsafely-treat-insecure-origin-as-secure`
+
+## Can I run code-server with systemd socket activation?
+
+Yes. Pass the inherited socket to code-server with `--socket-fd`. systemd
+passes the first listening socket as file descriptor `3`.
+
+Create a socket unit, `~/.config/systemd/user/code-server.socket`:
+
+```ini
+[Socket]
+ListenStream=8080
+
+[Install]
+WantedBy=sockets.target
+```
+
+And a matching service unit, `~/.config/systemd/user/code-server.service`:
+
+```ini
+[Service]
+ExecStart=/usr/bin/code-server --socket-fd 3
+```
+
+Then enable and start the socket:
+
+```bash
+systemctl --user enable --now code-server.socket
+```
+
+code-server will start on the first connection and listen on the socket
+systemd created. `--socket-fd` takes precedence over `--socket` and
+`--bind-addr`/`--port`/`--host`, and `--socket-mode` is ignored because
+systemd owns the socket's permissions.
+
+Socket activation only changes how code-server binds; your usual
+authentication still applies (it keeps prompting for the configured password
+unless you set `--auth none`), so keep authentication enabled when exposing the
+server.

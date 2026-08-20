@@ -13,7 +13,8 @@ import { EditorSessionManager, makeEditorSessionManagerServer } from "./vscodeSo
 import { handleUpgrade } from "./wsRouter"
 
 type SocketOptions = { socket: string; "socket-mode"?: string }
-type ListenOptions = DefaultedArgs | SocketOptions
+type FdOptions = { "socket-fd": number }
+type ListenOptions = DefaultedArgs | SocketOptions | FdOptions
 
 export interface App extends Disposable {
   /** Handles regular HTTP requests. */
@@ -30,8 +31,12 @@ const isSocketOpts = (opts: ListenOptions): opts is SocketOptions => {
   return !!(opts as SocketOptions).socket || !(opts as DefaultedArgs).host
 }
 
+export const isFdOpts = (opts: ListenOptions): opts is FdOptions => {
+  return typeof (opts as FdOptions)["socket-fd"] === "number"
+}
+
 export const listen = async (server: http.Server, opts: ListenOptions) => {
-  if (isSocketOpts(opts)) {
+  if (!isFdOpts(opts) && isSocketOpts(opts)) {
     try {
       await fs.unlink(opts.socket)
     } catch (error: any) {
@@ -46,7 +51,9 @@ export const listen = async (server: http.Server, opts: ListenOptions) => {
       server.on("error", (err) => util.logError(logger, "http server error", err))
       resolve()
     }
-    if (isSocketOpts(opts)) {
+    if (isFdOpts(opts)) {
+      server.listen({ fd: opts["socket-fd"] }, onListen)
+    } else if (isSocketOpts(opts)) {
       server.listen(opts.socket, onListen)
     } else {
       // [] is the correct format when using :: but Node errors with them.
@@ -56,7 +63,7 @@ export const listen = async (server: http.Server, opts: ListenOptions) => {
 
   // NOTE@jsjoeio: we need to chmod after the server is finished
   // listening. Otherwise, the socket may not have been created yet.
-  if (isSocketOpts(opts)) {
+  if (!isFdOpts(opts) && isSocketOpts(opts)) {
     if (opts["socket-mode"]) {
       await fs.chmod(opts.socket, opts["socket-mode"])
     }
