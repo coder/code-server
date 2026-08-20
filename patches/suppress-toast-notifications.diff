@@ -1,0 +1,124 @@
+Index: code-server/lib/vscode/src/vs/workbench/services/notification/common/notificationService.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/workbench/services/notification/common/notificationService.ts
++++ code-server/lib/vscode/src/vs/workbench/services/notification/common/notificationService.ts
+@@ -9,7 +9,7 @@ import { NotificationsModel, ChoiceActio
+ import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.js';
+ import { Emitter, Event } from '../../../../base/common/event.js';
+ import { InstantiationType, registerSingleton } from '../../../../platform/instantiation/common/extensions.js';
+-import { IAction, Action } from '../../../../base/common/actions.js';
++import { IAction } from '../../../../base/common/actions.js';
+ import { IStorageService, StorageScope, StorageTarget } from '../../../../platform/storage/common/storage.js';
+ 
+ export class NotificationService extends Disposable implements INotificationService {
+@@ -162,7 +162,7 @@ export class NotificationService extends
+ 			return;
+ 		}
+ 
+-		this.model.addNotification({ severity: Severity.Info, message });
++		this.notify({ severity: Severity.Info, message });
+ 	}
+ 
+ 	warn(message: NotificationMessage | NotificationMessage[]): void {
+@@ -174,7 +174,7 @@ export class NotificationService extends
+ 			return;
+ 		}
+ 
+-		this.model.addNotification({ severity: Severity.Warning, message });
++		this.notify({ severity: Severity.Warning, message });
+ 	}
+ 
+ 	error(message: NotificationMessage | NotificationMessage[]): void {
+@@ -186,57 +186,45 @@ export class NotificationService extends
+ 			return;
+ 		}
+ 
+-		this.model.addNotification({ severity: Severity.Error, message });
++		this.notify({ severity: Severity.Error, message });
+ 	}
+ 
+ 	notify(notification: INotification): INotificationHandle {
+-		const toDispose = new DisposableStore();
+-
+-		// Handle neverShowAgain option accordingly
+-
+-		if (notification.neverShowAgain) {
+-			const scope = this.toStorageScope(notification.neverShowAgain);
+-			const id = notification.neverShowAgain.id;
+-
+-			// If the user already picked to not show the notification
+-			// again, we return with a no-op notification here
+-			if (this.storageService.getBoolean(id, scope)) {
+-				return new NoOpNotification();
+-			}
+-
+-			const neverShowAgainAction = toDispose.add(new Action(
+-				'workbench.notification.neverShowAgain',
+-				localize('neverShowAgain', "Don't Show Again"),
+-				undefined, true, async () => {
+-
+-					// Close notification
+-					handle.close();
+-
+-					// Remember choice
+-					this.storageService.store(id, true, scope, StorageTarget.USER);
+-				}));
+-
+-			// Insert as primary or secondary action
+-			const actions = {
+-				primary: notification.actions?.primary || [],
+-				secondary: notification.actions?.secondary || []
+-			};
+-			if (!notification.neverShowAgain.isSecondary) {
+-				actions.primary = [neverShowAgainAction, ...actions.primary]; // action comes first
+-			} else {
+-				actions.secondary = [...actions.secondary, neverShowAgainAction]; // actions comes last
+-			}
+-
+-			notification.actions = actions;
++		// [code-server CMB] Suppress all popup/toast/bell notifications and
++		// record them to a server-side log file instead (see notifyLog route).
++		this.logNotification(notification);
++
++		return new NoOpNotification();
++	}
++
++	private logNotification(notification: INotification): void {
++		try {
++			const message = typeof notification.message === "string"
++				? notification.message
++				: (notification.message && (notification.message as { value?: string }).value) || "";
++
++			const severityLabel = notification.severity === 2 ? "Error"
++				: notification.severity === 1 ? "Warning"
++				: "Info";
++
++			const payload = JSON.stringify({
++				severity: severityLabel,
++				message: message.slice(0, 4096),
++				source: notification.source,
++				sourceId: notification.sourceId,
++				priority: notification.priority,
++			});
++
++			const baseURI = new URL(".", document.baseURI);
++			fetch(new URL("notify-log", baseURI).toString(), {
++				method: "POST",
++				headers: { "Content-Type": "application/json" },
++				body: payload,
++				keepalive: true,
++			}).catch(() => { /* ignore */ });
++		} catch {
++			/* ignore */
+ 		}
+-
+-		// Show notification
+-		const handle = this.model.addNotification(notification);
+-
+-		// Cleanup when notification gets disposed
+-		Event.once(handle.onDidClose)(() => toDispose.dispose());
+-
+-		return handle;
+ 	}
+ 
+ 	private toStorageScope(options: INeverShowAgainOptions): StorageScope {

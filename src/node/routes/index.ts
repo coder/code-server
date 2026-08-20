@@ -24,6 +24,7 @@ import * as logout from "./logout"
 import * as pathProxy from "./pathProxy"
 import * as update from "./update"
 import * as vscode from "./vscode"
+import * as notifyLog from "./notifyLog"
 
 /**
  * Register all routes and middleware.
@@ -163,6 +164,10 @@ export const register = async (
   }
 
   app.router.use("/update", update.router)
+
+  // [code-server CMB] Receive suppressed notifications from the workbench and
+  // append them to a server-side log file (no UI surfaced to the user).
+  app.router.use("/notify-log", notifyLog.router)
 
   // For historic reasons we also load at /vscode because the root was replaced
   // by a plugin in v1 of Coder.  The plugin system (which was for internal use
