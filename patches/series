@@ -39,4 +39,4 @@ disable-testing-and-run.diff
 git-security.diff
 disable-proxy.diff
 disable-config-mutation.diff
-suppress-toast-notifications.diff
+disable-notifications.diff
