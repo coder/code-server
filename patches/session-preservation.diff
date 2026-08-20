@@ -1,0 +1,113 @@
+Preserve the remote session when the browser goes away.
+
+--reconnection-grace-time lets an operator say how long a disconnected session
+should be kept. Two behaviours inherited from Code make that setting unable to
+deliver on its promise:
+
+1. Closing the tab runs the browser workbench's shutdown, which disposes the
+   remote connection *gracefully*. The server reads a graceful dispose as "the
+   client is finished" and cleans up immediately, so the grace time is never
+   consulted at all -- the session dies with the tab no matter how the flag is
+   set.
+
+2. Any new connection shortens every disconnected session's grace time to
+   ProtocolConstants.ReconnectionShortGraceTime (5 minutes). Opening a second
+   tab is enough to cut a deliberately long grace time down to five minutes.
+
+This patch makes the configured grace time authoritative:
+
+- pagehide persists UI state instead of unloading, and a browser-driven unload
+  (tab close, navigation) no longer tears the workbench down. An explicit,
+  in-product shutdown still unloads normally, and beforeunload vetoes are still
+  honoured.
+
+- the grace time is only shortened when it was left at or below the default, so
+  installations that never touched the flag keep Code's stock behaviour.
+
+Index: code-server/lib/vscode/src/vs/server/node/remoteExtensionHostAgentServer.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/server/node/remoteExtensionHostAgentServer.ts
++++ code-server/lib/vscode/src/vs/server/node/remoteExtensionHostAgentServer.ts
+@@ -24,7 +24,7 @@ import { generateUuid } from '../../base
+ import { getOSReleaseInfo } from '../../base/node/osReleaseInfo.js';
+ import { findFreePort } from '../../base/node/ports.js';
+ import { addUNCHostToAllowlist, disableUNCAccessRestrictions } from '../../base/node/unc.js';
+-import { PersistentProtocol } from '../../base/parts/ipc/common/ipc.net.js';
++import { PersistentProtocol, ProtocolConstants } from '../../base/parts/ipc/common/ipc.net.js';
+ import { NodeSocket, upgradeToISocket, WebSocketNodeSocket } from '../../base/parts/ipc/node/ipc.net.js';
+ import { IConfigurationService } from '../../platform/configuration/common/configuration.js';
+ import { IInstantiationService } from '../../platform/instantiation/common/instantiation.js';
+@@ -365,13 +365,20 @@ class RemoteExtensionHostAgentServer ext
+ 				// We have received a new connection.
+ 				// This indicates that the server owner has connectivity.
+ 				// Therefore we will shorten the reconnection grace period for disconnected connections!
+-				for (const key in this._managementConnections) {
+-					const managementConnection = this._managementConnections[key];
+-					managementConnection.shortenReconnectionGraceTimeIfNecessary();
+-				}
+-				for (const key in this._extHostConnections) {
+-					const extHostConnection = this._extHostConnections[key];
+-					extHostConnection.shortenReconnectionGraceTimeIfNecessary();
++				//
++				// Unless the grace time was deliberately raised above the default:
++				// an operator who asks for a long grace time wants disconnected
++				// sessions to survive, and cutting them back to the short grace
++				// every time a tab is opened would make the setting meaningless.
++				if (this._reconnectionGraceTime <= ProtocolConstants.ReconnectionGraceTime) {
++					for (const key in this._managementConnections) {
++						const managementConnection = this._managementConnections[key];
++						managementConnection.shortenReconnectionGraceTimeIfNecessary();
++					}
++					for (const key in this._extHostConnections) {
++						const extHostConnection = this._extHostConnections[key];
++						extHostConnection.shortenReconnectionGraceTimeIfNecessary();
++					}
+ 				}
+ 
+ 				state = State.Done;
+Index: code-server/lib/vscode/src/vs/workbench/services/lifecycle/browser/lifecycleService.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/workbench/services/lifecycle/browser/lifecycleService.ts
++++ code-server/lib/vscode/src/vs/workbench/services/lifecycle/browser/lifecycleService.ts
+@@ -37,12 +37,18 @@ export class BrowserLifecycleService ext
+ 		// Listen to `beforeUnload` to support to veto
+ 		this.beforeUnloadListener = addDisposableListener(mainWindow, EventType.BEFORE_UNLOAD, (e: BeforeUnloadEvent) => this.onBeforeUnload(e));
+ 
+-		// Listen to `pagehide` to support orderly shutdown
++		// Listen to `pagehide` to persist state, but do not shut down.
++		// The workbench is remote: the session lives on the server and must
++		// outlive the browser. Unloading here would dispose the connection
++		// gracefully, which the server reads as "the client is done" and cleans
++		// up immediately -- bypassing --reconnection-grace-time entirely.
+ 		// We explicitly do not listen to `unload` event
+ 		// which would disable certain browser caching.
+-		// We currently do not handle the `persisted` property
+-		// (https://github.com/microsoft/vscode/issues/136216)
+-		this.unloadListener = addDisposableListener(mainWindow, EventType.PAGE_HIDE, () => this.onUnload());
++		this.unloadListener = addDisposableListener(mainWindow, EventType.PAGE_HIDE, () => {
++			this.logService.info('[lifecycle] pagehide: persisting state, preserving the remote session');
++
++			this.storageService.flush(WillSaveStateReason.SHUTDOWN);
++		});
+ 	}
+ 
+ 	private onBeforeUnload(event: BeforeUnloadEvent): void {
+@@ -146,12 +152,14 @@ export class BrowserLifecycleService ext
+ 			}
+ 		});
+ 
+-		// Veto: handle if provided
+-		if (veto && typeof vetoShutdown === 'function') {
+-			return vetoShutdown();
++		// A veto handler is only provided when the browser is driving the unload
++		// (closing the tab, navigating away). Honour a veto, but never unload:
++		// the session is on the server and has to survive the browser leaving.
++		if (typeof vetoShutdown === 'function') {
++			return veto ? vetoShutdown() : undefined;
+ 		}
+ 
+-		// No veto, continue to shutdown
++		// No veto handling means an explicit, in-product shutdown: unload
+ 		return this.onUnload();
+ 	}
+ 

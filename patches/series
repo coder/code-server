@@ -25,3 +25,4 @@ signature-verification.diff
 copilot.diff
 app-name.diff
 csp-hashes.diff
+session-preservation.diff
