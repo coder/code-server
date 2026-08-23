@@ -53,6 +53,7 @@ There are several approaches to operating and exposing code-server securely:
 - Using Let's Encrypt with Caddy
 - Using Let's Encrypt with NGINX
 - Using a self-signed certificate
+- Phone spectator only (no inbound): [Build Remote Agent](integrations/gbr.md)
 
 ### Port forwarding via SSH
 
