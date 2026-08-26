@@ -102,7 +102,7 @@ Index: code-server/lib/vscode/src/vs/server/node/server.cli.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/server.cli.ts
 +++ code-server/lib/vscode/src/vs/server/node/server.cli.ts
-@@ -77,6 +77,7 @@ const isSupportedForPipe = (optionId: ke
+@@ -78,6 +78,7 @@ const isSupportedForPipe = (optionId: ke
  		case 'verbose':
  		case 'remote':
  		case 'locate-shell-integration-path':
@@ -110,7 +110,7 @@ Index: code-server/lib/vscode/src/vs/server/node/server.cli.ts
  			return true;
  		default:
  			return false;
-@@ -300,6 +301,22 @@ export async function main(desc: Product
+@@ -307,6 +308,22 @@ export async function main(desc: Product
  			}
  		}
  	} else {

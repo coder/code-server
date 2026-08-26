@@ -32,7 +32,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -363,8 +363,11 @@ export class WebClientServer {
+@@ -362,8 +362,11 @@ export class WebClientServer {
  			linkProtectionTrustedDomains.push(...this._productService.linkProtectionTrustedDomains);
  		}
  
