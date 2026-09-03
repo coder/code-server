@@ -4,7 +4,7 @@ Index: code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
 +++ code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
-@@ -23,6 +23,7 @@ export const serverOptions: OptionDescri
+@@ -39,6 +39,7 @@ export const serverOptions: OptionDescri
  	'disable-file-uploads': { type: 'boolean' },
  	'disable-getting-started-override': { type: 'boolean' },
  	'locale': { type: 'string' },
@@ -12,7 +12,7 @@ Index: code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
  
  	/* ----- server setup ----- */
  
-@@ -122,6 +123,7 @@ export interface ServerParsedArgs {
+@@ -138,6 +139,7 @@ export interface ServerParsedArgs {
  	'disable-file-uploads'?: boolean;
  	'disable-getting-started-override'?: boolean,
  	'locale'?: string
@@ -24,7 +24,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -354,6 +354,14 @@ export class WebClientServer {
+@@ -399,6 +399,14 @@ export class WebClientServer {
  			scopes: [['user:email'], ['repo']]
  		} : undefined;
  
@@ -39,7 +39,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
  		const productConfiguration: Partial<Mutable<IProductConfiguration>> = {
  			codeServerVersion: this._productService.codeServerVersion,
  			rootEndpoint: rootBase,
-@@ -369,6 +377,7 @@ export class WebClientServer {
+@@ -414,6 +422,7 @@ export class WebClientServer {
  			embedderIdentifier: 'server-distro',
  			voiceWsUrl: this._productService.voiceWsUrl,
  			extensionsGallery: this._productService.extensionsGallery,

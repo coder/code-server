@@ -19,20 +19,19 @@ Index: code-server/lib/vscode/src/vs/server/node/server.main.ts
  import { parseArgs, ErrorReporter } from '../../platform/environment/node/argv.js';
  import { join, dirname } from '../../base/common/path.js';
  import { performance } from 'perf_hooks';
--import { serverOptions } from './serverEnvironmentService.js';
-+import { serverOptions, ServerParsedArgs } from './serverEnvironmentService.js';
+-import { agentHostBridgeConnectionTokenEnvironmentVariable, serverOptions } from './serverEnvironmentService.js';
++import { agentHostBridgeConnectionTokenEnvironmentVariable, serverOptions, ServerParsedArgs } from './serverEnvironmentService.js';
  import product from '../../platform/product/common/product.js';
  import * as perf from '../../base/common/performance.js';
  
-@@ -34,38 +34,47 @@ const errorReporter: ErrorReporter = {
+@@ -34,40 +34,49 @@ const errorReporter: ErrorReporter = {
  	}
  };
  
 -const args = parseArgs(process.argv.slice(2), serverOptions, errorReporter);
-+function parse(): ServerParsedArgs {
-+	return parseArgs(process.argv.slice(2), serverOptions, errorReporter);
-+}
- 
+-const agentHostBridgeConnectionToken = process.env[agentHostBridgeConnectionTokenEnvironmentVariable];
+-delete process.env[agentHostBridgeConnectionTokenEnvironmentVariable];
+-
 -const REMOTE_DATA_FOLDER = args['server-data-dir'] || process.env['VSCODE_AGENT_FOLDER'] || join(os.homedir(), product.serverDataFolderName || '.vscode-remote');
 -const USER_DATA_PATH = join(REMOTE_DATA_FOLDER, 'data');
 -const APP_SETTINGS_HOME = join(USER_DATA_PATH, 'User');
@@ -52,16 +51,20 @@ Index: code-server/lib/vscode/src/vs/server/node/server.main.ts
 -		}
 -	} catch (err) { console.error(err); }
 -});
++function parse(): ServerParsedArgs {
++	return parseArgs(process.argv.slice(2), serverOptions, errorReporter);
++}
++
 +function createDirs(args: ServerParsedArgs): string {
-+	const REMOTE_DATA_FOLDER = args['server-data-dir'] || args['user-data-dir'] || process.env['VSCODE_AGENT_FOLDER'] || join(os.homedir(), product.serverDataFolderName || '.vscode-remote');
-+	const USER_DATA_PATH = args['user-data-dir'] || join(REMOTE_DATA_FOLDER, 'data');
++	const REMOTE_DATA_FOLDER = args['server-data-dir'] || process.env['VSCODE_AGENT_FOLDER'] || join(os.homedir(), product.serverDataFolderName || '.vscode-remote');
++	const USER_DATA_PATH = join(REMOTE_DATA_FOLDER, 'data');
 +	const APP_SETTINGS_HOME = join(USER_DATA_PATH, 'User');
 +	const GLOBAL_STORAGE_HOME = join(APP_SETTINGS_HOME, 'globalStorage');
 +	const LOCAL_HISTORY_HOME = join(APP_SETTINGS_HOME, 'History');
 +	const MACHINE_SETTINGS_HOME = join(USER_DATA_PATH, 'Machine');
 +	args['user-data-dir'] = USER_DATA_PATH;
 +	const APP_ROOT = dirname(FileAccess.asFileUri('').fsPath);
-+	const BUILTIN_EXTENSIONS_FOLDER_PATH = args['builtin-extensions-dir'] || join(APP_ROOT, 'extensions');
++	const BUILTIN_EXTENSIONS_FOLDER_PATH = join(APP_ROOT, 'extensions');
 +	args['builtin-extensions-dir'] = BUILTIN_EXTENSIONS_FOLDER_PATH;
 +	args['extensions-dir'] = args['extensions-dir'] || join(REMOTE_DATA_FOLDER, 'extensions');
 +
@@ -80,7 +83,7 @@ Index: code-server/lib/vscode/src/vs/server/node/server.main.ts
   */
 -export function spawnCli() {
 -	runCli(args, REMOTE_DATA_FOLDER, serverOptions);
-+function spawnCli(args = parse()): Promise<void> {
++function spawnCli(args = parse()) {
 +	return runCli(args, createDirs(args), serverOptions);
  }
  
@@ -88,9 +91,11 @@ Index: code-server/lib/vscode/src/vs/server/node/server.main.ts
   * invoked by server-main.js
   */
 -export function createServer(address: string | net.AddressInfo | null): Promise<IServerAPI> {
--	return doCreateServer(address, args, REMOTE_DATA_FOLDER);
+-	return doCreateServer(address, args, REMOTE_DATA_FOLDER, agentHostBridgeConnectionToken);
 +function createServer(address: string | net.AddressInfo | null, args = parse()): Promise<IServerAPI> {
-+	return doCreateServer(address, args, createDirs(args));
++	const agentHostBridgeConnectionToken = process.env[agentHostBridgeConnectionTokenEnvironmentVariable];
++	delete process.env[agentHostBridgeConnectionTokenEnvironmentVariable];
++	return doCreateServer(address, args, createDirs(args), agentHostBridgeConnectionToken);
  }
 +
 +// The aliases prevent the names getting mangled during minification which would
@@ -209,8 +214,8 @@ Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench-dev.html
  
  		<!-- Disable pinch zooming -->
  		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
-@@ -26,8 +27,9 @@
- 		<meta id="vscode-workbench-builtin-extensions" data-settings="{{WORKBENCH_BUILTIN_EXTENSIONS}}">
+@@ -28,8 +29,9 @@
+ 		<meta id="vscode-workbench-css-modules" data-settings="{{WORKBENCH_DEV_CSS_MODULES}}">
  
  		<!-- Workbench Icon/Manifest/CSS -->
 -		<link rel="icon" href="{{WORKBENCH_WEB_BASE_URL}}/resources/server/favicon.ico" type="image/x-icon" />
@@ -235,7 +240,7 @@ Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench.html
  
  		<!-- Disable pinch zooming -->
  		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
-@@ -23,8 +24,9 @@
+@@ -24,8 +25,9 @@
  		<meta id="vscode-workbench-auth-session" data-settings="{{WORKBENCH_AUTH_SESSION}}">
  
  		<!-- Workbench Icon/Manifest/CSS -->
@@ -251,7 +256,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -349,6 +349,7 @@ export class WebClientServer {
+@@ -394,6 +394,7 @@ export class WebClientServer {
  		} : undefined;
  
  		const productConfiguration: Partial<Mutable<IProductConfiguration>> = {

@@ -181,7 +181,7 @@ Index: code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
 +++ code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
-@@ -21,6 +21,7 @@ export const serverOptions: OptionDescri
+@@ -37,6 +37,7 @@ export const serverOptions: OptionDescri
  	'auth': { type: 'string' },
  	'disable-file-downloads': { type: 'boolean' },
  	'disable-file-uploads': { type: 'boolean' },
@@ -189,7 +189,7 @@ Index: code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
  
  	/* ----- server setup ----- */
  
-@@ -118,6 +119,7 @@ export interface ServerParsedArgs {
+@@ -134,6 +135,7 @@ export interface ServerParsedArgs {
  	'auth'?: string;
  	'disable-file-downloads'?: boolean;
  	'disable-file-uploads'?: boolean;
@@ -201,7 +201,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -384,6 +384,7 @@ export class WebClientServer {
+@@ -429,6 +429,7 @@ export class WebClientServer {
  			userDataPath: this._environmentService.userDataPath,
  			isEnabledFileDownloads: !this._environmentService.args['disable-file-downloads'],
  			isEnabledFileUploads: !this._environmentService.args['disable-file-uploads'],

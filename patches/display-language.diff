@@ -18,7 +18,7 @@ Index: code-server/lib/vscode/src/vs/server/node/serverServices.ts
  import { ProtocolConstants } from '../../base/parts/ipc/common/ipc.net.js';
  import { createRandomIPCHandle } from '../../base/parts/ipc/node/ipc.net.js';
  import { IConfigurationService } from '../../platform/configuration/common/configuration.js';
-@@ -417,6 +417,9 @@ export async function setupServerService
+@@ -418,6 +418,9 @@ export async function setupServerService
  
  		socketServer.registerChannel('mcpManagement', new McpManagementChannel(mcpManagementService, (ctx: RemoteAgentConnectionContext) => getUriTransformer(ctx.remoteAuthority)));
  
@@ -161,7 +161,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
  import { CharCode } from '../../base/common/charCode.js';
  import { IExtensionManifest } from '../../platform/extensions/common/extensions.js';
  import { ICSSDevelopmentService } from '../../platform/cssDev/node/cssDevService.js';
-@@ -397,14 +398,22 @@ export class WebClientServer {
+@@ -442,14 +443,22 @@ export class WebClientServer {
  		};
  
  		const cookies = cookie.parse(req.headers.cookie || '');
@@ -171,7 +171,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
  		let WORKBENCH_NLS_URL: string;
  		if (!locale.startsWith('en') && this._productService.nlsCoreBaseUrl) {
  			WORKBENCH_NLS_BASE_URL = this._productService.nlsCoreBaseUrl;
- 			WORKBENCH_NLS_URL = `${WORKBENCH_NLS_BASE_URL}${this._productService.commit}/${this._productService.version}/${locale}/nls.messages.js`;
+ 			WORKBENCH_NLS_URL = createNlsUrl(WORKBENCH_NLS_BASE_URL, this._productService.commit, this._productService.version, locale);
  		} else {
 -			WORKBENCH_NLS_URL = ''; // fallback will apply
 +			try {
@@ -181,16 +181,16 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 +					: '';
 +			} catch (error) {
 +				console.error("Failed to generate translations", error);
-+				WORKBENCH_NLS_URL = '';
++				WORKBENCH_NLS_URL = ''; // fallback will apply
 +			}
  		}
  
- 		const values: { [key: string]: string } = {
+ 		const scriptNonce = createScriptNonce();
 Index: code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
 +++ code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
-@@ -22,6 +22,7 @@ export const serverOptions: OptionDescri
+@@ -38,6 +38,7 @@ export const serverOptions: OptionDescri
  	'disable-file-downloads': { type: 'boolean' },
  	'disable-file-uploads': { type: 'boolean' },
  	'disable-getting-started-override': { type: 'boolean' },
@@ -198,7 +198,7 @@ Index: code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
  
  	/* ----- server setup ----- */
  
-@@ -120,6 +121,7 @@ export interface ServerParsedArgs {
+@@ -136,6 +137,7 @@ export interface ServerParsedArgs {
  	'disable-file-downloads'?: boolean;
  	'disable-file-uploads'?: boolean;
  	'disable-getting-started-override'?: boolean,

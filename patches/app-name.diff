@@ -12,7 +12,7 @@ Index: code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
 +++ code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
-@@ -24,6 +24,7 @@ export const serverOptions: OptionDescri
+@@ -40,6 +40,7 @@ export const serverOptions: OptionDescri
  	'disable-getting-started-override': { type: 'boolean' },
  	'locale': { type: 'string' },
  	'link-protection-trusted-domains': { type: 'string[]' },
@@ -20,7 +20,7 @@ Index: code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
  
  	/* ----- server setup ----- */
  
-@@ -124,6 +125,7 @@ export interface ServerParsedArgs {
+@@ -140,6 +141,7 @@ export interface ServerParsedArgs {
  	'disable-getting-started-override'?: boolean,
  	'locale'?: string
  	'link-protection-trusted-domains'?: string[],
@@ -32,7 +32,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -362,8 +362,11 @@ export class WebClientServer {
+@@ -407,8 +407,11 @@ export class WebClientServer {
  			linkProtectionTrustedDomains.push(...this._productService.linkProtectionTrustedDomains);
  		}
  
