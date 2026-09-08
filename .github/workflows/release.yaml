@@ -214,10 +214,6 @@ jobs:
       TAG: ${{ inputs.version || github.event.pull_request.head.ref || github.ref_name }}
       # Ensure native modules are built from source to avoid prebuilds.
       npm_config_build_from_source: true
-      # Windows sets OS to Windows_NT, and ci/lib.sh works the system out
-      # only when OS is empty, so every question the build asks about it
-      # gets that answer instead: which launchers to fix up, what the
-      # archive is called.
       OS: windows
 
     steps:
