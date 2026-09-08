@@ -22,19 +22,18 @@ Code v99.99.999
 
 ## Unreleased
 
-Code v1.136.1
-
-### Fixed
-
-- The data path was incorrectly being set to `~/.vscode-server-oss/data`.
-
-## [4.136.1](https://github.com/coder/code-server/releases/tag/v4.136.1) - 2026-09-08
+## [4.136.2](https://github.com/coder/code-server/releases/tag/v4.136.2) - 2026-09-08
 
 Code v1.136.1
 
 ### Changed
 
 - Update to Code 1.136.1
+
+### Fixed
+
+- 4.136.2 replaces a removed 4.136.1 release that had the data path incorrectly
+  being set to `~/.vscode-server-oss/data`.
 
 ## [4.135.0](https://github.com/coder/code-server/releases/tag/v4.135.0) - 2026-08-27
 
