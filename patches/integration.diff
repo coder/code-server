@@ -56,15 +56,15 @@ Index: code-server/lib/vscode/src/vs/server/node/server.main.ts
 +}
 +
 +function createDirs(args: ServerParsedArgs): string {
-+	const REMOTE_DATA_FOLDER = args['server-data-dir'] || process.env['VSCODE_AGENT_FOLDER'] || join(os.homedir(), product.serverDataFolderName || '.vscode-remote');
-+	const USER_DATA_PATH = join(REMOTE_DATA_FOLDER, 'data');
++	const REMOTE_DATA_FOLDER = args['server-data-dir'] || args['user-data-dir'] || process.env['VSCODE_AGENT_FOLDER'] || join(os.homedir(), product.serverDataFolderName || '.vscode-remote');
++	const USER_DATA_PATH = args['user-data-dir'] || join(REMOTE_DATA_FOLDER, 'data');
 +	const APP_SETTINGS_HOME = join(USER_DATA_PATH, 'User');
 +	const GLOBAL_STORAGE_HOME = join(APP_SETTINGS_HOME, 'globalStorage');
 +	const LOCAL_HISTORY_HOME = join(APP_SETTINGS_HOME, 'History');
 +	const MACHINE_SETTINGS_HOME = join(USER_DATA_PATH, 'Machine');
 +	args['user-data-dir'] = USER_DATA_PATH;
 +	const APP_ROOT = dirname(FileAccess.asFileUri('').fsPath);
-+	const BUILTIN_EXTENSIONS_FOLDER_PATH = join(APP_ROOT, 'extensions');
++	const BUILTIN_EXTENSIONS_FOLDER_PATH = args['builtin-extensions-dir'] || join(APP_ROOT, 'extensions');
 +	args['builtin-extensions-dir'] = BUILTIN_EXTENSIONS_FOLDER_PATH;
 +	args['extensions-dir'] = args['extensions-dir'] || join(REMOTE_DATA_FOLDER, 'extensions');
 +
