@@ -32,7 +32,6 @@ describe("Downloads (enabled)", ["--disable-workspace-trust"], {}, async () => {
     await codeServerPage.page.waitForSelector(`text=${fileName}`)
 
     await codeServerPage.openFile(fileName)
-    await codeServerPage.page.click(".tab")
     await codeServerPage.navigateMenus(["File", "Auto Save"])
     await codeServerPage.page.keyboard.type("Making some edits.")
     await codeServerPage.navigateMenus(["File", "Save As..."])
@@ -85,8 +84,8 @@ describe("Downloads (disabled)", ["--disable-workspace-trust", "--disable-file-d
     // Action
     await codeServerPage.page.waitForSelector(`text=${fileName}`)
     await codeServerPage.openFile(fileName)
-    await codeServerPage.page.click(".tab")
     await codeServerPage.navigateMenus(["File", "Save As..."])
+    await codeServerPage.page.waitForSelector(".quick-input-widget")
     await expect(codeServerPage.page.locator("text=Show Local")).not.toBeVisible()
   })
 
