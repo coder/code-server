@@ -1036,6 +1036,13 @@ describe("toCodeArgs", () => {
     })
   })
 
+  it("should pass through --enable-remote-storage", async () => {
+    expect(await toCodeArgs(await setDefaults(parse(["--enable-remote-storage"])))).toStrictEqual({
+      ...vscodeDefaults,
+      "enable-remote-storage": true,
+    })
+  })
+
   it("should collect a repeated --vscode-option into an array", async () => {
     const args = parse([
       "--vscode-option",

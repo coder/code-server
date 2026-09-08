@@ -46,6 +46,7 @@ export interface UserProvidedCodeArgs {
   "show-versions"?: boolean
   category?: string
   "github-auth"?: string
+  "enable-remote-storage"?: boolean
   "disable-update-check"?: boolean
   "disable-file-downloads"?: boolean
   "disable-file-uploads"?: boolean
@@ -273,6 +274,10 @@ export const options: Options<Required<UserProvidedArgs>> = {
   "github-auth": {
     type: "string",
     description: "GitHub authentication token (can only be passed in via $GITHUB_TOKEN or the config file).",
+  },
+  "enable-remote-storage": {
+    type: "boolean",
+    description: "Persist VS Code workbench storage on the remote server instead of browser storage.",
   },
   "proxy-domain": { type: "string[]", description: "Domain used for proxying ports." },
   "skip-auth-preflight": {
