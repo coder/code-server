@@ -151,7 +151,7 @@ Index: code-server/lib/vscode/src/vs/workbench/services/environment/browser/envi
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/services/environment/browser/environmentService.ts
 +++ code-server/lib/vscode/src/vs/workbench/services/environment/browser/environmentService.ts
-@@ -44,6 +44,11 @@ export interface IBrowserWorkbenchEnviro
+@@ -49,6 +49,11 @@ export interface IBrowserWorkbenchEnviro
  	readonly isEnabledFileUploads?: boolean;
  
  	/**
@@ -163,7 +163,7 @@ Index: code-server/lib/vscode/src/vs/workbench/services/environment/browser/envi
  	 * Gets whether a resolver extension is expected for the environment.
  	 */
  	readonly expectsResolverExtension: boolean;
-@@ -135,6 +140,13 @@ export class BrowserWorkbenchEnvironment
+@@ -140,6 +145,13 @@ export class BrowserWorkbenchEnvironment
  		return this.options.isEnabledFileUploads;
  	}
  
