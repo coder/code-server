@@ -48,8 +48,8 @@ Index: code-server/lib/vscode/src/vs/workbench/services/environment/browser/envi
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/services/environment/browser/environmentService.ts
 +++ code-server/lib/vscode/src/vs/workbench/services/environment/browser/environmentService.ts
-@@ -34,6 +34,16 @@ export interface IBrowserWorkbenchEnviro
- 	readonly options?: IWorkbenchConstructionOptions;
+@@ -39,6 +39,16 @@ export interface IBrowserWorkbenchEnviro
+ 	readonly sessionTitle?: string;
  
  	/**
 +	 * Enable downloading files via menu actions.
@@ -65,7 +65,7 @@ Index: code-server/lib/vscode/src/vs/workbench/services/environment/browser/envi
  	 * Gets whether a resolver extension is expected for the environment.
  	 */
  	readonly expectsResolverExtension: boolean;
-@@ -111,6 +121,20 @@ export class BrowserWorkbenchEnvironment
+@@ -116,6 +126,20 @@ export class BrowserWorkbenchEnvironment
  		return this.options.userDataPath;
  	}
  

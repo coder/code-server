@@ -101,14 +101,14 @@ Index: code-server/lib/vscode/src/vs/base/common/product.ts
  
  	readonly version: string;
  	readonly date?: string;
-@@ -151,6 +152,7 @@ export interface IProductConfiguration {
- 		readonly resourceUrlTemplate: string;
- 		readonly nlsBaseUrl: string;
- 		readonly accessSKUs?: string[];
-+		readonly authorizationHeaderToken?: string;
+@@ -145,6 +146,7 @@ export interface IProductConfiguration {
  	};
  
- 	readonly agentSdks?: { readonly [packageId: string]: IAgentSdkProductConfig };
+ 	readonly extensionsGallery?: {
++		readonly authorizationHeaderToken?: string;
+ 		readonly serviceUrl: string;
+ 		readonly controlUrl: string;
+ 		readonly extensionUrlTemplate: string;
 Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
