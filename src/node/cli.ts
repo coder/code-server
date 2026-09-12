@@ -429,10 +429,6 @@ export const parse = (
         throw new Error("--github-auth can only be set in the config file or passed in via $GITHUB_TOKEN")
       }
 
-      if (key === "idle-timeout-seconds" && Number(value) <= 60) {
-        throw new Error("--idle-timeout-seconds must be greater than 60 seconds.")
-      }
-
       const option = options[key]
       if (option.type === "boolean") {
         ;(args[key] as boolean) = true
@@ -450,6 +446,10 @@ export const parse = (
         continue
       } else if (!value) {
         throw error(`--${key} requires a value`)
+      }
+
+      if (key === "idle-timeout-seconds" && Number(value) <= 60) {
+        throw new Error("--idle-timeout-seconds must be greater than 60 seconds.")
       }
 
       if (option.type === OptionalString && value === "false") {
