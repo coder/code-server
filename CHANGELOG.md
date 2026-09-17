@@ -22,6 +22,11 @@ Code v99.99.999
 
 ## Unreleased
 
+### Fixed
+
+- Preserve the original path, query parameters, and fragment when rewriting
+  localhost URLs through the port proxy (#7668).
+
 ## [4.137.0](https://github.com/coder/code-server/releases/tag/v4.137.0) - 2026-09-11
 
 Code v1.137.0

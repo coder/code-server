@@ -13,11 +13,17 @@ This has e2e tests.
 For the `asExternalUri` changes, you'll need to test manually by:
 1. running code-server with the test extension
 2. Command Palette > code-server: asExternalUri test
-3. input a url like http://localhost:3000
-4. it should show a notification and show output as <code-server>/proxy/3000
+3. input a url like http://localhost:3000/my/path?token=abc#section
+4. it should show a notification and show output as
+   <code-server>/proxy/3000/my/path?token%3Dabc#section
 
 Do the same thing but set `VSCODE_PROXY_URI: "https://{{port}}-main-workspace-name-user-name.coder.com"`
 and the output should replace `{{port}}` with port used in input url.
+
+The rewritten URI must preserve the original path, query, and fragment (see
+#7668). Append the original path to the proxy path using URI components so
+encoded characters are not decoded or encoded twice. This also works with
+proxy templates that do not have a trailing slash.
 
 This also enables the forwared ports view panel by default.
 
@@ -104,7 +110,7 @@ Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench.ts
  import type { IURLCallbackProvider } from '../../../workbench/services/url/browser/urlService.js';
  import { create } from '../../../workbench/workbench.web.main.internal.js';
  
-@@ -612,6 +613,39 @@ class WorkspaceProvider implements IWork
+@@ -612,6 +613,44 @@ class WorkspaceProvider implements IWork
  		settingsSyncOptions: config.settingsSyncOptions ? { enabled: config.settingsSyncOptions.enabled, } : undefined,
  		workspaceProvider: WorkspaceProvider.create(config),
  		urlCallbackProvider: new LocalStorageURLCallbackProvider(config.callbackRoute),
@@ -116,7 +122,12 @@ Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench.ts
 +					const renderedTemplate = config.productConfiguration.proxyEndpointTemplate
 +						.replace('{{port}}', localhostMatch.port.toString())
 +						.replace('{{host}}', window.location.host)
-+					resolvedUri = URI.parse(new URL(renderedTemplate, window.location.href).toString())
++					const proxyUri = URI.parse(new URL(renderedTemplate, window.location.href).toString())
++					resolvedUri = proxyUri.with({
++						path: proxyUri.path.replace(/\/$/, '') + uri.path,
++						query: uri.query,
++						fragment: uri.fragment,
++					})
 +				} else {
 +					throw new Error(`Failed to resolve external URI: ${uri.toString()}. Could not determine base url because productConfiguration missing.`)
 +				}
