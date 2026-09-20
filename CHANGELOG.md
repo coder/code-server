@@ -27,6 +27,20 @@ Code v99.99.999
 - `--idle-timeout-seconds` was only validated when passed as `--idle-timeout-seconds=<value>`;
   values of 60 or less passed as `--idle-timeout-seconds <value>` were silently accepted.
 
+## [4.138.0](https://github.com/coder/code-server/releases/tag/v4.138.0) - 2026-09-19
+
+Code v1.138.0
+
+### Changed
+
+- Update to Code 1.138.0
+
+### Fixed
+
+- Preserve the original path, query parameters, and fragment when rewriting
+  localhost URLs through the port proxy. If `VSCODE_PROXY_URI` has any query
+  parameters or fragments, those will be lost.
+
 ## [4.137.0](https://github.com/coder/code-server/releases/tag/v4.137.0) - 2026-09-11
 
 Code v1.137.0
