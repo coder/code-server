@@ -471,7 +471,7 @@ Index: code-server/lib/vscode/src/vs/server/node/xserviceAuth.ts
 +			return reject(new Error(`Unknown run_env: ${runEnv}`));
 +		}
 +
-+		const url = `${baseUrl}/api/v1/sessions/${sessionID}/detail?healthCheck=true`;
++		const url = `${baseUrl}/api/v1/sessions/${sessionID}/detail?healthCheck=false`;
 +		const req = https.get(url, {
 +			headers: { 'Id-Token': idToken },
 +			timeout: 10000,

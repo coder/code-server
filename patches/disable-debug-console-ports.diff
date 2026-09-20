@@ -1,0 +1,312 @@
+Index: code-server/lib/vscode/src/vs/workbench/contrib/debug/browser/debug.contribution.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/workbench/contrib/debug/browser/debug.contribution.ts
++++ code-server/lib/vscode/src/vs/workbench/contrib/debug/browser/debug.contribution.ts
+@@ -70,5 +70,8 @@
+ const debugCategory = nls.localize('debugCategory', "Debug");
+ registerColors();
+ 
++// Product policy: Debug Console is disabled.
++const isDebugConsoleEnabled = (): boolean => false;
++
+ 
+ // Register Debug Workbench Contributions
+@@ -100,10 +100,12 @@
+ // Register quick access for debug console
+-Registry.as<IQuickAccessRegistry>(QuickAccessExtensions.Quickaccess).registerQuickAccessProvider({
+-	ctor: DebugConsoleQuickAccess,
+-	prefix: DEBUG_CONSOLE_QUICK_ACCESS_PREFIX,
+-	contextKey: 'inDebugConsolePicker',
+-	placeholder: nls.localize('tasksQuickAccessPlaceholder', "Type the name of a debug console to open."),
+-	helpEntries: [{ description: nls.localize('tasksQuickAccessHelp', "Show All Debug Consoles"), commandId: SELECT_DEBUG_CONSOLE_ID }]
+-});
++if (isDebugConsoleEnabled()) {
++	Registry.as<IQuickAccessRegistry>(QuickAccessExtensions.Quickaccess).registerQuickAccessProvider({
++		ctor: DebugConsoleQuickAccess,
++		prefix: DEBUG_CONSOLE_QUICK_ACCESS_PREFIX,
++		contextKey: 'inDebugConsolePicker',
++		placeholder: nls.localize('tasksQuickAccessPlaceholder', "Type the name of a debug console to open."),
++		helpEntries: [{ description: nls.localize('tasksQuickAccessHelp', "Show All Debug Consoles"), commandId: SELECT_DEBUG_CONSOLE_ID }]
++	});
++}
+ 
+ registerEditorContribution('editor.contrib.callStack', CallStackEditorContribution, EditorContributionInstantiation.AfterFirstRender);
+@@ -140,12 +140,18 @@
+ registerDebugCommandPaletteItem(RunToCursorAction.ID, RunToCursorAction.LABEL, CONTEXT_DEBUGGERS_AVAILABLE);
+-registerDebugCommandPaletteItem(SelectionToReplAction.ID, SelectionToReplAction.LABEL, CONTEXT_IN_DEBUG_MODE);
++if (isDebugConsoleEnabled()) {
++	registerDebugCommandPaletteItem(SelectionToReplAction.ID, SelectionToReplAction.LABEL, CONTEXT_IN_DEBUG_MODE);
++}
+ registerDebugCommandPaletteItem(SelectionToWatchExpressionsAction.ID, SelectionToWatchExpressionsAction.LABEL);
+ registerDebugCommandPaletteItem(TOGGLE_INLINE_BREAKPOINT_ID, nls.localize2('inlineBreakpoint', "Inline Breakpoint"));
+ registerDebugCommandPaletteItem(DEBUG_START_COMMAND_ID, DEBUG_START_LABEL, ContextKeyExpr.and(CONTEXT_DEBUGGERS_AVAILABLE, CONTEXT_DEBUG_STATE.notEqualsTo(getStateLabel(State.Initializing))));
+ registerDebugCommandPaletteItem(DEBUG_RUN_COMMAND_ID, DEBUG_RUN_LABEL, ContextKeyExpr.and(CONTEXT_DEBUGGERS_AVAILABLE, CONTEXT_DEBUG_STATE.notEqualsTo(getStateLabel(State.Initializing))));
+ registerDebugCommandPaletteItem(SELECT_AND_START_ID, SELECT_AND_START_LABEL, ContextKeyExpr.and(CONTEXT_DEBUGGERS_AVAILABLE, CONTEXT_DEBUG_STATE.notEqualsTo(getStateLabel(State.Initializing))));
+-registerDebugCommandPaletteItem(NEXT_DEBUG_CONSOLE_ID, NEXT_DEBUG_CONSOLE_LABEL);
+-registerDebugCommandPaletteItem(PREV_DEBUG_CONSOLE_ID, PREV_DEBUG_CONSOLE_LABEL);
++if (isDebugConsoleEnabled()) {
++	registerDebugCommandPaletteItem(NEXT_DEBUG_CONSOLE_ID, NEXT_DEBUG_CONSOLE_LABEL);
++	registerDebugCommandPaletteItem(PREV_DEBUG_CONSOLE_ID, PREV_DEBUG_CONSOLE_LABEL);
++}
+ registerDebugCommandPaletteItem(SHOW_LOADED_SCRIPTS_ID, OPEN_LOADED_SCRIPTS_LABEL, CONTEXT_IN_DEBUG_MODE, CONTEXT_LOADED_SCRIPTS_SUPPORTED);
+-registerDebugCommandPaletteItem(SELECT_DEBUG_CONSOLE_ID, SELECT_DEBUG_CONSOLE_LABEL);
++if (isDebugConsoleEnabled()) {
++	registerDebugCommandPaletteItem(SELECT_DEBUG_CONSOLE_ID, SELECT_DEBUG_CONSOLE_LABEL);
++}
+ registerDebugCommandPaletteItem(SELECT_DEBUG_SESSION_ID, SELECT_DEBUG_SESSION_LABEL);
+@@ -425,29 +425,30 @@
+ // register repl panel
++if (isDebugConsoleEnabled()) {
++	const VIEW_CONTAINER: ViewContainer = Registry.as<IViewContainersRegistry>(ViewExtensions.ViewContainersRegistry).registerViewContainer({
++		id: DEBUG_PANEL_ID,
++		title: nls.localize2({ comment: ['Debug is a noun in this context, not a verb.'], key: 'debugPanel' }, "Debug Console"),
++		icon: icons.debugConsoleViewIcon,
++		ctorDescriptor: new SyncDescriptor(ViewPaneContainer, [DEBUG_PANEL_ID, { mergeViewWithContainerWhenSingleView: true }]),
++		storageId: DEBUG_PANEL_ID,
++		hideIfEmpty: true,
++		order: 2,
++	}, ViewContainerLocation.Panel, { doNotRegisterOpenCommand: true });
+ 
+-const VIEW_CONTAINER: ViewContainer = Registry.as<IViewContainersRegistry>(ViewExtensions.ViewContainersRegistry).registerViewContainer({
+-	id: DEBUG_PANEL_ID,
+-	title: nls.localize2({ comment: ['Debug is a noun in this context, not a verb.'], key: 'debugPanel' }, "Debug Console"),
+-	icon: icons.debugConsoleViewIcon,
+-	ctorDescriptor: new SyncDescriptor(ViewPaneContainer, [DEBUG_PANEL_ID, { mergeViewWithContainerWhenSingleView: true }]),
+-	storageId: DEBUG_PANEL_ID,
+-	hideIfEmpty: true,
+-	order: 2,
+-}, ViewContainerLocation.Panel, { doNotRegisterOpenCommand: true });
+-
+-Registry.as<IViewsRegistry>(ViewExtensions.ViewsRegistry).registerViews([{
+-	id: REPL_VIEW_ID,
+-	name: nls.localize2({ comment: ['Debug is a noun in this context, not a verb.'], key: 'debugPanel' }, "Debug Console"),
+-	containerIcon: icons.debugConsoleViewIcon,
+-	canToggleVisibility: true,
+-	canMoveView: true,
+-	when: CONTEXT_DEBUGGERS_AVAILABLE,
+-	ctorDescriptor: new SyncDescriptor(Repl),
+-	openCommandActionDescriptor: {
+-		id: 'workbench.debug.action.toggleRepl',
+-		mnemonicTitle: nls.localize({ key: 'miToggleDebugConsole', comment: ['&& denotes a mnemonic'] }, "De&&bug Console"),
+-		keybindings: { primary: KeyMod.CtrlCmd | KeyMod.Shift | KeyCode.KeyY },
+-		order: 2
+-	}
+-}], VIEW_CONTAINER);
++	Registry.as<IViewsRegistry>(ViewExtensions.ViewsRegistry).registerViews([{
++		id: REPL_VIEW_ID,
++		name: nls.localize2({ comment: ['Debug is a noun in this context, not a verb.'], key: 'debugPanel' }, "Debug Console"),
++		containerIcon: icons.debugConsoleViewIcon,
++		canToggleVisibility: true,
++		canMoveView: true,
++		when: CONTEXT_DEBUGGERS_AVAILABLE,
++		ctorDescriptor: new SyncDescriptor(Repl),
++		openCommandActionDescriptor: {
++			id: 'workbench.debug.action.toggleRepl',
++			mnemonicTitle: nls.localize({ key: 'miToggleDebugConsole', comment: ['&& denotes a mnemonic'] }, "De&&bug Console"),
++			keybindings: { primary: KeyMod.CtrlCmd | KeyMod.Shift | KeyCode.KeyY },
++			order: 2
++		}
++	}], VIEW_CONTAINER);
++}
+ 
+ 
+@@ -707,5 +707,9 @@
+-AccessibleViewRegistry.register(new ReplAccessibleView());
+-AccessibleViewRegistry.register(new ReplAccessibilityHelp());
++if (isDebugConsoleEnabled()) {
++	AccessibleViewRegistry.register(new ReplAccessibleView());
++	AccessibleViewRegistry.register(new ReplAccessibilityHelp());
++}
+ AccessibleViewRegistry.register(new RunAndDebugAccessibilityHelp());
+-registerWorkbenchContribution2(ReplAccessibilityAnnouncer.ID, ReplAccessibilityAnnouncer, WorkbenchPhase.AfterRestored);
++if (isDebugConsoleEnabled()) {
++	registerWorkbenchContribution2(ReplAccessibilityAnnouncer.ID, ReplAccessibilityAnnouncer, WorkbenchPhase.AfterRestored);
++}
+ registerWorkbenchContribution2(DebugWatchAccessibilityAnnouncer.ID, DebugWatchAccessibilityAnnouncer, WorkbenchPhase.AfterRestored);
+Index: code-server/lib/vscode/src/vs/workbench/contrib/debug/browser/debugCommands.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/workbench/contrib/debug/browser/debugCommands.ts
++++ code-server/lib/vscode/src/vs/workbench/contrib/debug/browser/debugCommands.ts
+@@ -449,22 +449,26 @@
+-KeybindingsRegistry.registerCommandAndKeybindingRule({
+-	id: NEXT_DEBUG_CONSOLE_ID,
+-	weight: KeybindingWeight.WorkbenchContrib + 1,
+-	when: CONTEXT_IN_DEBUG_REPL,
+-	primary: KeyMod.CtrlCmd | KeyCode.PageDown,
+-	mac: { primary: KeyMod.Shift | KeyMod.CtrlCmd | KeyCode.BracketRight },
+-	handler: async (accessor: ServicesAccessor, _: string, context: CallStackContext | unknown) => {
+-		changeDebugConsoleFocus(accessor, true);
+-	}
+-});
++// Product policy: Debug Console command/keybinding paths are disabled.
++const isDebugConsoleEnabled = (): boolean => false;
++if (isDebugConsoleEnabled()) {
++	KeybindingsRegistry.registerCommandAndKeybindingRule({
++		id: NEXT_DEBUG_CONSOLE_ID,
++		weight: KeybindingWeight.WorkbenchContrib + 1,
++		when: CONTEXT_IN_DEBUG_REPL,
++		primary: KeyMod.CtrlCmd | KeyCode.PageDown,
++		mac: { primary: KeyMod.Shift | KeyMod.CtrlCmd | KeyCode.BracketRight },
++		handler: async (accessor: ServicesAccessor, _: string, context: CallStackContext | unknown) => {
++			changeDebugConsoleFocus(accessor, true);
++		}
++	});
+ 
+-KeybindingsRegistry.registerCommandAndKeybindingRule({
+-	id: PREV_DEBUG_CONSOLE_ID,
+-	weight: KeybindingWeight.WorkbenchContrib + 1,
+-	when: CONTEXT_IN_DEBUG_REPL,
+-	primary: KeyMod.CtrlCmd | KeyCode.PageUp,
+-	mac: { primary: KeyMod.Shift | KeyMod.CtrlCmd | KeyCode.BracketLeft },
+-	handler: async (accessor: ServicesAccessor, _: string, context: CallStackContext | unknown) => {
+-		changeDebugConsoleFocus(accessor, false);
+-	}
+-});
++	KeybindingsRegistry.registerCommandAndKeybindingRule({
++		id: PREV_DEBUG_CONSOLE_ID,
++		weight: KeybindingWeight.WorkbenchContrib + 1,
++		when: CONTEXT_IN_DEBUG_REPL,
++		primary: KeyMod.CtrlCmd | KeyCode.PageUp,
++		mac: { primary: KeyMod.Shift | KeyMod.CtrlCmd | KeyCode.BracketLeft },
++		handler: async (accessor: ServicesAccessor, _: string, context: CallStackContext | unknown) => {
++			changeDebugConsoleFocus(accessor, false);
++		}
++	});
++}
+ 
+@@ -747,10 +747,12 @@
+-CommandsRegistry.registerCommand({
+-	id: SELECT_DEBUG_CONSOLE_ID,
+-	handler: async (accessor: ServicesAccessor) => {
+-		const quickInputService = accessor.get(IQuickInputService);
+-		quickInputService.quickAccess.show(DEBUG_CONSOLE_QUICK_ACCESS_PREFIX);
+-	}
+-});
++if (isDebugConsoleEnabled()) {
++	CommandsRegistry.registerCommand({
++		id: SELECT_DEBUG_CONSOLE_ID,
++		handler: async (accessor: ServicesAccessor) => {
++			const quickInputService = accessor.get(IQuickInputService);
++			quickInputService.quickAccess.show(DEBUG_CONSOLE_QUICK_ACCESS_PREFIX);
++		}
++	});
++}
+ 
+ CommandsRegistry.registerCommand({
+ 	id: SELECT_DEBUG_SESSION_ID,
+Index: code-server/lib/vscode/src/vs/workbench/contrib/debug/browser/debugEditorActions.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/workbench/contrib/debug/browser/debugEditorActions.ts
++++ code-server/lib/vscode/src/vs/workbench/contrib/debug/browser/debugEditorActions.ts
+@@ -637,5 +637,9 @@
+ registerEditorAction(RunToCursorAction);
+ registerEditorAction(StepIntoTargetsAction);
+-registerEditorAction(SelectionToReplAction);
++// Product policy: "Evaluate in Debug Console" is disabled.
++const isDebugConsoleEnabled = (): boolean => false;
++if (isDebugConsoleEnabled()) {
++	registerEditorAction(SelectionToReplAction);
++}
+ registerEditorAction(SelectionToWatchExpressionsAction);
+ registerEditorAction(ShowDebugHoverAction);
+Index: code-server/lib/vscode/src/vs/workbench/contrib/remote/browser/remote.contribution.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/workbench/contrib/remote/browser/remote.contribution.ts
++++ code-server/lib/vscode/src/vs/workbench/contrib/remote/browser/remote.contribution.ts
+@@ -16,2 +16,4 @@
+ const workbenchContributionsRegistry = Registry.as<IWorkbenchContributionsRegistry>(WorkbenchExtensions.Workbench);
++// Product policy: Ports UI, restore, and automatic forwarding are disabled.
++const arePortsEnabled = (): boolean => false;
+ registerWorkbenchContribution2(ShowCandidateContribution.ID, ShowCandidateContribution, WorkbenchPhase.BlockRestore);
+@@ -20,5 +20,7 @@
+ registerWorkbenchContribution2(RemoteStatusIndicator.ID, RemoteStatusIndicator, WorkbenchPhase.BlockStartup);
+-workbenchContributionsRegistry.registerWorkbenchContribution(ForwardedPortsView, LifecyclePhase.Restored);
+-workbenchContributionsRegistry.registerWorkbenchContribution(PortRestore, LifecyclePhase.Eventually);
+-workbenchContributionsRegistry.registerWorkbenchContribution(AutomaticPortForwarding, LifecyclePhase.Eventually);
++if (arePortsEnabled()) {
++	workbenchContributionsRegistry.registerWorkbenchContribution(ForwardedPortsView, LifecyclePhase.Restored);
++	workbenchContributionsRegistry.registerWorkbenchContribution(PortRestore, LifecyclePhase.Eventually);
++	workbenchContributionsRegistry.registerWorkbenchContribution(AutomaticPortForwarding, LifecyclePhase.Eventually);
++}
+ workbenchContributionsRegistry.registerWorkbenchContribution(RemoteMarkers, LifecyclePhase.Eventually);
+Index: code-server/lib/vscode/src/vs/workbench/services/remote/common/remoteExplorerService.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/workbench/services/remote/common/remoteExplorerService.ts
++++ code-server/lib/vscode/src/vs/workbench/services/remote/common/remoteExplorerService.ts
+@@ -30,3 +30,6 @@
+ export const PORT_AUTO_SOURCE_SETTING_HYBRID = 'hybrid';
+ 
++// Product policy: Ports/tunnel forwarding is disabled.
++const arePortsEnabled = (): boolean => false;
++
+ export enum TunnelType {
+@@ -199,4 +199,7 @@
+ 	forward(tunnelProperties: TunnelProperties, attributes?: Attributes | null): Promise<RemoteTunnel | string | undefined> {
++		if (!arePortsEnabled()) {
++			return Promise.resolve(undefined);
++		}
+ 		return this.tunnelModel.forward(tunnelProperties, attributes);
+ 	}
+ 
+@@ -207,4 +207,7 @@
+ 	setTunnelInformation(tunnelInformation: TunnelInformation | undefined): void {
++		if (!arePortsEnabled()) {
++			return;
++		}
+ 		if (tunnelInformation?.features) {
+ 			this.tunnelService.setTunnelFeatures(tunnelInformation.features);
+ 		}
+@@ -233,4 +233,9 @@
+ 	setCandidateFilter(filter: (candidates: CandidatePort[]) => Promise<CandidatePort[]>): IDisposable {
++		if (!arePortsEnabled()) {
++			return {
++				dispose: () => { }
++			};
++		}
+ 		if (!filter) {
+ 			return {
+ 				dispose: () => { }
+@@ -249,12 +249,22 @@
+ 	onFoundNewCandidates(candidates: CandidatePort[]): void {
++		if (!arePortsEnabled()) {
++			return;
++		}
+ 		this.tunnelModel.setCandidates(candidates);
+ 	}
+ 
+ 	restore(): Promise<void> {
++		if (!arePortsEnabled()) {
++			return Promise.resolve();
++		}
+ 		return this.tunnelModel.restoreForwarded();
+ 	}
+ 
+ 	enablePortsFeatures(viewOnly: boolean): void {
++		if (!arePortsEnabled()) {
++			this._portsFeaturesEnabled = PortsEnablement.Disabled;
++			return;
++		}
+ 		this._portsFeaturesEnabled = viewOnly ? PortsEnablement.ViewOnly : PortsEnablement.AdditionalFeatures;
+ 		this._onEnabledPortsFeatures.fire();
+ 	}
+Index: code-server/lib/vscode/src/vs/workbench/contrib/remote/browser/tunnelView.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/workbench/contrib/remote/browser/tunnelView.ts
++++ code-server/lib/vscode/src/vs/workbench/contrib/remote/browser/tunnelView.ts
+@@ -1583,4 +1583,8 @@
+ }
++
++// Product policy: Ports commands, keybindings, command-palette entries, and menus are disabled.
++const arePortCommandsEnabled = (): boolean => false;
++if (arePortCommandsEnabled()) {
+ 
+ const tunnelViewCommandsWeightBonus = 10; // give our commands a little bit more weight over other default list/tree commands
+ 
+@@ -1814,4 +1814,6 @@
+ 	when: isForwardedOrDetectedExpr
+ }));
+ 
++}
++
+ registerColor('ports.iconRunningProcessForeground', STATUS_BAR_REMOTE_ITEM_BACKGROUND, nls.localize('portWithRunningProcess.foreground', "The color of the icon for a port that has an associated running process."));
+
