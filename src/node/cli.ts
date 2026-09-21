@@ -53,6 +53,9 @@ export interface UserProvidedCodeArgs {
   "disable-workspace-trust"?: boolean
   "disable-getting-started-override"?: boolean
   "disable-proxy"?: boolean
+  // [code-server] When true (the default), workbench notification popups are
+  // suppressed and logged server-side; see CS_DISABLE_NOTIFICATIONS.
+  "disable-notifications"?: boolean
   "reconnection-grace-time"?: string
   "session-socket"?: string
   "cookie-suffix"?: string
@@ -221,6 +224,13 @@ export const options: Options<Required<UserProvidedArgs>> = {
   "disable-proxy": {
     type: "boolean",
     description: "Disable domain and path proxy routes.",
+  },
+  "disable-notifications": {
+    type: "boolean",
+    description:
+      "Disable workbench notification popups and record them to a server-side log instead. " +
+      "Enabled by default; set CS_DISABLE_NOTIFICATIONS to 'false'/'0', " +
+      "use '--disable-notifications=false', or 'disable-notifications: false' in the config file to restore notifications.",
   },
   // --enable can be used to enable experimental features. These features
   // provide no guarantees.
@@ -442,7 +452,14 @@ export const parse = (
 
       const option = options[key]
       if (option.type === "boolean") {
-        ;(args[key] as boolean) = true
+        // [code-server] Allow explicitly turning boolean options off via
+        // --flag=false or --flag=0 (the YAML config file encodes `false` as
+        // `--flag=false`). A bare flag, or --flag=true/1, still means true.
+        if (typeof value !== "undefined" && /^(0|false)$/i.test(value)) {
+          ;(args[key] as boolean) = false
+        } else {
+          ;(args[key] as boolean) = true
+        }
         continue
       }
 
@@ -647,6 +664,15 @@ export async function setDefaults(cliArgs: UserProvidedArgs, configArgs?: Config
 
   if (process.env.CS_DISABLE_PROXY?.match(/^(1|true)$/)) {
     args["disable-proxy"] = true
+  }
+
+  // [code-server] Workbench notification popups/toasts are suppressed by
+  // default and recorded to a server-side log file instead. An explicit
+  // --disable-notifications flag or config-file value takes priority;
+  // otherwise set CS_DISABLE_NOTIFICATIONS to "false" or "0" to restore the
+  // upstream notification behavior.
+  if (args["disable-notifications"] === undefined) {
+    args["disable-notifications"] = !process.env.CS_DISABLE_NOTIFICATIONS?.match(/^(0|false)$/i)
   }
 
   const usingEnvHashedPassword = !!process.env.HASHED_PASSWORD

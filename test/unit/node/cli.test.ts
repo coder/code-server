@@ -39,6 +39,7 @@ const defaults = {
   "user-data-dir": paths.data,
   "session-socket": path.join(paths.data, "code-server-ipc.sock"),
   "app-name": "code-server",
+  "disable-notifications": true,
   _: [],
 }
 
@@ -51,6 +52,7 @@ describe("parser", () => {
     delete process.env.CODE_SERVER_RECONNECTION_GRACE_TIME
     delete process.env.VSCODE_PROXY_URI
     delete process.env.CS_DISABLE_PROXY
+    delete process.env.CS_DISABLE_NOTIFICATIONS
     console.log = jest.fn()
   })
 
@@ -461,6 +463,53 @@ describe("parser", () => {
     })
   })
 
+  it("should disable notifications by default", async () => {
+    const args = parse([])
+    expect(args).toEqual({})
+
+    const defaultArgs = await setDefaults(args)
+    expect(defaultArgs).toEqual({
+      ...defaults,
+      "disable-notifications": true,
+    })
+  })
+
+  it("should use env var CS_DISABLE_NOTIFICATIONS set to false", async () => {
+    process.env.CS_DISABLE_NOTIFICATIONS = "false"
+    const args = parse([])
+    expect(args).toEqual({})
+
+    const defaultArgs = await setDefaults(args)
+    expect(defaultArgs).toEqual({
+      ...defaults,
+      "disable-notifications": false,
+    })
+  })
+
+  it("should use env var CS_DISABLE_NOTIFICATIONS set to 0", async () => {
+    process.env.CS_DISABLE_NOTIFICATIONS = "0"
+    const args = parse([])
+    expect(args).toEqual({})
+
+    const defaultArgs = await setDefaults(args)
+    expect(defaultArgs).toEqual({
+      ...defaults,
+      "disable-notifications": false,
+    })
+  })
+
+  it("should use env var CS_DISABLE_NOTIFICATIONS set to true", async () => {
+    process.env.CS_DISABLE_NOTIFICATIONS = "true"
+    const args = parse([])
+    expect(args).toEqual({})
+
+    const defaultArgs = await setDefaults(args)
+    expect(defaultArgs).toEqual({
+      ...defaults,
+      "disable-notifications": true,
+    })
+  })
+
   it("should use env var CODE_SERVER_RECONNECTION_GRACE_TIME for reconnection grace time", async () => {
     process.env.CODE_SERVER_RECONNECTION_GRACE_TIME = "86400"
     const args = parse([])
@@ -554,6 +603,25 @@ describe("parser", () => {
   })
   it("should ignore optional strings set to false", async () => {
     expect(parse(["--cert=false"])).toEqual({})
+  })
+  it("should parse a boolean flag set to false", () => {
+    expect(parse(["--disable-notifications=false"])).toEqual({
+      "disable-notifications": false,
+    })
+  })
+  it("should parse a boolean flag set to 0", () => {
+    expect(parse(["--disable-notifications=0"])).toEqual({
+      "disable-notifications": false,
+    })
+  })
+  it("should parse boolean false from the config file", () => {
+    const configContents = `
+      disable-notifications: false
+    `
+    expect(parseConfigFile(configContents, "/fake-config-path")).toEqual({
+      config: "/fake-config-path",
+      "disable-notifications": false,
+    })
   })
   it("should use last flag", async () => {
     expect(parse(["--port", "8081", "--port", "8082"])).toEqual({
