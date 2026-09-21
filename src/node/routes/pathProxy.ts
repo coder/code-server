@@ -2,24 +2,24 @@ import { Request, Response } from "express"
 import * as path from "path"
 import { HttpCode, HttpError } from "../../common/http"
 import { ensureProxyEnabled, authenticated, ensureAuthenticated, ensureOrigin, redirect, self } from "../http"
-import { proxy as _proxy } from "../proxy"
+// import { proxy as _proxy } from "../proxy"
 import type { WebsocketRequest } from "../wsRouter"
 
-const getProxyTarget = (
-  req: Request,
-  opts?: {
-    proxyBasePath?: string
-  },
-): string => {
-  // If there is a base path, strip it out.
-  const base = (req as any).base || ""
-  // Cast since we only have one port param.
-  const port = parseInt(req.params.port as string, 10)
-  if (isNaN(port)) {
-    throw new HttpError("Invalid port", HttpCode.BadRequest)
-  }
-  return `http://0.0.0.0:${port}${opts?.proxyBasePath || ""}/${req.originalUrl.slice(base.length)}`
-}
+// const getProxyTarget = (
+//   req: Request,
+//   opts?: {
+//     proxyBasePath?: string
+//   },
+// ): string => {
+//   // If there is a base path, strip it out.
+//   const base = (req as any).base || ""
+//   // Cast since we only have one port param.
+//   const port = parseInt(req.params.port as string, 10)
+//   if (isNaN(port)) {
+//     throw new HttpError("Invalid port", HttpCode.BadRequest)
+//   }
+//   return `http://0.0.0.0:${port}${opts?.proxyBasePath || ""}/${req.originalUrl.slice(base.length)}`
+// }
 
 export async function proxy(
   req: Request,
@@ -49,10 +49,10 @@ export async function proxy(
     ;(req as any).base = req.path.split(path.sep).slice(0, 3).join(path.sep)
   }
 
-  _proxy.web(req, res, {
-    ignorePath: true,
-    target: getProxyTarget(req, opts),
-  })
+//   _proxy.web(req, res, {
+//     ignorePath: true,
+//     target: getProxyTarget(req, opts),
+//   })
 }
 
 export async function wsProxy(
@@ -71,8 +71,8 @@ export async function wsProxy(
     ;(req as any).base = req.path.split(path.sep).slice(0, 3).join(path.sep)
   }
 
-  _proxy.ws(req, req.ws, req.head, {
-    ignorePath: true,
-    target: getProxyTarget(req, opts),
-  })
+//   _proxy.ws(req, req.ws, req.head, {
+//     ignorePath: true,
+//     target: getProxyTarget(req, opts),
+//   })
 }

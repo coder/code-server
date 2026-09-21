@@ -1,332 +1,65 @@
-Disable proxy routes by commenting out the implementation
+Disable VS Code forwarded-ports features via remoteExplorer.ts
 
-This patch comments out (rather than deletes) all proxy-related code in
-code-server, providing a more thorough disable than the --disable-proxy flag
-which only short-circuits handlers to return 403.
+This patch now ONLY handles the VS Code side of proxy/ports disabling. The
+code-server proxy-route disabling has been moved out of this patch and applied
+directly to the code-server source files (see "code-server source changes"
+below) as commented-out dead code for an easy re-enable path.
 
-With this patch applied:
+VS Code change (remoteExplorer.ts):
 
+- enableForwardedPortsFeatures() sets featuresEnabled / viewEnabled to false,
+  so the Ports (Forwarded Ports) view is never registered and
+  portsFeaturesEnabled stays at its default Disabled.
+- Because portsFeaturesEnabled is never AdditionalFeatures, both the process
+  port scanner (extHostTunnelService $registerCandidateFinder) and the
+  terminal-output scanner (OutputAutomaticPortForwarding) become no-ops, so
+  no "new port available" popup appears and nothing is forwarded.
+
+Note: The tunnelView.ts "Forward a Port" command and CommandPalette entries are
+NOT commented out in this patch; they are disabled by the later
+disable-debug-console-ports.diff patch which wraps the entire tunnelView
+commands section in an if(false) block. When applied alone, this patch relies
+on remoteExplorer.ts to prevent the Ports view from being registered, which
+makes the ForwardPortAction commands unreachable through the UI.
+
+code-server source changes (NO LONGER in this patch; now live in source):
+
+The proxy route disabling is done directly in the code-server source by
+commenting out the implementation (kept as dead code for an easy re-enable):
+
+- src/node/proxy.ts             createProxyServer() + error/proxyReq/proxyRes
+                                event handlers commented out
+- src/node/routes/domainProxy.ts domain-based proxy router/wsRouter middleware
+                                bodies (proxy.web / proxy.ws) commented out
+- src/node/routes/index.ts      /proxy/:port and /absproxy/:port route
+                                registration + domainProxy/pathProxy imports
+                                commented out (also the WebsocketRequest type
+                                import, no longer used)
+- src/node/routes/pathProxy.ts  getProxyTarget() + _proxy.web / _proxy.ws calls
+                                commented out (no callers left)
+
+With those source edits applied (in the source tree, not via this patch):
 - /proxy/:port and /absproxy/:port routes are not registered, so requests fall
-  through to the 404 catch-all in routes/index.ts
-- domain-based proxy middleware (domainProxy.router / wsRouter) is not mounted
+  through to the 404 catch-all in routes/index.ts (NOT 403).
 - createProxyServer() in src/node/proxy.ts is not invoked, so the http-proxy
-  instance and its event handlers (error/proxyReq/proxyRes) are not created
-- ensureProxyEnabled() / proxyEnabled() in http.ts are left intact as dead code
-  for an easy re-enable path
+  instance and its event handlers are not created.
+- ensureProxyEnabled() / proxyEnabled() in http.ts are left intact as dead code.
 
-To verify:
-
-1. Apply: quilt push disable-proxy.diff
-2. Start: code-server --auth none
-3. curl -i http://localhost:8080/proxy/3000/
-   - Expected: 404 Not Found (NOT 403)
-4. Re-enable: quilt pop disable-proxy.diff
-
-In addition, this patch now ALSO disables the VS Code port-forwarding /
-auto-forward feature in the vendored lib/vscode (it previously only touched
-code-server's own src/). With the lib/vscode changes:
-
-- remoteExplorer.ts `enableForwardedPortsFeatures()` sets featuresEnabled /
-  viewEnabled to false, so the Ports (Forwarded Ports) view is never
-  registered and `portsFeaturesEnabled` stays at its default `Disabled`.
-- Because `portsFeaturesEnabled` is never `AdditionalFeatures`, both the
-  process port scanner (extHostTunnelService `$registerCandidateFinder`) and
-  the terminal-output scanner (OutputAutomaticPortForwarding) become no-ops,
-  so no "new port available" popup appears and nothing is forwarded.
-- tunnelView.ts: the "Forward a Port" command registration and its
-  CommandPalette menu entry are commented out, hiding the feature.
-
-The proxy-uri.diff patch is still independent and will still inject
+The proxy-uri.diff patch is still independent and still injects
 VSCODE_PROXY_URI into terminals, but following those URLs now returns 404.
 
-To verify the port-forwarding disable (no full build needed on low-RAM
-machines):
-- `quilt refresh` applies cleanly (proves the hunks still match the tree).
-- After building/running: starting a new port (e.g. `python3 -m http.server
-  8081`) in the integrated terminal must NOT trigger a "port available"
-  notification; the bottom Panel must NOT show a Ports view; the command
-  palette must NOT list "Forward a Port".
+To verify (VS Code part):
+1. Apply: quilt push disable-proxy.diff
+2. Start: code-server --auth none
+3. Open the Command Palette - "Forward a Port" is unreachable (Ports view is
+   not registered).
+4. Re-enable VS Code part: quilt pop disable-proxy.diff
 
-Compile-fix notes (tsconfig has noUnusedLocals):
-- index.ts: also comment out `import type { WebsocketRequest }` (no longer used)
-- pathProxy.ts: also comment out `getProxyTarget` (no callers left)
+To verify (code-server source part, now independent of this patch):
+1. Start: code-server --auth none
+2. curl -i http://localhost:8080/proxy/3000/
+   Expected: 404 Not Found (handled by the source edits, not this patch).
 
-Index: code-server/src/node/proxy.ts
-===================================================================
---- code-server.orig/src/node/proxy.ts
-+++ code-server/src/node/proxy.ts
-@@ -1,42 +1,42 @@
--import * as cookie from "cookie"
--import type { Request } from "express"
--import proxyServer from "http-proxy"
--import { getCookieSessionName, HttpCode } from "../common/http"
--
--export const proxy = proxyServer.createProxyServer({})
--
--// The error handler catches when the proxy fails to connect (for example when
--// there is nothing running on the target port).
--proxy.on("error", (error, _, res) => {
--  // This could be for either a web socket or a regular request.  Despite what
--  // the types say, writeHead() will not exist on web socket requests (nor will
--  // status() from Express).  But writing out the code manually does not work
--  // for regular requests thus the branching behavior.
--  if (typeof res.writeHead !== "undefined") {
--    res.writeHead(HttpCode.ServerError)
--    res.end(error.message)
--  } else {
--    res.end(`HTTP/1.1 ${HttpCode.ServerError} ${error.message}\r\n\r\n`)
--  }
--})
--
--// Strip the code-server cookie if it exists to avoid transmitting the cookie
--// to potentially malicious local ports.
--proxy.on("proxyReq", (preq, req) => {
--  const cookieSessionName = getCookieSessionName((req as Request).args["cookie-suffix"])
--  preq.setHeader(
--    "Cookie",
--    cookie.stringifyCookie({
--      ...(req as Request).cookies,
--      [cookieSessionName]: undefined,
--    }),
--  )
--})
--
--// Intercept the response to rewrite absolute redirects against the base path.
--// Is disabled when the request has no base path which means /absproxy is in use.
--proxy.on("proxyRes", (res, req) => {
--  if (res.headers.location && res.headers.location.startsWith("/") && (req as any).base) {
--    res.headers.location = (req as any).base + res.headers.location
--  }
--})
-+// import * as cookie from "cookie"
-+// import type { Request } from "express"
-+// import proxyServer from "http-proxy"
-+// import { getCookieSessionName, HttpCode } from "../common/http"
-+// 
-+// export const proxy = proxyServer.createProxyServer({})
-+// 
-+// // The error handler catches when the proxy fails to connect (for example when
-+// // there is nothing running on the target port).
-+// proxy.on("error", (error, _, res) => {
-+//   // This could be for either a web socket or a regular request.  Despite what
-+//   // the types say, writeHead() will not exist on web socket requests (nor will
-+//   // status() from Express).  But writing out the code manually does not work
-+//   // for regular requests thus the branching behavior.
-+//   if (typeof res.writeHead !== "undefined") {
-+//     res.writeHead(HttpCode.ServerError)
-+//     res.end(error.message)
-+//   } else {
-+//     res.end(`HTTP/1.1 ${HttpCode.ServerError} ${error.message}\r\n\r\n`)
-+//   }
-+// })
-+// 
-+// // Strip the code-server cookie if it exists to avoid transmitting the cookie
-+// // to potentially malicious local ports.
-+// proxy.on("proxyReq", (preq, req) => {
-+//   const cookieSessionName = getCookieSessionName((req as Request).args["cookie-suffix"])
-+//   preq.setHeader(
-+//     "Cookie",
-+//     cookie.stringifyCookie({
-+//       ...(req as Request).cookies,
-+//       [cookieSessionName]: undefined,
-+//     }),
-+//   )
-+// })
-+// 
-+// // Intercept the response to rewrite absolute redirects against the base path.
-+// // Is disabled when the request has no base path which means /absproxy is in use.
-+// proxy.on("proxyRes", (res, req) => {
-+//   if (res.headers.location && res.headers.location.startsWith("/") && (req as any).base) {
-+//     res.headers.location = (req as any).base + res.headers.location
-+//   }
-+// })
-Index: code-server/src/node/routes/domainProxy.ts
-===================================================================
---- code-server.orig/src/node/routes/domainProxy.ts
-+++ code-server/src/node/routes/domainProxy.ts
-@@ -1,7 +1,7 @@
- import { Request, Router } from "express"
- import { HttpCode, HttpError } from "../../common/http"
- import { getHost, ensureProxyEnabled, authenticated, ensureAuthenticated, ensureOrigin, redirect, self } from "../http"
--import { proxy } from "../proxy"
-+// import { proxy } from "../proxy"
- import { Router as WsRouter } from "../wsRouter"
- 
- export const router = Router()
-@@ -94,10 +94,10 @@ router.all(/.*/, async (req, res, next)
-     throw new HttpError("Unauthorized", HttpCode.Unauthorized)
-   }
- 
--  proxy.web(req, res, {
--    ignorePath: true,
--    target: `http://0.0.0.0:${port}${req.originalUrl}`,
--  })
-+//   proxy.web(req, res, {
-+//     ignorePath: true,
-+//     target: `http://0.0.0.0:${port}${req.originalUrl}`,
-+//   })
- })
- 
- export const wsRouter = WsRouter()
-@@ -111,8 +111,8 @@ wsRouter.ws(/.*/, async (req, _, next) =
-   ensureProxyEnabled(req)
-   ensureOrigin(req)
-   await ensureAuthenticated(req)
--  proxy.ws(req, req.ws, req.head, {
--    ignorePath: true,
--    target: `http://0.0.0.0:${port}${req.originalUrl}`,
--  })
-+//   proxy.ws(req, req.ws, req.head, {
-+//     ignorePath: true,
-+//     target: `http://0.0.0.0:${port}${req.originalUrl}`,
-+//   })
- })
-Index: code-server/src/node/routes/index.ts
-===================================================================
---- code-server.orig/src/node/routes/index.ts
-+++ code-server/src/node/routes/index.ts
-@@ -15,13 +15,13 @@ import { redirect } from "../http"
- import { CoderSettings, SettingsProvider } from "../settings"
- import { UpdateProvider } from "../update"
- import { getMediaMime, paths } from "../util"
--import type { WebsocketRequest } from "../wsRouter"
--import * as domainProxy from "./domainProxy"
-+// import type { WebsocketRequest } from "../wsRouter"
-+// import * as domainProxy from "./domainProxy"
- import { errorHandler, wsErrorHandler } from "./errors"
- import * as health from "./health"
- import * as login from "./login"
- import * as logout from "./logout"
--import * as pathProxy from "./pathProxy"
-+// import * as pathProxy from "./pathProxy"
- import * as update from "./update"
- import * as vscode from "./vscode"
- 
-@@ -107,30 +107,30 @@ export const register = async (
-     res.send(await fs.readFile(resourcePath))
-   })
- 
--  app.router.use("/", domainProxy.router)
--  app.wsRouter.use("/", domainProxy.wsRouter.router)
--
--  app.router.all("/proxy/:port{/*path}", async (req, res) => {
--    await pathProxy.proxy(req, res)
--  })
--  app.wsRouter.get("/proxy/:port{/*path}", async (req) => {
--    await pathProxy.wsProxy(req as unknown as WebsocketRequest)
--  })
-+//   app.router.use("/", domainProxy.router)
-+//   app.wsRouter.use("/", domainProxy.wsRouter.router)
-+// 
-+//   app.router.all("/proxy/:port{/*path}", async (req, res) => {
-+//     await pathProxy.proxy(req, res)
-+//   })
-+//   app.wsRouter.get("/proxy/:port{/*path}", async (req) => {
-+//     await pathProxy.wsProxy(req as unknown as WebsocketRequest)
-+//   })
-   // These two routes pass through the path directly.
-   // So the proxied app must be aware it is running
-   // under /absproxy/<someport>/
--  app.router.all("/absproxy/:port{/*path}", async (req, res) => {
--    await pathProxy.proxy(req, res, {
--      passthroughPath: true,
--      proxyBasePath: args["abs-proxy-base-path"],
--    })
--  })
--  app.wsRouter.get("/absproxy/:port{/*path}", async (req) => {
--    await pathProxy.wsProxy(req as unknown as WebsocketRequest, {
--      passthroughPath: true,
--      proxyBasePath: args["abs-proxy-base-path"],
--    })
--  })
-+//   app.router.all("/absproxy/:port{/*path}", async (req, res) => {
-+//     await pathProxy.proxy(req, res, {
-+//       passthroughPath: true,
-+//       proxyBasePath: args["abs-proxy-base-path"],
-+//     })
-+//   })
-+//   app.wsRouter.get("/absproxy/:port{/*path}", async (req) => {
-+//     await pathProxy.wsProxy(req as unknown as WebsocketRequest, {
-+//       passthroughPath: true,
-+//       proxyBasePath: args["abs-proxy-base-path"],
-+//     })
-+//   })
- 
-   app.router.use(express.json())
-   app.router.use(express.urlencoded({ extended: true }))
-Index: code-server/src/node/routes/pathProxy.ts
-===================================================================
---- code-server.orig/src/node/routes/pathProxy.ts
-+++ code-server/src/node/routes/pathProxy.ts
-@@ -2,24 +2,24 @@ import { Request, Response } from "expre
- import * as path from "path"
- import { HttpCode, HttpError } from "../../common/http"
- import { ensureProxyEnabled, authenticated, ensureAuthenticated, ensureOrigin, redirect, self } from "../http"
--import { proxy as _proxy } from "../proxy"
-+// import { proxy as _proxy } from "../proxy"
- import type { WebsocketRequest } from "../wsRouter"
- 
--const getProxyTarget = (
--  req: Request,
--  opts?: {
--    proxyBasePath?: string
--  },
--): string => {
--  // If there is a base path, strip it out.
--  const base = (req as any).base || ""
--  // Cast since we only have one port param.
--  const port = parseInt(req.params.port as string, 10)
--  if (isNaN(port)) {
--    throw new HttpError("Invalid port", HttpCode.BadRequest)
--  }
--  return `http://0.0.0.0:${port}${opts?.proxyBasePath || ""}/${req.originalUrl.slice(base.length)}`
--}
-+// const getProxyTarget = (
-+//   req: Request,
-+//   opts?: {
-+//     proxyBasePath?: string
-+//   },
-+// ): string => {
-+//   // If there is a base path, strip it out.
-+//   const base = (req as any).base || ""
-+//   // Cast since we only have one port param.
-+//   const port = parseInt(req.params.port as string, 10)
-+//   if (isNaN(port)) {
-+//     throw new HttpError("Invalid port", HttpCode.BadRequest)
-+//   }
-+//   return `http://0.0.0.0:${port}${opts?.proxyBasePath || ""}/${req.originalUrl.slice(base.length)}`
-+// }
- 
- export async function proxy(
-   req: Request,
-@@ -49,10 +49,10 @@ export async function proxy(
-     ;(req as any).base = req.path.split(path.sep).slice(0, 3).join(path.sep)
-   }
- 
--  _proxy.web(req, res, {
--    ignorePath: true,
--    target: getProxyTarget(req, opts),
--  })
-+//   _proxy.web(req, res, {
-+//     ignorePath: true,
-+//     target: getProxyTarget(req, opts),
-+//   })
- }
- 
- export async function wsProxy(
-@@ -71,8 +71,8 @@ export async function wsProxy(
-     ;(req as any).base = req.path.split(path.sep).slice(0, 3).join(path.sep)
-   }
- 
--  _proxy.ws(req, req.ws, req.head, {
--    ignorePath: true,
--    target: getProxyTarget(req, opts),
--  })
-+//   _proxy.ws(req, req.ws, req.head, {
-+//     ignorePath: true,
-+//     target: getProxyTarget(req, opts),
-+//   })
- }
 Index: code-server/lib/vscode/src/vs/workbench/contrib/remote/browser/remoteExplorer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/contrib/remote/browser/remoteExplorer.ts
@@ -342,39 +75,3 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/remote/browser/remoteExpl
  
  		if (featuresEnabled || viewEnabled) {
  			// Also enable the view if it isn't already.
-Index: code-server/lib/vscode/src/vs/workbench/contrib/remote/browser/tunnelView.ts
-===================================================================
---- code-server.orig/lib/vscode/src/vs/workbench/contrib/remote/browser/tunnelView.ts
-+++ code-server/lib/vscode/src/vs/workbench/contrib/remote/browser/tunnelView.ts
-@@ -1598,8 +1598,8 @@ KeybindingsRegistry.registerCommandAndKe
- 	},
- 	handler: LabelTunnelAction.handler()
- });
--CommandsRegistry.registerCommand(ForwardPortAction.INLINE_ID, ForwardPortAction.inlineHandler());
--CommandsRegistry.registerCommand(ForwardPortAction.COMMANDPALETTE_ID, ForwardPortAction.commandPaletteHandler());
-+// CommandsRegistry.registerCommand(ForwardPortAction.INLINE_ID, ForwardPortAction.inlineHandler());
-+// CommandsRegistry.registerCommand(ForwardPortAction.COMMANDPALETTE_ID, ForwardPortAction.commandPaletteHandler());
- KeybindingsRegistry.registerCommandAndKeybindingRule({
- 	id: ClosePortAction.INLINE_ID,
- 	weight: KeybindingWeight.WorkbenchContrib + tunnelViewCommandsWeightBonus,
-@@ -1635,13 +1635,13 @@ MenuRegistry.appendMenuItem(MenuId.Comma
- 	},
- 	when: forwardedPortsViewEnabled
- }));
--MenuRegistry.appendMenuItem(MenuId.CommandPalette, ({
--	command: {
--		id: ForwardPortAction.COMMANDPALETTE_ID,
--		title: ForwardPortAction.LABEL
--	},
--	when: forwardedPortsViewEnabled
--}));
-+// MenuRegistry.appendMenuItem(MenuId.CommandPalette, ({
-+// 	command: {
-+// 		id: ForwardPortAction.COMMANDPALETTE_ID,
-+// 		title: ForwardPortAction.LABEL
-+// 	},
-+// 	when: forwardedPortsViewEnabled
-+// }));
- MenuRegistry.appendMenuItem(MenuId.CommandPalette, ({
- 	command: {
- 		id: CopyAddressAction.COMMANDPALETTE_ID,

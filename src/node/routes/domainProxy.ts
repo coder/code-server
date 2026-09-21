@@ -1,7 +1,7 @@
 import { Request, Router } from "express"
 import { HttpCode, HttpError } from "../../common/http"
 import { getHost, ensureProxyEnabled, authenticated, ensureAuthenticated, ensureOrigin, redirect, self } from "../http"
-import { proxy } from "../proxy"
+// import { proxy } from "../proxy"
 import { Router as WsRouter } from "../wsRouter"
 
 export const router = Router()
@@ -94,10 +94,10 @@ router.all(/.*/, async (req, res, next) => {
     throw new HttpError("Unauthorized", HttpCode.Unauthorized)
   }
 
-  proxy.web(req, res, {
-    ignorePath: true,
-    target: `http://0.0.0.0:${port}${req.originalUrl}`,
-  })
+//   proxy.web(req, res, {
+//     ignorePath: true,
+//     target: `http://0.0.0.0:${port}${req.originalUrl}`,
+//   })
 })
 
 export const wsRouter = WsRouter()
@@ -111,8 +111,8 @@ wsRouter.ws(/.*/, async (req, _, next) => {
   ensureProxyEnabled(req)
   ensureOrigin(req)
   await ensureAuthenticated(req)
-  proxy.ws(req, req.ws, req.head, {
-    ignorePath: true,
-    target: `http://0.0.0.0:${port}${req.originalUrl}`,
-  })
+//   proxy.ws(req, req.ws, req.head, {
+//     ignorePath: true,
+//     target: `http://0.0.0.0:${port}${req.originalUrl}`,
+//   })
 })

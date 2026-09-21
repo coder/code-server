@@ -29,7 +29,7 @@ Index: code-server/lib/vscode/src/vs/workbench/services/notification/common/noti
  	}
  
  	error(message: NotificationMessage | NotificationMessage[]): void {
-@@ -186,57 +186,45 @@ export class NotificationService extends
+@@ -186,57 +186,48 @@ export class NotificationService extends
  			return;
  		}
  
@@ -76,8 +76,8 @@ Index: code-server/lib/vscode/src/vs/workbench/services/notification/common/noti
 -			}
 -
 -			notification.actions = actions;
-+		// [code-server CMB] Suppress all popup/toast/bell notifications and
-+		// record them to a server-side log file instead (see notifyLog route).
++		// [code-server] Suppress all popup/toast/bell notifications and
++		// record them to a server-side log file instead (see notify-log route).
 +		this.logNotification(notification);
 +
 +		return new NoOpNotification();
@@ -97,7 +97,10 @@ Index: code-server/lib/vscode/src/vs/workbench/services/notification/common/noti
 +				severity: severityLabel,
 +				message: message.slice(0, 4096),
 +				source: notification.source,
-+				sourceId: notification.sourceId,
++				// [code-server] INotification has no `sourceId` property in this
++				// version; when source is an INotificationSource, its id is
++				// already included in the serialized `source` above.
++				// sourceId: notification.sourceId,
 +				priority: notification.priority,
 +			});
 +

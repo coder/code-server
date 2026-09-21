@@ -15,13 +15,13 @@ import { redirect } from "../http"
 import { CoderSettings, SettingsProvider } from "../settings"
 import { UpdateProvider } from "../update"
 import { getMediaMime, paths } from "../util"
-import type { WebsocketRequest } from "../wsRouter"
-import * as domainProxy from "./domainProxy"
+// import type { WebsocketRequest } from "../wsRouter"
+// import * as domainProxy from "./domainProxy"
 import { errorHandler, wsErrorHandler } from "./errors"
 import * as health from "./health"
 import * as login from "./login"
 import * as logout from "./logout"
-import * as pathProxy from "./pathProxy"
+// import * as pathProxy from "./pathProxy"
 import * as update from "./update"
 import * as vscode from "./vscode"
 import * as notifyLog from "./notifyLog"
@@ -108,30 +108,30 @@ export const register = async (
     res.send(await fs.readFile(resourcePath))
   })
 
-  app.router.use("/", domainProxy.router)
-  app.wsRouter.use("/", domainProxy.wsRouter.router)
-
-  app.router.all("/proxy/:port{/*path}", async (req, res) => {
-    await pathProxy.proxy(req, res)
-  })
-  app.wsRouter.get("/proxy/:port{/*path}", async (req) => {
-    await pathProxy.wsProxy(req as unknown as WebsocketRequest)
-  })
+//   app.router.use("/", domainProxy.router)
+//   app.wsRouter.use("/", domainProxy.wsRouter.router)
+// 
+//   app.router.all("/proxy/:port{/*path}", async (req, res) => {
+//     await pathProxy.proxy(req, res)
+//   })
+//   app.wsRouter.get("/proxy/:port{/*path}", async (req) => {
+//     await pathProxy.wsProxy(req as unknown as WebsocketRequest)
+//   })
   // These two routes pass through the path directly.
   // So the proxied app must be aware it is running
   // under /absproxy/<someport>/
-  app.router.all("/absproxy/:port{/*path}", async (req, res) => {
-    await pathProxy.proxy(req, res, {
-      passthroughPath: true,
-      proxyBasePath: args["abs-proxy-base-path"],
-    })
-  })
-  app.wsRouter.get("/absproxy/:port{/*path}", async (req) => {
-    await pathProxy.wsProxy(req as unknown as WebsocketRequest, {
-      passthroughPath: true,
-      proxyBasePath: args["abs-proxy-base-path"],
-    })
-  })
+//   app.router.all("/absproxy/:port{/*path}", async (req, res) => {
+//     await pathProxy.proxy(req, res, {
+//       passthroughPath: true,
+//       proxyBasePath: args["abs-proxy-base-path"],
+//     })
+//   })
+//   app.wsRouter.get("/absproxy/:port{/*path}", async (req) => {
+//     await pathProxy.wsProxy(req as unknown as WebsocketRequest, {
+//       passthroughPath: true,
+//       proxyBasePath: args["abs-proxy-base-path"],
+//     })
+//   })
 
   app.router.use(express.json())
   app.router.use(express.urlencoded({ extended: true }))
