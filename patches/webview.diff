@@ -15,7 +15,13 @@ request is not cross-origin.
 There is also an origin check we bypass (this seems to be related to how the
 webview host is separate by default but we serve on the same host).
 
-To test, open a few types of webviews (images, markdown, extension details, etc).
+Firefox 149 and later skip service worker interception for cross-origin
+stylesheet requests.  Load these stylesheets from the controlled outer webview
+frame and apply them to the content as constructed stylesheets.
+
+To test, configure a local stylesheet with markdown.styles, then open a Markdown
+preview in Firefox and verify the custom stylesheet is applied.  Also open a few
+other types of webviews (images, extension details, etc).
 
 parentOriginHash changes
 
@@ -53,6 +59,15 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/index
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/index.html
 +++ code-server/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/index.html
+@@ -5,7 +5,7 @@
+ 	<meta charset="UTF-8">
+ 
+ 	<meta http-equiv="Content-Security-Policy"
+-		content="default-src 'none'; script-src 'sha256-FFQoOVVa2tOE3uqUvirwaMNT20TZmrHcL2aaOjJ8BUo=' 'self'; frame-src 'self'; style-src 'unsafe-inline';">
++		content="default-src 'none'; script-src 'sha256-FFQoOVVa2tOE3uqUvirwaMNT20TZmrHcL2aaOjJ8BUo=' 'self'; connect-src 'self' https://*.vscode-cdn.net; frame-src 'self'; style-src 'unsafe-inline';">
+ 
+ 	<!-- Disable pinch zooming -->
+ 	<meta name="viewport"
 @@ -253,7 +253,7 @@
  			}
  
@@ -75,6 +90,149 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/index
  				if (!crypto.subtle) {
  					// cannot validate, not running in a secure context
  					throw new Error(`'crypto.subtle' is not available so webviews will not work. This is likely because the editor is not running in a secure context (https://developer.mozilla.org/en-US/docs/Web/Security/Secure_Contexts).`);
+@@ -841,13 +847,69 @@
+ 		}
+ 
+ 		/**
+-		 * @param {import('../webviewMessages').UpdateContentEvent} data
+-		 * @return {string}
++		 * Firefox 149+ skips service worker interception for cross-origin stylesheet
++		 * requests. Fetch these stylesheets from the controlled outer frame instead.
++		 *
++		 * @param {Document} contentDocument
++		 * @returns {Promise<Array<{ href: string, css: string, media: string, disabled: boolean }>>}
+ 		 */
+-		function toContentHtml(data) {
++		async function loadFirefoxStylesheets(contentDocument) {
++			if (!isFirefox) {
++				return [];
++			}
++
++			const resourceBaseAuthority = searchParams.get('vscode-resource-base-authority');
++			if (!resourceBaseAuthority) {
++				return [];
++			}
++
++			const stylesheets = [];
++			for (const link of contentDocument.querySelectorAll('link')) {
++				if (!link.relList.contains('stylesheet')) {
++					continue;
++				}
++
++				let resourceUrl;
++				try {
++					resourceUrl = new URL(link.href, link.baseURI);
++				} catch {
++					continue;
++				}
++
++				if (resourceUrl.protocol !== 'https:' || !resourceUrl.hostname.endsWith('.' + resourceBaseAuthority)) {
++					continue;
++				}
++
++				try {
++					const response = await fetch(resourceUrl);
++					if (!response.ok) {
++						continue;
++					}
++
++					stylesheets.push({
++						href: resourceUrl.toString(),
++						css: await response.text(),
++						media: link.media,
++						disabled: link.disabled,
++					});
++					link.remove();
++				} catch {
++					// Leave the link in place so the webview reports the original load failure.
++				}
++			}
++
++			return stylesheets;
++		}
++
++		/**
++		 * @param {import('../webviewMessages').UpdateContentEvent} data
++		 * @returns {Promise<{ html: string, stylesheets: Array<{ href: string, css: string, media: string, disabled: boolean }> }>}
++		 */
++		async function toContentHtml(data) {
+ 			const options = data.options;
+ 			const text = data.contents;
+ 			const newDocument = new DOMParser().parseFromString(text, 'text/html');
++			const stylesheets = await loadFirefoxStylesheets(newDocument);
+ 
+ 			newDocument.querySelectorAll('a').forEach(a => {
+ 				if (!a.title) {
+@@ -904,7 +966,10 @@
+ 
+ 			// set DOCTYPE for newDocument explicitly as DOMParser.parseFromString strips it off
+ 			// and DOCTYPE is needed in the iframe to ensure that the user agent stylesheet is correctly overridden
+-			return '<!DOCTYPE html>\n' + newDocument.documentElement.outerHTML;
++			return {
++				html: '<!DOCTYPE html>\n' + newDocument.documentElement.outerHTML,
++				stylesheets,
++			};
+ 		}
+ 
+ 		// Also forward events before the contents of the webview have loaded
+@@ -979,7 +1044,10 @@
+ 				}
+ 
+ 				const options = data.options;
+-				const newDocument = toContentHtml(data);
++				const { html: newDocument, stylesheets } = await toContentHtml(data);
++				if (currentUpdateId !== updateId) {
++					return;
++				}
+ 
+ 				const initialStyleVersion = styleVersion;
+ 
+@@ -1055,15 +1123,44 @@
+ 				/**
+ 				 * @param {Document} contentDocument
+ 				 */
++				async function applyFirefoxStylesheets(contentDocument) {
++					if (!stylesheets.length || !contentDocument.defaultView) {
++						return;
++					}
++
++					/** @type {CSSStyleSheet[]} */
++					const sheets = [];
++					for (const stylesheet of stylesheets) {
++						const sheet = new contentDocument.defaultView.CSSStyleSheet({
++							baseURL: stylesheet.href,
++							media: stylesheet.media,
++							disabled: stylesheet.disabled,
++						});
++						try {
++							await sheet.replace(stylesheet.css);
++						} catch (error) {
++							console.error(`Failed to apply stylesheet '${stylesheet.href}': ${error}`);
++							continue;
++						}
++						sheets.push(sheet);
++					}
++
++					contentDocument.adoptedStyleSheets = [...contentDocument.adoptedStyleSheets, ...sheets];
++				}
++
++				/**
++				 * @param {Document} contentDocument
++				 */
+ 				function onFrameLoaded(contentDocument) {
+ 					perfMark('content/innerFrameLoaded')
+ 
+ 					// Workaround for https://bugs.chromium.org/p/chromium/issues/detail?id=978325
+-					setTimeout(() => {
++					setTimeout(async () => {
+ 						contentDocument.open();
+ 						contentDocument.write(newDocument);
+ 						contentDocument.close();
+ 						hookupOnLoadHandlers(newFrame);
++						await applyFirefoxStylesheets(contentDocument);
+ 						perfMark('content/wroteInnerContent')
+ 
+ 						if (initialStyleVersion !== styleVersion) {
 Index: code-server/lib/vscode/src/vs/workbench/services/extensions/worker/webWorkerExtensionHostIframe.html
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/services/extensions/worker/webWorkerExtensionHostIframe.html

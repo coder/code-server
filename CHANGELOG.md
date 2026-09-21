@@ -26,6 +26,7 @@ Code v99.99.999
 
 - `--idle-timeout-seconds` was only validated when passed as `--idle-timeout-seconds=<value>`;
   values of 60 or less passed as `--idle-timeout-seconds <value>` were silently accepted.
+- Load local styles configured with `markdown.styles` in Firefox 149 and later.
 
 ## [4.138.0](https://github.com/coder/code-server/releases/tag/v4.138.0) - 2026-09-19
 
