@@ -156,6 +156,7 @@ jobs:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       DISABLE_V8_COMPILE_CACHE: 1
       VERSION: 0.0.0
+      VSCODE_ARCH: x64
       VSCODE_TARGET: linux-x64
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       ELECTRON_SKIP_BINARY_DOWNLOAD: 1
@@ -179,13 +180,13 @@ jobs:
           cache-dependency-path: |
             package-lock.json
             test/package-lock.json
-      - run: SKIP_SUBMODULE_DEPS=1 npm ci
-      - run: npm run build
+
       # Get Code's git hash.  When this changes it means the content is
       # different and we need to rebuild.
       - name: Get latest lib/vscode rev
         id: vscode-rev
         run: echo "rev=$(git rev-parse HEAD:./lib/vscode)" >> $GITHUB_OUTPUT
+
       # We need to rebuild when we have a new version of Code, when any of the
       # patches changed, or when the code-server version changes (since it gets
       # embedded into the code).  Use VSCODE_CACHE_VERSION to force a rebuild.
@@ -198,10 +199,21 @@ jobs:
       - name: Build vscode
         if: steps.cache-vscode.outputs.cache-hit != 'true'
         run: |
-          pushd lib/vscode
+          cd lib/vscode/build
           npm ci
-          popd
+          cd ..
+          source ./build/azure-pipelines/linux/setup-env.sh
+          # Run preinstall script before root dependencies are installed
+          # so that v8 headers are patched correctly for native modules.
+          node build/npm/preinstall.ts
+          npm ci
+          cd ../..
           npm run build:vscode
+
+      # Build the code-server wrapper.
+      - run: SKIP_SUBMODULE_DEPS=1 npm ci
+      - run: npm run build
+
       # Push up an artifact containing the linux-x64 release.
       - run: KEEP_MODULES=1 npm run release
       - run: tar -czf package.tar.gz release

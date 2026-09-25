@@ -54,9 +54,9 @@ function runExternalUriTests(proxyEndpointTemplate?: string) {
       await codeServerPage.waitForTestExtensionLoaded()
       await codeServerPage.executeCommandViaMenus("code-server: asExternalUri test")
 
-      const inputBox = codeServerPage.page.locator(".quick-input-widget input")
-      await inputBox.fill(input)
-      await inputBox.press("Enter")
+      await codeServerPage.page.waitForSelector(".quick-input-widget:focus-within")
+      await codeServerPage.page.keyboard.type(input)
+      await codeServerPage.page.keyboard.press("Enter")
 
       // The test extension displays URI.toString(), which also encodes query delimiters.
       const output = `${proxyBase.replace(/\/$/, "")}${suffix}`

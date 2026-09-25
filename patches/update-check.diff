@@ -101,7 +101,7 @@ Index: code-server/lib/vscode/src/vs/base/common/product.ts
  
  	readonly version: string;
  	readonly date?: string;
-@@ -145,6 +146,7 @@ export interface IProductConfiguration {
+@@ -148,6 +149,7 @@ export interface IProductConfiguration {
  	};
  
  	readonly extensionsGallery?: {
