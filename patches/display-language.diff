@@ -56,7 +56,7 @@ Index: code-server/lib/vscode/src/vs/server/node/remoteLanguagePacks.ts
  import type { INLSConfiguration } from '../../nls.js';
 @@ -33,7 +35,94 @@ export async function getNLSConfiguratio
  	if (!result) {
- 		result = resolveNLSConfiguration({ userLocale: language, osLocale: language, commit: product.commit, userDataPath, nlsMetadataPath });
+ 		result = resolveNLSConfiguration({ userLocale: language, osLocale: language, commit: product.commit, nlsMetadataHash: product.nlsMetadataHash, userDataPath, nlsMetadataPath });
  		nlsConfigurationCache.set(cacheKey, result);
 +		// If the language pack does not yet exist, it defaults to English, which is
 +		// then cached and you have to restart even if you then install the pack.

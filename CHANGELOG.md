@@ -22,6 +22,12 @@ Code v99.99.999
 
 ## Unreleased
 
+Code v1.139.1
+
+### Changed
+
+- Update to Code 1.139.1
+
 ### Fixed
 
 - `--idle-timeout-seconds` was only validated when passed as `--idle-timeout-seconds=<value>`;
