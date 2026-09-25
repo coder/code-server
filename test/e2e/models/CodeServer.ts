@@ -437,6 +437,7 @@ export class CodeServerPage {
   async executeCommandViaMenus(command: string) {
     await this.navigateMenus(["View", "Command Palette..."])
 
+    await this.page.waitForSelector(".quick-input-widget:focus-within")
     await this.page.keyboard.type(command)
 
     await this.page.hover(`text=${command}`)
