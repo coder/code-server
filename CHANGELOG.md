@@ -30,8 +30,9 @@ Code v1.139.1
 
 ### Fixed
 
-- `--idle-timeout-seconds` was only validated when passed as `--idle-timeout-seconds=<value>`;
-  values of 60 or less passed as `--idle-timeout-seconds <value>` were silently accepted.
+- `--idle-timeout-seconds` was only validated when passed as
+  `--idle-timeout-seconds=<value>`; values of 60 or less passed as
+  `--idle-timeout-seconds <value>` were silently accepted.
 
 ## [4.138.0](https://github.com/coder/code-server/releases/tag/v4.138.0) - 2026-09-19
 
