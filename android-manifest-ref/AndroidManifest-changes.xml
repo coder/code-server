@@ -1,0 +1,20 @@
+<!--
+  මේ file එක reference එකක් විතරයි.
+  `npx cap add android` කරාට පස්සේ ඇත්තම file එක තියෙන්නේ:
+  android/app/src/main/AndroidManifest.xml
+
+  ඒ file එකේ මේ 2 වෙනස්කම් කරන්න:
+-->
+
+<!-- 1. <manifest> tag එකට ඇතුළත, <application> එකට උඩින් -->
+<uses-permission android:name="android.permission.INTERNET" />
+
+<!--
+  2. <application> tag එකට මේ attribute එක add කරන්න
+  (localhost http traffic allow කරන්න - https නොවන නිසා)
+-->
+<application
+    android:usesCleartextTraffic="true"
+    ... >
+    <!-- existing content -->
+</application>
