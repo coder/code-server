@@ -1,6 +1,5 @@
 name: Build MyCode APK
 
-# Manual trigger - Actions tab එකෙන් "Run workflow" click කරන්න
 on:
   workflow_dispatch:
 
@@ -16,7 +15,7 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Setup Java (Gradle/Android build සඳහා)
+      - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
@@ -25,8 +24,6 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      # Capacitor project එක repo root එකේ මේ files තියෙනවා
-      # (capacitor.config.ts, www/index.html) කියලා assume කරනවා
       - name: Install Capacitor dependencies
         run: |
           npm install @capacitor/core @capacitor/cli @capacitor/android
