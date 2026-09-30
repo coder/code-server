@@ -1,6 +1,6 @@
 # code-server Helm Chart
 
-[![Version: 1.0.0](https://img.shields.io/badge/Version-1.0.0-informational?style=flat-square)](https://img.shields.io/badge/Version-1.0.0-informational?style=flat-square) [![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)](https://img.shields.io/badge/Type-application-informational?style=flat-square) [![AppVersion: 4.8.0](https://img.shields.io/badge/AppVersion-4.8.0-informational?style=flat-square)](https://img.shields.io/badge/AppVersion-4.8.0-informational?style=flat-square)
+[![Version: 3.54.0](https://img.shields.io/badge/Version-3.54.0-informational?style=flat-square)](https://img.shields.io/badge/Version-3.54.0-informational?style=flat-square) [![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)](https://img.shields.io/badge/Type-application-informational?style=flat-square) [![AppVersion: 4.139.1](https://img.shields.io/badge/AppVersion-4.139.1-informational?style=flat-square)](https://img.shields.io/badge/AppVersion-4.139.1-informational?style=flat-square)
 
 [code-server](https://github.com/coder/code-server) code-server is VS Code running
 on a remote server, accessible through the browser.
@@ -62,10 +62,12 @@ and their default values.
 | Key                                         | Type   | Default                  |
 | ------------------------------------------- | ------ | ------------------------ |
 | affinity                                    | object | `{}`                     |
+| annotations                                 | object | `{}`                     |
 | extraArgs                                   | list   | `[]`                     |
 | extraConfigmapMounts                        | list   | `[]`                     |
 | extraContainers                             | string | `""`                     |
 | extraInitContainers                         | string | `""`                     |
+| extraPorts                                  | list   | `[]`                     |
 | extraSecretMounts                           | list   | `[]`                     |
 | extraVars                                   | list   | `[]`                     |
 | extraVolumeMounts                           | list   | `[]`                     |
@@ -73,26 +75,32 @@ and their default values.
 | hostnameOverride                            | string | `""`                     |
 | image.pullPolicy                            | string | `"Always"`               |
 | image.repository                            | string | `"codercom/code-server"` |
-| image.tag                                   | string | `"4.8.0"`                |
+| image.tag                                   | string | `"4.139.1"`              |
 | imagePullSecrets                            | list   | `[]`                     |
 | ingress.enabled                             | bool   | `false`                  |
+| ingress.ingressClassName                    | string | `""`                     |
+| lifecycle.enabled                           | bool   | `false`                  |
+| livenessProbe.enabled                       | bool   | `true`                   |
 | nameOverride                                | string | `""`                     |
 | nodeSelector                                | object | `{}`                     |
 | persistence.accessMode                      | string | `"ReadWriteOnce"`        |
 | persistence.annotations                     | object | `{}`                     |
 | persistence.enabled                         | bool   | `true`                   |
-| persistence.size                            | string | `"1Gi"`                  |
+| persistence.size                            | string | `"10Gi"`                 |
 | podAnnotations                              | object | `{}`                     |
 | podSecurityContext                          | object | `{}`                     |
+| priorityClassName                           | string | `""`                     |
+| readinessProbe.enabled                      | bool   | `true`                   |
 | replicaCount                                | int    | `1`                      |
 | resources                                   | object | `{}`                     |
 | securityContext.enabled                     | bool   | `true`                   |
 | securityContext.fsGroup                     | int    | `1000`                   |
 | securityContext.runAsUser                   | int    | `1000`                   |
-| service.port                                | int    | `8443`                   |
+| service.port                                | int    | `8080`                   |
 | service.type                                | string | `"ClusterIP"`            |
+| serviceAccount.annotations                  | object | `{}`                     |
 | serviceAccount.create                       | bool   | `true`                   |
-| serviceAccount.name                         | string | `nil`                    |
+| serviceAccount.name                         | string | `""`                     |
 | tolerations                                 | list   | `[]`                     |
 | volumePermissions.enabled                   | bool   | `true`                   |
 | volumePermissions.securityContext.runAsUser | int    | `0`                      |
@@ -114,7 +122,7 @@ can be provided while installing the chart. For example,
 $ helm upgrade --install code-server ci/helm-chart -f values.yaml
 ```
 
-> **Tip**: You can use the default [values.yaml](values.yaml)
+> **Tip**: You can use the default [values.yaml](../ci/helm-chart/values.yaml)
 
 # Extra Containers
 
