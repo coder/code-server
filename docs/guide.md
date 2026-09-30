@@ -9,6 +9,7 @@
   - [Using Let's Encrypt with NGINX](#using-lets-encrypt-with-nginx)
   - [Using a self-signed certificate](#using-a-self-signed-certificate)
   - [TLS 1.3 and Safari](#tls-13-and-safari)
+  - [Cloudflare Rocket Loader](#cloudflare-rocket-loader)
 - [External authentication](#external-authentication)
 - [HTTPS and self-signed certificates](#https-and-self-signed-certificates)
 - [Accessing web services](#accessing-web-services)
@@ -268,6 +269,26 @@ If you will be using Safari and your configuration does not allow anything less
 than TLS 1.3 you will need to add support for TLS 1.2 since Safari does not
 support TLS 1.3 for web sockets at the time of writing. If this is the case you
 should see OSSStatus: 9836 in the browser console.
+
+### Cloudflare Rocket Loader
+
+If you serve code-server through Cloudflare, disable Rocket Loader for that
+hostname. Rocket Loader rewrites inline `<script>` tags at the edge and
+re-injects them from its own loader, and the re-injected scripts do not carry
+the nonce in code-server's Content Security Policy, so the browser blocks them.
+The result is a blank page: every request returns HTTP 200 and the server logs
+look healthy, and the only console output is `Cannot determine URI for module
+id!`.
+
+Scope it with a Configuration Rule rather than turning it off zone-wide:
+
+```
+Expression: (http.host eq "code.example.com")
+Setting:    Rocket Loader -> Off
+```
+
+Adding `'unsafe-inline'` to the policy does not help, because CSP ignores it
+whenever a nonce or hash is present.
 
 ## External authentication
 
