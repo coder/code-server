@@ -48,8 +48,8 @@ Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench-dev.html
 +		<link rel="manifest" href="{{VS_BASE}}/manifest.json" crossorigin="use-credentials" />
  		<style id="vscode-css-modules" type="text/css" media="screen"></style>
  
- 	</head>
-@@ -41,7 +41,7 @@
+ 		<!-- Startup fallback: shown only if the scripts below never run, e.g. because a proxy,
+@@ -92,7 +92,7 @@
  
  	<!-- Startup (do not modify order of script tags!) -->
  	<script nonce="{{WORKBENCH_SCRIPT_NONCE}}">
@@ -85,8 +85,8 @@ Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench.html
 +		<link rel="manifest" href="{{VS_BASE}}/manifest.json" crossorigin="use-credentials" />
  		<link rel="stylesheet" href="{{WORKBENCH_WEB_BASE_URL}}/out/vs/code/browser/workbench/workbench.css">
  
- 	</head>
-@@ -37,7 +37,7 @@
+ 		<!-- Startup fallback: shown only if the scripts below never run, e.g. because a proxy,
+@@ -88,7 +88,7 @@
  
  	<!-- Startup (do not modify order of script tags!) -->
  	<script nonce="{{WORKBENCH_SCRIPT_NONCE}}">
@@ -281,8 +281,8 @@ Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench.ts
 -
  (function () {
  
- 	// Find config by checking for DOM
-@@ -610,8 +600,8 @@ function readCookie(name: string): strin
+ 	// This script running at all means the page scripts were not blocked or rewritten.
+@@ -614,8 +604,8 @@ function readCookie(name: string): strin
  	if (!configElement || !configElementAttribute) {
  		throw new Error('Missing web configuration element');
  	}

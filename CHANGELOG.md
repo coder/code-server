@@ -22,6 +22,18 @@ Code v99.99.999
 
 ## Unreleased
 
+Code v1.141.0
+
+### Added
+
+- A new `--enable-remote-storage` flag can be used to make code-server persist
+  workbench storage on the remote server instead of browser storage. Use this if
+  you want to share storage between multiple devices.
+
+### Changed
+
+- Update to Code 1.141.0
+
 ## [4.140.0](https://github.com/coder/code-server/releases/tag/v4.140.0) - 2026-10-02
 
 Code v1.140.0
