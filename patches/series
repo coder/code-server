@@ -25,3 +25,5 @@ signature-verification.diff
 copilot.diff
 app-name.diff
 csp-hashes.diff
+remote-storage.diff
+remote-secret-storage.diff
