@@ -30,6 +30,11 @@ Code v1.141.0
   workbench storage on the remote server instead of browser storage. Use this if
   you want to share storage between multiple devices.
 
+### Fixed
+
+- The Typescript extension was trying to load as a browser extension even though
+  we build the remote server version, causing it to fail to activate.
+
 ### Changed
 
 - Update to Code 1.141.0
