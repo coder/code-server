@@ -22,6 +22,16 @@
         "command": "codeServerTest.asExternalUri",
         "title": "asExternalUri test",
         "category": "code-server"
+      },
+      {
+        "command": "codeServerTest.setSecret",
+        "title": "Set test secret",
+        "category": "code-server"
+      },
+      {
+        "command": "codeServerTest.getSecret",
+        "title": "Get test secret",
+        "category": "code-server"
       }
     ]
   },
