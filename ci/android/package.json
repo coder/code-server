@@ -1,0 +1,19 @@
+{
+  "name": "code-server-android-webview",
+  "private": true,
+  "version": "0.0.0",
+  "license": "MIT",
+  "description": "Android WebView wrapper that connects to a code-server instance running on the device",
+  "scripts": {
+    "sync": "cap sync android",
+    "open": "cap open android"
+  },
+  "dependencies": {
+    "@capacitor/android": "^6.0.0",
+    "@capacitor/core": "^6.0.0"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^6.0.0",
+    "typescript": "^5.6.2"
+  }
+}
