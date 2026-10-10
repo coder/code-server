@@ -1,0 +1,65 @@
+name: Build Android WebView APK
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "ci/android/**"
+      - ".github/workflows/android-webview.yaml"
+
+permissions:
+  contents: read
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ci/android
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v6
+        with:
+          node-version-file: .node-version
+      # TODO: pin these two actions to commit SHAs like the rest of this repo.
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      # The Android SDK is preinstalled on ubuntu-latest runners.
+      - name: Set Android SDK env
+        run: |
+          echo "ANDROID_SDK_ROOT=$ANDROID_HOME" >> "$GITHUB_ENV"
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Add Android platform
+        run: npx cap add android
+
+      - name: Sync Capacitor
+        run: npx cap sync android
+
+      # Cleartext traffic is needed because code-server is served over plain
+      # HTTP on localhost. Capacitor may already set this from
+      # `server.cleartext`; only patch the manifest if it did not.
+      - name: Ensure cleartext traffic and INTERNET permission
+        run: |
+          manifest=android/app/src/main/AndroidManifest.xml
+          grep -q 'usesCleartextTraffic' "$manifest" || \
+            sed -i 's/<application/<application android:usesCleartextTraffic="true"/' "$manifest"
+          grep -q 'android.permission.INTERNET' "$manifest" || \
+            sed -i 's#</manifest>#    <uses-permission android:name="android.permission.INTERNET" />\n</manifest>#' "$manifest"
+          grep -n 'usesCleartextTraffic\|INTERNET' "$manifest"
+
+      - name: Build debug APK
+        run: |
+          chmod +x android/gradlew
+          cd android
+          ./gradlew assembleDebug
+
+      - uses: actions/upload-artifact@v4 # TODO: pin to a commit SHA
+        with:
+          name: code-server-android-webview-debug
+          path: ci/android/android/app/build/outputs/apk/debug/app-debug.apk
