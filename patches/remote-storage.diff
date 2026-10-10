@@ -1,0 +1,246 @@
+Reuse VS Code's Electron storage service for remote persistence
+
+Index: code-server/lib/vscode/src/vs/platform/storage/electron-main/storageMainService.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/platform/storage/electron-main/storageMainService.ts
++++ code-server/lib/vscode/src/vs/platform/storage/electron-main/storageMainService.ts
+@@ -11,7 +11,12 @@ import { IStorage } from '../../../base/
+ import { INativeEnvironmentService } from '../../environment/common/environment.js';
+ import { IFileService } from '../../files/common/files.js';
+ import { createDecorator } from '../../instantiation/common/instantiation.js';
+-import { ILifecycleMainService, LifecycleMainPhase, ShutdownReason } from '../../lifecycle/electron-main/lifecycleMainService.js';
++import type { ILifecycleMainService, ShutdownReason } from '../../lifecycle/electron-main/lifecycleMainService.js';
++
++// Keep these values local so the server does not load lifecycleMainService at runtime;
++// that module imports Electron, which is not present in the code-server server image.
++const LIFECYCLE_MAIN_PHASE_AFTER_WINDOW_OPEN = 3;
++const SHUTDOWN_REASON_KILL = 2;
+ import { ILogService } from '../../log/common/log.js';
+ import { AbstractStorageService, isProfileUsingDefaultStorage, IStorageService, StorageScope, StorageTarget } from '../common/storage.js';
+ import { ApplicationStorageMain, ApplicationSharedStorageMain, ProfileStorageMain, InMemoryStorageMain, IStorageMain, IStorageMainOptions, WorkspaceStorageMain, IStorageChangeEvent } from './storageMain.js';
+@@ -92,7 +97,7 @@ export class StorageMainService extends
+ 		@ILogService private readonly logService: ILogService,
+ 		@INativeEnvironmentService private readonly environmentService: INativeEnvironmentService,
+ 		@IUserDataProfilesMainService private readonly userDataProfilesService: IUserDataProfilesMainService,
+-		@ILifecycleMainService private readonly lifecycleMainService: ILifecycleMainService,
++		private readonly lifecycleMainService: ILifecycleMainService,
+ 		@IFileService private readonly fileService: IFileService,
+ 		@IUriIdentityService private readonly uriIdentityService: IUriIdentityService,
+ 	) {
+@@ -114,7 +119,7 @@ export class StorageMainService extends
+ 
+ 		// Application Storage: Warmup when any window opens
+ 		(async () => {
+-			await this.lifecycleMainService.when(LifecycleMainPhase.AfterWindowOpen);
++			await this.lifecycleMainService.when(LIFECYCLE_MAIN_PHASE_AFTER_WINDOW_OPEN);
+ 
+ 			this.applicationStorage.init();
+ 			this.applicationSharedStorage.init();
+@@ -253,7 +258,7 @@ export class StorageMainService extends
+ 	}
+ 
+ 	private createProfileStorage(profile: IUserDataProfile): IStorageMain {
+-		if (this.shutdownReason === ShutdownReason.KILL) {
++		if (this.shutdownReason === SHUTDOWN_REASON_KILL) {
+ 
+ 			// Workaround for native crashes that we see when
+ 			// SQLite DBs are being created even after shutdown
+@@ -292,7 +297,7 @@ export class StorageMainService extends
+ 	}
+ 
+ 	private createWorkspaceStorage(workspace: IAnyWorkspaceIdentifier): IStorageMain {
+-		if (this.shutdownReason === ShutdownReason.KILL) {
++		if (this.shutdownReason === SHUTDOWN_REASON_KILL) {
+ 
+ 			// Workaround for native crashes that we see when
+ 			// SQLite DBs are being created even after shutdown
+Index: code-server/lib/vscode/src/vs/workbench/services/storage/electron-browser/storageService.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/workbench/services/storage/electron-browser/storageService.ts
++++ code-server/lib/vscode/src/vs/workbench/services/storage/electron-browser/storageService.ts
+@@ -3,7 +3,7 @@
+  *  Licensed under the MIT License. See License.txt in the project root for license information.
+  *--------------------------------------------------------------------------------------------*/
+ 
+-import { IMainProcessService } from '../../../../platform/ipc/common/mainProcessService.js';
++import { IRemoteService } from '../../../../platform/ipc/common/services.js';
+ import { IStorage, Storage, MigratingStorage } from '../../../../base/parts/storage/common/storage.js';
+ import { RemoteStorageService } from '../../../../platform/storage/common/storageService.js';
+ import { FallbackApplicationStorageDatabaseClient, ApplicationSharedStorageDatabaseClient } from '../../../../platform/storage/common/storageIpc.js';
+@@ -19,10 +19,10 @@ export class NativeWorkbenchStorageServi
+ 		workspace: IAnyWorkspaceIdentifier | undefined,
+ 		private readonly userDataProfileService: IUserDataProfileService,
+ 		userDataProfilesService: IUserDataProfilesService,
+-		mainProcessService: IMainProcessService,
++		remoteService: Pick<IRemoteService, 'getChannel'>,
+ 		private readonly workbenchEnvironmentService: IWorkbenchEnvironmentService,
+ 	) {
+-		super(workspace, { currentProfile: userDataProfileService.currentProfile, defaultProfile: userDataProfilesService.defaultProfile }, mainProcessService, workbenchEnvironmentService);
++		super(workspace, { currentProfile: userDataProfileService.currentProfile, defaultProfile: userDataProfilesService.defaultProfile }, remoteService as IRemoteService, workbenchEnvironmentService);
+ 
+ 		this.registerListeners();
+ 	}
+Index: code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
++++ code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
+@@ -66,6 +66,7 @@ export const serverOptions: OptionDescri
+ 	'disable-experiments': OPTIONS['disable-experiments'],
+ 	'disable-workspace-trust': OPTIONS['disable-workspace-trust'],
+ 	'file-watcher-polling': { type: 'string', deprecates: ['fileWatcherPolling'] },
++	'enable-remote-storage': { type: 'boolean', cat: 'o', description: nls.localize('enable-remote-storage', 'Persist browser storage (settings, state, etc.) on the server instead of browser IndexedDB. Enables state portability across browsers/devices.') },
+ 	'log': OPTIONS['log'],
+ 	'logsPath': OPTIONS['logsPath'],
+ 	'force-disable-user-env': OPTIONS['force-disable-user-env'],
+@@ -212,6 +213,7 @@ export interface ServerParsedArgs {
+ 	'logsPath'?: string;
+ 
+ 	'force-disable-user-env'?: boolean;
++	'enable-remote-storage'?: boolean;
+ 	'enable-proposed-api'?: string[];
+ 
+ 	/* ----- vs code web options ----- */
+Index: code-server/lib/vscode/src/vs/server/node/serverServices.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/server/node/serverServices.ts
++++ code-server/lib/vscode/src/vs/server/node/serverServices.ts
+@@ -105,6 +105,10 @@ import { McpManagementChannel } from '..
+ import { AllowedMcpServersService } from '../../platform/mcp/common/allowedMcpServersService.js';
+ import { IMcpGalleryManifestService } from '../../platform/mcp/common/mcpGalleryManifest.js';
+ import { McpGalleryManifestIPCService } from '../../platform/mcp/common/mcpGalleryManifestServiceIpc.js';
++import { StorageDatabaseChannel } from '../../platform/storage/electron-main/storageIpc.js';
++import { StorageMainService } from '../../platform/storage/electron-main/storageMainService.js';
++import type { ILifecycleMainService } from '../../platform/lifecycle/electron-main/lifecycleMainService.js';
++import type { IUserDataProfilesMainService } from '../../platform/userDataProfile/electron-main/userDataProfile.js';
+ import { SANDBOX_HELPER_CHANNEL_NAME, SandboxHelperChannel } from '../../platform/sandbox/common/sandboxHelperIpc.js';
+ import { SandboxHelperService } from '../../platform/sandbox/node/sandboxHelper.js';
+ 
+@@ -238,6 +242,21 @@ export async function setupServerService
+ 	services.set(IMcpGatewayService, new SyncDescriptor(McpGatewayService));
+ 
+ 	const instantiationService: IInstantiationService = new InstantiationService(services);
++	// Reuse the Electron storage service on the remote. The server has no
++	// windows, so its lifecycle is always ready and never loads a window.
++	const storageMainService = disposables.add(new StorageMainService(
++		logService,
++		environmentService,
++		userDataProfilesService as unknown as IUserDataProfilesMainService,
++		{
++			when: () => Promise.resolve(),
++			onWillLoadWindow: Event.None,
++			onWillShutdown: Event.None,
++		} as unknown as ILifecycleMainService,
++		fileService,
++		uriIdentityService,
++	));
++
+ 	services.set(ILanguagePackService, instantiationService.createInstance(NativeLanguagePackService));
+ 
+ 	const ptyHostStarter = instantiationService.createInstance(
+@@ -420,6 +439,7 @@ export async function setupServerService
+ 
+ 		const languagePackChannel = ProxyChannel.fromService<RemoteAgentConnectionContext>(accessor.get(ILanguagePackService), disposables);
+ 		socketServer.registerChannel('languagePacks', languagePackChannel);
++		socketServer.registerChannel('storage', disposables.add(new StorageDatabaseChannel(logService, storageMainService)));
+ 
+ 		// clean up extensions folder
+ 		remoteExtensionsScanner.whenExtensionsReady().then(() => extensionManagementService.cleanUp());
+Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
++++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
+@@ -451,7 +451,8 @@ export class WebClientServer {
+ 			folderUri: resolveWorkspaceURI(this._environmentService.args['default-folder']),
+ 			workspaceUri: resolveWorkspaceURI(this._environmentService.args['default-workspace']),
+ 			productConfiguration,
+-			callbackRoute: callbackRoute
++			callbackRoute: callbackRoute,
++			remoteStorageEnabled: this._environmentService.args['enable-remote-storage'] ? true : undefined
+ 		};
+ 
+ 		const cookies = cookie.parse(req.headers.cookie || '');
+Index: code-server/lib/vscode/src/vs/workbench/browser/web.api.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/workbench/browser/web.api.ts
++++ code-server/lib/vscode/src/vs/workbench/browser/web.api.ts
+@@ -411,6 +411,11 @@ export interface IWorkbenchConstructionO
+ 	readonly authenticationProviders?: readonly IAuthenticationProvider[];
+ 
+ 	//#endregion
++	/**
++	 * Persist workbench storage on the remote server instead of browser IndexedDB.
++	 */
++	readonly remoteStorageEnabled?: boolean;
++
+ 
+ 	//#region Development options
+ 
+Index: code-server/lib/vscode/src/vs/workbench/browser/web.main.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/workbench/browser/web.main.ts
++++ code-server/lib/vscode/src/vs/workbench/browser/web.main.ts
+@@ -33,6 +33,7 @@ import { ISignService } from '../../plat
+ import { SignService } from '../../platform/sign/browser/signService.js';
+ import { IWorkbenchConstructionOptions, IWorkbench, IWorkspace, ITunnel } from './web.api.js';
+ import { BrowserStorageService } from '../services/storage/browser/storageService.js';
++import { NativeWorkbenchStorageService } from '../services/storage/electron-browser/storageService.js';
+ import { IStorageService } from '../../platform/storage/common/storage.js';
+ import { toLocalISOString } from '../../base/common/date.js';
+ import { isWorkspaceToOpen, isFolderToOpen } from '../../platform/window/common/window.js';
+@@ -482,7 +483,7 @@ export class BrowserMain extends Disposa
+ 				serviceCollection.set(IWorkbenchConfigurationService, service);
+ 				return service;
+ 			}),
+-			this.createStorageService(workspace, logService, userDataProfileService).then(service => {
++			this.createStorageService(workspace, environmentService, logService, userDataProfileService, userDataProfilesService, remoteAgentService).then(service => {
+ 				serviceCollection.set(IStorageService, service);
+ 				return service;
+ 			})
+@@ -604,7 +605,21 @@ export class BrowserMain extends Disposa
+ 		}));
+ 	}
+ 
+-	protected async createStorageService(workspace: IAnyWorkspaceIdentifier, logService: ILogService, userDataProfileService: IUserDataProfileService): Promise<IStorageService> {
++	protected async createStorageService(workspace: IAnyWorkspaceIdentifier, environmentService: IBrowserWorkbenchEnvironmentService, logService: ILogService, userDataProfileService: IUserDataProfileService, userDataProfilesService: IUserDataProfilesService, remoteAgentService: IRemoteAgentService): Promise<IStorageService> {
++		const connection = remoteAgentService.getConnection();
++		if (this.configuration.remoteStorageEnabled && connection) {
++			const storageService = new NativeWorkbenchStorageService(workspace, userDataProfileService, userDataProfilesService, connection, environmentService);
++
++			try {
++				await storageService.initialize();
++				this.onWillShutdownDisposables.add(toDisposable(() => storageService.close()));
++				return storageService;
++			} catch (error) {
++				onUnexpectedError(error);
++				logService.error('Remote storage service initialization failed, falling back to browser storage', error);
++			}
++		}
++
+ 		const storageService = new BrowserStorageService(workspace, userDataProfileService, logService);
+ 
+ 		try {
+Index: code-server/lib/vscode/src/vs/sessions/browser/web.main.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/sessions/browser/web.main.ts
++++ code-server/lib/vscode/src/vs/sessions/browser/web.main.ts
+@@ -39,9 +39,9 @@ export class SessionsBrowserMain extends
+ 		_workspace: IAnyWorkspaceIdentifier,
+ 		environmentService: IBrowserWorkbenchEnvironmentService,
+ 		userDataProfileService: IUserDataProfileService,
+-		_userDataProfilesService: BrowserUserDataProfilesService,
++		userDataProfilesService: BrowserUserDataProfilesService,
+ 		fileService: FileService,
+-		_remoteAgentService: IRemoteAgentService,
++		remoteAgentService: IRemoteAgentService,
+ 		uriIdentityService: IUriIdentityService,
+ 		policyService: IPolicyService,
+ 		logService: ILogService,
+@@ -82,7 +82,7 @@ export class SessionsBrowserMain extends
+ 		serviceCollection.set(IWorkbenchConfigurationService, configurationService);
+ 
+ 		// Storage
+-		const storageService = await this.createStorageService(workspaceIdentifier, logService, userDataProfileService);
++		const storageService = await this.createStorageService(workspaceIdentifier, environmentService, logService, userDataProfileService, userDataProfilesService, remoteAgentService);
+ 		serviceCollection.set(IStorageService, storageService);
+ 
+ 		// Workspace Trust Service

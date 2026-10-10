@@ -1,0 +1,13 @@
+{
+  "LOGIN_TITLE": "{{app}} girişi",
+  "LOGIN_BELOW": "Lütfen aşağıdan giriş yapın.",
+  "WELCOME": "{{app}} uygulamasına hoş geldiniz",
+  "LOGIN_PASSWORD": "Parola için yapılandırma dosyasını kontrol edin.",
+  "LOGIN_USING_ENV_PASSWORD": "Parola $PASSWORD ortam değişkeninden ayarlandı.",
+  "LOGIN_USING_HASHED_PASSWORD": "Parola $HASHED_PASSWORD ortam değişkeninden ayarlandı.",
+  "SUBMIT": "GÖNDER",
+  "PASSWORD_PLACEHOLDER": "PAROLA",
+  "LOGIN_RATE_LIMIT": "Giriş denemesi sınırına ulaşıldı!",
+  "MISS_PASSWORD": "Parola eksik",
+  "INCORRECT_PASSWORD": "Parola yanlış."
+}

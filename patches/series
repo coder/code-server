@@ -24,4 +24,6 @@ trusted-domains.diff
 signature-verification.diff
 copilot.diff
 app-name.diff
+remote-storage.diff
+remote-secret-storage.diff
 csp-hashes.diff
