@@ -578,6 +578,19 @@ describe("parser", () => {
   it("should ignore optional strings set to false", async () => {
     expect(parse(["--cert=false"])).toEqual({})
   })
+  it("should ignore booleans set to false", async () => {
+    expect(parse(["--disable-telemetry=false"])).toEqual({})
+  })
+  it("should parse booleans set to false in the config file", () => {
+    const configContents = `
+      disable-telemetry: false
+      disable-update-check: true
+    `
+    expect(parseConfigFile(configContents, "/fake-config-path")).toEqual({
+      config: "/fake-config-path",
+      "disable-update-check": true,
+    })
+  })
   it("should use last flag", async () => {
     expect(parse(["--port", "8081", "--port", "8082"])).toEqual({
       port: 8082,

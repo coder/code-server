@@ -436,7 +436,11 @@ export const parse = (
 
       const option = options[key]
       if (option.type === "boolean") {
-        ;(args[key] as boolean) = true
+        // Booleans set to false (for example `--flag=false`, which is also how
+        // false values from the config file are passed in) are ignored.
+        if (value !== "false") {
+          ;(args[key] as boolean) = true
+        }
         continue
       }
 
