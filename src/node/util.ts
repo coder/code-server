@@ -511,3 +511,18 @@ export function splitOnFirstEquals(str: string): [string, string | undefined] {
   const split = str.split(/=(.+)?/, 2)
   return [split[0], split[1]]
 }
+
+/**
+ * Expand a leading `~` to the home directory.  The shell does this for
+ * command-line arguments but values from the config file are not expanded.
+ * `~user` forms are left alone.
+ */
+export function expandTilde(p: string): string {
+  if (p === "~") {
+    return os.homedir()
+  }
+  if (p.startsWith("~/") || p.startsWith(`~${path.sep}`)) {
+    return path.join(os.homedir(), p.slice(2))
+  }
+  return p
+}

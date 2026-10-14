@@ -1,5 +1,6 @@
 import * as cp from "child_process"
 import { promises as fs } from "fs"
+import * as os from "os"
 import * as path from "path"
 import { generateUuid } from "../../../src/common/util"
 import { tmpdir } from "../../../src/node/constants"
@@ -621,5 +622,20 @@ describe("splitOnFirstEquals", () => {
       expect(key).toStrictEqual(test.key)
       expect(value).toStrictEqual(test.value || undefined)
     })
+  })
+})
+
+describe("expandTilde", () => {
+  it("should expand a bare ~", () => {
+    expect(util.expandTilde("~")).toBe(os.homedir())
+  })
+  it("should expand a leading ~/", () => {
+    expect(util.expandTilde("~/.config/code-server")).toBe(path.join(os.homedir(), ".config/code-server"))
+  })
+  it("should leave other paths alone", () => {
+    expect(util.expandTilde("/tmp/~/data")).toBe("/tmp/~/data")
+    expect(util.expandTilde("relative/~")).toBe("relative/~")
+    expect(util.expandTilde("~user/data")).toBe("~user/data")
+    expect(util.expandTilde("")).toBe("")
   })
 })
