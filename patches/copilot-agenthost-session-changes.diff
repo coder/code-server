@@ -1,0 +1,116 @@
+--- code-server.orig/lib/vscode/src/vs/workbench/contrib/chat/browser/agentSessions/agentHost/agentHostSessionInputPills.ts
++++ code-server/lib/vscode/src/vs/workbench/contrib/chat/browser/agentSessions/agentHost/agentHostSessionInputPills.ts
+@@ -20,8 +20,9 @@
+ import { localize } from '../../../../../../nls.js';
+ import { IAgentHostConnectionsService, IAgentHostSessionResolution } from '../../../../../../platform/agentHost/common/agentHostConnectionsService.js';
+ import { toAgentHostUri } from '../../../../../../platform/agentHost/common/agentHostUri.js';
+-import { resolveChangesetUriTemplate, resolveChatChangesetCatalogue, selectDefaultChangeset, type DefaultChangesetKind } from '../../../../../../platform/agentHost/common/changesetUri.js';
++import { ChangesetKind, resolveChangesetUriTemplate, resolveChatChangesetCatalogue, selectDefaultChangeset, type DefaultChangesetKind } from '../../../../../../platform/agentHost/common/changesetUri.js';
+ import { ISessionArtifact, isGitHubArtifactLink, readSessionArtifactsNewestFirst, SessionArtifactType } from '../../../../../../platform/agentHost/common/sessionArtifacts.js';
++import { SessionConfigKey } from '../../../../../../platform/agentHost/common/sessionConfigKeys.js';
+ import { supportsAgentHostArtifactRemoval } from '../../../../../../platform/agentHost/common/meta/agentHostArtifactRemovalMeta.js';
+ import { observableFromSubscription } from '../../../../../../platform/agentHost/common/state/agentSubscription.js';
+ import { Changeset, ChangesetState, ChangesetStatus, ChatOriginKind, ChatState, DEFAULT_CHAT_ID, getSessionChatResource, getSessionRelatedPullRequestUrls, isSubagentChatUri, parseChatUri, readSessionFolderGitHubState, readSessionGitHubState, SessionState, SessionStatus, SessionSummaryMeta, StateComponents } from '../../../../../../platform/agentHost/common/state/sessionState.js';
+@@ -594,12 +595,14 @@
+ 			const session = sessionState.read(reader);
+ 			const resolvedCatalogue = resolveChatChangesetCatalogue(chat.toString(), chatState.read(reader)?.changesets, session?.changesets, session?.defaultChat);
+ 			const selectableEntries = resolvedCatalogue?.filter(({ changeset }) => !changeset.uriTemplate.includes('{'));
+-			const selectedChangeset = selectDefaultChangeset(selectableEntries?.map(({ changeset }) => changeset), currentResolution.defaultChangesetKind);
++			const isolation = session?.config?.values[SessionConfigKey.Isolation];
++			const defaultChangesetKind = currentResolution.defaultChangesetKind ?? (isolation === 'folder' ? ChangesetKind.Session : isolation === 'worktree' ? ChangesetKind.Branch : undefined);
++			const selectedChangeset = selectDefaultChangeset(selectableEntries?.map(({ changeset }) => changeset), defaultChangesetKind);
+ 			const selectedEntry = selectableEntries?.find(({ changeset }) => changeset === selectedChangeset);
+ 			return resolveAgentHostChangeset(
+ 				selectedEntry?.owner === 'session' ? currentResolution.backendSession : chat,
+ 				selectedChangeset ? [selectedChangeset] : undefined,
+-				currentResolution.defaultChangesetKind,
++				defaultChangesetKind,
+ 			);
+ 		});
+ 		const changesetStateSource = derived(this, reader => {
+--- code-server.orig/lib/vscode/src/vs/workbench/contrib/chat/test/browser/agentHost/agentHostSessionInputPills.test.ts
++++ code-server/lib/vscode/src/vs/workbench/contrib/chat/test/browser/agentHost/agentHostSessionInputPills.test.ts
+@@ -39,6 +39,8 @@
+ import { IOpenerService } from '../../../../../../platform/opener/common/opener.js';
+ import { ILabelService } from '../../../../../../platform/label/common/label.js';
+ import { workbenchInstantiationService } from '../../../../../test/browser/workbenchTestServices.js';
++import { TestProductService } from '../../../../../test/common/workbenchTestServices.js';
++import { BrowserWorkbenchEnvironmentService } from '../../../../../services/environment/browser/environmentService.js';
+ import { BrowserEditorInput } from '../../../../browserView/common/browserEditorInput.js';
+ import { IBrowserViewModel, IBrowserViewWorkbenchService } from '../../../../browserView/common/browserView.js';
+ import { IEditorService, SIDE_GROUP } from '../../../../../services/editor/common/editorService.js';
+@@ -126,7 +128,9 @@
+ 		getUriLabel: (resource, options) => options?.relative ? resource.path.replace(/^\/repo\/?/, '') : resource.fsPath,
+ 	});
+ 	const createInstantiationService = () => {
+-		const instantiationService = workbenchInstantiationService(undefined, store);
++		const instantiationService = workbenchInstantiationService({
++			environmentService: () => new BrowserWorkbenchEnvironmentService('', URI.file('tests').with({ scheme: 'vscode-tests' }), { userDataPath: '/tmp/vscode-tests' }, TestProductService),
++		}, store);
+ 		instantiationService.stub(IWorkbenchGitHubService, upcastPartial<IWorkbenchGitHubService>({
+ 			onDidChangeDefaultClient: Event.None,
+ 			acquireDefaultAccountClient: () => new Promise(() => { }),
+@@ -1218,6 +1222,63 @@
+ 		});
+ 	});
+ 
++
++	test('folder sessions default the Changes pill to Session Changes when the provider has no override', () => {
++		const instantiationService = createInstantiationService();
++		const sessionResource = URI.parse('agent-host-copilot:/session');
++		const backendSession = URI.parse('copilot:/session');
++		const backendChat = URI.parse(buildDefaultChatUri(backendSession));
++		const connection = new StaticAgentConnection(new Map<StateComponents, SessionState | ChatState | ChangesetState>([
++			[StateComponents.Session, {
++				defaultChat: backendChat.toString(),
++				chats: [],
++				config: { values: { isolation: 'folder' } },
++				changesets: [
++					{ label: 'Branch Changes', uriTemplate: 'changeset/branch', changeKind: ChangesetKind.Branch },
++					{ label: 'Session Changes', uriTemplate: 'changeset/session', changeKind: ChangesetKind.Session },
++				],
++			} as unknown as SessionState],
++			[StateComponents.Chat, {} as ChatState],
++			[StateComponents.Changeset, { status: ChangesetStatus.Ready, files: [] } as unknown as ChangesetState],
++		]));
++		const persistentContent = document.createElement('div');
++		document.body.appendChild(persistentContent);
++		store.add(toDisposable(() => persistentContent.remove()));
++		const widget = upcastPartial<ChatWidget>({
++			inputPart: upcastPartial<ChatInputPart>({
++				persistentContentContainerElement: persistentContent,
++				registerChatPetHorizontalPlatformProvider: () => Disposable.None,
++			}),
++			onDidChangeViewModel: Event.None,
++			viewModel: upcastPartial<ChatViewModel>({ sessionResource }),
++			setPersistentContentHeight: () => { },
++		});
++		const connectionsService = upcastPartial<IAgentHostConnectionsService>({
++			onDidChangeConnections: Event.None,
++			onDidChangeSessionResolution: Event.None,
++			connections: [],
++			resolveSessionResource: () => ({ connection, connectionAuthority: 'local', backendSession }),
++		});
++		const browserViewService = upcastPartial<IBrowserViewWorkbenchService>({
++			onDidChangeBrowserViews: Event.None,
++			getKnownBrowserViews: () => new Map(),
++		});
++		const visibility = store.add(instantiationService.createInstance(SessionChatPillVisibility));
++		instantiationService.stub(ISessionChatPillVisibilityService, visibility);
++		const [clipboardService, configurationService, editorService, openerService] = instantiationService.invokeFunction(accessor => [
++			accessor.get(IClipboardService), accessor.get(IConfigurationService), accessor.get(IEditorService), accessor.get(IOpenerService),
++		] as const);
++
++		store.add(new AgentHostSessionInputPills(
++			widget, false, connectionsService, browserViewService, clipboardService, configurationService,
++			editorService, instantiationService, openerService, visibility, noProvisionalSessions, labelService, notificationService,
++			instantiationService.get(ICommandService),
++		));
++
++		const changesetRequest = connection.requested.findLast(request => request.kind === StateComponents.Changeset);
++		assert.strictEqual(changesetRequest?.resource.toString(), `${backendSession.toString()}/changeset/session`);
++	});
++
+ 	test('resolves the configured session changeset and ignores templated entries', () => {
+ 		const backendSession = URI.parse('ahp-session:/session');
+ 		const changesets: readonly Changeset[] = [
