@@ -69,6 +69,43 @@ describe("http", () => {
         expected: "does not match",
       },
       {
+        origin: "https://example.com",
+        host: "example.com:443", // Explicit default port.
+      },
+      {
+        origin: "http://example.com",
+        host: "example.com:80",
+      },
+      {
+        origin: "https://example.com",
+        host: "example.com:80", // Default port of the other protocol.
+        expected: "does not match",
+      },
+      {
+        origin: "https://example.com:8080",
+        host: "example.com", // Missing port is not ignored.
+        expected: "does not match",
+      },
+      {
+        origin: "https://example.com",
+        host: "example.com:8443",
+        expected: "does not match",
+      },
+      {
+        origin: "http://example.com:8080",
+        host: "other.com",
+        expected: "does not match",
+      },
+      {
+        origin: "http://[::1]:8080",
+        host: "[::1]:8080",
+      },
+      {
+        origin: "http://[::1]:8080",
+        host: "[::1]:8081",
+        expected: "does not match",
+      },
+      {
         origin: "localhost:8080",
         host: "localhost:8080",
         expected: "does not match", // Gets parsed as host: localhost and path: 8080.
@@ -120,6 +157,75 @@ describe("http", () => {
             expect(() => http.authenticateOrigin(req)).not.toThrow()
           }
         })
+      })
+    })
+
+    describe("x-forwarded-port", () => {
+      ;[
+        {
+          origin: "https://example.com:8080",
+          headers: { "x-forwarded-host": "example.com", "x-forwarded-port": "8080" },
+        },
+        {
+          origin: "https://example.com",
+          headers: { "x-forwarded-host": "example.com", "x-forwarded-port": "443" },
+        },
+        {
+          origin: "http://[::1]:8080",
+          headers: { "x-forwarded-host": "[::1]", "x-forwarded-port": "8080" },
+        },
+        {
+          origin: "https://example.com:8080",
+          headers: { "x-forwarded-host": "example.com", "x-forwarded-port": "8080, 443" },
+        },
+        {
+          origin: "https://example.com:8080",
+          headers: { "x-forwarded-host": "example.com", "x-forwarded-port": "8081" },
+          expected: "does not match",
+        },
+        {
+          origin: "https://example.com:8080",
+          headers: { "x-forwarded-host": "example.com:8081", "x-forwarded-port": "8080" },
+          expected: "does not match", // The port in the host wins.
+        },
+        {
+          origin: "https://example.com:8080",
+          headers: { "x-forwarded-host": "example.com", "x-forwarded-port": "foo" },
+          expected: "does not match",
+        },
+        {
+          origin: "https://example.com:8080",
+          headers: { host: "example.com", "x-forwarded-port": "8080" },
+          expected: "does not match", // Only used with X-Forwarded-Host.
+        },
+        {
+          origin: "https://example.com:8080",
+          headers: { forwarded: "host=example.com", "x-forwarded-port": "8080" },
+          expected: "does not match",
+        },
+      ].forEach((test) => {
+        it(`${test.origin} -> ${JSON.stringify(test.headers)}`, () => {
+          const req = getMockReq({
+            originalUrl: "localhost:8080",
+            headers: {
+              origin: test.origin,
+              ...test.headers,
+            },
+            args: {},
+          })
+          if (typeof test.expected === "string") {
+            expect(() => http.authenticateOrigin(req)).toThrow(test.expected)
+          } else {
+            expect(() => http.authenticateOrigin(req)).not.toThrow()
+          }
+        })
+      })
+
+      it("should not add the port to the host for other uses", () => {
+        const req = getMockReq({
+          headers: { "x-forwarded-host": "code-8080.example.com", "x-forwarded-port": "443" },
+        })
+        expect(http.getHost(req)).toBe("code-8080.example.com")
       })
     })
   })
