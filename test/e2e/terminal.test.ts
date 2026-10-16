@@ -30,6 +30,20 @@ describe("Integrated Terminal", ["--disable-workspace-trust"], {}, () => {
     expect(stdout).toMatch(address)
   })
 
+  test("should copy OSC 52 terminal output to the browser clipboard", async ({ codeServerPage }) => {
+    const page = codeServerPage.page
+    await page.context().grantPermissions(["clipboard-read", "clipboard-write"])
+    await page.evaluate(() => navigator.clipboard.writeText("PREVIOUS_CLIPBOARD_VALUE"))
+
+    await codeServerPage.focusTerminal()
+    const text = "CODE_SERVER_OSC52_CLIPBOARD_TEST"
+    const payload = Buffer.from(text).toString("base64")
+    await page.keyboard.type(`printf '\\033]52;c;${payload}\\007'`)
+    await page.keyboard.press("Enter")
+
+    await expect.poll(() => page.evaluate(() => navigator.clipboard.readText())).toBe(text)
+  })
+
   // TODO@jsjoeio - add test to make sure full code-server path works
   test("should be able to invoke `code-server` to open a file", async ({ codeServerPage }) => {
     const tmpFolderPath = await tmpdir(testName)

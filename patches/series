@@ -19,6 +19,7 @@ cli-window-open.diff
 getting-started.diff
 keepalive.diff
 clipboard.diff
+terminal-clipboard.diff
 display-language.diff
 trusted-domains.diff
 signature-verification.diff

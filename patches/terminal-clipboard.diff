@@ -1,0 +1,75 @@
+Route normal OSC 52 writes to the default clipboard so browser clients receive
+terminal copy requests. Explicit clipboard types use an in-memory map in
+BrowserClipboardService, so sending the normal 'c' destination as 'clipboard'
+never reaches navigator.clipboard.writeText. Keep PRIMARY selection and reads
+unchanged.
+
+Reproduce in a browser terminal by running:
+  printf '\033]52;c;Q0xJUEJPQVJEX1RFU1Q=\007'
+Pasting into another application should yield CLIPBOARD_TEST. Without the fix,
+the browser clipboard retains its previous value. Covered end-to-end in
+ test/e2e/terminal.test.ts, with destination mapping cases in the VS Code patch.
+
+Index: code-server/lib/vscode/src/vs/workbench/contrib/terminal/browser/xterm/xtermTerminal.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/workbench/contrib/terminal/browser/xterm/xtermTerminal.ts
++++ code-server/lib/vscode/src/vs/workbench/contrib/terminal/browser/xterm/xtermTerminal.ts
+@@ -343,7 +343,8 @@ export class XtermTerminal extends Disposable implements IXtermTerminal, IDetach
+ 					return _clipboardService.readText(type === 'p' ? 'selection' : 'clipboard');
+ 				},
+ 				async writeText(type: string, text: string): Promise<void> {
+-					return _clipboardService.writeText(text, type === 'p' ? 'selection' : 'clipboard');
++					// Explicit clipboard types are in-memory only in the browser.
++					return _clipboardService.writeText(text, type === 'p' ? 'selection' : undefined);
+ 				}
+ 			});
+ 			this.raw.loadAddon(this._clipboardAddon);
+Index: code-server/lib/vscode/src/vs/workbench/contrib/terminal/test/browser/xterm/xtermTerminal.test.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/workbench/contrib/terminal/test/browser/xterm/xtermTerminal.test.ts
++++ code-server/lib/vscode/src/vs/workbench/contrib/terminal/test/browser/xterm/xtermTerminal.test.ts
+@@ -13,6 +13,7 @@ import { toDisposable } from '../../../../../../base/common/lifecycle.js';
+ import { isMacintosh } from '../../../../../../base/common/platform.js';
+ import { mock } from '../../../../../../base/test/common/mock.js';
+ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../../base/test/common/utils.js';
++import { IClipboardService } from '../../../../../../platform/clipboard/common/clipboardService.js';
+ import { IEditorOptions } from '../../../../../../editor/common/config/editorOptions.js';
+ import { TestConfigurationService } from '../../../../../../platform/configuration/test/common/testConfigurationService.js';
+ import { IConfigurationChangeEvent } from '../../../../../../platform/configuration/common/configuration.js';
+@@ -109,6 +110,9 @@ suite('XtermTerminal', () => {
+ 
+ 		XTermBaseCtor = (await importAMDNodeModule<typeof import('@xterm/xterm')>('@xterm/xterm', 'lib/xterm.js')).Terminal;
+ 
++		// Load before construction so the clipboard addon is ready when setup completes.
++		await new TestXtermAddonImporter().importAddon('clipboard');
++
+ 		const capabilityStore = store.add(new TerminalCapabilityStore());
+ 		xterm = store.add(instantiationService.createInstance(XtermTerminal, undefined, XTermBaseCtor, {
+ 			cols: 80,
+@@ -129,6 +133,26 @@ suite('XtermTerminal', () => {
+ 		strictEqual(xterm.raw.rows, 30);
+ 	});
+ 
++	suite('OSC 52 clipboard writes', () => {
++		for (const [destination, expectedType] of [
++			['c', undefined],
++			['', undefined],
++			['s', undefined],
++			['p', 'selection'],
++		] as const) {
++			test(`routes ${destination || 'default'} to ${expectedType || 'system clipboard'}`, async () => {
++				const writeText = stub(instantiationService.get(IClipboardService), 'writeText').resolves();
++				try {
++					await write(`\x1b]52;${destination};UEFOTy1URVNU\x07`);
++					strictEqual(writeText.callCount, 1);
++					deepStrictEqual(writeText.firstCall.args, ['PANO-TEST', expectedType]);
++				} finally {
++					writeText.restore();
++				}
++			});
++		}
++	});
++
+ 	suite('fontRendering', () => {
+ 		async function setTerminalConfiguration(configuration: Partial<ITerminalConfiguration>): Promise<void> {
+ 			await configurationService.setUserConfiguration('terminal.integrated', {

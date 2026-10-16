@@ -22,6 +22,10 @@ Code v99.99.999
 
 ## Unreleased
 
+### Fixed
+
+- Terminal applications using OSC 52 can now copy to the browser clipboard instead of an internal clipboard.
+
 ## [4.141.0](https://github.com/coder/code-server/releases/tag/v4.141.0) - 2026-10-08
 
 Code v1.141.0
