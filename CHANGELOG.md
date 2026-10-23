@@ -31,6 +31,19 @@ Code v99.99.999
 - Reject compressed request bodies (`Content-Encoding: br`, `gzip`, or
   `deflate`) instead of decompressing them.
 
+### Fixed
+
+- Boolean flags in the `--flag=false` form and in the config file now respect
+  being set to false.
+
+### Added
+
+- Turkish locale.
+
+### Changed
+
+- Expand values from path options in the config file that start with a tilde.
+
 ## [4.141.0](https://github.com/coder/code-server/releases/tag/v4.141.0) - 2026-10-08
 
 Code v1.141.0
