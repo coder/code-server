@@ -2,7 +2,7 @@ Index: code-server/lib/vscode/build/gulpfile.extensions.ts
 ===================================================================
 --- code-server.orig/lib/vscode/build/gulpfile.extensions.ts
 +++ code-server/lib/vscode/build/gulpfile.extensions.ts
-@@ -291,6 +291,29 @@ export const compileCopilotExtensionBuil
+@@ -294,6 +294,29 @@ export const compileCopilotExtensionBuil
  task.task(compileCopilotExtensionBuildTask);
  
  /**

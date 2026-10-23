@@ -18,7 +18,7 @@ Index: code-server/lib/vscode/src/vs/server/node/serverServices.ts
  import { ProtocolConstants } from '../../base/parts/ipc/common/ipc.net.js';
  import { createRandomIPCHandle } from '../../base/parts/ipc/node/ipc.net.js';
  import { IConfigurationService } from '../../platform/configuration/common/configuration.js';
-@@ -418,6 +418,9 @@ export async function setupServerService
+@@ -444,6 +444,9 @@ export async function setupServerService
  
  		socketServer.registerChannel('mcpManagement', new McpManagementChannel(mcpManagementService, (ctx: RemoteAgentConnectionContext) => getUriTransformer(ctx.remoteAuthority)));
  

@@ -53,7 +53,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/index
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/index.html
 +++ code-server/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/index.html
-@@ -253,7 +253,7 @@
+@@ -266,7 +266,7 @@
  			}
  
  			const swPath = encodeURI(`service-worker.js?v=${expectedWorkerVersion}&vscode-resource-base-authority=${searchParams.get('vscode-resource-base-authority')}&remoteAuthority=${searchParams.get('remoteAuthority') ?? ''}&platform=${searchParams.get('platform')}`);
@@ -62,7 +62,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/index
  				.then(async registration => {
  					if (navigator.serviceWorker.controller) {
  						// A previous SW is already controlling. Force an update
-@@ -332,6 +332,12 @@
+@@ -345,6 +345,12 @@
  
  				const hostname = location.hostname;
  
