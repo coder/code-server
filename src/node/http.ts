@@ -381,19 +381,20 @@ export function authenticateOrigin(req: express.Request): void {
     return
   }
 
-  let origin: string
+  let originUrl: URL
   try {
-    origin = new URL(originRaw).host.trim().toLowerCase()
+    originUrl = new URL(originRaw)
   } catch (error) {
     throw new Error(`unable to parse malformed origin "${originRaw}"`)
   }
+  const origin = originUrl.host.trim().toLowerCase()
 
   const trustedOrigins = req.args["trusted-origins"] || []
   if (isTrustedOrigin(origin, trustedOrigins)) {
     return
   }
 
-  const host = getHost(req)
+  const host = getHost(req, true)
   if (typeof host === "undefined") {
     // A missing host likely means the reverse proxy has not been configured to
     // forward the host which means we cannot perform the check.  Emit an error
@@ -403,15 +404,64 @@ export function authenticateOrigin(req: express.Request): void {
     throw new Error("no host headers found")
   }
 
-  if (host !== origin) {
+  if (!hostMatchesOrigin(host, originUrl)) {
     throw new Error(`host "${host}" does not match origin "${origin}"`)
   }
 }
 
+const defaultPorts: { [protocol: string]: string } = {
+  "http:": "80",
+  "https:": "443",
+}
+
+/**
+ * Parse a host like `example.com:8080` or `[::1]:8080`.  A non-special scheme
+ * keeps the port as written instead of dropping default ports.
+ */
+function parseHost(host: string): URL | undefined {
+  try {
+    return new URL(`host://${host}`)
+  } catch (error) {
+    return undefined
+  }
+}
+
+/**
+ * Check whether the host from the request headers matches the origin.
+ *
+ * This is an exact match, except that a default port (80 for http, 443 for
+ * https) is the same as no port, since `example.com:443` and
+ * `https://example.com` are the same origin.
+ */
+export function hostMatchesOrigin(host: string, origin: URL): boolean {
+  const parsed = parseHost(host)
+  if (!parsed) {
+    return false
+  }
+  const port = parsed.port === defaultPorts[origin.protocol] ? "" : parsed.port
+  return parsed.hostname === origin.hostname.toLowerCase() && port === origin.port
+}
+
+/**
+ * Add the port from X-Forwarded-Port to a host that does not have one.  Some
+ * reverse proxies (for example nginx with `$host`) forward the host without
+ * the port and send the port separately.
+ */
+function addForwardedPort(req: express.Request, host: string): string {
+  const port = getFirstHeader(req, "x-forwarded-port")?.split(",")[0].trim()
+  if (!port || !/^\d+$/.test(port) || parseHost(host)?.port !== "") {
+    return host
+  }
+  return `${host}:${port}`
+}
+
 /**
  * Get the host from headers.  It will be trimmed and lowercased.
+ *
+ * If `withForwardedPort` is set and the host comes from X-Forwarded-Host
+ * without a port, the port from X-Forwarded-Port is added.
  */
-export function getHost(req: express.Request): string | undefined {
+export function getHost(req: express.Request, withForwardedPort = false): string | undefined {
   // Honor Forwarded if present.
   const forwardedRaw = getFirstHeader(req, "forwarded")
   if (forwardedRaw) {
@@ -430,7 +480,8 @@ export function getHost(req: express.Request): string | undefined {
   if (xHost) {
     const firstXHost = xHost.split(",")[0]
     if (firstXHost) {
-      return firstXHost.trim().toLowerCase()
+      const host = firstXHost.trim().toLowerCase()
+      return withForwardedPort ? addForwardedPort(req, host) : host
     }
   }
 
