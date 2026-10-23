@@ -132,8 +132,10 @@ export const register = async (
     })
   })
 
-  app.router.use(express.json())
-  app.router.use(express.urlencoded({ extended: true }))
+  // Reject compressed request bodies so unauthenticated requests cannot reach
+  // the zlib/Brotli decoders. Browsers never compress request bodies.
+  app.router.use(express.json({ inflate: false }))
+  app.router.use(express.urlencoded({ extended: true, inflate: false }))
 
   app.router.use(
     "/_static",

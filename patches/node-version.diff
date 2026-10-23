@@ -1,0 +1,16 @@
+Bump the bundled Node.js version
+
+Pull in Node.js security fixes (Brotli decoder RCE) ahead of upstream. Drop
+this patch once upstream targets this version or newer.
+
+Index: code-server/lib/vscode/remote/.npmrc
+===================================================================
+--- code-server.orig/lib/vscode/remote/.npmrc
++++ code-server/lib/vscode/remote/.npmrc
+@@ -1,5 +1,5 @@
+ disturl="https://nodejs.org/dist"
+-target="24.21.0"
++target="24.22.1"
+ ms_build_id="474716"
+ runtime="node"
+ build_from_source="true"
