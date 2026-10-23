@@ -38,7 +38,7 @@ export async function makeEditorSessionManagerServer(
 ): Promise<http.Server> {
   const router = express()
 
-  router.use(express.json())
+  router.use(express.json({ inflate: false }))
 
   router.get<{}, GetSessionResponse | string | unknown, undefined, { filePath?: string }>(
     "/session",

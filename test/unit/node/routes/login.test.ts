@@ -75,6 +75,17 @@ describe("login", () => {
       expect(htmlContent).toContain("Missing password")
     })
 
+    it("should reject compressed request bodies", async () => {
+      for (const encoding of ["br", "gzip", "deflate"]) {
+        const resp = await codeServer().fetch("/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded", "Content-Encoding": encoding },
+          body: "password=test",
+        })
+        expect(resp.status).toBe(415)
+      }
+    })
+
     it("should return HTML with 'Incorrect password' message", async () => {
       const params = new URLSearchParams()
       params.append("password", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
