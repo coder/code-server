@@ -22,6 +22,8 @@ Code v99.99.999
 
 ## Unreleased
 
+## [4.141.1](https://github.com/coder/code-server/releases/tag/v4.141.1) - 2026-10-23
+
 ### Security
 
 - Update bundled Node.js to 24.22.1 to fix a remote code execution bug in the
