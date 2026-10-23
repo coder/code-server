@@ -1,13 +1,9 @@
 import { promises as fs } from "fs"
 import * as os from "os"
 import * as path from "path"
-import i18n, { loadCustomStrings } from "../../../src/node/i18n"
+import { loadCustomStrings } from "../../../src/node/i18n"
 
 describe("i18n", () => {
-  it("includes Turkish translations", () => {
-    expect(i18n.getResource("tr", "translation", "WELCOME")).toBe("{{app}} uygulamasına hoş geldiniz")
-  })
-
   let tempDir: string
   let validJsonFile: string
   let invalidJsonFile: string

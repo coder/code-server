@@ -104,7 +104,7 @@ Index: code-server/lib/vscode/src/vs/server/node/serverServices.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/serverServices.ts
 +++ code-server/lib/vscode/src/vs/server/node/serverServices.ts
-@@ -105,6 +105,10 @@ import { McpManagementChannel } from '..
+@@ -106,6 +106,10 @@ import { McpManagementChannel } from '..
  import { AllowedMcpServersService } from '../../platform/mcp/common/allowedMcpServersService.js';
  import { IMcpGalleryManifestService } from '../../platform/mcp/common/mcpGalleryManifest.js';
  import { McpGalleryManifestIPCService } from '../../platform/mcp/common/mcpGalleryManifestServiceIpc.js';
@@ -115,7 +115,7 @@ Index: code-server/lib/vscode/src/vs/server/node/serverServices.ts
  import { SANDBOX_HELPER_CHANNEL_NAME, SandboxHelperChannel } from '../../platform/sandbox/common/sandboxHelperIpc.js';
  import { SandboxHelperService } from '../../platform/sandbox/node/sandboxHelper.js';
  
-@@ -238,6 +242,21 @@ export async function setupServerService
+@@ -244,6 +248,21 @@ export async function setupServerService
  	services.set(IMcpGatewayService, new SyncDescriptor(McpGatewayService));
  
  	const instantiationService: IInstantiationService = new InstantiationService(services);
@@ -137,7 +137,7 @@ Index: code-server/lib/vscode/src/vs/server/node/serverServices.ts
  	services.set(ILanguagePackService, instantiationService.createInstance(NativeLanguagePackService));
  
  	const ptyHostStarter = instantiationService.createInstance(
-@@ -420,6 +439,7 @@ export async function setupServerService
+@@ -446,6 +465,7 @@ export async function setupServerService
  
  		const languagePackChannel = ProxyChannel.fromService<RemoteAgentConnectionContext>(accessor.get(ILanguagePackService), disposables);
  		socketServer.registerChannel('languagePacks', languagePackChannel);

@@ -21,7 +21,7 @@ Index: code-server/lib/vscode/src/vs/workbench/services/storage/browser/storageS
  
  export class BrowserStorageService extends AbstractStorageService {
  
-@@ -354,7 +355,11 @@ export class IndexedDBStorageDatabase ex
+@@ -365,7 +366,11 @@ export class IndexedDBStorageDatabase ex
  	}
  
  	static async createWorkspaceStorage(workspaceId: string, logService: ILogService): Promise<IIndexedDBStorageDatabase> {
