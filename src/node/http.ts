@@ -235,7 +235,16 @@ export const getCookieDomain = (host: string, proxyDomains: string[]): string | 
     return undefined
   }
 
-  proxyDomains.forEach((domain) => {
+  proxyDomains.forEach((proxyDomain) => {
+    // Proxy domains are patterns like `{{port}}.domain.tld` or
+    // `prefix-{{port}}-suffix.domain.tld` so use the part after the label that
+    // contains the port.
+    const portIndex = proxyDomain.indexOf("{{port}}")
+    const domain = portIndex === -1 ? proxyDomain : proxyDomain.substring(proxyDomain.indexOf(".", portIndex) + 1)
+    // Skip patterns we cannot turn into a domain, like `{{port}}.{{host}}`.
+    if (!domain || domain.includes("{{")) {
+      return
+    }
     if (host.endsWith(domain) && domain.length < host.length) {
       host = domain
     }
