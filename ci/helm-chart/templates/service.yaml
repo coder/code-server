@@ -6,6 +6,7 @@ metadata:
     {{- include "code-server.labels" . | nindent 4 }}
 spec:
   type: {{ .Values.service.type }}
+  loadBalancerClass: {{ .Values.service.loadBalancerClass }}
   ports:
     - port: {{ .Values.service.port }}
       targetPort: http
