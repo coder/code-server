@@ -230,6 +230,35 @@ describe("http", () => {
     })
   })
 
+  describe("getCookieDomain", () => {
+    it("should use the proxy domain for the cookie", () => {
+      const proxyDomains = ["{{port}}.example.com", "code-{{port}}.test.com"]
+      expect(http.getCookieDomain("example.com", proxyDomains)).toBe("example.com")
+      expect(http.getCookieDomain("8080.example.com", proxyDomains)).toBe("example.com")
+      expect(http.getCookieDomain("8080.example.com:443", proxyDomains)).toBe("example.com")
+      expect(http.getCookieDomain("code-8080.test.com", proxyDomains)).toBe("test.com")
+    })
+
+    it("should use the highest level proxy domain", () => {
+      const proxyDomains = ["{{port}}.test.example.com", "{{port}}.example.com"]
+      expect(http.getCookieDomain("test.example.com", proxyDomains)).toBe("example.com")
+      expect(http.getCookieDomain("8080.test.example.com", proxyDomains)).toBe("example.com")
+    })
+
+    it("should use the host when no proxy domain matches", () => {
+      expect(http.getCookieDomain("code.other.com", ["{{port}}.example.com"])).toBe("code.other.com")
+      expect(http.getCookieDomain("8080.example.com", ["{{port}}.{{host}}"])).toBe("8080.example.com")
+      expect(http.getCookieDomain("8080.example.com", [])).toBe("8080.example.com")
+    })
+
+    it("should not set a domain for localhost or IP addresses", () => {
+      const proxyDomains = ["{{port}}.example.com"]
+      expect(http.getCookieDomain("localhost:8080", proxyDomains)).toBe(undefined)
+      expect(http.getCookieDomain("127.0.0.1:8080", proxyDomains)).toBe(undefined)
+      expect(http.getCookieDomain("8080.dev.localhost", proxyDomains)).toBe(undefined)
+    })
+  })
+
   describe("constructRedirectPath", () => {
     it("should preserve slashes in queryString so they are human-readable", () => {
       const mockReq = getMockReq({
