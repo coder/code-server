@@ -4,8 +4,13 @@ metadata:
   name: {{ include "code-server.fullname" . }}
   labels:
     {{- include "code-server.labels" . | nindent 4 }}
+  annotations:
+  {{- with .Values.service.annotations }}
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
 spec:
   type: {{ .Values.service.type }}
+  loadBalancerClass: {{ .Values.service.loadBalancerClass }}
   ports:
     - port: {{ .Values.service.port }}
       targetPort: http

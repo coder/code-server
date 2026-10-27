@@ -48,6 +48,8 @@ priorityClassName: ""
 service:
   type: ClusterIP
   port: 8080
+  loadBalancerClass: null
+  annotations: {}
 
 ingress:
   enabled: false
