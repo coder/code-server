@@ -22,6 +22,12 @@ Code v99.99.999
 
 ## Unreleased
 
+### Fixed
+
+- Prevent slow service worker updates from blocking webview initialization when
+  the matching worker is already available, and require the correct webview
+  controller before loading content.
+
 ## [4.143.1](https://github.com/coder/code-server/releases/tag/v4.143.1) - 2026-10-23
 
 Code v1.143.1

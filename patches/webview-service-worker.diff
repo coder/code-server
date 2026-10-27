@@ -1,0 +1,149 @@
+Bound webview worker update waits and acquire the expected controller
+
+A root PWA controller is not the webview worker. Reuse only the exact
+registration scope and active script URL, bound update checks to three seconds,
+and still require the matching controller before loading webview resources.
+Initial registration remains mandatory. A narrowly validated claim message
+handles documents created under the root worker after activation.
+
+Test: test/e2e/webviewServiceWorker.test.ts (real browser registrations).
+
+Index: code-server/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/index.html
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/index.html
++++ code-server/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/index.html
+@@ -256,47 +256,71 @@
+ 		}
+ 
+ 		/** @type {Promise<void>} */
+-		const workerReady = new Promise((resolve, reject) => {
++		const workerReady = (async () => {
+ 			if (disableServiceWorker) {
+-				return resolve();
++				return;
+ 			}
+ 
+ 			if (!areServiceWorkersEnabled()) {
+-				return reject(new Error('Service Workers are not enabled. Webviews will not work. Try disabling private/incognito mode.'));
+-			}
+-
+-			const swPath = encodeURI(`service-worker.js?v=${expectedWorkerVersion}&vscode-resource-base-authority=${searchParams.get('vscode-resource-base-authority')}&remoteAuthority=${searchParams.get('remoteAuthority') ?? ''}&platform=${searchParams.get('platform')}`);
+-			navigator.serviceWorker.register(swPath)
+-				.then(async registration => {
+-					if (navigator.serviceWorker.controller) {
+-						// A previous SW is already controlling. Force an update
+-						// check so we don't serve stale resources after a VS Code
+-						// update. register() resolves before the update check
+-						// completes, so we must call update() explicitly to wait
+-						// for the download + byte-comparison to finish.
+-						registration = await registration.update();
+-					}
+-
+-					// If a new worker was found, wait for it to take control via skipWaiting() + clients.claim() in the SW.
+-					if (
+-						// New worker
+-						registration.installing || registration.waiting
+-						// First ever load
+-						|| !navigator.serviceWorker.controller
+-					) {
+-						await new Promise(r => {
+-							navigator.serviceWorker.addEventListener('controllerchange', r, { once: true });
+-						});
+-					}
+-
+-					return resolve();
+-				}).catch(error => {
+-					if (!onElectron && error instanceof Error && error.message.includes('user denied permission')) {
+-						return reject(new Error(`Could not register service worker. Please make sure third party cookies are enabled: ${error}`));
+-					}
+-					return reject(new Error(`Could not register service worker: ${error}.`));
+-				});
+-		});
++				throw new Error('Service Workers are not enabled. Webviews will not work. Try disabling private/incognito mode.');
++			}
++
++			// A distinct URL prevents reusing a worker without the claim message handler.
++			const swPath = encodeURI(`service-worker.js?v=${expectedWorkerVersion}&vscode-resource-base-authority=${searchParams.get('vscode-resource-base-authority')}&remoteAuthority=${searchParams.get('remoteAuthority') ?? ''}&platform=${searchParams.get('platform')}&code-server-webview=1`);
++			const expectedScriptURL = new URL(swPath, location.href).href;
++			const expectedScope = new URL('./', location.href).href;
++			try {
++				const existing = await navigator.serviceWorker.getRegistration(location.href);
++				const hasMatchingActiveWorker = existing?.scope === expectedScope && existing.active?.scriptURL === expectedScriptURL;
++				// register() can also queue behind an update job. Reuse only this exact registration.
++				const registration = hasMatchingActiveWorker ? existing : await navigator.serviceWorker.register(swPath);
++				if (hasMatchingActiveWorker) {
++					// Keep update checks, but do not hold usable content behind a slow browser job.
++					let timer;
++					try {
++						await Promise.race([
++							registration.update(),
++							new Promise(resolve => { timer = setTimeout(resolve, 3000); })
++						]);
++					} catch (error) {
++						console.warn('Webview service worker update failed; using matching active worker.', error);
++					} finally {
++						clearTimeout(timer);
++					}
++				}
++
++				// A root PWA controller does not make webview resource requests usable.
++				if (navigator.serviceWorker.controller?.scriptURL !== expectedScriptURL) {
++					await new Promise((resolve, reject) => {
++						const cleanup = () => {
++							clearTimeout(timer);
++							clearInterval(claimInterval);
++							navigator.serviceWorker.removeEventListener('controllerchange', check);
++						};
++						const check = () => {
++							if (navigator.serviceWorker.controller?.scriptURL === expectedScriptURL) {
++								cleanup();
++								resolve(undefined);
++							} else if (registration.active?.scriptURL === expectedScriptURL) {
++								registration.active.postMessage({ channel: 'code-server-claim-webview' });
++							}
++						};
++						const timer = setTimeout(() => {
++							cleanup();
++							reject(new Error('Timed out waiting for the matching webview service worker to take control.'));
++						}, 10000);
++						const claimInterval = setInterval(check, 250);
++						navigator.serviceWorker.addEventListener('controllerchange', check);
++						check();
++					});
++				}
++			} catch (error) {
++				if (!onElectron && error instanceof Error && error.message.includes('user denied permission')) {
++					throw new Error(`Could not register service worker. Please make sure third party cookies are enabled: ${error}`);
++				}
++				throw new Error(`Could not register service worker: ${error}.`);
++			}
++		})();
+ 
+ 		/**
+ 		 *  @type {import('../webviewMessages').WebviewHostMessaging}
+Index: code-server/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/service-worker.js
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/service-worker.js
++++ code-server/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/service-worker.js
+@@ -258,6 +258,21 @@
+ 	/** @type {Client} */
+ 	const source = event.source;
+ 	switch (event.data.channel) {
++		case 'code-server-claim-webview': {
++			// Only an outer webview document on this origin may request a claim.
++			if (source.type !== 'window') {
++				return;
++			}
++			const url = new URL(source.url);
++			if (url.origin === sw.location.origin && (
++				url.pathname === `${rootPath}/`
++				|| url.pathname === `${rootPath}/index.html`
++				|| url.pathname === `${rootPath}/index-no-csp.html`
++			)) {
++				event.waitUntil(sw.clients.claim());
++			}
++			return;
++		}
+ 		case 'did-load-resource': {
+ 			/** @type {ResourceResponse} */
+ 			const response = event.data.data;
