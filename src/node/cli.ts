@@ -51,6 +51,7 @@ export interface UserProvidedCodeArgs {
   "disable-update-check"?: boolean
   "disable-file-downloads"?: boolean
   "disable-file-uploads"?: boolean
+  "disable-file-cache"?: boolean
   "disable-workspace-trust"?: boolean
   "disable-getting-started-override"?: boolean
   "disable-proxy"?: boolean
@@ -192,6 +193,10 @@ export const options: Options<Required<UserProvidedArgs>> = {
   "disable-file-uploads": {
     type: "boolean",
     description: "Disable file uploads.",
+  },
+  "disable-file-cache": {
+    type: "boolean",
+    description: "Keep workspace files out of the browser cache.",
   },
   "disable-workspace-trust": {
     type: "boolean",
