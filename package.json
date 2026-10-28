@@ -90,6 +90,9 @@
   "resolutions": {
     "@types/node": "24.x"
   },
+  "overrides": {
+    "basic-ftp": "^6.2.1"
+  },
   "bin": {
     "code-server": "out/node/entry.js"
   },
