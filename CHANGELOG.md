@@ -22,6 +22,12 @@ Code v99.99.999
 
 ## Unreleased
 
+### Fixed
+
+- `--socket-fd` now works: the inherited socket is passed on to the process
+  that listens, and the address is logged as `fd:<n>`. Previously code-server
+  failed with `listen EEXIST` or `Server has no address`.
+
 ## [4.143.1](https://github.com/coder/code-server/releases/tag/v4.143.1) - 2026-10-23
 
 Code v1.143.1

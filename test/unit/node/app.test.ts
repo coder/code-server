@@ -152,6 +152,9 @@ describe("ensureAddress", () => {
   it("should throw and error if no address", () => {
     expect(() => ensureAddress(mockServer, "http")).toThrow("Server has no address")
   })
+  it("should describe a --socket-fd listener by its fd when node reports no address", () => {
+    expect(ensureAddress(mockServer, "http", 4)).toBe("fd:4")
+  })
   it("should return the address if it's a string", async () => {
     mockServer.address = () => "/path/to/unix.sock"
     const address = ensureAddress(mockServer, "http")
