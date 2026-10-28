@@ -22,6 +22,13 @@ Code v99.99.999
 
 ## Unreleased
 
+### Added
+
+- `--disable-file-cache` keeps workspace files out of the browser cache. It
+  stops the webview service worker from storing them in Cache Storage and
+  serves them from `/vscode-remote-resource` with `Cache-Control: no-store`.
+  Extension files stay cached.
+
 ## [4.143.1](https://github.com/coder/code-server/releases/tag/v4.143.1) - 2026-10-23
 
 Code v1.143.1

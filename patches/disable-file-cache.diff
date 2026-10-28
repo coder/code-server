@@ -1,0 +1,188 @@
+Add option to keep workspace files out of the browser cache
+
+This patch adds support for a new CLI flag called `--disable-file-cache`. When
+set, workspace files are not stored on the client disk through two caches:
+
+- The webview resource loader sends no ETag for a resource outside the
+  webview's own extension, and the webview service worker only stores responses
+  that have an ETag, so these resources stay out of Cache Storage.
+- `/vscode-remote-resource` responds with `Cache-Control: no-store` for files
+  outside the extension directories.
+
+Extension resources keep their ETags so webviews still load extension code from
+the cache. The default value for this is `false`.
+
+To test, start code-server with `--disable-file-cache`, open a Markdown file
+that embeds an image from the workspace, and open the preview. In the browser
+dev tools, the `vscode-resource-cache-*` Cache Storage of the webview service
+worker should have no entry for the image, and a request to
+`/vscode-remote-resource?path=<image>` should respond with
+`Cache-Control: no-store`.
+
+Index: code-server/lib/vscode/src/vs/server/node/remoteExtensionHostAgentServer.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/server/node/remoteExtensionHostAgentServer.ts
++++ code-server/lib/vscode/src/vs/server/node/remoteExtensionHostAgentServer.ts
+@@ -177,15 +177,14 @@ class RemoteExtensionHostAgentServer ext
+ 
+ 			const requestOrigin = req.headers['origin'];
+ 			const responseHeaders = getRemoteResourceResponseHeaders(requestOrigin, origin => this._webEndpointOriginChecker.matches(origin));
+-			if (this._environmentService.isBuilt) {
+-				if (isEqualOrParent(filePath, this._environmentService.builtinExtensionsPath, !platform.isLinux)
+-					|| isEqualOrParent(filePath, this._environmentService.extensionsPath, !platform.isLinux)
+-				) {
+-					responseHeaders['Cache-Control'] = 'public, max-age=31536000';
+-				}
++			const isExtensionFile = isEqualOrParent(filePath, this._environmentService.builtinExtensionsPath, !platform.isLinux)
++				|| isEqualOrParent(filePath, this._environmentService.extensionsPath, !platform.isLinux);
++			if (this._environmentService.isBuilt && isExtensionFile) {
++				responseHeaders['Cache-Control'] = 'public, max-age=31536000';
+ 			}
+ 
+-			return serveFile(filePath, CacheControl.ETAG, this._logService, req, res, responseHeaders);
++			const cacheControl = this._environmentService.args['disable-file-cache'] && !isExtensionFile ? CacheControl.NO_CACHING : CacheControl.ETAG;
++			return serveFile(filePath, cacheControl, this._logService, req, res, responseHeaders);
+ 		}
+ 
+ 		// workbench web UI
+Index: code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
++++ code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
+@@ -37,6 +37,7 @@ export const serverOptions: OptionDescri
+ 	'auth': { type: 'string' },
+ 	'disable-file-downloads': { type: 'boolean' },
+ 	'disable-file-uploads': { type: 'boolean' },
++	'disable-file-cache': { type: 'boolean' },
+ 	'disable-getting-started-override': { type: 'boolean' },
+ 	'locale': { type: 'string' },
+ 	'link-protection-trusted-domains': { type: 'string[]' },
+@@ -139,6 +140,7 @@ export interface ServerParsedArgs {
+ 	'auth'?: string;
+ 	'disable-file-downloads'?: boolean;
+ 	'disable-file-uploads'?: boolean;
++	'disable-file-cache'?: boolean;
+ 	'disable-getting-started-override'?: boolean,
+ 	'locale'?: string
+ 	'link-protection-trusted-domains'?: string[],
+Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
++++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
+@@ -442,6 +442,7 @@ export class WebClientServer {
+ 			userDataPath: this._environmentService.userDataPath,
+ 			isEnabledFileDownloads: !this._environmentService.args['disable-file-downloads'],
+ 			isEnabledFileUploads: !this._environmentService.args['disable-file-uploads'],
++			isEnabledFileCache: !this._environmentService.args['disable-file-cache'],
+ 			isEnabledCoderGettingStarted: !this._environmentService.args['disable-getting-started-override'],
+ 			_wrapWebWorkerExtHostInIframe,
+ 			developmentOptions: { enableSmokeTestDriver: this._environmentService.args['enable-smoke-test-driver'] ? true : undefined, logLevel: this._logService.getLevel() },
+Index: code-server/lib/vscode/src/vs/workbench/browser/web.api.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/workbench/browser/web.api.ts
++++ code-server/lib/vscode/src/vs/workbench/browser/web.api.ts
+@@ -330,6 +330,11 @@ export interface IWorkbenchConstructionO
+ 	readonly isEnabledFileUploads?: boolean
+ 
+ 	/**
++	 * Whether the browser may cache workspace files.
++	 */
++	readonly isEnabledFileCache?: boolean
++
++	/**
+ 	 * Whether to use Coder's custom Getting Started text.
+ 	 */
+ 	readonly isEnabledCoderGettingStarted?: boolean
+Index: code-server/lib/vscode/src/vs/workbench/contrib/webview/browser/webviewElement.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/workbench/contrib/webview/browser/webviewElement.ts
++++ code-server/lib/vscode/src/vs/workbench/contrib/webview/browser/webviewElement.ts
+@@ -15,7 +15,7 @@ import { Lazy } from '../../../../base/c
+ import { Disposable, DisposableStore, IDisposable, MutableDisposable, toDisposable } from '../../../../base/common/lifecycle.js';
+ import { COI, Schemas } from '../../../../base/common/network.js';
+ import { observableValue } from '../../../../base/common/observable.js';
+-import { isEqualAuthority } from '../../../../base/common/resources.js';
++import { isEqualAuthority, isEqualOrParent } from '../../../../base/common/resources.js';
+ import { listenStream } from '../../../../base/common/stream.js';
+ import { URI } from '../../../../base/common/uri.js';
+ import { generateUuid } from '../../../../base/common/uuid.js';
+@@ -32,6 +32,7 @@ import { INotificationService } from '..
+ import { IRemoteAuthorityResolverService } from '../../../../platform/remote/common/remoteAuthorityResolver.js';
+ import { ITunnelService } from '../../../../platform/tunnel/common/tunnel.js';
+ import { WebviewPortMappingManager } from '../../../../platform/webview/common/webviewPortMapping.js';
++import { IBrowserWorkbenchEnvironmentService } from '../../../services/environment/browser/environmentService.js';
+ import { IWorkbenchEnvironmentService } from '../../../services/environment/common/environmentService.js';
+ import { IRemoteAgentService } from '../../../services/remote/common/remoteAgentService.js';
+ import { decodeAuthority, webviewGenericCspSource, webviewRootResourceAuthority } from '../common/webview.js';
+@@ -864,6 +865,8 @@ export class WebviewElement extends Disp
+ 					const rangeHeader = range
+ 						? `bytes ${range.start}-${rangeEnd}/${result.size}`
+ 						: undefined;
++					// The service worker only stores responses that have an etag.
++					const etag = this._isFileCacheAllowed(uri) ? result.etag : undefined;
+ 					if (WebviewElement._supportsTransferableStreams.value) {
+ 						let controller: ReadableStreamDefaultController<Uint8Array<ArrayBuffer>> | undefined;
+ 						let closed = false;
+@@ -915,7 +918,7 @@ export class WebviewElement extends Disp
+ 							status: range ? 206 : 200,
+ 							path: uri.path,
+ 							mime: result.mimeType,
+-							etag: result.etag,
++							etag,
+ 							mtime: result.mtime,
+ 							range: rangeHeader,
+ 							stream,
+@@ -927,7 +930,7 @@ export class WebviewElement extends Disp
+ 							status: range ? 206 : 200,
+ 							path: uri.path,
+ 							mime: result.mimeType,
+-							etag: result.etag,
++							etag,
+ 							mtime: result.mtime,
+ 							range: rangeHeader,
+ 						});
+@@ -984,6 +987,14 @@ export class WebviewElement extends Disp
+ 		});
+ 	}
+ 
++	private _isFileCacheAllowed(uri: URI): boolean {
++		if ((this._environmentService as IBrowserWorkbenchEnvironmentService).isEnabledFileCache) {
++			return true;
++		}
++		const extensionLocation = this.extension?.location;
++		return !!extensionLocation && isEqualOrParent(uri, extensionLocation);
++	}
++
+ 	private async localLocalhost(id: string, origin: string) {
+ 		const authority = this._environmentService.remoteAuthority;
+ 		const resolveAuthority = authority ? await this._remoteAuthorityResolverService.resolveAuthority(authority) : undefined;
+Index: code-server/lib/vscode/src/vs/workbench/services/environment/browser/environmentService.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/workbench/services/environment/browser/environmentService.ts
++++ code-server/lib/vscode/src/vs/workbench/services/environment/browser/environmentService.ts
+@@ -49,6 +49,11 @@ export interface IBrowserWorkbenchEnviro
+ 	readonly isEnabledFileUploads?: boolean;
+ 
+ 	/**
++	 * Allow the browser to cache workspace files.
++	 */
++	readonly isEnabledFileCache?: boolean;
++
++	/**
+ 	 * Enable Coder's custom getting started text.
+ 	 */
+ 	readonly isEnabledCoderGettingStarted?: boolean;
+@@ -145,6 +150,13 @@ export class BrowserWorkbenchEnvironment
+ 		return this.options.isEnabledFileUploads;
+ 	}
+ 
++	get isEnabledFileCache(): boolean {
++		if (typeof this.options.isEnabledFileCache === "undefined") {
++			throw new Error('isEnabledFileCache was not provided to the browser');
++		}
++		return this.options.isEnabledFileCache;
++	}
++
+ 	get isEnabledCoderGettingStarted(): boolean {
+ 		if (typeof this.options.isEnabledCoderGettingStarted === "undefined") {
+ 			throw new Error('isEnabledCoderGettingStarted was not provided to the browser');
