@@ -179,7 +179,7 @@ Index: code-server/lib/vscode/src/vs/workbench/browser/web.main.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/browser/web.main.ts
 +++ code-server/lib/vscode/src/vs/workbench/browser/web.main.ts
-@@ -33,6 +33,7 @@ import { ISignService } from '../../plat
+@@ -34,6 +34,7 @@ import { ISignService } from '../../plat
  import { SignService } from '../../platform/sign/browser/signService.js';
  import { IWorkbenchConstructionOptions, IWorkbench, IWorkspace, ITunnel } from './web.api.js';
  import { BrowserStorageService } from '../services/storage/browser/storageService.js';
@@ -187,7 +187,7 @@ Index: code-server/lib/vscode/src/vs/workbench/browser/web.main.ts
  import { IStorageService } from '../../platform/storage/common/storage.js';
  import { toLocalISOString } from '../../base/common/date.js';
  import { isWorkspaceToOpen, isFolderToOpen } from '../../platform/window/common/window.js';
-@@ -482,7 +483,7 @@ export class BrowserMain extends Disposa
+@@ -488,7 +489,7 @@ export class BrowserMain extends Disposa
  				serviceCollection.set(IWorkbenchConfigurationService, service);
  				return service;
  			}),
@@ -196,7 +196,7 @@ Index: code-server/lib/vscode/src/vs/workbench/browser/web.main.ts
  				serviceCollection.set(IStorageService, service);
  				return service;
  			})
-@@ -604,7 +605,21 @@ export class BrowserMain extends Disposa
+@@ -610,7 +611,21 @@ export class BrowserMain extends Disposa
  		}));
  	}
  
