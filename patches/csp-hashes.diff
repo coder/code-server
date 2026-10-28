@@ -24,3 +24,16 @@ Index: code-server/lib/vscode/src/vs/workbench/services/extensions/worker/webWor
  			connect-src 'self' https: wss: http://localhost:* http://127.0.0.1:* ws://localhost:* ws://127.0.0.1:*;"/>
  	</head>
  	<body>
+Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
++++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
+@@ -114,7 +114,7 @@ const APP_ROOT = dirname(FileAccess.asFi
+ const STATIC_PATH = `/static`;
+ const CALLBACK_PATH = `/callback`;
+ const WEB_EXTENSION_PATH = `/web-extension-resource`;
+-const webWorkerExtensionHostIframeScriptSHA = 'sha256-daEgfo2VIXpx2Np71KqCCbkeQwv+68vPrx54XRcbdcs=';
++const webWorkerExtensionHostIframeScriptSHA = 'sha256-gfjiOVjAlxqrivZAfTq2d83mOaz0fnAxbGaFpj5IjD8=';
+ 
+ /**
+  * Substitutes the `{{...}}` placeholders of a workbench template. Placeholders must only ever
