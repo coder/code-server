@@ -101,6 +101,14 @@ function update_csp() {
     echo "Calculated hash as $hash"
     # Use octothorpe as a delimiter since the hash may contain a slash.
     sed -i.bak "s#'sha256-[^']\+'#'sha256-$hash'#" "$file"
+    # For the web worker extension host iframe, there is a matching sha in the
+    # web server.
+    if [[ $file == */webWorkerExtensionHostIframe.html ]] ; then
+      quilt add ./lib/vscode/src/vs/server/node/webClientServer.ts
+      sed -i.bak \
+          "s#webWorkerExtensionHostIframeScriptSHA = 'sha256-[^']\+'#webWorkerExtensionHostIframeScriptSHA = 'sha256-$hash'#" \
+          ./lib/vscode/src/vs/server/node/webClientServer.ts
+    fi
   done
 
   quilt refresh

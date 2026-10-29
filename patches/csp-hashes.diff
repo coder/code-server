@@ -6,8 +6,8 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/index
  	<meta charset="UTF-8">
  
  	<meta http-equiv="Content-Security-Policy"
--		content="default-src 'none'; script-src 'sha256-7cKy9iQfWRXcgRS74x6I4q5cRDkv8nQz51jecqMmQ5w=' 'self'; frame-src 'self'; style-src 'unsafe-inline';">
-+		content="default-src 'none'; script-src 'sha256-FYdHnaDkSHwSK3TmWDrs/tT+X4bK+aaoa9yy432BONk=' 'self'; frame-src 'self'; style-src 'unsafe-inline';">
+-		content="default-src 'none'; script-src 'sha256-Q3Tfcw0dGu/YD4dGBrRqBeOnmRMAH8HbKxArK4YSXBc=' 'self'; frame-src 'self'; style-src 'unsafe-inline';">
++		content="default-src 'none'; script-src 'sha256-BmcTt6YZr75RujSQ3gF/UQL77e1RrOx62jNeikpwtxc=' 'self'; frame-src 'self'; style-src 'unsafe-inline';">
  
  	<!-- Disable pinch zooming -->
  	<meta name="viewport"
@@ -24,3 +24,16 @@ Index: code-server/lib/vscode/src/vs/workbench/services/extensions/worker/webWor
  			connect-src 'self' https: wss: http://localhost:* http://127.0.0.1:* ws://localhost:* ws://127.0.0.1:*;"/>
  	</head>
  	<body>
+Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
++++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
+@@ -114,7 +114,7 @@ const APP_ROOT = dirname(FileAccess.asFi
+ const STATIC_PATH = `/static`;
+ const CALLBACK_PATH = `/callback`;
+ const WEB_EXTENSION_PATH = `/web-extension-resource`;
+-const webWorkerExtensionHostIframeScriptSHA = 'sha256-daEgfo2VIXpx2Np71KqCCbkeQwv+68vPrx54XRcbdcs=';
++const webWorkerExtensionHostIframeScriptSHA = 'sha256-gfjiOVjAlxqrivZAfTq2d83mOaz0fnAxbGaFpj5IjD8=';
+ 
+ /**
+  * Substitutes the `{{...}}` placeholders of a workbench template. Placeholders must only ever
