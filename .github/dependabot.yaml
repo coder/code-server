@@ -9,6 +9,10 @@ updates:
     cooldown:
       default-days: 7
     labels: []
+    groups:
+      codeql-action:
+        patterns:
+          - "github/codeql-action/*"
 
   - package-ecosystem: "npm"
     directory: "/"
