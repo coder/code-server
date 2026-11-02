@@ -217,7 +217,7 @@ jobs:
       # Push up an artifact containing the linux-x64 release.
       - run: KEEP_MODULES=1 npm run release
       - run: tar -czf package.tar.gz release
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: linux-x64-package
           path: ./package.tar.gz
@@ -251,7 +251,7 @@ jobs:
       - run: tar -xzf package.tar.gz
 
       - run: CODE_SERVER_TEST_ENTRY=./release npm run test:e2e
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         if: always()
         with:
           name: failed-test-videos
@@ -304,7 +304,7 @@ jobs:
       - run: CODE_SERVER_TEST_ENTRY=./release npm run test:e2e:proxy
       - run: ~/.cache/caddy/caddy stop --config ./ci/Caddyfile
         if: always()
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         if: always()
         with:
           name: failed-test-videos-proxy
