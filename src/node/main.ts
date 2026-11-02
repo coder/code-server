@@ -141,7 +141,7 @@ export const runCodeServer = async (
 
   const app = await createApp(args)
   const protocol = args.cert ? "https" : "http"
-  const serverAddress = ensureAddress(app.server, protocol)
+  const serverAddress = ensureAddress(app.server, protocol, args["socket-fd"])
   const { disposeRoutes, heart } = await register(app, args)
 
   logger.info(`Using config file ${args.config}`)

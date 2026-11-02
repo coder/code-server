@@ -111,8 +111,13 @@ export const createApp = async (args: DefaultedArgs): Promise<App> => {
  *
  * The address might be a URL or it might be a pipe or socket path.
  */
-export const ensureAddress = (server: http.Server, protocol: string): URL | string => {
+export const ensureAddress = (server: http.Server, protocol: string, socketFd?: number): URL | string => {
   const addr = server.address()
+
+  // Node reports no address for a Unix socket adopted by fd.
+  if (!addr && typeof socketFd === "number") {
+    return `fd:${socketFd}`
+  }
 
   if (!addr) {
     throw new Error("Server has no address")

@@ -8,6 +8,9 @@ import { paths } from "./util"
 
 const timeoutInterval = 10000 // 10s, matches VS Code's timeouts.
 
+// Fd 3 in the child is the IPC channel, so the inherited socket goes to fd 4.
+const CHILD_SOCKET_FD = 4
+
 /**
  * Listen to a single message from a process. Reject if the process errors,
  * exits, or times out.
@@ -334,13 +337,14 @@ export class ParentProcess extends Process {
   }
 
   private spawn(): cp.ChildProcess {
+    const socketFd = this.args?.["socket-fd"]
     return cp.fork(path.join(__dirname, "entry"), {
       env: {
         ...process.env,
         CODE_SERVER_PARENT_PID: process.pid.toString(),
         NODE_EXEC_PATH: process.execPath,
       },
-      stdio: ["pipe", "pipe", "pipe", "ipc"],
+      stdio: typeof socketFd === "number" ? ["pipe", "pipe", "pipe", "ipc", socketFd] : ["pipe", "pipe", "pipe", "ipc"],
     })
   }
 
@@ -359,7 +363,8 @@ export class ParentProcess extends Process {
       this.logger,
     )
     this.logger.debug("got message", field("message", message))
-    this.send(child, { type: "handshake", args: this.args })
+    const args = typeof this.args["socket-fd"] === "number" ? { ...this.args, "socket-fd": CHILD_SOCKET_FD } : this.args
+    this.send(child, { type: "handshake", args })
   }
 
   /**

@@ -67,7 +67,7 @@
   },
   "dependencies": {
     "@coder/logger": "^3.0.1",
-    "argon2": "^0.44.0",
+    "argon2": "^0.45.1",
     "compression": "^1.7.4",
     "cookie": "^1.1.1",
     "cookie-parser": "^1.4.6",
@@ -89,6 +89,9 @@
   },
   "resolutions": {
     "@types/node": "24.x"
+  },
+  "overrides": {
+    "basic-ftp": "^6.2.1"
   },
   "bin": {
     "code-server": "out/node/entry.js"

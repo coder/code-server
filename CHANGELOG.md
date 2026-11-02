@@ -28,6 +28,28 @@ Code v99.99.999
   stops the webview service worker from storing them in Cache Storage and
   serves them from `/vscode-remote-resource` with `Cache-Control: no-store`.
   Extension files stay cached.
+  
+## [4.144.0](https://github.com/coder/code-server/releases/tag/v4.144.0) - 2026-10-29
+
+Code v1.144.0
+
+### Changed
+
+- Update to Code 1.144.0
+
+### Fixed
+
+- `--socket-fd` now works: the inherited socket is passed on to the process
+  that listens, and the address is logged as `fd:<n>`. Previously code-server
+  failed with `listen EEXIST` or `Server has no address`.
+- The cookie domain was not being set against the shared root host of proxy
+  domains when proxy domains contained template variables like `{{port}}`,
+  resulting in having to sign in multiple times per domain instead of only once
+  as originally intended.
+- When doing the web socket origin check, if the host does not already contain a
+  port, fall back to `X-Forwarded-Port`.
+- Fix default ports not matching in the web socket origin check (for example
+  `https://coder.com` will now match `https://coder.com:443`).
 
 ## [4.143.1](https://github.com/coder/code-server/releases/tag/v4.143.1) - 2026-10-23
 
