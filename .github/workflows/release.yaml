@@ -83,7 +83,7 @@ jobs:
           # which requires secrets.
           allow-unsafe-pr-checkout: true
       - run: quilt push -a
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v6
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v6
         with:
           node-version-file: .node-version
           cache: npm
@@ -180,7 +180,7 @@ jobs:
           # which requires secrets.
           allow-unsafe-pr-checkout: true
       - run: quilt push -a
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v6
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v6
         with:
           node-version-file: .node-version
           cache: npm
@@ -253,7 +253,7 @@ jobs:
             git apply --whitespace=nowarn "patches/$patch"
           done < patches/series
 
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v6
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v6
         with:
           node-version-file: .node-version
           cache: npm
