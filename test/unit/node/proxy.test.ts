@@ -303,6 +303,13 @@ describe("proxy", () => {
       res.end(req.headers.cookie)
     })
 
+    wsRouter.ws("/wsup/cookies", async (req) => {
+      wss.handleUpgrade(req, req.ws, req.head, (ws) => {
+        ws.on("message", () => ws.send(req.headers.cookie || ""))
+        req.ws.resume()
+      })
+    })
+
     const cookies = [
       "cookie2=hello",
       // Cookies should pass through unchanged, neither encoded nor decoded.
@@ -316,13 +323,22 @@ describe("proxy", () => {
     for (let i = 0; i <= cookies.length; ++i) {
       const left = cookies.slice(0, i)
       const right = cookies.slice(i)
-      const resp = await codeServer.fetch(proxyPath + "/cookies", {
-        headers: {
-          cookie: [...left, `code-server-session=${token}`, ...right].join("; "),
-        },
-      })
+      const expected = cookies.join("; ")
+      const headers = {
+        cookie: [...left, `code-server-session=${token}`, ...right].join("; "),
+      }
+      // Regular HTTP request.
+      const resp = await codeServer.fetch(proxyPath + "/cookies", { headers })
       expect(resp.status).toBe(200)
-      expect(await resp.text()).toBe(cookies.join("; "))
+      expect(await resp.text()).toBe(expected)
+      // Web socket request.
+      const ws = await codeServer.wsWait(proxyPath + "/cookies", { headers })
+      const got = await new Promise((resolve) => {
+        ws.send("init")
+        ws.on("message", (msg) => resolve(msg))
+      })
+      ws.terminate()
+      expect(got).toBe(expected)
     }
   })
 
