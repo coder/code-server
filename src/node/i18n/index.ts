@@ -5,6 +5,7 @@ import * as ja from "./locales/ja.json"
 import * as th from "./locales/th.json"
 import * as tr from "./locales/tr.json"
 import * as ur from "./locales/ur.json"
+import * as vi from "./locales/vi.json"
 import * as zhCn from "./locales/zh-cn.json"
 
 const defaultResources = {
@@ -25,6 +26,9 @@ const defaultResources = {
   },
   ur: {
     translation: ur,
+  },
+  vi: {
+    translation: vi,
   },
 }
 
