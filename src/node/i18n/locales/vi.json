@@ -1,0 +1,13 @@
+{
+  "LOGIN_TITLE": "Đăng nhập {{app}}",
+  "LOGIN_BELOW": "Vui lòng đăng nhập bên dưới.",
+  "WELCOME": "Chào mừng bạn đến với {{app}}",
+  "LOGIN_PASSWORD": "Xem mật khẩu trong tệp cấu hình.",
+  "LOGIN_USING_ENV_PASSWORD": "Mật khẩu đã được đặt từ $PASSWORD.",
+  "LOGIN_USING_HASHED_PASSWORD": "Mật khẩu đã được đặt từ $HASHED_PASSWORD.",
+  "SUBMIT": "GỬI",
+  "PASSWORD_PLACEHOLDER": "MẬT KHẨU",
+  "LOGIN_RATE_LIMIT": "Đã vượt quá giới hạn số lần đăng nhập!",
+  "MISS_PASSWORD": "Thiếu mật khẩu",
+  "INCORRECT_PASSWORD": "Mật khẩu không đúng"
+}
