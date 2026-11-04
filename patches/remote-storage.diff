@@ -196,7 +196,7 @@ Index: code-server/lib/vscode/src/vs/workbench/browser/web.main.ts
  				serviceCollection.set(IStorageService, service);
  				return service;
  			})
-@@ -610,7 +611,21 @@ export class BrowserMain extends Disposa
+@@ -613,7 +614,21 @@ export class BrowserMain extends Disposa
  		}));
  	}
  
@@ -223,7 +223,7 @@ Index: code-server/lib/vscode/src/vs/sessions/browser/web.main.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/sessions/browser/web.main.ts
 +++ code-server/lib/vscode/src/vs/sessions/browser/web.main.ts
-@@ -39,9 +39,9 @@ export class SessionsBrowserMain extends
+@@ -41,9 +41,9 @@ export class SessionsBrowserMain extends
  		_workspace: IAnyWorkspaceIdentifier,
  		environmentService: IBrowserWorkbenchEnvironmentService,
  		userDataProfileService: IUserDataProfileService,
@@ -235,7 +235,7 @@ Index: code-server/lib/vscode/src/vs/sessions/browser/web.main.ts
  		uriIdentityService: IUriIdentityService,
  		policyService: IPolicyService,
  		logService: ILogService,
-@@ -82,7 +82,7 @@ export class SessionsBrowserMain extends
+@@ -84,7 +84,7 @@ export class SessionsBrowserMain extends
  		serviceCollection.set(IWorkbenchConfigurationService, configurationService);
  
  		// Storage

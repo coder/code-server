@@ -113,8 +113,8 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/webview/browser/webviewEl
 +import { IBrowserWorkbenchEnvironmentService } from '../../../services/environment/browser/environmentService.js';
  import { IWorkbenchEnvironmentService } from '../../../services/environment/common/environmentService.js';
  import { IRemoteAgentService } from '../../../services/remote/common/remoteAgentService.js';
- import { decodeAuthority, webviewGenericCspSource, webviewRootResourceAuthority } from '../common/webview.js';
-@@ -864,6 +865,8 @@ export class WebviewElement extends Disp
+ import { decodeAuthority, webviewGenericCspSource, webviewMouseActivityEvent, webviewRootResourceAuthority } from '../common/webview.js';
+@@ -868,6 +869,8 @@ export class WebviewElement extends Disp
  					const rangeHeader = range
  						? `bytes ${range.start}-${rangeEnd}/${result.size}`
  						: undefined;
@@ -123,7 +123,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/webview/browser/webviewEl
  					if (WebviewElement._supportsTransferableStreams.value) {
  						let controller: ReadableStreamDefaultController<Uint8Array<ArrayBuffer>> | undefined;
  						let closed = false;
-@@ -915,7 +918,7 @@ export class WebviewElement extends Disp
+@@ -919,7 +922,7 @@ export class WebviewElement extends Disp
  							status: range ? 206 : 200,
  							path: uri.path,
  							mime: result.mimeType,
@@ -132,7 +132,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/webview/browser/webviewEl
  							mtime: result.mtime,
  							range: rangeHeader,
  							stream,
-@@ -927,7 +930,7 @@ export class WebviewElement extends Disp
+@@ -931,7 +934,7 @@ export class WebviewElement extends Disp
  							status: range ? 206 : 200,
  							path: uri.path,
  							mime: result.mimeType,
@@ -141,7 +141,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/webview/browser/webviewEl
  							mtime: result.mtime,
  							range: rangeHeader,
  						});
-@@ -984,6 +987,14 @@ export class WebviewElement extends Disp
+@@ -988,6 +991,14 @@ export class WebviewElement extends Disp
  		});
  	}
  
