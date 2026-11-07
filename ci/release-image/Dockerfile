@@ -7,7 +7,7 @@ COPY release-packages/code-server*.deb /tmp/
 FROM $BASE
 
 RUN apt-get update \
-  && apt-get upgrade -o Acquire::Retries=0 \
+  && apt-get install -y -o Acquire::Retries=0 --only-upgrade '?source-package(^apt$)' \
   && apt-get install -y \
     curl \
     dumb-init \
