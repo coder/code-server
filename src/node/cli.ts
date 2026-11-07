@@ -94,6 +94,7 @@ export interface UserProvidedArgs extends UserProvidedCodeArgs {
   "skip-auth-preflight"?: boolean
   "reuse-window"?: boolean
   "new-window"?: boolean
+  wait?: boolean
   "ignore-last-opened"?: boolean
   verbose?: boolean
   "app-name"?: string
@@ -304,6 +305,10 @@ export const options: Options<Required<UserProvidedArgs>> = {
     type: "boolean",
     short: "r",
     description: "Force to open a file or folder in an already opened window.",
+  },
+  wait: {
+    type: "boolean",
+    description: "Wait for the files to be closed before returning. Requires an already opened window.",
   },
 
   log: { type: LogLevel },
@@ -916,11 +921,11 @@ export const shouldOpenInExistingInstance = async (
   // existing instance since these flags have no effect otherwise.  That means
   // if there is no existing instance we should error rather than falling back
   // to spawning code-server normally.
-  const openInFlagCount = ["reuse-window", "new-window"].reduce((prev, cur) => {
+  const openInFlagCount = ["reuse-window", "new-window", "wait"].reduce((prev, cur) => {
     return args[cur as keyof UserProvidedArgs] ? prev + 1 : prev
   }, 0)
   if (openInFlagCount > 0) {
-    logger.debug("Found --reuse-window or --new-window")
+    logger.debug("Found --reuse-window, --new-window or --wait")
     const socketPath = await client.getConnectedSocketPath(paths[0])
     if (!socketPath) {
       throw new Error(`No opened code-server instances found to handle ${paths[0]}`)

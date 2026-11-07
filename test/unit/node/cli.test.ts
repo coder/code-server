@@ -697,6 +697,14 @@ describe("cli", () => {
     vscodeSockets.close()
   })
 
+  it("should not start a new instance if --wait is set", async () => {
+    const sessionSocket = path.join(tmpDirPath, "session-socket")
+    const args: UserProvidedArgs = { wait: true, _: ["./file"] }
+    // There is no instance to open the file in, so this must fail rather than
+    // falling back to starting code-server.
+    await expect(shouldOpenInExistingInstance(args, sessionSocket)).rejects.toThrow()
+  })
+
   it("should use existing if --new-window is set", async () => {
     const sessionSocket = path.join(tmpDirPath, "session-socket")
     const server = await makeEditorSessionManagerServer(sessionSocket, new EditorSessionManager())
