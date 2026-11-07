@@ -22,6 +22,8 @@ Code v99.99.999
 
 ## Unreleased
 
+## [4.145.2](https://github.com/coder/code-server/releases/tag/v4.145.2) - 2026-11-07
+
 Code v1.145.2
 
 ### Changed
