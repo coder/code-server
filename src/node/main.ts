@@ -1,4 +1,6 @@
 import { field, logger } from "@coder/logger"
+import * as crypto from "crypto"
+import { promises as fs } from "fs"
 import http from "http"
 import * as os from "os"
 import * as path from "path"
@@ -10,7 +12,7 @@ import { commit, version, vsRootPath } from "./constants"
 import { loadCustomStrings } from "./i18n"
 import { register } from "./routes"
 import { VSCodeModule } from "./routes/vscode"
-import { isDirectory, open } from "./util"
+import { isDirectory, isFile, open } from "./util"
 import { wrapper } from "./wrapper"
 
 /**
@@ -100,6 +102,15 @@ export const openInExistingInstance = async (args: DefaultedArgs, socketPath: st
     logger.error("Please specify at least one file or folder")
     process.exit(1)
   }
+  if (args.wait) {
+    if (pipeArgs.fileURIs.length === 0) {
+      logger.error("--wait requires at least one file")
+      process.exit(1)
+    }
+    pipeArgs.waitMarkerFilePath = path.join(os.tmpdir(), `code-server-wait-${crypto.randomBytes(8).toString("hex")}`)
+    await fs.writeFile(pipeArgs.waitMarkerFilePath, "")
+  }
+  let failed = false
   const vscode = http.request(
     {
       path: "/",
@@ -114,9 +125,17 @@ export const openInExistingInstance = async (args: DefaultedArgs, socketPath: st
   )
   vscode.on("error", (error: unknown) => {
     logger.error("got error from Code", field("error", error))
+    failed = true
   })
   vscode.write(JSON.stringify(pipeArgs))
   vscode.end()
+  if (pipeArgs.waitMarkerFilePath) {
+    // Code deletes the marker file once the opened files are closed.
+    while (!failed && (await isFile(pipeArgs.waitMarkerFilePath))) {
+      await new Promise((resolve) => setTimeout(resolve, 1000))
+    }
+    await fs.rm(pipeArgs.waitMarkerFilePath, { force: true })
+  }
 }
 
 export const runCodeServer = async (
