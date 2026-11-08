@@ -24,7 +24,7 @@ on how to set up a Google VM on which you can install code-server.
 
 ## Getting started
 
-There are five ways to get started:
+There are four ways to get started:
 
 1. Using the [install
    script](https://github.com/coder/code-server/blob/main/install.sh), which
@@ -33,9 +33,7 @@ There are five ways to get started:
 2. Manually [installing
    code-server](https://coder.com/docs/code-server/latest/install)
 3. Deploy code-server to your team with [coder/coder](https://cdr.co/coder-github)
-4. Using our one-click buttons and guides to [deploy code-server to a cloud
-   provider](https://github.com/coder/deploy-code-server) ⚡
-5. Using the [code-server feature for
+4. Using the [code-server feature for
    devcontainers](https://github.com/coder/devcontainer-features/blob/main/src/code-server/README.md),
    if you already use devcontainers in your project.
 
