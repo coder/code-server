@@ -22,6 +22,12 @@ Code v99.99.999
 
 ## Unreleased
 
+Code v1.146.0
+
+### Changed
+
+- Update to Code 1.146.0
+
 Code v1.145.3
 
 ### Changed

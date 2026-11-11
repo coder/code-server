@@ -223,7 +223,7 @@ Index: code-server/lib/vscode/src/vs/sessions/browser/web.main.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/sessions/browser/web.main.ts
 +++ code-server/lib/vscode/src/vs/sessions/browser/web.main.ts
-@@ -41,9 +41,9 @@ export class SessionsBrowserMain extends
+@@ -51,9 +51,9 @@ export class SessionsBrowserMain extends
  		_workspace: IAnyWorkspaceIdentifier,
  		environmentService: IBrowserWorkbenchEnvironmentService,
  		userDataProfileService: IUserDataProfileService,
@@ -235,7 +235,7 @@ Index: code-server/lib/vscode/src/vs/sessions/browser/web.main.ts
  		uriIdentityService: IUriIdentityService,
  		policyService: IPolicyService,
  		logService: ILogService,
-@@ -84,7 +84,7 @@ export class SessionsBrowserMain extends
+@@ -94,7 +94,7 @@ export class SessionsBrowserMain extends
  		serviceCollection.set(IWorkbenchConfigurationService, configurationService);
  
  		// Storage
