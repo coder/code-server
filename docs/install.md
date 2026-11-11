@@ -17,7 +17,6 @@
 - [Windows](#windows)
 - [Raspberry Pi](#raspberry-pi)
 - [Termux](#termux)
-- [Cloud providers](#cloud-providers)
 - [Uninstall](#uninstall)
   - [install.sh](#installsh-1)
   - [Homebrew](#homebrew)
@@ -307,12 +306,6 @@ If you see an error related to `node-gyp` during installation, See [#5174](https
 
 Please see code-server's [Termux docs](./termux.md#installation) for more
 information.
-
-## Cloud providers
-
-We maintain [one-click apps and install scripts for cloud
-providers](https://github.com/coder/deploy-code-server) such as DigitalOcean,
-Railway, Heroku, and Azure.
 
 ## Uninstall
 
