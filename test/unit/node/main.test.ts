@@ -200,6 +200,15 @@ describe("main", () => {
           : path.join(tempDir, "vscode.sock")
       await new Promise<void>((resolve) => server.listen(socketPath, resolve))
 
+      // Run the wait loop's poll timer as soon as it has been scheduled.
+      const runNextPoll = async () => {
+        while (jest.getTimerCount() === 0) {
+          await fs.stat(tempDir)
+        }
+        jest.runOnlyPendingTimers()
+      }
+
+      jest.useFakeTimers()
       try {
         const args = await setDefaults(
           parse([`--config=${path.join(tempDir, "config.yaml")}`, `--user-data-dir=${tempDir}`, "--wait", file]),
@@ -217,17 +226,17 @@ describe("main", () => {
         expect((await fs.stat(marker!)).isFile()).toBe(true)
 
         // Still waiting while the file is open.
-        await new Promise((resolve) => setTimeout(resolve, 1500))
+        await runNextPoll()
+        await runNextPoll()
         expect(returned).toBe(false)
 
         // Code deletes the marker once the file is closed.
         await fs.rm(marker!)
+        await runNextPoll()
         await opening
         expect(returned).toBe(true)
       } finally {
-        if (pipeArgs?.waitMarkerFilePath) {
-          await fs.rm(pipeArgs.waitMarkerFilePath, { force: true })
-        }
+        jest.useRealTimers()
         server.close()
       }
     })
