@@ -26,6 +26,11 @@ describe("http", () => {
       expect(http.isTrustedOrigin("example.com", ["other.com"])).toBe(false)
     })
 
+    it("should match exact origins regardless of case", () => {
+      expect(http.isTrustedOrigin("example.com", ["Example.com"])).toBe(true)
+      expect(http.isTrustedOrigin("desktop-abc123:8080", ["DESKTOP-ABC123:8080"])).toBe(true)
+    })
+
     it("should match the wildcard *", () => {
       expect(http.isTrustedOrigin("anything.example.com", ["*"])).toBe(true)
       expect(http.isTrustedOrigin("localhost:8080", ["*"])).toBe(true)
@@ -130,6 +135,11 @@ describe("http", () => {
         origin: "http://sub.example.com",
         host: "other.com",
         trustedOrigins: ["*"],
+      },
+      {
+        origin: "http://desktop-abc123:8080",
+        host: "other.com",
+        trustedOrigins: ["DESKTOP-ABC123:8080"],
       },
     ].forEach((test) => {
       ;[
