@@ -368,7 +368,7 @@ export function ensureOrigin(req: express.Request, _?: express.Response, next?: 
  */
 export function isTrustedOrigin(origin: string, trustedOrigins: string[]): boolean {
   return trustedOrigins.some((trusted) => {
-    if (trusted === "*" || trusted === origin) {
+    if (trusted === "*" || trusted.toLowerCase() === origin) {
       return true
     }
     // *.example.com style: match origin if it is the domain or a subdomain
