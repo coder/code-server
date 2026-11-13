@@ -28,8 +28,6 @@ Code v1.146.0
 
 - Update to Code 1.146.0
 
-Code v1.145.3
-
 ### Added
 
 - New flag `--wait` that waits for the opened files to be closed before
@@ -37,9 +35,11 @@ Code v1.145.3
   Before, code-server's own script failed with `Unknown option --wait`, so this
   only worked when the integrated terminal found the `remote-cli` script first.
 
-### Changed
+### Fixed
 
-- Update to Code 1.145.3
+- Requests against the built-in proxy will now be rewritten correctly against
+  the base URL on Windows. Previously it was trying to split the request on
+  backslashes instead of forward slashes.
 
 ## [4.145.2](https://github.com/coder/code-server/releases/tag/v4.145.2) - 2026-11-07
 
