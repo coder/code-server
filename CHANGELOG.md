@@ -24,6 +24,13 @@ Code v99.99.999
 
 Code v1.145.3
 
+### Added
+
+- New flag `--wait` that waits for the opened files to be closed before
+  returning, so `code-server --wait` can be used as `EDITOR` or `GIT_EDITOR`.
+  Before, code-server's own script failed with `Unknown option --wait`, so this
+  only worked when the integrated terminal found the `remote-cli` script first.
+
 ### Changed
 
 - Update to Code 1.145.3

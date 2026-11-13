@@ -1,16 +1,17 @@
 import { field, logger } from "@coder/logger"
+import { promises as fs } from "fs"
 import http from "http"
 import * as os from "os"
 import * as path from "path"
 import { Disposable } from "../common/emitter"
-import { plural } from "../common/util"
+import { generateUuid, plural } from "../common/util"
 import { createApp, ensureAddress } from "./app"
 import { AuthType, DefaultedArgs, Feature, toCodeArgs, UserProvidedArgs } from "./cli"
-import { commit, version, vsRootPath } from "./constants"
+import { commit, tmpdir, version, vsRootPath } from "./constants"
 import { loadCustomStrings } from "./i18n"
 import { register } from "./routes"
 import { VSCodeModule } from "./routes/vscode"
-import { isDirectory, open } from "./util"
+import { isDirectory, isFile, isNodeJSErrnoException, open } from "./util"
 import { wrapper } from "./wrapper"
 
 /**
@@ -100,23 +101,53 @@ export const openInExistingInstance = async (args: DefaultedArgs, socketPath: st
     logger.error("Please specify at least one file or folder")
     process.exit(1)
   }
-  const vscode = http.request(
-    {
-      path: "/",
-      method: "POST",
-      socketPath,
-    },
-    (response) => {
-      response.on("data", (message) => {
-        logger.debug("got message from Code", field("message", message.toString()))
-      })
-    },
-  )
-  vscode.on("error", (error: unknown) => {
-    logger.error("got error from Code", field("error", error))
-  })
-  vscode.write(JSON.stringify(pipeArgs))
-  vscode.end()
+  let marker: string | undefined
+  if (args.wait) {
+    if (pipeArgs.fileURIs.length === 0) {
+      logger.error("--wait requires at least one file")
+      process.exit(1)
+    }
+    marker = path.join(tmpdir, generateUuid(16))
+    await fs.mkdir(tmpdir, { recursive: true })
+    await fs.writeFile(marker, "")
+    pipeArgs.waitMarkerFilePath = marker
+  }
+  try {
+    await new Promise<void>((resolve, reject) => {
+      const vscode = http.request(
+        {
+          path: "/",
+          method: "POST",
+          socketPath,
+        },
+        (response) => {
+          response.on("data", (message) => {
+            logger.debug("got message from Code", field("message", message.toString()))
+          })
+          response.on("end", resolve)
+        },
+      )
+      vscode.on("error", reject)
+      vscode.write(JSON.stringify(pipeArgs))
+      vscode.end()
+    })
+  } catch (error) {
+    // Try to clean up the marker, but do not let removal errors override the original error.
+    if (marker) {
+      try {
+        await fs.rm(marker)
+      } catch (rmError) {
+        if (!isNodeJSErrnoException(rmError) || rmError.code !== "ENOENT") {
+          logger.error("failed to clean up wait marker", field("error", rmError))
+        }
+      }
+    }
+    throw error
+  }
+  // Code deletes the marker file once the opened files are closed.
+  while (marker && (await isFile(marker))) {
+    await new Promise((resolve) => setTimeout(resolve, 1000))
+  }
 }
 
 export const runCodeServer = async (
