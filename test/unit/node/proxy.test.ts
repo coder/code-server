@@ -285,6 +285,19 @@ describe("proxy", () => {
     expect(text).toBe("app being served behind a prefixed path")
   })
 
+  it("should proxy a domain when the host has a port", async () => {
+    e.get("/wsup", (req, res) => {
+      res.json("asher is the best")
+    })
+    codeServer = await integration.setup(["--auth=none", "--proxy-domain=example.com"], "")
+    let resp = await codeServer.fetch("/wsup", { headers: { host: `${proxyTarget.port()}.example.com` } })
+    expect(resp.status).toBe(200)
+    expect(await resp.json()).toBe("asher is the best")
+    resp = await codeServer.fetch("/wsup", { headers: { host: `${proxyTarget.port()}.example.com:8443` } })
+    expect(resp.status).toBe(200)
+    expect(await resp.json()).toBe("asher is the best")
+  })
+
   it("should not allow OPTIONS without authentication by default", async () => {
     process.env.PASSWORD = "test"
     codeServer = await integration.setup(["--auth=password"])
