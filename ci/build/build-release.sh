@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+if [[ ${RUNNER_DEBUG-} = 1 ]]; then
+  set -x
+fi
+
 # Once both code-server and VS Code have been built, use this script to copy
 # them into a single directory (./release), prepare the package.json and
 # product.json, and add shrinkwraps.  This results in a generic NPM package that
@@ -85,7 +89,7 @@ EOF
 
   if [ "$KEEP_MODULES" = 1 ]; then
     local rsync_opts=(-a)
-    if [[ ${DEBUG-} = 1 ]]; then
+    if [[ ${RUNNER_DEBUG-} = 1 ]]; then
       rsync_opts+=(-vh)
     fi
     # If we build from source, exclude the prebuilds.
@@ -106,7 +110,7 @@ bundle_vscode() {
   mkdir -p "$VSCODE_OUT_PATH"
 
   local rsync_opts=(-a)
-  if [[ ${DEBUG-} = 1 ]]; then
+  if [[ ${RUNNER_DEBUG-} = 1 ]]; then
     rsync_opts+=(-vh)
   fi
 

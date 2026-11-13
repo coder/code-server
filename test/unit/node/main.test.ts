@@ -1,7 +1,9 @@
 import { promises as fs } from "fs"
+import * as http from "http"
 import * as path from "path"
 import { setDefaults, parse } from "../../../src/node/cli"
 import { loadCustomStrings } from "../../../src/node/i18n"
+import type { OpenCommandPipeArgs } from "../../../src/node/main"
 import { tmpdir } from "../../utils/helpers"
 
 // Mock the i18n module
@@ -171,6 +173,72 @@ describe("main", () => {
 
       // Verify that loadCustomStrings was called
       expect(mockedLoadCustomStrings).toHaveBeenCalledWith(nonExistentFile)
+    })
+  })
+
+  describe("openInExistingInstance", () => {
+    it("should wait for the file to be closed with --wait", async () => {
+      const file = path.join(tempDir, "git-rebase-todo")
+      await fs.writeFile(file, "")
+
+      // Stand in for the socket Code listens on for CLI requests.
+      let pipeArgs: OpenCommandPipeArgs | undefined
+      let onRequest = () => {}
+      const requested = new Promise<void>((resolve) => (onRequest = resolve))
+      const server = http.createServer((req, res) => {
+        let body = ""
+        req.on("data", (chunk) => (body += chunk))
+        req.on("end", () => {
+          pipeArgs = JSON.parse(body)
+          res.end()
+          onRequest()
+        })
+      })
+      const socketPath =
+        process.platform === "win32"
+          ? String.raw`\\.\pipe\vscode-${path.basename(tempDir)}`
+          : path.join(tempDir, "vscode.sock")
+      await new Promise<void>((resolve) => server.listen(socketPath, resolve))
+
+      // Run the wait loop's poll timer as soon as it has been scheduled.
+      const runNextPoll = async () => {
+        while (jest.getTimerCount() === 0) {
+          await fs.stat(tempDir)
+        }
+        jest.runOnlyPendingTimers()
+      }
+
+      jest.useFakeTimers()
+      try {
+        const args = await setDefaults(
+          parse([`--config=${path.join(tempDir, "config.yaml")}`, `--user-data-dir=${tempDir}`, "--wait", file]),
+        )
+        const mainModule = await import("../../../src/node/main")
+        let returned = false
+        const opening = mainModule.openInExistingInstance(args, socketPath).then(() => {
+          returned = true
+        })
+
+        await requested
+        expect(pipeArgs?.fileURIs).toStrictEqual([file])
+        const marker = pipeArgs?.waitMarkerFilePath
+        expect(marker).toBeDefined()
+        expect((await fs.stat(marker!)).isFile()).toBe(true)
+
+        // Still waiting while the file is open.
+        await runNextPoll()
+        await runNextPoll()
+        expect(returned).toBe(false)
+
+        // Code deletes the marker once the file is closed.
+        await fs.rm(marker!)
+        await runNextPoll()
+        await opening
+        expect(returned).toBe(true)
+      } finally {
+        jest.useRealTimers()
+        server.close()
+      }
     })
   })
 })
