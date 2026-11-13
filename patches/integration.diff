@@ -277,8 +277,8 @@ Index: code-server/lib/vscode/src/server-main.ts
 +async function start() {
  // Do a quick parse to determine if a server or the cli needs to be started
  const parsedArgs = minimist(process.argv.slice(2), {
- 	boolean: ['start-server', 'list-extensions', 'print-ip-address', 'help', 'version', 'accept-server-license-terms', 'update-extensions'],
-@@ -50,7 +53,7 @@ if (shouldSpawnCli) {
+ 	boolean: ['start-server', 'list-extensions', 'print-ip-address', 'help', 'version', 'accept-server-license-terms', 'update-extensions', 'agent-host-ca-confirm'],
+@@ -59,7 +62,7 @@ if (parsedArgs['agent-host-ca'] !== unde
  		mod.spawnCli();
  	});
  } else {
@@ -287,7 +287,7 @@ Index: code-server/lib/vscode/src/server-main.ts
  
  	let _remoteExtensionHostAgentServer: IServerAPI | null = null;
  	let _remoteExtensionHostAgentServerPromise: Promise<IServerAPI> | null = null;
-@@ -153,6 +156,7 @@ if (shouldSpawnCli) {
+@@ -162,6 +165,7 @@ if (parsedArgs['agent-host-ca'] !== unde
  		}
  	});
  }
@@ -295,7 +295,7 @@ Index: code-server/lib/vscode/src/server-main.ts
  
  function sanitizeStringArg(val: unknown): string | undefined {
  	if (Array.isArray(val)) { // if an argument is passed multiple times, minimist creates an array
-@@ -173,7 +177,7 @@ function sanitizeStringArg(val: unknown)
+@@ -182,7 +186,7 @@ function sanitizeStringArg(val: unknown)
   * provided) so they survive process teardown (an async stdio write from an
   * `exit` handler does not).
   */
@@ -304,7 +304,7 @@ Index: code-server/lib/vscode/src/server-main.ts
  	if (!process.env['VSCODE_SERVER_EXIT_DIAGNOSTICS']) {
  		return;
  	}
-@@ -406,3 +410,22 @@ function prompt(question: string): Promi
+@@ -416,3 +420,22 @@ function prompt(question: string): Promi
  		});
  	});
  }
