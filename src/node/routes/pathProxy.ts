@@ -1,5 +1,4 @@
 import { Request, Response } from "express"
-import * as path from "path"
 import { HttpCode, HttpError } from "../../common/http"
 import { ensureProxyEnabled, authenticated, ensureAuthenticated, ensureOrigin, redirect, self } from "../http"
 import { proxy as _proxy } from "../proxy"
@@ -46,7 +45,7 @@ export async function proxy(
 
   // The base is used for rewriting (redirects, target).
   if (!opts?.passthroughPath) {
-    ;(req as any).base = req.path.split(path.sep).slice(0, 3).join(path.sep)
+    ;(req as any).base = req.path.split("/").slice(0, 3).join("/")
   }
 
   _proxy.web(req, res, {
@@ -68,7 +67,7 @@ export async function wsProxy(
 
   // The base is used for rewriting (redirects, target).
   if (!opts?.passthroughPath) {
-    ;(req as any).base = req.path.split(path.sep).slice(0, 3).join(path.sep)
+    ;(req as any).base = req.path.split("/").slice(0, 3).join("/")
   }
 
   _proxy.ws(req, req.ws, req.head, {

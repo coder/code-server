@@ -64,6 +64,24 @@ describe("proxy", () => {
     expect(json).toBe("asher is the best")
   })
 
+  it("should rewrite the base path when the path separator is a backslash", async () => {
+    const nodePath = jest.requireActual("path")
+    const sep = nodePath.sep
+    nodePath.sep = "\\"
+    try {
+      e.get("/wsup", (req, res) => {
+        res.json("asher is the best")
+      })
+      codeServer = await integration.setup(["--auth=none"], "")
+      const resp = await codeServer.fetch(proxyPath)
+      expect(resp.status).toBe(200)
+      const json = await resp.json()
+      expect(json).toBe("asher is the best")
+    } finally {
+      nodePath.sep = sep
+    }
+  })
+
   it("should not rewrite the base path", async () => {
     e.get(absProxyPath, (req, res) => {
       res.json("joe is the best")
