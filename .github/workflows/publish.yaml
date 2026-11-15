@@ -99,6 +99,12 @@ jobs:
 
   docker:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      # Required so GitHub can issue an OIDC token for the Docker Hub login.
+      id-token: write
+      # Required to push images to ghcr.io.
+      packages: write
     env:
       GITHUB_TOKEN: ${{ github.token }}
       TAG: ${{ inputs.version || github.ref_name }}
@@ -112,10 +118,16 @@ jobs:
       - uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4.4.0
       - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
 
-      - uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
+      # Authenticates to Docker Hub via OIDC (workload identity federation)
+      # instead of a stored username/password. Requires an OIDC connection
+      # configured for the org in Docker Home (Identity & auth > OIDC
+      # connections) and the `id-token: write` permission above.
+      - name: Login to Docker Hub with OIDC
+        uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+          username: codercom
+        env:
+          DOCKERHUB_OIDC_CONNECTIONID: ${{ vars.DOCKERHUB_OIDC_CONNECTIONID }}
       - uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
         with:
           registry: ghcr.io
