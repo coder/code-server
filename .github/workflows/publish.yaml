@@ -99,6 +99,9 @@ jobs:
 
   docker:
     runs-on: ubuntu-latest
+    # Scopes the Docker Hub OIDC subject claim to
+    # repo:coder/code-server:environment:release.
+    environment: release
     permissions:
       contents: read
       # Required so GitHub can issue an OIDC token for the Docker Hub login.
