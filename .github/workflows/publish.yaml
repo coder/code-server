@@ -26,7 +26,6 @@ jobs:
     permissions:
       # Required so GitHub can issue an OIDC token for trusted publishing.
       id-token: write
-      contents: read
     env:
       TAG: ${{ inputs.version || github.ref_name }}
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -107,7 +106,6 @@ jobs:
     # repo:coder/code-server:environment:release.
     environment: release
     permissions:
-      contents: read
       # Required so GitHub can issue an OIDC token for the Docker Hub login.
       id-token: write
       # Required to push images to ghcr.io.
