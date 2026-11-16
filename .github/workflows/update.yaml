@@ -12,9 +12,11 @@ on:
 jobs:
   update:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write # To push the branch.
+      pull-requests: write # To open the PR.
     env:
       TAG: ${{ inputs.version }}
-      GH_TOKEN: ${{ secrets.HOMEBREW_GITHUB_API_TOKEN }}
 
     steps:
       - name: Fetch latest tag
@@ -58,6 +60,8 @@ jobs:
 
       - name: Open PR
         if: steps.check.outputs.done == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git config --global user.name cdrci
           git config --global user.email opensource@coder.com
