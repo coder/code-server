@@ -12,9 +12,10 @@ on:
 jobs:
   update:
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
     env:
       TAG: ${{ inputs.version }}
-      GH_TOKEN: ${{ secrets.HOMEBREW_GITHUB_API_TOKEN }}
 
     steps:
       - name: Fetch latest tag
@@ -58,6 +59,8 @@ jobs:
 
       - name: Open PR
         if: steps.check.outputs.done == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git config --global user.name cdrci
           git config --global user.email opensource@coder.com

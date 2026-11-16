@@ -56,9 +56,9 @@ jobs:
 
   aur:
     runs-on: ubuntu-latest
+    environment: release
     timeout-minutes: 10
     env:
-      GH_TOKEN: ${{ secrets.HOMEBREW_GITHUB_API_TOKEN }}
       TAG: ${{ inputs.version || github.ref_name }}
 
     steps:
@@ -66,11 +66,22 @@ jobs:
         run: |
           echo "VERSION=${TAG#v}" >> $GITHUB_ENV
 
+      - name: Generate coder-automations app token
+        id: app_token
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          app-id: ${{ secrets.CODER_AUTOMATION_APP_ID }}
+          private-key: ${{ secrets.CODER_AUTOMATION_APP_PRIVATE_KEY }}
+          owner: coder
+          repositories: code-server-aur
+          permission-contents: write
+          permission-pull-requests: write
+
       - name: Checkout code-server-aur repo
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
         with:
           repository: "cdrci/code-server-aur"
-          token: ${{ secrets.HOMEBREW_GITHUB_API_TOKEN }}
+          token: ${{ steps.app_token.outputs.token }}
           ref: "master"
 
       - name: Configure git
@@ -93,6 +104,8 @@ jobs:
           srcinfo: true
 
       - name: Open PR
+        env:
+          GH_TOKEN: ${{ steps.app_token.outputs.token }}
         run: |
           git checkout -b update-version-${{ env.VERSION }}
           git add .
@@ -156,8 +169,9 @@ jobs:
 
   repo:
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
     env:
-      GH_TOKEN: ${{ secrets.HOMEBREW_GITHUB_API_TOKEN }}
       TAG: ${{ inputs.version || github.ref_name }}
     needs: docker
 
@@ -171,6 +185,8 @@ jobs:
       - run: ./ci/build/update-repo.sh
 
       - name: Open PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git config --global user.name cdrci
           git config --global user.email opensource@coder.com
