@@ -13,7 +13,8 @@ jobs:
   update:
     runs-on: ubuntu-latest
     permissions:
-      pull-requests: write
+      contents: write # To push the branch.
+      pull-requests: write # To open the PR.
     env:
       TAG: ${{ inputs.version }}
 
