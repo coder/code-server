@@ -14,7 +14,6 @@ on:
 
 permissions:
   contents: write # For creating releases.
-  discussions: write #  For creating a discussion.
 
 # Cancel in-progress runs for pull requests when developers push
 # additional changes
@@ -117,7 +116,6 @@ jobs:
         if: ${{ matrix.vscode_arch == 'x64' }}
         with:
           draft: true
-          discussion_category_name: "📣 Announcements"
           files: package.tar.gz
           tag_name: v${{ env.VERSION }}
           name: v${{ env.VERSION }}
@@ -129,7 +127,6 @@ jobs:
       - uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
         with:
           draft: true
-          discussion_category_name: "📣 Announcements"
           files: ./release-packages/*
           tag_name: v${{ env.VERSION }}
           name: v${{ env.VERSION }}
@@ -198,7 +195,6 @@ jobs:
       - uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
         with:
           draft: true
-          discussion_category_name: "📣 Announcements"
           files: ./release-packages/*
           tag_name: v${{ env.VERSION }}
           name: v${{ env.VERSION }}
@@ -350,7 +346,6 @@ jobs:
       - uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
         with:
           draft: true
-          discussion_category_name: "📣 Announcements"
           files: ./release-packages/*
           tag_name: v${{ env.VERSION }}
           name: v${{ env.VERSION }}
