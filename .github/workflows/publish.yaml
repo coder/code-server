@@ -110,7 +110,11 @@ jobs:
           git add .
           git commit -m "Update to ${{ env.VERSION }}"
           git push -u origin $(git branch --show)
-          gh pr create --repo coder/code-server-aur --title "Update to ${{ env.VERSION }}" --body "PR opened by @$GITHUB_ACTOR" --assignee $GITHUB_ACTOR
+          gh pr create \
+            --repo coder/code-server-aur \
+            --title "Update to ${{ env.VERSION }}" \
+            --body "PR opened by @$GITHUB_ACTOR" \
+            --assignee $GITHUB_ACTOR
 
   docker:
     runs-on: ubuntu-latest
