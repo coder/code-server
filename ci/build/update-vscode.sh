@@ -56,7 +56,7 @@ function update_node() {
   local node_version
   node_version=$(cat .node-version)
   local target_node_version
-  target_node_version=$(grep target lib/vscode/remote/.npmrc | awk -F= '{print $2}' | tr -d '"')
+  target_node_version=$(jq --raw-output .nativeBuild.target lib/vscode/remote/package.json)
   if [[ $node_version == "$target_node_version" ]] ; then
     echo "Already set to $target_node_version"
   else
