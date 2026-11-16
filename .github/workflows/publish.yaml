@@ -22,10 +22,13 @@ concurrency:
 jobs:
   npm:
     runs-on: ubuntu-latest
+    environment: release
+    permissions:
+      # Required so GitHub can issue an OIDC token for trusted publishing.
+      id-token: write
     env:
       TAG: ${{ inputs.version || github.ref_name }}
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
       NPM_ENVIRONMENT: "production"
 
     steps:
@@ -37,6 +40,7 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v6
         with:
           node-version-file: .node-version
+          registry-url: "https://registry.npmjs.org"
 
       - uses: robinraju/release-downloader@28fc21f50d76778e7023361aa1f863e717d3d56f # v1.13
         with:
@@ -47,7 +51,6 @@ jobs:
 
       - run: tar -xzf release-npm-package/package.tar.gz
       - run: |
-          echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
           pushd release
           npm publish --tag latest --access public
 
@@ -103,7 +106,6 @@ jobs:
     # repo:coder/code-server:environment:release.
     environment: release
     permissions:
-      contents: read
       # Required so GitHub can issue an OIDC token for the Docker Hub login.
       id-token: write
       # Required to push images to ghcr.io.
