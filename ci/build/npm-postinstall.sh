@@ -90,11 +90,16 @@ main() {
   fi
 }
 
-install_with_yarn_or_npm() {
+install_with_package_manager() {
   echo "User agent: ${npm_config_user_agent-none}"
-  # For development we enforce npm, but for installing the package as an
+  # For development we enforce pnpm, but for installing the package as an
   # end-user we want to keep using whatever package manager is in use.
   case "${npm_config_user_agent-}" in
+    pnpm*)
+      if ! pnpm install --prod; then
+        return 1
+      fi
+      ;;
     npm*)
       if ! npm install --omit=dev; then
         return 1
@@ -116,7 +121,7 @@ install_with_yarn_or_npm() {
 vscode_install() {
   echo 'Installing Code dependencies...'
   cd lib/vscode
-  if ! install_with_yarn_or_npm; then
+  if ! install_with_package_manager; then
     return 1
   fi
 
@@ -124,7 +129,7 @@ vscode_install() {
   symlink_bin_script helpers browser browser .sh
 
   cd extensions
-  if ! install_with_yarn_or_npm; then
+  if ! install_with_package_manager; then
     return 1
   fi
 
