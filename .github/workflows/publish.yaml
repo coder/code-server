@@ -28,7 +28,6 @@ jobs:
       id-token: write
     env:
       TAG: ${{ inputs.version || github.ref_name }}
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       NPM_ENVIRONMENT: "production"
 
     steps:
