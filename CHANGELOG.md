@@ -30,6 +30,9 @@ Code v1.145.3
   returning, so `code-server --wait` can be used as `EDITOR` or `GIT_EDITOR`.
   Before, code-server's own script failed with `Unknown option --wait`, so this
   only worked when the integrated terminal found the `remote-cli` script first.
+- New flag `--cookie-max-age <seconds>` that keeps the login cookie for the given
+  time so you stay logged in after closing the browser. Without it the cookie
+  is still a session cookie.
 
 ### Changed
 
