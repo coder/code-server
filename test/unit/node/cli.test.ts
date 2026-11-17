@@ -272,6 +272,12 @@ describe("parser", () => {
     expect(() => parse(["--log", "invalid"])).toThrowError(/--log valid values: \[trace, debug, info, warn, error\]/)
   })
 
+  it("should parse cookie-max-age and reject non-positive values", () => {
+    expect(parse(["--cookie-max-age", "3600"])).toEqual({ "cookie-max-age": 3600 })
+    expect(() => parse(["--cookie-max-age", "0"])).toThrowError(/--cookie-max-age must be a positive number/)
+    expect(() => parse(["--cookie-max-age=abc"])).toThrowError(/--cookie-max-age must be a positive number/)
+  })
+
   it("should error if idle-timeout-seconds is too low", () => {
     expect(() => parse(["--idle-timeout-seconds=60"])).toThrowError(
       /--idle-timeout-seconds must be greater than 60 seconds/,
