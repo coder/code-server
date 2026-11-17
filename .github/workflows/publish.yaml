@@ -33,7 +33,12 @@ jobs:
     steps:
       - name: Set version to tag without leading v
         run: |
-          echo "VERSION=${TAG#v}" >> $GITHUB_ENV
+          # TAG comes from the dispatch input, so only a version may reach GITHUB_ENV and the shell.
+          if [[ ! "$TAG" =~ ^v?[0-9]+\.[0-9]+\.[0-9]+(-rc\.[0-9]+)?$ ]]; then
+            echo "::error::The version must look like v1.2.3 or v1.2.3-rc.1."
+            exit 1
+          fi
+          echo "VERSION=${TAG#v}" >> "$GITHUB_ENV"
 
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v6
@@ -56,6 +61,9 @@ jobs:
   aur:
     runs-on: ubuntu-latest
     environment: release
+    permissions:
+      contents: read
+      id-token: write # Cloud KMS signs the coder-automations App's JWT
     timeout-minutes: 10
     env:
       TAG: ${{ inputs.version || github.ref_name }}
@@ -63,18 +71,27 @@ jobs:
     steps:
       - name: Set version to tag without leading v
         run: |
-          echo "VERSION=${TAG#v}" >> $GITHUB_ENV
+          # TAG comes from the dispatch input, so only a version may reach GITHUB_ENV and the shell.
+          if [[ ! "$TAG" =~ ^v?[0-9]+\.[0-9]+\.[0-9]+(-rc\.[0-9]+)?$ ]]; then
+            echo "::error::The version must look like v1.2.3 or v1.2.3-rc.1."
+            exit 1
+          fi
+          echo "VERSION=${TAG#v}" >> "$GITHUB_ENV"
 
       - name: Generate coder-automations app token
         id: app_token
-        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        # The App's key is a non-exportable Cloud KMS key; only this workflow, in this environment,
+        # may sign with it.
+        uses: coder/github-app-token-action@00eaec58ee1bfea9c8b48655b7ab7470b07739e5 # main 2026-11-17
         with:
-          app-id: ${{ secrets.CODER_AUTOMATION_APP_ID }}
-          private-key: ${{ secrets.CODER_AUTOMATION_APP_PRIVATE_KEY }}
+          client-id: ${{ secrets.CODER_AUTOMATION_APP_ID }}
+          kms-key: ${{ secrets.CODER_AUTOMATION_APP_KMS_KEY }}
+          workload-identity-provider: ${{ secrets.APP_KEYS_WORKLOAD_ID_PROVIDER }}
           owner: coder
           repositories: code-server-aur
-          permission-contents: write
-          permission-pull-requests: write
+          permissions: |
+            contents: write
+            pull_requests: write
 
       - name: Checkout code-server-aur repo
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
@@ -106,15 +123,15 @@ jobs:
         env:
           GH_TOKEN: ${{ steps.app_token.outputs.token }}
         run: |
-          git checkout -b update-version-${{ env.VERSION }}
+          git checkout -b "update-version-$VERSION"
           git add .
-          git commit -m "Update to ${{ env.VERSION }}"
-          git push -u origin $(git branch --show)
+          git commit -m "Update to $VERSION"
+          git push -u origin "$(git branch --show)"
           gh pr create \
             --repo coder/code-server-aur \
-            --title "Update to ${{ env.VERSION }}" \
+            --title "Update to $VERSION" \
             --body "PR opened by @$GITHUB_ACTOR" \
-            --assignee $GITHUB_ACTOR
+            --assignee "$GITHUB_ACTOR"
 
   docker:
     runs-on: ubuntu-latest
@@ -133,7 +150,12 @@ jobs:
     steps:
       - name: Set version to tag without leading v
         run: |
-          echo "VERSION=${TAG#v}" >> $GITHUB_ENV
+          # TAG comes from the dispatch input, so only a version may reach GITHUB_ENV and the shell.
+          if [[ ! "$TAG" =~ ^v?[0-9]+\.[0-9]+\.[0-9]+(-rc\.[0-9]+)?$ ]]; then
+            echo "::error::The version must look like v1.2.3 or v1.2.3-rc.1."
+            exit 1
+          fi
+          echo "VERSION=${TAG#v}" >> "$GITHUB_ENV"
 
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
       - uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4.4.0
@@ -182,7 +204,12 @@ jobs:
     steps:
       - name: Set version to tag without leading v
         run: |
-          echo "VERSION=${TAG#v}" >> $GITHUB_ENV
+          # TAG comes from the dispatch input, so only a version may reach GITHUB_ENV and the shell.
+          if [[ ! "$TAG" =~ ^v?[0-9]+\.[0-9]+\.[0-9]+(-rc\.[0-9]+)?$ ]]; then
+            echo "::error::The version must look like v1.2.3 or v1.2.3-rc.1."
+            exit 1
+          fi
+          echo "VERSION=${TAG#v}" >> "$GITHUB_ENV"
 
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
 
