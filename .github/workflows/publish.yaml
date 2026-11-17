@@ -33,7 +33,12 @@ jobs:
     steps:
       - name: Set version to tag without leading v
         run: |
-          echo "VERSION=${TAG#v}" >> $GITHUB_ENV
+          # TAG comes from the dispatch input, so only a version may reach GITHUB_ENV and the shell.
+          if [[ ! "$TAG" =~ ^v?[0-9]+\.[0-9]+\.[0-9]+(-rc\.[0-9]+)?$ ]]; then
+            echo "::error::The version must look like v1.2.3 or v1.2.3-rc.1."
+            exit 1
+          fi
+          echo "VERSION=${TAG#v}" >> "$GITHUB_ENV"
 
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v6
@@ -66,7 +71,12 @@ jobs:
     steps:
       - name: Set version to tag without leading v
         run: |
-          echo "VERSION=${TAG#v}" >> $GITHUB_ENV
+          # TAG comes from the dispatch input, so only a version may reach GITHUB_ENV and the shell.
+          if [[ ! "$TAG" =~ ^v?[0-9]+\.[0-9]+\.[0-9]+(-rc\.[0-9]+)?$ ]]; then
+            echo "::error::The version must look like v1.2.3 or v1.2.3-rc.1."
+            exit 1
+          fi
+          echo "VERSION=${TAG#v}" >> "$GITHUB_ENV"
 
       - name: Generate coder-automations app token
         id: app_token
@@ -113,15 +123,15 @@ jobs:
         env:
           GH_TOKEN: ${{ steps.app_token.outputs.token }}
         run: |
-          git checkout -b update-version-${{ env.VERSION }}
+          git checkout -b "update-version-$VERSION"
           git add .
-          git commit -m "Update to ${{ env.VERSION }}"
-          git push -u origin $(git branch --show)
+          git commit -m "Update to $VERSION"
+          git push -u origin "$(git branch --show)"
           gh pr create \
             --repo coder/code-server-aur \
-            --title "Update to ${{ env.VERSION }}" \
+            --title "Update to $VERSION" \
             --body "PR opened by @$GITHUB_ACTOR" \
-            --assignee $GITHUB_ACTOR
+            --assignee "$GITHUB_ACTOR"
 
   docker:
     runs-on: ubuntu-latest
@@ -140,7 +150,12 @@ jobs:
     steps:
       - name: Set version to tag without leading v
         run: |
-          echo "VERSION=${TAG#v}" >> $GITHUB_ENV
+          # TAG comes from the dispatch input, so only a version may reach GITHUB_ENV and the shell.
+          if [[ ! "$TAG" =~ ^v?[0-9]+\.[0-9]+\.[0-9]+(-rc\.[0-9]+)?$ ]]; then
+            echo "::error::The version must look like v1.2.3 or v1.2.3-rc.1."
+            exit 1
+          fi
+          echo "VERSION=${TAG#v}" >> "$GITHUB_ENV"
 
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
       - uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4.4.0
@@ -189,7 +204,12 @@ jobs:
     steps:
       - name: Set version to tag without leading v
         run: |
-          echo "VERSION=${TAG#v}" >> $GITHUB_ENV
+          # TAG comes from the dispatch input, so only a version may reach GITHUB_ENV and the shell.
+          if [[ ! "$TAG" =~ ^v?[0-9]+\.[0-9]+\.[0-9]+(-rc\.[0-9]+)?$ ]]; then
+            echo "::error::The version must look like v1.2.3 or v1.2.3-rc.1."
+            exit 1
+          fi
+          echo "VERSION=${TAG#v}" >> "$GITHUB_ENV"
 
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
 
