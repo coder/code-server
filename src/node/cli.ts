@@ -58,6 +58,7 @@ export interface UserProvidedCodeArgs {
   "reconnection-grace-time"?: string
   "session-socket"?: string
   "cookie-suffix"?: string
+  "cookie-max-age"?: number
   "link-protection-trusted-domains"?: string[]
   // locale is used by both VS Code and code-server.
   locale?: string
@@ -185,6 +186,12 @@ export const options: Options<Required<UserProvidedArgs>> = {
     description:
       "Adds a suffix to the cookie. This can prevent a collision of cookies for subdomains, making them explixit. \n" +
       "Without this flag, no suffix is used. This can also be set with CODE_SERVER_COOKIE_SUFFIX set to any string.",
+  },
+  "cookie-max-age": {
+    type: "number",
+    description:
+      "Keep the login cookie for this many seconds so you stay logged in after closing the browser. \n" +
+      "Without this flag the cookie only lasts for the browser session.",
   },
   "disable-file-downloads": {
     type: "boolean",
@@ -469,6 +476,10 @@ export const parse = (
 
       if (key === "idle-timeout-seconds" && Number(value) <= 60) {
         throw new Error("--idle-timeout-seconds must be greater than 60 seconds.")
+      }
+
+      if (key === "cookie-max-age" && !(Number(value) > 0)) {
+        throw new Error("--cookie-max-age must be a positive number of seconds.")
       }
 
       if (option.type === OptionalString && value === "false") {

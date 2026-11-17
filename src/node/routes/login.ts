@@ -93,7 +93,13 @@ router.post<{}, string, { password?: string; base?: string } | undefined, { to?:
     if (isPasswordValid) {
       // The hash does not add any actual security but we do it for
       // obfuscation purposes (and as a side effect it handles escaping).
-      res.cookie(req.cookieSessionName, hashedPassword, getCookieOptions(req))
+      // The max age is only set here, not in getCookieOptions, because those
+      // options are also used to clear the cookie on logout.
+      const maxAge = req.args["cookie-max-age"]
+      res.cookie(req.cookieSessionName, hashedPassword, {
+        ...getCookieOptions(req),
+        ...(maxAge ? { maxAge: maxAge * 1000 } : {}),
+      })
 
       const to = (typeof req.query.to === "string" && req.query.to) || "/"
       return redirect(req, res, to, { to: undefined })
