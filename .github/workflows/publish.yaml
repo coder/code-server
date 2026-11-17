@@ -56,6 +56,9 @@ jobs:
   aur:
     runs-on: ubuntu-latest
     environment: release
+    permissions:
+      contents: read
+      id-token: write # Cloud KMS signs the coder-automations App's JWT
     timeout-minutes: 10
     env:
       TAG: ${{ inputs.version || github.ref_name }}
@@ -67,14 +70,18 @@ jobs:
 
       - name: Generate coder-automations app token
         id: app_token
-        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        # The App's key is a non-exportable Cloud KMS key; only this workflow, in this environment,
+        # may sign with it.
+        uses: coder/github-app-token-action@00eaec58ee1bfea9c8b48655b7ab7470b07739e5 # main 2026-11-17
         with:
-          app-id: ${{ secrets.CODER_AUTOMATION_APP_ID }}
-          private-key: ${{ secrets.CODER_AUTOMATION_APP_PRIVATE_KEY }}
+          client-id: ${{ secrets.CODER_AUTOMATION_APP_ID }}
+          kms-key: ${{ secrets.CODER_AUTOMATION_APP_KMS_KEY }}
+          workload-identity-provider: ${{ secrets.APP_KEYS_WORKLOAD_ID_PROVIDER }}
           owner: coder
           repositories: code-server-aur
-          permission-contents: write
-          permission-pull-requests: write
+          permissions: |
+            contents: write
+            pull_requests: write
 
       - name: Checkout code-server-aur repo
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
