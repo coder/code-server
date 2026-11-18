@@ -155,13 +155,17 @@ spec:
       volumes:
       - name: data
       {{- if .Values.persistence.enabled }}
-        {{- if not .Values.persistence.hostPath }}
+        {{- if and (not .Values.persistence.hostPath) (not .Values.persistence.nfs) }}
         persistentVolumeClaim:
           claimName: {{ .Values.persistence.existingClaim | default (include "code-server.fullname" .) }}
-        {{- else }}
+        {{- else if .Values.persistence.hostPath }}
         hostPath:
           path: {{ .Values.persistence.hostPath }}
           type: Directory
+        {{- else if .Values.persistence.nfs }}
+        nfs:
+          server: {{ .Values.persistence.nfs.server }}
+          path: {{ .Values.persistence.nfs.path }}
         {{- end -}}
       {{- else }}
         emptyDir: {}

@@ -145,6 +145,9 @@ persistence:
   annotations: {}
   # existingClaim: ""
   # hostPath: /data
+  # nfs: 
+  #   server:
+  #   path:
 
 lifecycle:
   enabled: false
