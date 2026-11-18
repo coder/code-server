@@ -44,7 +44,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
 
       - name: Install test utilities
-        run: apk add bats checkbashisms
+        run: apk add bats checkbashisms jq
 
       - name: Check Bashisms
         run: checkbashisms ./install.sh
