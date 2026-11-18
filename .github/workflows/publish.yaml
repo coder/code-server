@@ -12,6 +12,8 @@ on:
   release:
     types: [released]
 
+permissions: {}
+
 # Cancel in-progress runs for pull requests when developers push
 # additional changes, and serialize builds in branches.
 # https://docs.github.com/en/actions/using-jobs/using-concurrency#example-using-concurrency-to-cancel-any-in-progress-job-or-run
@@ -20,8 +22,47 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  # Nothing is published unless the release came from release.yaml: coder-release-publisher made
+  # it (only release.yaml's approve job can sign as that App, after a second person approved), it
+  # is published and immutable, and every file was built and attested by release.yaml from main.
+  verify:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      attestations: read
+    env:
+      GH_TOKEN: ${{ github.token }}
+      TAG: ${{ inputs.version || github.ref_name }}
+    steps:
+      - name: Check the release
+        run: |
+          set -euo pipefail
+          fail() { echo "::error::$*"; exit 1; }
+          # TAG comes from the dispatch input, so only a version may reach the shell.
+          [[ "$TAG" =~ ^v?[0-9]+\.[0-9]+\.[0-9]+(-rc\.[0-9]+)?$ ]] || fail "The version must look like v1.2.3 or v1.2.3-rc.1."
+          tag="v${TAG#v}"
+          release="$(gh api "repos/$GITHUB_REPOSITORY/releases/tags/$tag")"
+          author="$(jq -r .author.login <<<"$release")"
+          [[ "$author" == "coder-release-publisher[bot]" ]] || fail "$tag was published by $author, not by release.yaml (coder-release-publisher)."
+          [[ "$(jq -r .draft <<<"$release")" == "false" ]] || fail "$tag is a draft."
+          [[ "$(jq -r .immutable <<<"$release")" == "true" ]] || fail "$tag is not an immutable release."
+
+      - name: Verify the files
+        run: |
+          set -euo pipefail
+          tag="v${TAG#v}"
+          gh release download "$tag" --repo "$GITHUB_REPOSITORY" --dir release-files
+          for f in release-files/*; do
+            gh attestation verify "$f" \
+              --repo "$GITHUB_REPOSITORY" \
+              --signer-workflow "$GITHUB_REPOSITORY/.github/workflows/release.yaml" \
+              --source-ref refs/heads/main \
+              --deny-self-hosted-runners
+          done
+
   npm:
     runs-on: ubuntu-latest
+    needs: verify
     environment: release
     permissions:
       # Required so GitHub can issue an OIDC token for trusted publishing.
@@ -60,6 +101,7 @@ jobs:
 
   aur:
     runs-on: ubuntu-latest
+    needs: verify
     environment: release
     permissions:
       contents: read
@@ -135,6 +177,7 @@ jobs:
 
   docker:
     runs-on: ubuntu-latest
+    needs: verify
     # Scopes the Docker Hub OIDC subject claim to
     # repo:coder/code-server:environment:release.
     environment: release
