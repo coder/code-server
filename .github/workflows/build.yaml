@@ -149,16 +149,11 @@ jobs:
             test/package-lock.json
       - run: SKIP_SUBMODULE_DEPS=1 npm ci
       - run: npm run test:unit
-      - uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
-        if: success()
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
 
   build:
     name: linux-x64
     runs-on: ubuntu-22.04
     env:
-      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       DISABLE_V8_COMPILE_CACHE: 1
       VERSION: 0.0.0
       VSCODE_ARCH: x64
