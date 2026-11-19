@@ -99,7 +99,7 @@ docs](https://coder.com/docs/code-server/latest/CONTRIBUTING#test).
 
 If you're ever looking to add more tests, here are a few ways to get started:
 
-- run `npm run test:unit` and look at the coverage chart. You'll see all the
+- run `pnpm run test:unit` and look at the coverage chart. You'll see all the
   uncovered lines. This is a good place to start.
 - look at `test/scripts` to see which scripts are tested. We can always use more
   tests there.

@@ -65,6 +65,19 @@ function update_node() {
   fi
 }
 
+function update_package_manager() {
+  local manager_version
+  manager_version=$(jq --raw-output .packageManager package.json)
+  local target_manager_version
+  target_manager_version=$(jq --raw-output .packageManager lib/vscode/remote/package.json)
+  if [[ $manager_version == "$target_manager_version" ]] ; then
+    echo "Already set to $target_manager_version"
+  else
+    echo "Updating from $manager_version to $target_manager_version..."
+    sed -i.bak "s#$manager_version#$target_manager_version#" package.json
+  fi
+}
+
 function get-webview-script-hash() {
   local html
   html=$(<"$1")
@@ -156,6 +169,7 @@ function main() {
 
   steps+=(
     "Update Node version" "update_node"
+    "Update package manager version" "update_package_manager"
     "Regenerate CSP hashes" "update_csp"
     "Add changelog note" "add_changelog"
   )

@@ -3,13 +3,11 @@ set -euo pipefail
 
 # Install dependencies in $1.
 install-deps() {
-  local args=()
+  local args=(install)
   if [[ ${CI-} ]]; then
-    args+=(ci)
-  else
-    args+=(install)
+    args+=(--frozen-lockfile)
   fi
-  # If there is no package.json then npm will look upward and end up installing
+  # If there is no package.json then pnpm will look upward and end up installing
   # from the root resulting in an infinite loop (this can happen if you have not
   # checked out the submodule yet for example).
   if [[ ! -f "$1/package.json" ]]; then
@@ -17,8 +15,8 @@ install-deps() {
     exit 1
   fi
   pushd "$1"
-  echo "Installing dependencies for $PWD"
-  npm "${args[@]}"
+  echo "Running 'pnpm ${args[*]}' in $PWD"
+  pnpm "${args[@]}"
   popd
 }
 

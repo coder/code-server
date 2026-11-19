@@ -2,6 +2,7 @@
   "name": "code-server",
   "license": "MIT",
   "version": "0.0.0",
+  "packageManager": "pnpm@12.16.0",
   "description": "Run VS Code on a remote server.",
   "homepage": "https://github.com/coder/code-server",
   "bugs": {
@@ -25,12 +26,10 @@
     "prettier": "prettier --write --log-level=warn --cache .",
     "preinstall": "node ./ci/dev/preinstall.js",
     "postinstall": "./ci/dev/postinstall.sh",
-    "publish:npm": "./ci/steps/publish-npm.sh",
-    "publish:docker": "./ci/steps/docker-buildx-push.sh",
-    "fmt": "npm run prettier && ./ci/dev/doctoc.sh",
+    "fmt": "pnpm run prettier && ./ci/dev/doctoc.sh",
     "lint:scripts": "./ci/dev/lint-scripts.sh",
     "lint:ts": "eslint --max-warnings=0 --fix $(git ls-files '*.ts' '*.js' | grep -v 'lib/vscode')",
-    "test": "echo 'Run npm run test:unit or npm run test:e2e' && exit 1",
+    "test": "echo 'Run pnpm run test:unit or pnpm run test:e2e' && exit 1",
     "watch": "VSCODE_DEV=1 VSCODE_IPC_HOOK_CLI= NODE_OPTIONS='--max_old_space_size=32384 --trace-warnings' ts-node ./ci/dev/watch.ts",
     "icons": "./ci/dev/gen_icons.sh"
   },
@@ -89,9 +88,6 @@
   },
   "resolutions": {
     "@types/node": "24.x"
-  },
-  "overrides": {
-    "basic-ftp": "^6.2.1"
   },
   "bin": {
     "code-server": "out/node/entry.js"

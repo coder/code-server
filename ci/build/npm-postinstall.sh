@@ -95,11 +95,6 @@ install_with_package_manager() {
   # For development we enforce pnpm, but for installing the package as an
   # end-user we want to keep using whatever package manager is in use.
   case "${npm_config_user_agent-}" in
-    pnpm*)
-      if ! pnpm install --prod; then
-        return 1
-      fi
-      ;;
     npm*)
       if ! npm install --omit=dev; then
         return 1
@@ -111,7 +106,7 @@ install_with_package_manager() {
       fi
       ;;
     *)
-      echo "Could not determine which package manager is being used to install code-server"
+      echo "Unsupported package manager is being used to install code-server"
       exit 1
       ;;
   esac

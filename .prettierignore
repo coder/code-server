@@ -5,4 +5,4 @@ helm-chart
 test/scripts
 test/e2e/extensions/test-extension
 .pc
-package-lock.json
+pnpm-lock.yaml

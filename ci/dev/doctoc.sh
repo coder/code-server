@@ -18,7 +18,7 @@ main() {
     echo "Files need generation or are formatted incorrectly:"
     git -c color.ui=always status | grep --color=no '\[31m'
     echo "Please run the following locally:"
-    echo "  npm run doctoc"
+    echo "  pnpm run doctoc"
     exit 1
   fi
 }

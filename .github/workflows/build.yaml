@@ -44,8 +44,8 @@ jobs:
               - "src/**"
               - "test/**"
             npm:
-              - "package-lock.json"
-              - "test/package-lock.json"
+              - "pnpm-lock.yaml"
+              - "test/pnpm-lock.yaml"
             vscode:
               - "lib/**"
               - "patches/**"
@@ -58,15 +58,16 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v6
         with:
           node-version-file: .node-version
-          cache: npm
+          cache: pnpm
           cache-dependency-path: |
-            package-lock.json
-            test/package-lock.json
-      - run: SKIP_SUBMODULE_DEPS=1 npm ci
-      - run: npx prettier --check .
+            pnpm-lock.yaml
+            test/pnpm-lock.yaml
+      - run: SKIP_SUBMODULE_DEPS=1 pnpm install --frozen-lockfile
+      - run: pnpm exec prettier --check .
 
   doctoc:
     name: Doctoc markdown files
@@ -75,15 +76,16 @@ jobs:
     if: needs.changes.outputs.docs == 'true'
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v6
         with:
           node-version-file: .node-version
-          cache: npm
+          cache: pnpm
           cache-dependency-path: |
-            package-lock.json
-            test/package-lock.json
-      - run: SKIP_SUBMODULE_DEPS=1 npm ci
-      - run: npm run doctoc
+            pnpm-lock.yaml
+            test/pnpm-lock.yaml
+      - run: SKIP_SUBMODULE_DEPS=1 pnpm install --frozen-lockfile
+      - run: pnpm run doctoc
 
   lint-helm:
     name: Lint Helm chart
@@ -109,15 +111,16 @@ jobs:
     if: needs.changes.outputs.code == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.npm == 'true'
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v6
         with:
           node-version-file: .node-version
-          cache: npm
+          cache: pnpm
           cache-dependency-path: |
-            package-lock.json
-            test/package-lock.json
-      - run: SKIP_SUBMODULE_DEPS=1 npm ci
-      - run: npm run lint:ts
+            pnpm-lock.yaml
+            test/pnpm-lock.yaml
+      - run: SKIP_SUBMODULE_DEPS=1 pnpm install --frozen-lockfile
+      - run: pnpm run lint:ts
 
   lint-actions:
     name: Lint GitHub Actions
@@ -140,15 +143,16 @@ jobs:
     if: needs.changes.outputs.code == 'true' || needs.changes.outputs.npm == 'true'
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v6
         with:
           node-version-file: .node-version
-          cache: npm
+          cache: pnpm
           cache-dependency-path: |
-            package-lock.json
-            test/package-lock.json
-      - run: SKIP_SUBMODULE_DEPS=1 npm ci
-      - run: npm run test:unit
+            pnpm-lock.yaml
+            test/pnpm-lock.yaml
+      - run: SKIP_SUBMODULE_DEPS=1 pnpm install --frozen-lockfile
+      - run: pnpm run test:unit
 
   build:
     name: linux-x64
@@ -173,13 +177,14 @@ jobs:
         with:
           submodules: true
       - run: quilt push -a
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v6
         with:
           node-version-file: .node-version
-          cache: npm
+          cache: pnpm
           cache-dependency-path: |
-            package-lock.json
-            test/package-lock.json
+            pnpm-lock.yaml
+            test/pnpm-lock.yaml
 
       # Get Code's git hash.  When this changes it means the content is
       # different and we need to rebuild.
@@ -200,22 +205,22 @@ jobs:
         if: steps.cache-vscode.outputs.cache-hit != 'true'
         run: |
           cd lib/vscode/build
-          npm ci
+          pnpm install --frozen-lockfile
           cd ..
           source ./build/azure-pipelines/linux/setup-env.sh
           # Run preinstall script before root dependencies are installed
           # so that v8 headers are patched correctly for native modules.
-          node build/npm/preinstall.ts
-          npm ci
+          pnpm run preinstall
+          pnpm install --frozen-lockfile
           cd ../..
-          npm run build:vscode
+          pnpm run build:vscode
 
       # Build the code-server wrapper.
-      - run: SKIP_SUBMODULE_DEPS=1 npm ci
-      - run: npm run build
+      - run: SKIP_SUBMODULE_DEPS=1 pnpm install --frozen-lockfile
+      - run: pnpm run build
 
       # Push up an artifact containing the linux-x64 release.
-      - run: KEEP_MODULES=1 npm run release
+      - run: KEEP_MODULES=1 pnpm run release
       - run: tar -czf package.tar.gz release
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
@@ -232,14 +237,16 @@ jobs:
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v6
         with:
           node-version-file: .node-version
-          cache: npm
+          cache: pnpm
           cache-dependency-path: |
-            package-lock.json
-            test/package-lock.json
-      - run: SKIP_SUBMODULE_DEPS=1 npm ci
+            pnpm-lock.yaml
+            test/pnpm-lock.yaml
+
+      - run: SKIP_SUBMODULE_DEPS=1 pnpm install --frozen-lockfile
       - name: Install Playwright OS dependencies
         run: |
           ./test/node_modules/.bin/playwright install-deps
@@ -250,7 +257,7 @@ jobs:
           name: linux-x64-package
       - run: tar -xzf package.tar.gz
 
-      - run: CODE_SERVER_TEST_ENTRY=./release npm run test:e2e
+      - run: CODE_SERVER_TEST_ENTRY=./release pnpm run test:e2e
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         if: always()
         with:
@@ -282,14 +289,15 @@ jobs:
           tar -xzf caddy_2.5.2_linux_amd64.tar.gz --directory ~/.cache/caddy
 
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v6
         with:
           node-version-file: .node-version
-          cache: npm
+          cache: pnpm
           cache-dependency-path: |
-            package-lock.json
-            test/package-lock.json
-      - run: SKIP_SUBMODULE_DEPS=1 npm ci
+            pnpm-lock.yaml
+            test/pnpm-lock.yaml
+      - run: SKIP_SUBMODULE_DEPS=1 pnpm install --frozen-lockfile
       - name: Install Playwright OS dependencies
         run: |
           ./test/node_modules/.bin/playwright install-deps
@@ -301,7 +309,7 @@ jobs:
       - run: tar -xzf package.tar.gz
 
       - run: ~/.cache/caddy/caddy start --config ./ci/Caddyfile
-      - run: CODE_SERVER_TEST_ENTRY=./release npm run test:e2e:proxy
+      - run: CODE_SERVER_TEST_ENTRY=./release pnpm run test:e2e:proxy
       - run: ~/.cache/caddy/caddy stop --config ./ci/Caddyfile
         if: always()
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7

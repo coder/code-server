@@ -7,17 +7,17 @@ fi
 
 # Once both code-server and VS Code have been built, use this script to copy
 # them into a single directory (./release) and prepare the package.json and
-# product.json.  This results in a generic NPM package that we can publish to
-# NPM.
+# product.json.  This results in a generic package with only built code and no
+# dependencies that we can publish to NPM and GitHub.
 
 # MINIFY controls whether minified VS Code is bundled. It must match the value
 # used when VS Code was built.
 MINIFY="${MINIFY-true}"
 
-# node_modules are not copied by default.  Set KEEP_MODULES=1 to copy them.
-# Note these modules will be for the platform that built them, making the result
-# no longer generic (it can still be published though as the modules will be
-# ignored when pushing).
+# Set KEEP_MODULES=1 to copy dependencies, delete anything not specific to the
+# platform (like the remote-cli scripts for other platforms), and include a
+# launcher script plus a Node binary.  Note these modules will be for the
+# platform that built them, making the result no longer generic.
 KEEP_MODULES="${KEEP_MODULES-0}"
 
 main() {
@@ -71,19 +71,9 @@ bundle_code_server() {
   rsync src/browser/pages/*.css "$RELEASE_PATH/src/browser/pages"
   rsync src/browser/robots.txt "$RELEASE_PATH/src/browser"
 
-  # Adds the commit to package.json
-  jq --slurp '(.[0] | del(.scripts,.jest,.devDependencies)) * .[1]' package.json <(
-    cat << EOF
-  {
-    "version": "$(jq -r .codeServerVersion "./lib/vscode-reh-web-$VSCODE_TARGET/product.json")",
-    "commit": "$(git rev-parse HEAD)",
-    "scripts": {
-      "postinstall": "sh ./postinstall.sh"
-    }
-  }
-EOF
-  ) > "$RELEASE_PATH/package.json"
-  cp package-lock.json "$RELEASE_PATH"
+  cp package.json "$RELEASE_PATH/package.json"
+  cp pnpm-lock.yaml "$RELEASE_PATH/pnpm-lock.yaml"
+  cp pnpm-workspace.yaml "$RELEASE_PATH/pnpm-workspace.yaml"
 
   if [ "$KEEP_MODULES" = 1 ]; then
     local rsync_opts=(-a)
@@ -95,11 +85,30 @@ EOF
       rsync_opts+=(--exclude /argon2/prebuilds)
     fi
     rsync "${rsync_opts[@]}" node_modules/ "$RELEASE_PATH/node_modules"
-    # Remove dev dependencies.
+    # Remove dev dependencies.  pnpm's prune must be told to ignore scripts or
+    # it will try to run the post-install.
     pushd "$RELEASE_PATH"
-    npm prune --production
+    pnpm prune --production --ignore-scripts
     popd
   fi
+
+  # - Add the commit and version.
+  # - Strip unnecessary properties.  This needs to happen after the prune, since
+  #   pnpm appears to have odd behavior with devDependencies missing (for
+  #   example it was not removing the Typescript dev dependency).
+  # - Add a post-install for use as an npm or generic package to install VS
+  #   Code's modules.
+  jq --slurp '(.[0] | del(.scripts,.jest,.devDependencies)) * .[1]' package.json <(
+    cat << EOF
+  {
+    "version": "$(jq -r .codeServerVersion "./lib/vscode-reh-web-$VSCODE_TARGET/product.json")",
+    "commit": "$(git rev-parse HEAD)",
+    "scripts": {
+      "postinstall": "sh ./postinstall.sh"
+    }
+  }
+EOF
+  ) > "$RELEASE_PATH/package.json"
 
   rsync ci/build/npm-postinstall.sh "$RELEASE_PATH/postinstall.sh"
 }
@@ -138,20 +147,22 @@ bundle_vscode() {
     fi
   fi
 
-  # Merge the package.json for the web/remote server so we can include
-  # dependencies, since we want to ship this via NPM.
-  # Also override the name to prevent vulnerability scanners from
-  # misidentifying this package as VS Code (see #7071).
-  jq --slurp '.[0] * .[1] | .name = "code-oss"' \
+  # - Include the dependencies so unsupported platforms can use this package
+  #   without having to build code-server (they only have to install
+  #   dependencies) by downloading from either from NPM or from GitHub.
+  # - Override the name to prevent vulnerability scanners from misidentifying
+  #   this package as VS Code (see #7071).
+  jq --slurp '.[1].dependencies = .[0].dependencies | .[1] | .name = "code-oss"' \
     "$VSCODE_SRC_PATH/remote/package.json" \
     "$VSCODE_OUT_PATH/package.json" > "$VSCODE_OUT_PATH/package.json.merged"
   mv "$VSCODE_OUT_PATH/package.json.merged" "$VSCODE_OUT_PATH/package.json"
-  cp "$VSCODE_SRC_PATH/remote/package-lock.json" "$VSCODE_OUT_PATH/package-lock.json"
+  cp "$VSCODE_SRC_PATH/remote/pnpm-lock.yaml" "$VSCODE_OUT_PATH/pnpm-lock.yaml"
+  cp "$VSCODE_SRC_PATH/remote/pnpm-workspace.yaml" "$VSCODE_OUT_PATH/pnpm-workspace.yaml"
 
   # Include global extension dependencies as well.
   jq 'del(.devDependencies)' "$VSCODE_SRC_PATH/extensions/package.json" > "$VSCODE_OUT_PATH/extensions/package.json"
-  rsync "$VSCODE_SRC_PATH/extensions/postinstall.mjs" "$VSCODE_OUT_PATH/extensions/postinstall.mjs"
-  rsync "$VSCODE_SRC_PATH/extensions/package-lock.json" "$VSCODE_OUT_PATH/extensions/package-lock.json"
+  rsync "$VSCODE_SRC_PATH/extensions/pnpm-lock.yaml" "$VSCODE_OUT_PATH/extensions/pnpm-lock.yaml"
+  rsync "$VSCODE_SRC_PATH/extensions/pnpm-workspace.yaml" "$VSCODE_OUT_PATH/extensions/pnpm-workspace.yaml"
 }
 
 main "$@"

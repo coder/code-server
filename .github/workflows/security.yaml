@@ -29,13 +29,12 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Install Node.js
-        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v6
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v6
         with:
           node-version-file: .node-version
 
-      - name: Audit npm for vulnerabilities
-        run: npm audit
+      - run: pnpm audit
         if: success()
 
   trivy-scan-repo:
