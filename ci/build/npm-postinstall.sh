@@ -101,7 +101,7 @@ install_with_yarn_or_npm() {
       fi
       ;;
     yarn*)
-      if ! yarn --production --frozen-lockfile --no-default-rc; then
+      if ! yarn --production --no-default-rc; then
         return 1
       fi
       ;;

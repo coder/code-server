@@ -34,6 +34,10 @@ Code v1.145.3
 ### Changed
 
 - Update to Code 1.145.3
+- The NPM package no longer ships with shrinkwraps, since shrinkwrap support is
+  removed in npm v12. Although this makes it easier for end users to get updated
+  dependencies, it also means users can get dependencies different from known
+  good versions tested at release.
 
 ## [4.145.2](https://github.com/coder/code-server/releases/tag/v4.145.2) - 2026-11-07
 
