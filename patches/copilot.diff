@@ -2,7 +2,7 @@ Index: code-server/lib/vscode/build/gulpfile.extensions.ts
 ===================================================================
 --- code-server.orig/lib/vscode/build/gulpfile.extensions.ts
 +++ code-server/lib/vscode/build/gulpfile.extensions.ts
-@@ -283,6 +283,29 @@ export const compileCopilotExtensionBuil
+@@ -282,6 +282,29 @@ export const compileCopilotExtensionBuil
  task.task(compileCopilotExtensionBuildTask);
  
  /**
@@ -44,7 +44,7 @@ Index: code-server/lib/vscode/build/lib/extensions.ts
  import watcher from './watch/index.ts';
  
  import { createRequire } from 'module';
-@@ -487,6 +488,116 @@ export function packageCopilotExtensionS
+@@ -570,6 +571,116 @@ export function packageCopilotExtensionS
  	).pipe(util2.setExecutableBit(['**/*.sh']));
  }
  
