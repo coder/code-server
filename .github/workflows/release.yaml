@@ -186,24 +186,22 @@ jobs:
       # Platform-agnostic NPM package.
       - run: npm run release
         if: ${{ matrix.vscode_arch == 'x64' }}
-      - run: tar -czf package.tar.gz release
-        if: ${{ matrix.vscode_arch == 'x64' }}
-      - run: mkdir -p release-files && cp package.tar.gz release-files/
+      # Into release-packages with the platform packages, so the artifact is one flat directory.
+      - run: mkdir -p release-packages && tar -czf release-packages/package.tar.gz release
         if: ${{ matrix.vscode_arch == 'x64' }}
 
       # Platform-specific release.
       - run: KEEP_MODULES=1 npm run release
       - run: npm run package
-      - run: mkdir -p release-files && cp release-packages/* release-files/
 
       # The approve job and publish.yaml check every file against these.
       - uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
         with:
-          subject-path: release-files/*
+          subject-path: release-packages/*
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: ${{ format('release-linux-{0}', matrix.vscode_arch) }}
-          path: release-files/*
+          path: release-packages/*
           if-no-files-found: error
 
   package-macos:
@@ -264,16 +262,15 @@ jobs:
       - run: npm run test:native
 
       - run: npm run package
-      - run: mkdir -p release-files && cp release-packages/* release-files/
 
       # The approve job and publish.yaml check every file against these.
       - uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
         with:
-          subject-path: release-files/*
+          subject-path: release-packages/*
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: ${{ format('release-{0}', matrix.vscode_target) }}
-          path: release-files/*
+          path: release-packages/*
           if-no-files-found: error
 
   package-windows:
@@ -417,16 +414,15 @@ jobs:
           esac
           npm run package
 
-      - run: mkdir -p release-files && cp release-packages/* release-files/
 
       # The approve job and publish.yaml check every file against these.
       - uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
         with:
-          subject-path: release-files/*
+          subject-path: release-packages/*
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: release-win32-x64
-          path: release-files/*
+          path: release-packages/*
           if-no-files-found: error
 
   approve:
