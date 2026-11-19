@@ -1,33 +1,117 @@
-name: Draft release
+name: Release
+
+# Builds a release from a commit on main, waits for a second person, then tags and publishes it.
+#
+#   prepare    Works out the version and the commit to build: the merge commit of an update/ PR,
+#              or the commit given to a dispatch on main.
+#   package-*  Build the packages from that commit and attest each file's provenance. Nothing here
+#              can create a tag or a release.
+#   approve    Waits in the release-approval environment for a member of
+#              code-server-release-team other than the person who started the run. Then, as the
+#              coder-release-publisher App (its key is in Cloud KMS, and only this job of main's
+#              copy of this file may sign with it), it creates the tag and publishes the release
+#              with the attested files. Releases are immutable once published.
+#
+# Publishing the release starts publish.yaml (npm, Docker Hub, GHCR, AUR), which checks that the
+# release came from here before it publishes anything.
 
 on:
   workflow_dispatch:
     inputs:
       version:
+        description: "Version to release, e.g. 4.106.0 or 4.106.0-rc.1 (the major version is always 4)"
         type: string
         required: true
+      commit:
+        description: "Full SHA of the commit on main to release"
+        type: string
+        required: true
+      prerelease:
+        description: "Publish as a pre-release (npm, Docker and the AUR are not updated)"
+        type: boolean
+        default: false
   pull_request_target:
     types:
       - closed
     branches:
       - main
 
-permissions:
-  contents: write # For creating releases.
+permissions: {}
 
-# Cancel in-progress runs for pull requests when developers push
-# additional changes
+# Releases never cancel each other.
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  cancel-in-progress: false
 
 jobs:
-  package-linux:
-    name: ${{ format('linux-{0}', matrix.vscode_arch) }}
-    runs-on: ubuntu-22.04
+  prepare:
+    name: Prepare
+    runs-on: ubuntu-24.04
     if: >-
       (github.event_name == 'workflow_dispatch') ||
       (github.event_name == 'pull_request_target' && github.event.pull_request.merged == true && startsWith(github.head_ref, 'update/'))
+    permissions:
+      contents: read
+    outputs:
+      version: ${{ steps.prepare.outputs.version }}
+      commit: ${{ steps.prepare.outputs.commit }}
+      prerelease: ${{ steps.prepare.outputs.prerelease }}
+    steps:
+      - name: Work out the version and the commit
+        id: prepare
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT: ${{ github.event_name }}
+          INPUT_VERSION: ${{ inputs.version }}
+          INPUT_COMMIT: ${{ inputs.commit }}
+          INPUT_PRERELEASE: ${{ inputs.prerelease }}
+          HEAD_REF: ${{ github.head_ref }}
+          MERGE_COMMIT: ${{ github.event.pull_request.merge_commit_sha }}
+        run: |
+          set -euo pipefail
+          fail() { echo "::error::$*"; exit 1; }
+
+          # The tag is created by main's copy of this file only (the release-approval environment
+          # and Cloud KMS both require it), so a dispatch from any other ref is refused here.
+          [[ "$GITHUB_REF" == "refs/heads/main" ]] || fail "Run this workflow on main, not $GITHUB_REF."
+
+          if [[ "$EVENT" == "pull_request_target" ]]; then
+            # The merge commit of the update/ PR, which is on main.
+            version="$HEAD_REF"
+            commit="$MERGE_COMMIT"
+            prerelease=false
+          else
+            version="$INPUT_VERSION"
+            commit="$INPUT_COMMIT"
+            prerelease="$INPUT_PRERELEASE"
+          fi
+
+          # update/1.106.0 or v4.106.0 becomes 4.106.0: code-server keeps VS Code's minor and patch.
+          version=${version#update/}
+          version=${version#v}
+          version=4${version:1}
+          [[ "$version" =~ ^4\.[0-9]+\.[0-9]+(-rc\.[0-9]+)?$ ]] || fail "Version must look like 4.106.0 or 4.106.0-rc.1, got '$version'."
+          [[ "$commit" =~ ^[0-9a-f]{40}$ ]] || fail "Commit must be a full 40-character SHA, got '$commit'."
+
+          # The commit must be on main: main is identical to it or ahead of it.
+          status="$(gh api "repos/$GITHUB_REPOSITORY/compare/$commit...main" --jq .status)"
+          [[ "$status" == "identical" || "$status" == "ahead" ]] || fail "$commit is not on main."
+
+          {
+            echo "version=$version"
+            echo "commit=$commit"
+            echo "prerelease=$prerelease"
+          } >> "$GITHUB_OUTPUT"
+          echo "Releasing v$version from $commit (pre-release: $prerelease)."
+
+  package-linux:
+    name: ${{ format('linux-{0}', matrix.vscode_arch) }}
+    runs-on: ubuntu-22.04
+    needs: prepare
+    permissions:
+      contents: read
+      id-token: write # To sign the provenance attestations.
+      attestations: write
 
     strategy:
       matrix:
@@ -43,7 +127,7 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       ELECTRON_SKIP_BINARY_DOWNLOAD: 1
       PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
-      TAG: ${{ inputs.version || github.event.pull_request.head.ref || github.ref_name }}
+      VERSION: ${{ needs.prepare.outputs.version }}
       # Set release package name.
       ARCH: ${{ matrix.package_arch }}
       # Cross-compile target.
@@ -68,18 +152,13 @@ jobs:
           curl -sSfL https://github.com/goreleaser/nfpm/releases/download/v2.3.1/nfpm_2.3.1_`uname -s`_`uname -m`.tar.gz | tar -C ~/.local/bin -zxv nfpm
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
-      - name: Strip update/ and v from tag and set major version
-        run: |
-          version=${TAG#update/}
-          version=${version#v}
-          version=4${version:1}
-          echo "VERSION=$version" >> $GITHUB_ENV
-
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
         with:
+          # The commit prepare checked is on main, never a PR head.
+          ref: ${{ needs.prepare.outputs.commit }}
           submodules: true
-          # When an update/ branch is merged, a release is automatically created
-          # which requires secrets.
+          persist-credentials: false
+          # A merged update/ PR starts a release through pull_request_target.
           allow-unsafe-pr-checkout: true
       - run: quilt push -a
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v6
@@ -107,36 +186,32 @@ jobs:
       # Platform-agnostic NPM package.
       - run: npm run release
         if: ${{ matrix.vscode_arch == 'x64' }}
-      - run: tar -czf package.tar.gz release
+      # Into release-packages with the platform packages, so the artifact is one flat directory.
+      - run: mkdir -p release-packages && tar -czf release-packages/package.tar.gz release
         if: ${{ matrix.vscode_arch == 'x64' }}
-      - run: |
-          sed "/^## Unreleased/,/^## / ! d" CHANGELOG.md | head -n -2 | tail -n +3 > .cache/release-notes
-        if: ${{ matrix.vscode_arch == 'x64' }}
-      - uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
-        if: ${{ matrix.vscode_arch == 'x64' }}
-        with:
-          draft: true
-          files: package.tar.gz
-          tag_name: v${{ env.VERSION }}
-          name: v${{ env.VERSION }}
-          body_path: .cache/release-notes
 
       # Platform-specific release.
       - run: KEEP_MODULES=1 npm run release
       - run: npm run package
-      - uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
+
+      # The approve job and publish.yaml check every file against these.
+      - uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
         with:
-          draft: true
-          files: ./release-packages/*
-          tag_name: v${{ env.VERSION }}
-          name: v${{ env.VERSION }}
+          subject-path: release-packages/*
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ${{ format('release-linux-{0}', matrix.vscode_arch) }}
+          path: release-packages/*
+          if-no-files-found: error
 
   package-macos:
     name: ${{ matrix.vscode_target }}
     runs-on: ${{ matrix.os }}
-    if: >-
-      (github.event_name == 'workflow_dispatch') ||
-      (github.event_name == 'pull_request_target' && github.event.pull_request.merged == true && startsWith(github.head_ref, 'update/'))
+    needs: prepare
+    permissions:
+      contents: read
+      id-token: write # To sign the provenance attestations.
+      attestations: write
     strategy:
       matrix:
         include:
@@ -147,7 +222,7 @@ jobs:
     env:
       VSCODE_TARGET: ${{ matrix.vscode_target }}
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      TAG: ${{ inputs.version || github.event.pull_request.head.ref || github.ref_name }}
+      VERSION: ${{ needs.prepare.outputs.version }}
       # Ensure native modules are built from source to avoid prebuilds.
       npm_config_build_from_source: true
 
@@ -163,18 +238,13 @@ jobs:
           curl -sSfL https://github.com/goreleaser/nfpm/releases/download/v2.3.1/nfpm_2.3.1_`uname -s`_`uname -m`.tar.gz | tar -C ~/.local/bin -zxv nfpm
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
-      - name: Strip update/ and v from tag and set major version
-        run: |
-          version=${TAG#update/}
-          version=${version#v}
-          version=4${version:1}
-          echo "VERSION=$version" >> $GITHUB_ENV
-
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
         with:
+          # The commit prepare checked is on main, never a PR head.
+          ref: ${{ needs.prepare.outputs.commit }}
           submodules: true
-          # When an update/ branch is merged, a release is automatically created
-          # which requires secrets.
+          persist-credentials: false
+          # A merged update/ PR starts a release through pull_request_target.
           allow-unsafe-pr-checkout: true
       - run: quilt push -a
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v6
@@ -192,19 +262,25 @@ jobs:
       - run: npm run test:native
 
       - run: npm run package
-      - uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
+
+      # The approve job and publish.yaml check every file against these.
+      - uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
         with:
-          draft: true
-          files: ./release-packages/*
-          tag_name: v${{ env.VERSION }}
-          name: v${{ env.VERSION }}
+          subject-path: release-packages/*
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ${{ format('release-{0}', matrix.vscode_target) }}
+          path: release-packages/*
+          if-no-files-found: error
 
   package-windows:
     name: win32-x64
     runs-on: windows-2022
-    if: >-
-      (github.event_name == 'workflow_dispatch') ||
-      (github.event_name == 'pull_request_target' && github.event.pull_request.merged == true && startsWith(github.head_ref, 'update/'))
+    needs: prepare
+    permissions:
+      contents: read
+      id-token: write # To sign the provenance attestations.
+      attestations: write
 
     defaults:
       run:
@@ -213,7 +289,7 @@ jobs:
     env:
       VSCODE_TARGET: win32-x64
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      TAG: ${{ inputs.version || github.event.pull_request.head.ref || github.ref_name }}
+      VERSION: ${{ needs.prepare.outputs.version }}
       # Ensure native modules are built from source to avoid prebuilds.
       npm_config_build_from_source: true
       OS: windows
@@ -225,18 +301,13 @@ jobs:
       - name: Keep line endings as they are in the repository
         run: git config --global core.autocrlf false
 
-      - name: Strip update/ and v from tag and set major version
-        run: |
-          version=${TAG#update/}
-          version=${version#v}
-          version=4${version:1}
-          echo "VERSION=$version" >> $GITHUB_ENV
-
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
         with:
+          # The commit prepare checked is on main, never a PR head.
+          ref: ${{ needs.prepare.outputs.commit }}
           submodules: true
-          # When an update/ branch is merged, a release is automatically created
-          # which requires secrets.
+          persist-credentials: false
+          # A merged update/ PR starts a release through pull_request_target.
           allow-unsafe-pr-checkout: true
 
       # quilt has no windows build. The patches are ordinary -p1 diffs
@@ -343,9 +414,150 @@ jobs:
           esac
           npm run package
 
-      - uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
+      # The approve job and publish.yaml check every file against these.
+      - uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
         with:
-          draft: true
-          files: ./release-packages/*
-          tag_name: v${{ env.VERSION }}
-          name: v${{ env.VERSION }}
+          subject-path: release-packages/*
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: release-win32-x64
+          path: release-packages/*
+          if-no-files-found: error
+
+  approve:
+    name: Approve, tag and publish the release
+    needs: [prepare, package-linux, package-macos, package-windows]
+    runs-on: ubuntu-24.04
+    # A member of code-server-release-team other than the person who started the run approves
+    # here. Only this job of main's copy of this file, in this environment, may sign as
+    # coder-release-publisher, the only actor the "Release tags (App only)" ruleset lets create
+    # tags.
+    environment: release-approval
+    permissions:
+      contents: read
+      id-token: write # Cloud KMS signs the App's JWT.
+      attestations: read
+    env:
+      VERSION: ${{ needs.prepare.outputs.version }}
+      COMMIT: ${{ needs.prepare.outputs.commit }}
+      PRERELEASE: ${{ needs.prepare.outputs.prerelease }}
+    steps:
+      # For the tags, the history of main and the changelog. Nothing from the tree runs here.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+          persist-credentials: false
+          # A merged update/ PR starts a release through pull_request_target. This checks out
+          # main, not the PR head.
+          allow-unsafe-pr-checkout: true
+
+      # Here and not in prepare, because the tags can change while the run waits for approval.
+      - name: Check the tag
+        id: check
+        run: |
+          set -euo pipefail
+          fail() { echo "::error::$*"; exit 1; }
+          tag="v$VERSION"
+
+          git merge-base --is-ancestor "$COMMIT" origin/main || fail "$COMMIT is not on main."
+
+          # A re-run finds the tag the first attempt created.
+          if existing="$(git rev-parse --verify --quiet "refs/tags/$tag^{commit}")"; then
+            [[ "$existing" == "$COMMIT" ]] || fail "Tag $tag already exists at $existing, not at $COMMIT."
+            echo "Tag $tag already exists at $COMMIT."
+            echo "create_tag=false" >> "$GITHUB_OUTPUT"
+          else
+            # Versions only go up, and a release never comes from before the last one.
+            latest="$(git tag --list 'v*' --sort=-version:refname | grep -E -m 1 '^v[0-9]+\.[0-9]+\.[0-9]+$' || true)"
+            if [[ -n "$latest" ]]; then
+              printf '%s\n' "${latest#v}" "${VERSION%%-*}" | sort -V -C || fail "$tag is not newer than $latest, the latest release."
+              [[ "${VERSION%%-*}" != "${latest#v}" ]] || fail "$latest is already released."
+              git merge-base --is-ancestor "$latest" "$COMMIT" || fail "$COMMIT is older than the commit released as $latest."
+            fi
+            echo "create_tag=true" >> "$GITHUB_OUTPUT"
+          fi
+
+          # The release notes are the changelog's Unreleased section at the released commit.
+          mkdir -p "$RUNNER_TEMP/notes"
+          git show "$COMMIT:CHANGELOG.md" | sed "/^## Unreleased/,/^## / ! d" | head -n -2 | tail -n +3 > "$RUNNER_TEMP/notes/release-notes.md"
+
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: release-*
+          path: release-files
+          merge-multiple: true
+
+      # Every file must have been built and attested by this workflow, from main.
+      - name: Verify the files
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          files=(release-files/*)
+          [[ ${#files[@]} -gt 0 ]] || { echo "::error::No release files were built."; exit 1; }
+          for f in "${files[@]}"; do
+            gh attestation verify "$f" \
+              --repo "$GITHUB_REPOSITORY" \
+              --signer-workflow "$GITHUB_REPOSITORY/.github/workflows/release.yaml" \
+              --source-ref refs/heads/main \
+              --deny-self-hosted-runners
+          done
+          sha256sum "${files[@]}" | tee "$RUNNER_TEMP/notes/SHA256SUMS"
+
+      - name: Generate release App token
+        id: app_token
+        uses: coder/github-app-token-action@00eaec58ee1bfea9c8b48655b7ab7470b07739e5 # main 2026-11-17
+        with:
+          client-id: ${{ secrets.CODER_RELEASE_PUBLISHER_APP_ID }}
+          kms-key: ${{ secrets.CODER_RELEASE_PUBLISHER_APP_KMS_KEY }}
+          workload-identity-provider: ${{ secrets.APP_KEYS_WORKLOAD_ID_PROVIDER }}
+          owner: coder
+          repositories: code-server
+          permissions: |
+            contents: write
+            workflows: write
+
+      # An annotated tag, through the API: nothing is pushed from this job's checkout.
+      - name: Create the tag
+        if: ${{ steps.check.outputs.create_tag == 'true' }}
+        env:
+          GH_TOKEN: ${{ steps.app_token.outputs.token }}
+        run: |
+          set -euo pipefail
+          tag="v$VERSION"
+          tag_object="$(gh api "repos/$GITHUB_REPOSITORY/git/tags" \
+            -f tag="$tag" -f message="Release $tag" -f object="$COMMIT" -f type=commit \
+            --jq .sha)"
+          gh api "repos/$GITHUB_REPOSITORY/git/refs" -f ref="refs/tags/$tag" -f sha="$tag_object" >/dev/null
+          echo "Created tag $tag at $COMMIT."
+
+      # gh uploads the files to a new release and publishes it in the same command. The repository
+      # has immutable releases, so the files and the tag are fixed from then on. Publishing a
+      # (non-pre-)release starts publish.yaml.
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ steps.app_token.outputs.token }}
+        run: |
+          set -euo pipefail
+          tag="v$VERSION"
+          if gh release view "$tag" --repo "$GITHUB_REPOSITORY" --json isDraft --jq .isDraft 2>/dev/null | grep -qx false; then
+            echo "Release $tag is already published."
+            exit 0
+          fi
+          # A draft for this tag is left over from an attempt that stopped before publishing. Only
+          # this job's own drafts are replaced; anything else needs a person to look at it.
+          gh api "repos/$GITHUB_REPOSITORY/releases" --paginate \
+            --jq ".[] | select(.draft and .tag_name == \"$tag\") | \"\(.id) \(.author.login)\"" |
+            while read -r id author; do
+              [[ "$author" == "coder-release-publisher[bot]" ]] || { echo "::error::Draft release $id for $tag was made by $author. Delete it, then re-run."; exit 1; }
+              gh api -X DELETE "repos/$GITHUB_REPOSITORY/releases/$id"
+              echo "Deleted the unfinished draft $id for $tag."
+            done
+          args=(--repo "$GITHUB_REPOSITORY" --verify-tag --title "$tag" --notes-file "$RUNNER_TEMP/notes/release-notes.md")
+          if [[ "$PRERELEASE" == "true" ]]; then
+            args+=(--prerelease)
+          fi
+          gh release create "$tag" "${args[@]}" release-files/*
+          echo "Published https://github.com/$GITHUB_REPOSITORY/releases/tag/$tag"

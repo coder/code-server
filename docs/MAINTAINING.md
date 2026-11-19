@@ -24,17 +24,33 @@ Most of the work is keeping on top of issues and discussions.
 
 ## Releasing
 
-1. Check that the changelog lists all the important changes.
+A release takes two people: one starts it, and a member of
+`code-server-release-team` other than that person approves it. Nobody pushes a
+tag or edits a draft release: the release workflow creates the tag and publishes
+the release itself, once it is approved, and releases cannot be changed after
+that.
+
+1. Check that the changelog lists all the important changes. The release notes
+   are the changelog's `Unreleased` section at the released commit, so get them
+   right in a PR before releasing.
 2. Make sure the changelog entry lists the current version of VS Code.
-3. Go to GitHub Actions > Draft release > Run workflow on the commit you want to
-   release. For the version we match VS Code's minor and patch version. The
-   patch number may become temporarily out of sync if we need to put out a
-   patch, but if we make our own minor change then we will not release it until
-   the next minor VS Code release.
-4. CI will build an NPM package and platform-specific packages, and upload those
-   to a draft release.
-5. Update the resulting draft release with the changelog contents.
-6. Publish the draft release after validating it.
+3. Start the release, either way:
+   - Merge the `update/<VS Code version>` PR. Merging it starts the Release
+     workflow on the merge commit.
+   - Or go to GitHub Actions > Release > Run workflow on `main`, with the version
+     and the full SHA of the commit on `main` to release. For the version we
+     match VS Code's minor and patch version. The patch number may become
+     temporarily out of sync if we need to put out a patch, but if we make our
+     own minor change then we will not release it until the next minor VS Code
+     release.
+4. CI builds the NPM package and the platform-specific packages from that
+   commit, and attests each file's provenance.
+5. A member of `code-server-release-team` other than the person who started the
+   release reviews the run and approves the `release-approval` deployment.
+6. The workflow then tags the commit and publishes the release with the built
+   files. Publishing starts the publish workflow (npm, Docker Hub, GHCR and the
+   AUR PR). It checks that the release came from the release workflow, and every
+   file's attestation, before it publishes anything.
 7. Update the changelog with the release date and bump the Helm chart version
    once the Docker images have published.
 8. Merge the PR submitted to coder/code-server-aur repo.
@@ -44,10 +60,10 @@ Most of the work is keeping on top of issues and discussions.
 We prefer to do release candidates so the community can test things before a
 full-blown release. To do this follow the same steps as above but:
 
-1. Add a `-rc.<number>` suffix to the version.
-2. When you publish the release select "pre-release". CI will not automatically
-   publish pre-releases.
-3. Do not update the chart version or merge in the changelog until the final
+1. Run the Release workflow by hand with a `-rc.<number>` suffix on the version
+   and "pre-release" checked. CI will not publish pre-releases to npm, Docker or
+   the AUR.
+2. Do not update the chart version or merge in the changelog until the final
    release.
 
 #### AUR
