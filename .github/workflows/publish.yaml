@@ -177,10 +177,14 @@ jobs:
     # repo:coder/code-server:environment:release.
     environment: release
     permissions:
-      # Required so GitHub can issue an OIDC token for the Docker Hub login.
+      # Required so GitHub can issue an OIDC token for the Docker Hub login,
+      # the release attestation and the coder-ghcr-dispatch token.
       id-token: write
-      # Required to push images to ghcr.io.
+      # Pushes to ghcr.io/coder/code-server-staging only; coder/ghcr-publisher
+      # alone can write ghcr.io/coder/code-server.
       packages: write
+      # The release attestation coder/ghcr-publisher checks.
+      attestations: write
     env:
       GITHUB_TOKEN: ${{ github.token }}
       TAG: ${{ inputs.version || github.ref_name }}
@@ -231,7 +235,147 @@ jobs:
           fileName: "*.rpm"
           out-file-path: "release-packages"
 
-      - run: ./ci/steps/docker-buildx-push.sh
+      # Docker Hub gets the images directly. Only coder/ghcr-publisher can write
+      # ghcr.io/coder/code-server, so the GHCR copy goes to code-server-staging,
+      # and the publisher copies each image after verifying the release
+      # attestation below. The digests come from bake's record of its own
+      # push, never from a staging tag.
+      - name: Build and push images
+        env:
+          GITHUB_REGISTRY: ghcr.io/coder/code-server-staging
+        run: ./ci/steps/docker-buildx-push.sh --metadata-file "$RUNNER_TEMP/bake-metadata.json"
+
+      # One attestation for every image: this workflow, at this tag's commit,
+      # states the version and each image's public GHCR tags. The tags come
+      # from the same bake file with the public registry name, so they are
+      # exactly the tags this workflow pushed to GHCR before.
+      - name: Release attestation predicate
+        id: predicate
+        run: |
+          set -euo pipefail
+          commit="$(git rev-parse HEAD)"
+          if [[ "$commit" != "$GITHUB_SHA" ]]; then
+            echo "::error::checked out ${commit}, but this run is for ${GITHUB_SHA}"
+            exit 1
+          fi
+          GITHUB_REGISTRY=ghcr.io/coder/code-server \
+            docker buildx bake -f ci/release-image/docker-bake.hcl --print > "$RUNNER_TEMP/bake-print.json"
+          jq -n \
+            --slurpfile meta "$RUNNER_TEMP/bake-metadata.json" \
+            --slurpfile print "$RUNNER_TEMP/bake-print.json" \
+            --arg v "$VERSION" \
+            --arg c "$commit" '
+              $print[0].target as $targets
+              | {
+                  version: $v,
+                  commit: $c,
+                  target: "ghcr.io/coder/code-server",
+                  images: (
+                    [ $meta[0] | to_entries[]
+                      | select((.value | type) == "object" and (.value["containerimage.digest"] | type) == "string")
+                      | { key: .value["containerimage.digest"],
+                          value: [ $targets[.key].tags[]
+                                   | select(startswith("ghcr.io/coder/code-server:"))
+                                   | ltrimstr("ghcr.io/coder/code-server:") ] } ]
+                    | from_entries)
+                }' > "$RUNNER_TEMP/predicate.json"
+          expected="$(jq '.group.default.targets | length' "$RUNNER_TEMP/bake-print.json")"
+          got="$(jq '[.images[] | select(length > 0)] | length' "$RUNNER_TEMP/predicate.json")"
+          if [[ "$got" != "$expected" ]]; then
+            echo "::error::expected ${expected} images with GHCR tags, got ${got}"
+            exit 1
+          fi
+          jq -r '.images | keys[] | ltrimstr("sha256:") + "  ghcr.io/coder/code-server-staging"' \
+            "$RUNNER_TEMP/predicate.json" > "$RUNNER_TEMP/subjects.txt"
+          {
+            echo "predicate-path=$RUNNER_TEMP/predicate.json"
+            echo "subjects-path=$RUNNER_TEMP/subjects.txt"
+            echo "digests=$(jq -r '.images | keys | join(" ")' "$RUNNER_TEMP/predicate.json")"
+          } >> "$GITHUB_OUTPUT"
+          cat "$RUNNER_TEMP/predicate.json"
+
+      - name: Release attestation
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+        with:
+          subject-checksums: ${{ steps.predicate.outputs.subjects-path }}
+          predicate-type: https://coder.com/attestations/code-server-release/v1
+          predicate-path: ${{ steps.predicate.outputs.predicate-path }}
+
+      # coder-ghcr-dispatch has only contents: write, on coder/ghcr-publisher
+      # only: enough for a repository_dispatch and nothing else. Its key is in
+      # Cloud KMS, signable only by this workflow in this environment.
+      - name: Generate coder-ghcr-dispatch token
+        id: dispatch_token
+        uses: coder/github-app-token-action@00eaec58ee1bfea9c8b48655b7ab7470b07739e5 # main 2026-11-17
+        with:
+          client-id: ${{ secrets.CODER_GHCR_DISPATCH_APP_ID }}
+          kms-key: ${{ secrets.CODER_GHCR_DISPATCH_APP_KMS_KEY }}
+          workload-identity-provider: ${{ secrets.APP_KEYS_WORKLOAD_ID_PROVIDER }}
+          owner: coder
+          repositories: ghcr-publisher
+          permissions: |
+            contents: write
+          skip-token-revoke: true
+
+      - name: Promote to ghcr.io/coder/code-server
+        env:
+          GH_TOKEN: ${{ steps.dispatch_token.outputs.token }}
+          DIGESTS: ${{ steps.predicate.outputs.digests }}
+          PREDICATE: ${{ steps.predicate.outputs.predicate-path }}
+        run: |
+          set -euo pipefail
+
+          # Anonymous reads: the package is public.
+          remote_digest() {
+            local repo="coder/code-server" token
+            token="$(curl -fsS "https://ghcr.io/token?scope=repository:${repo}:pull" | jq -r .token)"
+            curl -fsS -o /dev/null -D - -I \
+              -H "Authorization: Bearer ${token}" \
+              -H "Accept: application/vnd.oci.image.index.v1+json, application/vnd.oci.image.manifest.v1+json, application/vnd.docker.distribution.manifest.list.v2+json, application/vnd.docker.distribution.manifest.v2+json" \
+              "https://ghcr.io/v2/${repo}/manifests/$1" |
+              tr -d '\r' | awk -F': ' 'tolower($1) == "docker-content-digest" {print $2}'
+          }
+
+          # The version tags, which never move. If one already exists (a
+          # re-run), the publisher keeps the earlier build of this release.
+          declare -A expected=() before=()
+          while read -r digest tag; do
+            expected["$tag"]="$digest"
+            if got="$(remote_digest "$tag" 2>/dev/null)" && [[ -n "$got" ]]; then
+              before["$tag"]="$got"
+            fi
+          done < <(jq -r --arg v "$VERSION" '.images | to_entries[] | .key as $d | .value[] | select(. == $v or startswith($v + "-")) | "\($d) \(.)"' "$PREDICATE")
+
+          gh api repos/coder/ghcr-publisher/dispatches \
+            -f event_type=promote-code-server \
+            -f "client_payload[version]=${VERSION}" \
+            -f "client_payload[digests]=${DIGESTS}"
+          gh api -X DELETE installation/token || echo "::warning::could not revoke the dispatch token; it expires within an hour"
+          unset GH_TOKEN
+
+          deadline=$((SECONDS + 1800))
+          while true; do
+            pending=()
+            for tag in "${!expected[@]}"; do
+              if ! got="$(remote_digest "$tag" 2>/dev/null)" || [[ -z "$got" ]]; then
+                pending+=("$tag")
+                continue
+              fi
+              if [[ "$got" != "${expected[$tag]}" && "$got" != "${before[$tag]:-}" ]]; then
+                echo "::error::ghcr.io/coder/code-server:${tag} is ${got}, expected ${expected[$tag]}"
+                exit 1
+              fi
+            done
+            if [[ ${#pending[@]} -eq 0 ]]; then
+              echo "All images are promoted."
+              break
+            fi
+            if ((SECONDS > deadline)); then
+              echo "::error::Promotion did not finish in 30 minutes; still waiting for: ${pending[*]}. Check https://github.com/coder/ghcr-publisher/actions/workflows/promote-code-server.yaml"
+              exit 1
+            fi
+            sleep 20
+          done
 
   repo:
     runs-on: ubuntu-latest
