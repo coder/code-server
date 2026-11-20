@@ -115,6 +115,24 @@ describe("heartbeatTimer", () => {
     expect(mockIsActive).toHaveBeenCalled()
   })
 
+  it("should keep beating when the timer fires before Date.now() shows a full interval", async () => {
+    const mockIsActive = jest.fn().mockResolvedValue(true)
+    const heart = new Heart(`${testDir}/shutdown.txt`, mockIsActive)
+    await heart.beat()
+    // Timers and Date.now() do not share a clock, so the timer can fire when
+    // Date.now() is still a little short of the full interval.
+    jest.setSystemTime(Date.now() - 1)
+    jest.advanceTimersByTime(60 * 1000)
+    expect(mockIsActive).toHaveBeenCalledTimes(1)
+
+    // Let the timer callback finish so it can schedule the next check.
+    await new Promise((resolve) => setImmediate(resolve))
+
+    jest.advanceTimersByTime(60 * 1000)
+    expect(mockIsActive).toHaveBeenCalledTimes(2)
+    heart.dispose()
+  })
+
   it("should log a warning when isActive rejects", async () => {
     const error = new Error("oh no")
     const mockIsActive = jest.fn().mockRejectedValue(error)

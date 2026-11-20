@@ -43,6 +43,19 @@ export class Heart {
       return
     }
 
+    return this.pulse()
+  }
+
+  /**
+   * Write to the heartbeat file and schedule the next activity check.
+   *
+   * The timer calls this instead of `beat` because timers and `Date.now()` use
+   * different clocks, so the timer can fire when `Date.now()` shows slightly
+   * less than a full interval since the last beat.  `alive` would still be true
+   * then and `beat` would return without scheduling another check, which stops
+   * the heartbeat until the next HTTP request.
+   */
+  private async pulse(): Promise<void> {
     logger.debug("heartbeat")
     this.lastHeartbeat = Date.now()
     if (typeof this.heartbeatTimer !== "undefined") {
@@ -52,7 +65,7 @@ export class Heart {
     this.heartbeatTimer = setTimeout(async () => {
       try {
         if (await this.isActive()) {
-          this.beat()
+          this.pulse()
         } else {
           this.setState("expired")
         }
