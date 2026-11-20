@@ -1,3 +1,7 @@
+---
+description: "Easily install code-server on any platform with our straightforward instructions, offering multiple methods for different OS and distributions."
+---
+
 <!-- prettier-ignore-start -->
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
@@ -304,7 +308,7 @@ If you see an error related to `node-gyp` during installation, See [#5174](https
 
 ## Termux
 
-Please see code-server's [Termux docs](./termux.md#installation) for more
+Please see code-server's [Termux docs](./termux.md#install) for more
 information.
 
 ## Uninstall

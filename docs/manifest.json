@@ -59,7 +59,7 @@
         },
         {
           "title": "Android",
-          "description": "How to run code-server on an Android device using UserLAnd.",
+          "description": "How to run code-server on an Android device using UserLAnd or Nix-on-Droid.",
           "path": "./android.md"
         }
       ]
