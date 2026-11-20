@@ -122,7 +122,7 @@ and tricks helpful:
 - `ctrl+c` does not stop a long-running process in the browser
   - Tracking upstream issue here:
     [#114009](https://github.com/microsoft/vscode/issues/114009)
-  - See [workaround](#ctrl-c-workaround)
+  - See [workaround](#workaround-for-issue-with-ctrlc-not-stopping-a-running-process-in-the-terminal)
 
 Additionally, see [issues in the code-server repo that are tagged with the `os-ios`
 label](https://github.com/coder/code-server/issues?q=is%3Aopen+is%3Aissue+label%3Aos-ios)

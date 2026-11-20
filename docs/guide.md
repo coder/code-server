@@ -64,7 +64,7 @@ doesn't require any additional setup at all.
 
 The downside to SSH forwarding, however, is that you can't access code-server
 when using machines without SSH clients (such as iPads). If this applies to you,
-we recommend using another method, such as [Let's Encrypt](#let-encrypt) instead.
+we recommend using another method, such as [Let's Encrypt](#using-lets-encrypt-with-caddy) instead.
 
 > To work properly, your environment should have WebSockets enabled, which
 > code-server uses to communicate between the browser and server.
@@ -460,7 +460,7 @@ const config = {
 }
 ```
 
-3. Access app at `<code-server-root>/absproxy/5173/` e.g. `http://localhost:8080/absproxy/5173/
+3. Access app at `<code-server-root>/absproxy/5173/` e.g. `http://localhost:8080/absproxy/5173/`
 
 For additional context, see [this Github Issue](https://github.com/sveltejs/kit/issues/2958)
 
