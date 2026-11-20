@@ -135,10 +135,12 @@ jobs:
             contents: write
             pull_requests: write
 
+      # The coder-automations token can write to coder/code-server-aur only, so the update branch
+      # is pushed there and the PR opened from it.
       - name: Checkout code-server-aur repo
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
         with:
-          repository: "cdrci/code-server-aur"
+          repository: "coder/code-server-aur"
           token: ${{ steps.app_token.outputs.token }}
           ref: "master"
 
@@ -146,13 +148,6 @@ jobs:
         run: |
           git config --global user.name cdrci
           git config --global user.email opensource@coder.com
-
-      - name: Fetch and reset master
-        run: |
-          git remote add upstream https://github.com/coder/code-server-aur.git
-          git fetch upstream
-          git reset --hard upstream/master
-          git push --force
 
       - name: Validate package
         uses: heyhusen/archlinux-package-action@3f7aaada28c782497bfe02d6d6ea365b25fdea12 # v3.0.1
