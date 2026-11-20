@@ -779,6 +779,42 @@ describe("cli", () => {
     vscodeSockets.close()
   })
 
+  it("should use existing if a window with no folder is also open", async () => {
+    const sessionSocket = path.join(tmpDirPath, "session-socket")
+    const server = await makeEditorSessionManagerServer(sessionSocket, new EditorSessionManager())
+
+    const client = new EditorSessionManagerClient(sessionSocket)
+    const socketPath = path.join(tmpDirPath, "socket")
+    await client.addSession({
+      entry: {
+        workspace: {
+          id: "aaa",
+          folders: [
+            {
+              uri: {
+                path: "/aaa",
+              },
+            },
+          ],
+        },
+        socketPath,
+      },
+    })
+    // Code sends no workspace for a window with no folder open.
+    await client.addSession({
+      entry: {
+        socketPath: path.join(tmpDirPath, "socket-no-folder"),
+      },
+    })
+    const vscodeSockets = listenOn(socketPath)
+
+    const args: UserProvidedArgs = { "reuse-window": true, _: ["/aaa/file"] }
+    await expect(shouldOpenInExistingInstance(args, sessionSocket)).resolves.toStrictEqual(socketPath)
+
+    server.close()
+    vscodeSockets.close()
+  })
+
   it("should prefer matching sessions for only the first path", async () => {
     const sessionSocket = path.join(tmpDirPath, "session-socket")
     const server = await makeEditorSessionManagerServer(sessionSocket, new EditorSessionManager())

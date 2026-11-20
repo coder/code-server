@@ -8,7 +8,8 @@ import { errorHandler } from "./routes/errors"
 import { canConnect } from "./util"
 
 export interface EditorSessionEntry {
-  workspace: {
+  // Not set for a window that has no folder open.
+  workspace?: {
     id: string
     folders: {
       uri: {
@@ -98,7 +99,7 @@ export class EditorSessionManager {
       if (matchCheckResults.has(entry.socketPath)) {
         return matchCheckResults.get(entry.socketPath)!
       }
-      const result = entry.workspace.folders.some((folder) => filePath.startsWith(folder.uri.path + path.sep))
+      const result = entry.workspace?.folders.some((folder) => filePath.startsWith(folder.uri.path + path.sep)) ?? false
       matchCheckResults.set(entry.socketPath, result)
       return result
     }
