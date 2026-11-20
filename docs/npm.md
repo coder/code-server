@@ -22,10 +22,12 @@ If you're installing code-server via `npm`, you'll need to install additional
 dependencies required to build the native modules used by VS Code. This article
 includes installing instructions based on your operating system.
 
-> **WARNING**: Do not use `yarn` to install code-server. Unlike `npm`, it does not respect
-> lockfiles for distributed applications. It will instead use the latest version
-> available at installation time - which might not be the one used for a given
-> code-server release, and [might lead to unexpected behavior](https://github.com/coder/code-server/issues/4927).
+> **WARNING**: Installing via the npm package may not result in the same
+> dependency tree that was tested at release and can lead to unexpected
+> behavior. To avoid this, you can download the prebuilt source `package.tar.gz`
+> from a GitHub release and run `pnpm install` in the unpacked root directory to
+> build and install the dependencies, or build entirely from source. Either way,
+> the additional dependencies below are still required.
 
 ## Node.js version
 
