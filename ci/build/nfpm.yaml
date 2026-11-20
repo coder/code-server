@@ -4,7 +4,7 @@ platform: "linux"
 version: "v${VERSION}"
 section: "devel"
 priority: "optional"
-maintainer: "Joe Previte <joe@coder.com>"
+maintainer: "Asher <asher@coder.com>"
 description: |
   Run VS Code in the browser.
 vendor: "Coder"
