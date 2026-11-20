@@ -34,8 +34,8 @@ Here is what is needed:
 - `node` v24.x
 - `git` v2.x or greater
 - [`git-lfs`](https://git-lfs.github.com)
-- [`npm`](https://www.npmjs.com/)
-  - Used to install JS packages and run scripts
+- [`pnpm`](https://pnpm.io)
+  - Used to install dependencies and run scripts
 - [`nfpm`](https://nfpm.goreleaser.com/)
   - Used to build `.deb` and `.rpm` packages
 - [`jq`](https://stedolan.github.io/jq/)
@@ -69,8 +69,8 @@ for more information.
 1. `git clone https://github.com/coder/code-server.git` - Clone `code-server`
 2. `git submodule update --init` - Clone `vscode` submodule
 3. `quilt push -a` - Apply patches to the `vscode` submodule.
-4. `npm install` - Install dependencies
-5. `npm run watch` - Launch code-server localhost:8080. code-server will be live
+4. `pnpm install` - Install dependencies
+5. `pnpm run watch` - Launch code-server localhost:8080. code-server will be live
    reloaded when changes are made; the browser needs to be refreshed manually.
 
 When pulling down changes that include modifications to the patches you will
@@ -129,10 +129,10 @@ You can build a full production release as follows:
 ```shell
 git submodule update --init
 quilt push -a
-npm install
-npm run build
-VERSION=0.0.0 npm run build:vscode
-KEEP_MODULES=1 npm run release
+pnpm install
+pnpm run build
+VERSION=0.0.0 pnpm run build:vscode
+KEEP_MODULES=1 pnpm run release
 ```
 
 You can omit `KEEP_MODULES` if you intend to use this in a platform-agnostic way
@@ -151,14 +151,14 @@ Or if you omitted `KEEP_MODULES`:
 
 ```shell
 cd release
-npm install --omit=dev
+pnpm install --prod
 node .
 ```
 
 Then, to package the release:
 
 ```shell
-npm run package
+pnpm run package
 ```
 
 > On Linux, the currently running distro will become the minimum supported
@@ -218,7 +218,7 @@ We use these to test anything related to our scripts (most of which live under
 
 ### Integration tests
 
-These are a work in progress. We build code-server and run tests with `npm run
+These are a work in progress. We build code-server and run tests with `pnpm run
 test:integration`, which ensures that code-server builds work on their
 respective platforms.
 

@@ -1,0 +1,9 @@
+allowBuilds:
+  argon2: true
+  unrs-resolver: true
+nodeLinker: hoisted
+overrides:
+  basic-ftp: ^6.2.1
+strictDepBuilds: true
+sideEffectsCache: false
+verifyDepsBeforeRun: false

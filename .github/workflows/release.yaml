@@ -134,7 +134,9 @@ jobs:
       VSCODE_ARCH: ${{ matrix.vscode_arch }}
       npm_config_arch: ${{ matrix.npm_arch }}
       # Ensure native modules are built from source to avoid prebuilds and use
-      # the correct version of glibc.
+      # the correct version of glibc.  Although we use pnpm, this npm flag
+      # appears to still work for argon2, and VS Code has its own configuration
+      # for building from source.
       npm_config_build_from_source: true
       # Gulp target name.
       # TODO: Pull from VSCODE_ARCH instead.
@@ -161,38 +163,39 @@ jobs:
           # A merged update/ PR starts a release through pull_request_target.
           allow-unsafe-pr-checkout: true
       - run: quilt push -a
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v6
         with:
           node-version-file: .node-version
-          cache: npm
+          cache: pnpm
           cache-dependency-path: |
-            package-lock.json
-            test/package-lock.json
+            pnpm-lock.yaml
+            test/pnpm-lock.yaml
 
       - name: Build
         run: |
           cd lib/vscode/build
-          npm ci
+          pnpm install --frozen-lockfile
           cd ..
           source ./build/azure-pipelines/linux/setup-env.sh
           # Run preinstall script before root dependencies are installed
           # so that v8 headers are patched correctly for native modules.
-          node build/npm/preinstall.ts
+          pnpm run preinstall
           cd ../..
-          npm ci
-          npm run build
-          npm run build:vscode
+          pnpm install --frozen-lockfile
+          pnpm run build
+          pnpm run build:vscode
 
       # Platform-agnostic NPM package.
-      - run: npm run release
+      - run: pnpm run release
         if: ${{ matrix.vscode_arch == 'x64' }}
       # Into release-packages with the platform packages, so the artifact is one flat directory.
       - run: mkdir -p release-packages && tar -czf release-packages/package.tar.gz release
         if: ${{ matrix.vscode_arch == 'x64' }}
 
       # Platform-specific release.
-      - run: KEEP_MODULES=1 npm run release
-      - run: npm run package
+      - run: KEEP_MODULES=1 pnpm run release
+      - run: pnpm run package
 
       # The approve job and publish.yaml check every file against these.
       - uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
@@ -224,6 +227,8 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       VERSION: ${{ needs.prepare.outputs.version }}
       # Ensure native modules are built from source to avoid prebuilds.
+      # Although we use pnpm, this npm flag appears to still work for argon2,
+      # and VS Code has its own configuration for building from source.
       npm_config_build_from_source: true
 
     steps:
@@ -247,21 +252,22 @@ jobs:
           # A merged update/ PR starts a release through pull_request_target.
           allow-unsafe-pr-checkout: true
       - run: quilt push -a
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v6
         with:
           node-version-file: .node-version
-          cache: npm
+          cache: pnpm
           cache-dependency-path: |
-            package-lock.json
-            test/package-lock.json
+            pnpm-lock.yaml
+            test/pnpm-lock.yaml
 
-      - run: npm ci
-      - run: npm run build
-      - run: npm run build:vscode
-      - run: KEEP_MODULES=1 npm run release
-      - run: npm run test:native
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run build
+      - run: pnpm run build:vscode
+      - run: KEEP_MODULES=1 pnpm run release
+      - run: pnpm run test:native
 
-      - run: npm run package
+      - run: pnpm run package
 
       # The approve job and publish.yaml check every file against these.
       - uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
@@ -291,6 +297,8 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       VERSION: ${{ needs.prepare.outputs.version }}
       # Ensure native modules are built from source to avoid prebuilds.
+      # Although we use pnpm, this npm flag appears to still work for argon2,
+      # and VS Code has its own configuration for building from source.
       npm_config_build_from_source: true
       OS: windows
 
@@ -320,20 +328,21 @@ jobs:
             git apply --whitespace=nowarn "patches/$patch"
           done < patches/series
 
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v6
         with:
           node-version-file: .node-version
-          cache: npm
+          cache: pnpm
           cache-dependency-path: |
-            package-lock.json
-            test/package-lock.json
+            pnpm-lock.yaml
+            test/pnpm-lock.yaml
 
-      # npm hands every script it runs to cmd, which cannot run the shell
+      # pnpm hands every script it runs to cmd, which cannot run the shell
       # scripts this repository is built out of. Point it at the same bash
       # the steps here use rather than at a path, which moves between
       # images.
-      - name: Let npm run shell scripts
-        run: echo "npm_config_script_shell=$(cygpath -w "$(command -v bash)")" >> $GITHUB_ENV
+      - name: Let pnpm run shell scripts
+        run: echo "pnpm_config_script_shell=$(cygpath -w "$(command -v bash)")" >> $GITHUB_ENV
 
       # The build merges json by handing jq a process substitution, which
       # bash presents as a file under /dev/fd. The jq on this image is a
@@ -381,10 +390,10 @@ jobs:
         run: C:\msys64\usr\bin\pacman -Sy --noconfirm --needed rsync
 
       # Only rsync crosses over. Putting msys2's /usr/bin in front instead
-      # breaks the release step: npm on the path is a shell script whose
+      # breaks the release step: pnpm on the path is a shell script whose
       # shebang reads /usr/bin/env bash, so with msys2 first it is msys2's
       # bash that runs it, and crossing into a second msys runtime does not
-      # carry the environment. npm then sees no script-shell and falls back
+      # carry the environment. pnpm then sees no script-shell and falls back
       # to cmd, which cannot run ./ci/build/build-release.sh, and
       # KEEP_MODULES is dropped on the way. A forwarder avoids the whole
       # class: rsync is a native exe that loads its runtime from beside
@@ -397,10 +406,10 @@ jobs:
           SHIM
           chmod +x "$RUNNER_TEMP/shim/rsync"
 
-      - run: npm ci
-      - run: npm run build
-      - run: npm run build:vscode
-      - run: KEEP_MODULES=1 npm run release
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run build
+      - run: pnpm run build:vscode
+      - run: KEEP_MODULES=1 pnpm run release
 
       # Of the two tars on this image it is git bash's GNU one that can
       # rename the tree's top directory as it archives; the windows bsdtar
@@ -412,7 +421,7 @@ jobs:
             *GNU*) ;;
             *) echo "expected GNU tar for --transform, got $(tar --version | head -1)" >&2; exit 1 ;;
           esac
-          npm run package
+          pnpm run package
 
       # The approve job and publish.yaml check every file against these.
       - uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2

@@ -233,7 +233,7 @@ jobs:
           fileName: "*.rpm"
           out-file-path: "release-packages"
 
-      - run: npm run publish:docker
+      - run: ./ci/steps/docker-buildx-push.sh
 
   repo:
     runs-on: ubuntu-latest

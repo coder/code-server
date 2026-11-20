@@ -56,12 +56,25 @@ function update_node() {
   local node_version
   node_version=$(cat .node-version)
   local target_node_version
-  target_node_version=$(grep target lib/vscode/remote/.npmrc | awk -F= '{print $2}' | tr -d '"')
+  target_node_version=$(jq --raw-output .nativeBuild.target lib/vscode/remote/package.json)
   if [[ $node_version == "$target_node_version" ]] ; then
     echo "Already set to $target_node_version"
   else
     echo "Updating from $node_version to $target_node_version..."
     echo "$target_node_version" > .node-version
+  fi
+}
+
+function update_package_manager() {
+  local manager_version
+  manager_version=$(jq --raw-output .packageManager package.json)
+  local target_manager_version
+  target_manager_version=$(jq --raw-output .packageManager lib/vscode/remote/package.json)
+  if [[ $manager_version == "$target_manager_version" ]] ; then
+    echo "Already set to $target_manager_version"
+  else
+    echo "Updating from $manager_version to $target_manager_version..."
+    sed -i.bak "s#$manager_version#$target_manager_version#" package.json
   fi
 }
 
@@ -156,6 +169,7 @@ function main() {
 
   steps+=(
     "Update Node version" "update_node"
+    "Update package manager version" "update_package_manager"
     "Regenerate CSP hashes" "update_csp"
     "Add changelog note" "add_changelog"
   )

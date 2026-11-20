@@ -2,9 +2,9 @@
 set -euo pipefail
 
 help() {
-  echo >&2 "  You can build with 'npm run watch' or you can build a release"
-  echo >&2 "  For example: 'npm run build && npm run build:vscode && KEEP_MODULES=1 npm run release'"
-  echo >&2 "  Then 'CODE_SERVER_TEST_ENTRY=./release npm run test:e2e'"
+  echo >&2 "  You can build with 'pnpm run watch' or you can build a release"
+  echo >&2 "  For example: 'pnpm run build && pnpm run build:vscode && KEEP_MODULES=1 pnpm run release'"
+  echo >&2 "  Then 'CODE_SERVER_TEST_ENTRY=./release pnpm run test:e2e'"
   echo >&2 "  You can manually run that release with 'node ./release'"
 }
 
@@ -15,7 +15,7 @@ main() {
 
   pushd test/e2e/extensions/test-extension
   echo "Building test extension"
-  npm run build
+  pnpm run build
   popd
 
   local dir="$PWD"

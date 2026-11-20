@@ -54,7 +54,7 @@ main() {
 
   if [[ ! ${VERSION-} ]]; then
     echo "VERSION not set. Please set before running this script:"
-    echo "VERSION='0.0.0' npm run build:vscode"
+    echo "VERSION='0.0.0' pnpm run build:vscode"
     exit 1
   fi
 
@@ -119,10 +119,10 @@ EOF
   ) > product.json
 
 
-  VSCODE_QUALITY=stable npm run gulp compile-copilot-extension-full-build
+  VSCODE_QUALITY=stable pnpm run gulp compile-copilot-extension-full-build
 
-  npm run gulp core-ci
-  npm run gulp "vscode-reh-web-$VSCODE_TARGET${MINIFY:+-min}-ci"
+  pnpm run gulp core-ci
+  pnpm run gulp "vscode-reh-web-$VSCODE_TARGET${MINIFY:+-min}-ci"
 
   # Reset so if you develop after building you will not be stuck with the wrong
   # commit (the dev client will use `oss-dev` but the dev server will still use

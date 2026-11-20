@@ -1,0 +1,3 @@
+allowBuilds:
+  argon2: true
+nodeLinker: hoisted

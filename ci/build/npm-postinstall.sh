@@ -90,9 +90,9 @@ main() {
   fi
 }
 
-install_with_yarn_or_npm() {
+install_with_package_manager() {
   echo "User agent: ${npm_config_user_agent-none}"
-  # For development we enforce npm, but for installing the package as an
+  # For development we enforce pnpm, but for installing the package as an
   # end-user we want to keep using whatever package manager is in use.
   case "${npm_config_user_agent-}" in
     npm*)
@@ -101,12 +101,12 @@ install_with_yarn_or_npm() {
       fi
       ;;
     yarn*)
-      if ! yarn --production --frozen-lockfile --no-default-rc; then
+      if ! yarn --production --no-default-rc; then
         return 1
       fi
       ;;
     *)
-      echo "Could not determine which package manager is being used to install code-server"
+      echo "Unsupported package manager is being used to install code-server"
       exit 1
       ;;
   esac
@@ -116,7 +116,7 @@ install_with_yarn_or_npm() {
 vscode_install() {
   echo 'Installing Code dependencies...'
   cd lib/vscode
-  if ! install_with_yarn_or_npm; then
+  if ! install_with_package_manager; then
     return 1
   fi
 
@@ -124,7 +124,7 @@ vscode_install() {
   symlink_bin_script helpers browser browser .sh
 
   cd extensions
-  if ! install_with_yarn_or_npm; then
+  if ! install_with_package_manager; then
     return 1
   fi
 

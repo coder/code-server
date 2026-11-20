@@ -22,7 +22,21 @@ Code v99.99.999
 
 ## Unreleased
 
-Code v1.145.3
+Code v1.146.0
+
+### Changed
+
+- Update to Code 1.146.0
+- For anyone building code-server, note that we switched to pnpm to match
+  upstream VS Code. npm is no longer supported for building from source.
+- The NPM package no longer ships with shrinkwraps, since shrinkwrap support is
+  removed in npm v12 and the pnpm switch makes generating the shrinkwraps
+  difficult. Although the shrinkwrap removal makes it easier for end users to
+  get updated dependencies, it also may not result in the same dependency tree
+  that was tested at release and can lead to unexpected behavior. To avoid this,
+  you can download the prebuilt source `package.tar.gz` from a GitHub release
+  and run `pnpm install` in the unpacked root directory to build and install the
+  dependencies, or build entirely from source.
 
 ### Added
 
@@ -31,9 +45,11 @@ Code v1.145.3
   Before, code-server's own script failed with `Unknown option --wait`, so this
   only worked when the integrated terminal found the `remote-cli` script first.
 
-### Changed
+### Fixed
 
-- Update to Code 1.145.3
+- Requests against the built-in proxy will now be rewritten correctly against
+  the base URL on Windows. Previously it was trying to split the request on
+  backslashes instead of forward slashes.
 
 ## [4.145.2](https://github.com/coder/code-server/releases/tag/v4.145.2) - 2026-11-07
 

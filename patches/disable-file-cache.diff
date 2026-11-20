@@ -114,7 +114,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/webview/browser/webviewEl
  import { IWorkbenchEnvironmentService } from '../../../services/environment/common/environmentService.js';
  import { IRemoteAgentService } from '../../../services/remote/common/remoteAgentService.js';
  import { decodeAuthority, webviewGenericCspSource, webviewMouseActivityEvent, webviewRootResourceAuthority } from '../common/webview.js';
-@@ -868,6 +869,8 @@ export class WebviewElement extends Disp
+@@ -869,6 +870,8 @@ export class WebviewElement extends Disp
  					const rangeHeader = range
  						? `bytes ${range.start}-${rangeEnd}/${result.size}`
  						: undefined;
@@ -123,7 +123,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/webview/browser/webviewEl
  					if (WebviewElement._supportsTransferableStreams.value) {
  						let controller: ReadableStreamDefaultController<Uint8Array<ArrayBuffer>> | undefined;
  						let closed = false;
-@@ -919,7 +922,7 @@ export class WebviewElement extends Disp
+@@ -920,7 +923,7 @@ export class WebviewElement extends Disp
  							status: range ? 206 : 200,
  							path: uri.path,
  							mime: result.mimeType,
@@ -132,7 +132,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/webview/browser/webviewEl
  							mtime: result.mtime,
  							range: rangeHeader,
  							stream,
-@@ -931,7 +934,7 @@ export class WebviewElement extends Disp
+@@ -932,7 +935,7 @@ export class WebviewElement extends Disp
  							status: range ? 206 : 200,
  							path: uri.path,
  							mime: result.mimeType,
@@ -141,7 +141,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/webview/browser/webviewEl
  							mtime: result.mtime,
  							range: rangeHeader,
  						});
-@@ -988,6 +991,14 @@ export class WebviewElement extends Disp
+@@ -989,6 +992,14 @@ export class WebviewElement extends Disp
  		});
  	}
  
