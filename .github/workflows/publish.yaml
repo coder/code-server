@@ -214,6 +214,9 @@ jobs:
           username: codercom
         env:
           DOCKERHUB_OIDC_CONNECTIONID: ${{ vars.DOCKERHUB_OIDC_CONNECTIONID }}
+          # The Docker Hub token defaults to 5 minutes, and the multi-arch build pushes at the end,
+          # after about 10.
+          DOCKERHUB_OIDC_EXPIREIN: "3600"
       - uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
         with:
           registry: ghcr.io
