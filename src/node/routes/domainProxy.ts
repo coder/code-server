@@ -16,7 +16,7 @@ const proxyDomainToRegex = (matchString: string): RegExp => {
 
   regexString = regexString.replace(/[{}]/g, "\\$&") //replace any '{}' that might be left
 
-  return new RegExp("^" + regexString + "$")
+  return new RegExp("^" + regexString + "(?::\\d+)?$")
 }
 
 let proxyRegexes: RegExp[] = []
