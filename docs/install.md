@@ -304,7 +304,7 @@ If you see an error related to `node-gyp` during installation, See [#5174](https
 
 ## Termux
 
-Please see code-server's [Termux docs](./termux.md#installation) for more
+Please see code-server's [Termux docs](./termux.md#install) for more
 information.
 
 ## Uninstall
