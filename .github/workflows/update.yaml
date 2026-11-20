@@ -10,11 +10,15 @@ on:
     - cron: "0 16,21 * * *"
 
 jobs:
+  # The org doesn't let GITHUB_TOKEN open pull requests, so the branch is pushed and the PR opened
+  # as the coder-automations App. Its key signs only for this file on main, in the update
+  # environment (main only).
   update:
     runs-on: ubuntu-latest
+    environment: update
     permissions:
-      contents: write # To push the branch.
-      pull-requests: write # To open the PR.
+      contents: read
+      id-token: write # Cloud KMS signs the coder-automations App's JWT
     env:
       TAG: ${{ inputs.version }}
 
@@ -33,6 +37,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
         with:
           submodules: true
+          persist-credentials: false
 
       - name: Check current version
         id: check
@@ -58,11 +63,27 @@ jobs:
       - run: ./ci/build/update-vscode.sh
         if: steps.check.outputs.done == 'false'
 
+      # Minted after the update script so the token only exists for the push and the PR.
+      - name: Generate coder-automations app token
+        id: app_token
+        if: steps.check.outputs.done == 'false'
+        uses: coder/github-app-token-action@00eaec58ee1bfea9c8b48655b7ab7470b07739e5 # main 2026-11-17
+        with:
+          client-id: ${{ secrets.CODER_AUTOMATION_APP_ID }}
+          kms-key: ${{ secrets.CODER_AUTOMATION_APP_KMS_KEY }}
+          workload-identity-provider: ${{ secrets.APP_KEYS_WORKLOAD_ID_PROVIDER }}
+          owner: coder
+          repositories: code-server
+          permissions: |
+            contents: write
+            pull_requests: write
+
       - name: Open PR
         if: steps.check.outputs.done == 'false'
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ steps.app_token.outputs.token }}
         run: |
+          gh auth setup-git
           git config --global user.name cdrci
           git config --global user.email opensource@coder.com
           git checkout -b "update/$VERSION"
