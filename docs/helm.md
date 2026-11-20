@@ -124,7 +124,7 @@ $ helm upgrade --install code-server ci/helm-chart -f values.yaml
 
 > **Tip**: You can use the default [values.yaml](../ci/helm-chart/values.yaml)
 
-# Extra Containers
+## Extra Containers
 
 There are two parameters which allow to add more containers to pod.
 Use `extraContainers` to add regular containers

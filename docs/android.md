@@ -1,4 +1,6 @@
-# Running code-server using UserLAnd
+# Running code-server on Android
+
+## Using UserLAnd
 
 1. Install UserLAnd from [Google Play](https://play.google.com/store/apps/details?id=tech.ula&hl=en_US&gl=US)
 2. Install an Ubuntu VM
@@ -22,7 +24,7 @@ nvm use 24
 9. Run code-server with `code-server`
 10. Access on localhost:8080 in your browser
 
-# Running code-server using Nix-on-Droid
+## Using Nix-on-Droid
 
 1. Install Nix-on-Droid from [F-Droid](https://f-droid.org/packages/com.termux.nix/)
 2. Start app
