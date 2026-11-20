@@ -1,3 +1,7 @@
+---
+description: "A comprehensive guide for developers to securely access and expose code-server. Learn about SSH port forwarding, Let's Encrypt, HTTPS and more."
+---
+
 <!-- prettier-ignore-start -->
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
