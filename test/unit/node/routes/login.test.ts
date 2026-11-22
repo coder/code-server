@@ -101,6 +101,31 @@ describe("login", () => {
       expect(htmlContent).toContain("Incorrect password")
     })
 
+    it("should set a session cookie without --cookie-max-age", async () => {
+      const resp = await codeServer().fetch("/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: "password=test",
+        redirect: "manual",
+      })
+      const cookie = resp.headers.get("set-cookie") || ""
+      expect(cookie).toContain("code-server-session=")
+      expect(cookie).not.toMatch(/Max-Age|Expires/i)
+    })
+
+    it("should set Max-Age on the login cookie with --cookie-max-age", async () => {
+      await codeServer().dispose()
+      process.env.PASSWORD = "test"
+      _codeServer = await integration.setup(["--auth=password", "--cookie-max-age=3600"], "")
+      const resp = await codeServer().fetch("/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: "password=test",
+        redirect: "manual",
+      })
+      expect(resp.headers.get("set-cookie")).toContain("Max-Age=3600")
+    })
+
     it("should return correct app-name", async () => {
       process.env.PASSWORD = previousEnvPassword
       const appName = "testnäme"
