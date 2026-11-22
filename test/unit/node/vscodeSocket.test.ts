@@ -169,6 +169,31 @@ describe("EditorSessionManager", () => {
         `${tmpDirPath}/vscode-ipc-aaa.sock`,
       ])
     })
+    it("should not fail on a window with no folder open", async () => {
+      const manager = new EditorSessionManager()
+      manager.addSession({
+        workspace: {
+          id: "aaa",
+          folders: [
+            {
+              uri: {
+                path: "/aaa",
+              },
+            },
+          ],
+        },
+        socketPath: `${tmpDirPath}/vscode-ipc-aaa.sock`,
+      })
+      // Code sends no workspace for a window with no folder open.
+      manager.addSession({
+        socketPath: `${tmpDirPath}/vscode-ipc-empty.sock`,
+      })
+      const entries = manager.getCandidatesForFile("/bbb/some-file:1:1")
+      expect(entries.map((x) => x.socketPath)).toEqual([
+        `${tmpDirPath}/vscode-ipc-empty.sock`,
+        `${tmpDirPath}/vscode-ipc-aaa.sock`,
+      ])
+    })
   })
 
   describe("getConnectedSocketPath", () => {
