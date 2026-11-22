@@ -66,7 +66,7 @@ export const register = async (
   const common: express.RequestHandler = (req, _, next) => {
     // /healthz|/healthz/ needs to be excluded otherwise health checks will make
     // it look like code-server is always in use.
-    if (!/^\/healthz\/?$/.test(req.url)) {
+    if (!/^\/healthz\/?$/.test(req.path)) {
       // NOTE@jsjoeio - intentionally not awaiting the .beat() call here because
       // we don't want to slow down the request.
       heart.beat()

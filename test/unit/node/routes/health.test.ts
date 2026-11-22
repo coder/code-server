@@ -19,6 +19,14 @@ describe("health", () => {
     expect(json).toStrictEqual({ lastHeartbeat: 0, status: "expired" })
   })
 
+  it("/healthz with a query string", async () => {
+    codeServer = await integration.setup(["--auth=none"], "")
+    const resp = await codeServer.fetch("/healthz", undefined, { probe: "1" })
+    expect(resp.status).toBe(200)
+    const json = await resp.json()
+    expect(json).toStrictEqual({ lastHeartbeat: 0, status: "expired" })
+  })
+
   it("/healthz (websocket)", async () => {
     codeServer = await integration.setup(["--auth=none"], "")
     const ws = codeServer.ws("/healthz")
