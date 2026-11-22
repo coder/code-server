@@ -86,6 +86,9 @@ jobs:
         with:
           node-version-file: .node-version
           registry-url: "https://registry.npmjs.org"
+          # No dependency cache in a job that publishes: a cache saved by another run could
+          # change what gets published.
+          package-manager-cache: false
 
       - uses: robinraju/release-downloader@28fc21f50d76778e7023361aa1f863e717d3d56f # v1.13
         with:
@@ -233,11 +236,15 @@ jobs:
 
       - run: ./ci/steps/docker-buildx-push.sh
 
+  # The org doesn't let GITHUB_TOKEN open pull requests, so the branch is pushed and the PR opened
+  # as the coder-automations App (installed on coder/code-server; its key signs only for
+  # publish.yaml in the release environment).
   repo:
     runs-on: ubuntu-latest
+    environment: release
     permissions:
-      contents: write # To push the branch.
-      pull-requests: write # To open the PR.
+      contents: read
+      id-token: write # Cloud KMS signs the coder-automations App's JWT
     env:
       TAG: ${{ inputs.version || github.ref_name }}
     needs: docker
@@ -253,13 +260,30 @@ jobs:
           echo "VERSION=${TAG#v}" >> "$GITHUB_ENV"
 
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
+        with:
+          persist-credentials: false
 
       - run: ./ci/build/update-repo.sh
 
+      # Minted after the update script so the token only exists for the push and the PR.
+      - name: Generate coder-automations app token
+        id: app_token
+        uses: coder/github-app-token-action@00eaec58ee1bfea9c8b48655b7ab7470b07739e5 # main 2026-11-17
+        with:
+          client-id: ${{ secrets.CODER_AUTOMATION_APP_ID }}
+          kms-key: ${{ secrets.CODER_AUTOMATION_APP_KMS_KEY }}
+          workload-identity-provider: ${{ secrets.APP_KEYS_WORKLOAD_ID_PROVIDER }}
+          owner: coder
+          repositories: code-server
+          permissions: |
+            contents: write
+            pull_requests: write
+
       - name: Open PR
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ steps.app_token.outputs.token }}
         run: |
+          gh auth setup-git
           git config --global user.name cdrci
           git config --global user.email opensource@coder.com
           git checkout -b "helm/$VERSION"
