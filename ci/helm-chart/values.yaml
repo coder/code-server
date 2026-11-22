@@ -235,4 +235,4 @@ extraConfigmapMounts: []
 extraPorts: []
   # - name: minecraft
   #   port: 25565
-  #   protocol: tcp
+  #   protocol: TCP
