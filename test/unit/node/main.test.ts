@@ -174,6 +174,48 @@ describe("main", () => {
       // Verify that loadCustomStrings was called
       expect(mockedLoadCustomStrings).toHaveBeenCalledWith(nonExistentFile)
     })
+
+    it("should shut down after --idle-timeout-seconds without activity", async () => {
+      const cliArgs = parse([
+        `--config=${path.join(tempDir, "config.yaml")}`,
+        `--user-data-dir=${tempDir}`,
+        "--bind-addr=localhost:0",
+        "--log=warn",
+        "--auth=none",
+        "--idle-timeout-seconds=120",
+      ])
+      const args = await setDefaults(cliArgs)
+
+      // Load main afresh so it picks up the mocks below.
+      jest.resetModules()
+      jest.doMock("../../../src/node/app", () => ({
+        createApp: jest.fn().mockResolvedValue(mockServer),
+        ensureAddress: jest.fn().mockReturnValue(new URL("http://localhost:8080")),
+      }))
+      // A heart that never reports activity, so the idle timer is never reset.
+      jest.doMock("../../../src/node/routes", () => ({
+        register: jest.fn().mockResolvedValue({ disposeRoutes: jest.fn(), heart: { onChange: jest.fn() } }),
+      }))
+      const exit = jest.fn()
+      jest.doMock("../../../src/node/wrapper", () => ({ wrapper: { exit } }))
+
+      jest.useFakeTimers()
+      try {
+        const mainModule = await import("../../../src/node/main")
+        const result = await mainModule.runCodeServer(args)
+
+        // The timeout is given in seconds.
+        jest.advanceTimersByTime(119 * 1000)
+        expect(exit).not.toHaveBeenCalled()
+        jest.advanceTimersByTime(1000)
+        expect(exit).toHaveBeenCalledWith(0)
+
+        await result.dispose()
+      } finally {
+        jest.useRealTimers()
+        jest.dontMock("../../../src/node/wrapper")
+      }
+    })
   })
 
   describe("openInExistingInstance", () => {
