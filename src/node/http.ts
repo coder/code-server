@@ -478,8 +478,10 @@ export function getHost(req: express.Request, withForwardedPort = false): string
     const parts = forwardedRaw.split(/[;,]/)
     for (let i = 0; i < parts.length; ++i) {
       const [key, value] = splitOnFirstEquals(parts[i])
-      if (key.trim().toLowerCase() === "host" && value) {
-        return value.trim().toLowerCase()
+      // Values can be quoted, like host="example.com:8080" (RFC 7239).
+      const host = value?.replace(/^\s*"(.*)"\s*$/, "$1")
+      if (key.trim().toLowerCase() === "host" && host) {
+        return host.trim().toLowerCase()
       }
     }
   }
