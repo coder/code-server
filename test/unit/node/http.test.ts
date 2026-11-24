@@ -149,6 +149,7 @@ describe("http", () => {
         ["forwarded", `for=127.0.0.1, host=${test.host}, proto=http`],
         ["forwarded", `for=127.0.0.1;proto=http;host=${test.host}`],
         ["forwarded", `proto=http;host=${test.host}, for=127.0.0.1`],
+        ["forwarded", `for="127.0.0.1:8080";proto=http;host="${test.host}"`],
       ].forEach(([key, value]) => {
         it(`${test.origin} -> [${key}: ${value}]`, () => {
           const req = getMockReq({
