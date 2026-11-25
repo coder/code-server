@@ -9,7 +9,7 @@ main() {
   # NOTE@jsjoeio - this script assumes that you've downloaded
   # the release-packages artifact to ./release-packages before
   # running this docker buildx step
-  docker buildx bake -f ci/release-image/docker-bake.hcl --push "$@"
+  docker buildx bake -f ci/release-image/docker-bake.hcl --push --sbom=true "$@"
 }
 
 main "$@"
